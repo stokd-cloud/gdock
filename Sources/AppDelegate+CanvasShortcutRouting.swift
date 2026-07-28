@@ -17,7 +17,7 @@ extension AppDelegate {
 
         if let workspace = tabManager?.selectedWorkspace, workspace.layoutMode == .canvas {
             guard let panelId = workspace.openNewCanvasPane(
-                type: .browser,
+                kind: .browser,
                 focus: true,
                 direction: direction.canvasDirection
             ) else {

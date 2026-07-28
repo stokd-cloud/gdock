@@ -1,5 +1,6 @@
 import CoreGraphics
 import CmuxCore
+import CmuxDockable
 import Foundation
 import Bonsplit
 import CmuxWorkspaces
@@ -1620,7 +1621,16 @@ struct SessionProjectPanelSnapshot: Codable, Sendable {
     }
 }
 
-struct SessionPanelSnapshot: Codable, Sendable {
+/// In-memory panel snapshot used by session restore and ClosedItemHistory.
+///
+/// **On-disk primary shape (new writes):** common metadata plus a nested
+/// ``DockableSnapshot`` (`id` / `kind` / opaque `payload`). The nine legacy
+/// per-kind optional fields are **not** primary-encoded.
+///
+/// **Legacy decode:** pre-refactor records with `terminal` / `browser` / …
+/// optional fields still decode; payload is reconstructed for registry restore.
+/// Codable implementation lives in `SessionPanelSnapshot+DockableCodec.swift`.
+struct SessionPanelSnapshot: Sendable {
     var id: UUID
     var stableSurfaceId: UUID? = nil
     var type: PanelType
@@ -1639,6 +1649,7 @@ struct SessionPanelSnapshot: Codable, Sendable {
     var gitBranch: SessionGitBranchSnapshot?
     var listeningPorts: [Int]
     var ttyName: String?
+    /// In-memory typed payload adapters. Not primary-encoded for new writes.
     var terminal: SessionTerminalPanelSnapshot?
     var browser: SessionBrowserPanelSnapshot?
     var markdown: SessionMarkdownPanelSnapshot?

@@ -741,7 +741,7 @@ extension Workspace {
         case .cloudVMLoading:
             return nil
         }
-        return SessionPanelSnapshot(
+        let snapshot = SessionPanelSnapshot(
             id: panelId,
             stableSurfaceId: panel.stableSurfaceId,
             type: panel.panelType,
@@ -768,6 +768,17 @@ extension Workspace {
             agentSession: agentSessionSnapshot,
             project: projectSnapshot, workspaceTodo: workspaceTodoSnapshot
         )
+        // New primary encode requires a DockableSnapshot payload. Encode failures
+        // log+skip this pane rather than aborting the whole session snapshot.
+        do {
+            _ = try snapshot.makeDockableSnapshot()
+        } catch {
+            #if DEBUG
+            print("sessionPanelSnapshot: encodeDockPayload failed for \(panelId) type=\(panel.panelType.rawValue): \(error)")
+            #endif
+            return nil
+        }
+        return snapshot
     }
     private func closedPanelHistoryEntry(panelId: UUID, tabId: TabID, pane: PaneID) -> ClosedPanelHistoryEntry? {
         guard !suppressClosedPanelHistory else { return nil }

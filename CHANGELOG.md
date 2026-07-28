@@ -2,6 +2,15 @@
 
 All notable changes to cmux are documented here.
 
+## [Unreleased] - TBD
+
+### Added
+- Canvas panes can be created for every pane kind: `canvas.new_pane` over the control socket now accepts `markdown`, `filepreview`, `agentSession`, `project`, `workspaceTodo`, and the remaining panel kinds in addition to `terminal` and `browser`
+
+### Changed
+- Canvas panes and dock panels share one Dockable pane abstraction, so pane creation, mounting, focus, and teardown follow the same path on the canvas and in splits
+- Session snapshots store each pane as a single Dockable payload; sessions saved by earlier cmux versions still restore unchanged
+
 ## [0.64.20] - 2026-07-19
 
 ### Added

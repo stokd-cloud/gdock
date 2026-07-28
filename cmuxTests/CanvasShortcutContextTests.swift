@@ -141,7 +141,7 @@ struct CanvasShortcutRoutingFeedbackTests {
 
             window.makeKeyAndOrderFront(nil)
             workspace.setLayoutMode(.canvas)
-            let secondPanelId = try #require(workspace.openNewCanvasPane(type: .terminal, focus: true))
+            let secondPanelId = try #require(workspace.openNewCanvasPane(kind: .terminal, focus: true))
             #expect(workspace.focusedPanelId == secondPanelId)
 
             appDelegate.noteRightSidebarKeyboardFocusIntent(mode: .sessions, in: window)
@@ -181,7 +181,7 @@ struct CanvasShortcutRoutingFeedbackTests {
 
             window.makeKeyAndOrderFront(nil)
             workspace.setLayoutMode(.canvas)
-            let secondPanelId = try #require(workspace.openNewCanvasPane(type: .terminal, focus: true, direction: .right))
+            let secondPanelId = try #require(workspace.openNewCanvasPane(kind: .terminal, focus: true, direction: .right))
             let viewport = CanvasRoutingViewportSpy()
             workspace.canvasModel.viewport = viewport
             workspace.focusPanel(firstPanelId)

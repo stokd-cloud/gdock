@@ -1272,6 +1272,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 "telemetry": telemetryEnabled ? "1" : "0"
             ]
         )
+        // Register Dockable kind factories before any canvas open / session restore path.
+        DockableBootstrap.registerAllIfNeeded()
         AppIconLaunchState.markDidFinishLaunching()
         AppearanceSettingsUserDefaultsObserver.shared.startObserving()
         systemAppearanceObserver.startObserving()
@@ -14721,7 +14723,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 if let workspace = terminalContext.tabManager.tabs.first(where: { $0.id == terminalContext.workspaceId }),
                    workspace.layoutMode == .canvas {
                     return workspace.openNewCanvasPane(
-                        type: .terminal,
+                        kind: .terminal,
                         focus: true,
                         direction: direction.canvasDirection
                     ) != nil
@@ -14735,7 +14737,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             if let workspace = tabManager?.selectedWorkspace,
                workspace.layoutMode == .canvas {
                 return workspace.openNewCanvasPane(
-                    type: .terminal,
+                    kind: .terminal,
                     focus: true,
                     direction: direction.canvasDirection
                 ) != nil
