@@ -48,7 +48,7 @@ struct DockableKindSupportRow: Equatable, Sendable {
     var requiredContextSummary: String
 }
 
-/// Executable, checked-in support matrix for all 11 dockable kinds.
+/// Executable, checked-in support matrix for all dockable kinds.
 ///
 /// Tests load ``allRows``, assert count and kind set, and probe create/restore
 /// using real fixtures for every non-ephemeral create/restore-capable row.
@@ -88,6 +88,13 @@ enum DockableSupportMatrix {
             restore: .yes,
             move: .yes,
             requiredContextSummary: "Workspace + RightSidebarMode (pane mode). Payload: SessionRightSidebarToolPanelSnapshot JSON."
+        ),
+        DockableKindSupportRow(
+            kind: .leftWorkspaceSelector,
+            create: .yes(requiredContext: [.workspace]),
+            restore: .yes,
+            move: .yes,
+            requiredContextSummary: "Workspace. Payload: SessionLeftWorkspaceSelectorPanelSnapshot JSON (empty marker)."
         ),
         DockableKindSupportRow(
             kind: .customSidebar,

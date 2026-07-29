@@ -224,6 +224,7 @@ final class DockableSnapshotTests: XCTestCase {
         let markdown = MarkdownPanel(workspaceId: workspace.id, filePath: fileURL.path)
         let filePreview = FilePreviewPanel(workspaceId: workspace.id, filePath: fileURL.path)
         let tool = RightSidebarToolPanel(workspace: workspace, mode: .files)
+        let leftSelector = LeftWorkspaceSelectorPanel(workspace: workspace)
         let sidebarURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("dock-\(UUID().uuidString).cmuxsidebar")
         try "".write(to: sidebarURL, atomically: true, encoding: .utf8)
@@ -248,6 +249,7 @@ final class DockableSnapshotTests: XCTestCase {
             (.markdown, try markdown.encodeDockPayload(), { ($0 as? MarkdownPanel)?.filePath == fileURL.path }),
             (.filePreview, try filePreview.encodeDockPayload(), { ($0 as? FilePreviewPanel)?.filePath == fileURL.path }),
             (.rightSidebarTool, try tool.encodeDockPayload(), { ($0 as? RightSidebarToolPanel)?.mode == .files }),
+            (.leftWorkspaceSelector, try leftSelector.encodeDockPayload(), { ($0 as? LeftWorkspaceSelectorPanel) != nil }),
             (.customSidebar, try custom.encodeDockPayload(), { ($0 as? CustomSidebarPanel)?.name == "DemoSidebar" }),
             (.agentSession, try agent.encodeDockPayload(), { dock in
                 let panel = dock as? AgentSessionPanel

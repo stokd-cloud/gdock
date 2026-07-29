@@ -159,7 +159,7 @@ final class DockableRegistrationTests: XCTestCase {
             ctx.customSidebarFileURL = sidebarURL
         case .browser:
             ctx.url = URL(string: "https://example.com")
-        case .terminal, .agentSession, .extensionBrowser, .workspaceTodo, .cloudVMLoading:
+        case .terminal, .agentSession, .extensionBrowser, .workspaceTodo, .cloudVMLoading, .leftWorkspaceSelector:
             break
         }
         return ctx

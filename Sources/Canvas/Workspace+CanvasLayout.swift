@@ -219,6 +219,57 @@ extension Workspace {
 }
 
 extension Workspace {
+    /// Shared show path for Files / Find / Vault: focus the singleton pane for
+    /// `mode`, or create one. Canvas layout free-floats a new pane; splits mode
+    /// opens a tab in the focused bonsplit pane. Fixed right-host chrome is not
+    /// required.
+    @discardableResult
+    func showOrFocusRightSidebarToolPane(
+        mode: RightSidebarMode,
+        focus: Bool = true
+    ) -> RightSidebarToolPanel? {
+        guard mode.canOpenAsPane else { return nil }
+
+        if let existing = existingRightSidebarToolPanel(mode: mode) {
+            if focus {
+                focusPanel(existing.id)
+                if layoutMode == .canvas {
+                    canvasModel.viewport?.revealPane(existing.id, animated: true)
+                }
+            }
+            return existing
+        }
+
+        guard let paneId = bonsplitController.focusedPaneId ?? bonsplitController.allPaneIds.first else {
+            return nil
+        }
+
+        if layoutMode == .canvas {
+            let anchorPanelId = focusedPanelId
+            let preferredSize: CanvasSize? = anchorPanelId
+                .flatMap { canvasModel.frame(of: $0) }
+                .map { CanvasSize(width: Double($0.width), height: Double($0.height)) }
+            guard let panel = newRightSidebarToolSurface(inPane: paneId, mode: mode, focus: focus) else {
+                return nil
+            }
+            // Free-float the new tool like openNewCanvasPane (not a tab of the anchor).
+            canvasModel.syncPanes(
+                panelIds: orderedPanelIds,
+                focusedPanelId: anchorPanelId,
+                preferredDirection: nil,
+                preferredNewPaneSize: preferredSize
+            )
+            if focus {
+                focusPanel(panel.id)
+                canvasModel.viewport?.modelDidChangeExternally(animated: false)
+                canvasModel.viewport?.revealPane(panel.id, animated: true)
+            }
+            return panel
+        }
+
+        return openOrFocusRightSidebarToolSurface(inPane: paneId, mode: mode, focus: focus)
+    }
+
     /// Creates a new surface as its own free-floating canvas pane (not joined
     /// as a tab of an existing pane), the automation counterpart to the
     /// canvas "new pane" gesture. Returns the new surface/panel UUID, or `nil`
@@ -297,6 +348,8 @@ extension Workspace {
             )?.id
         case .rightSidebarTool:
             return newRightSidebarToolSurface(inPane: paneId, mode: .files, focus: focus)?.id
+        case .leftWorkspaceSelector:
+            return newLeftWorkspaceSelectorSurface(inPane: paneId, focus: focus)?.id
         case .extensionBrowser:
             return newSidebarExtensionBrowserSurface(
                 inPane: paneId,
@@ -405,6 +458,7 @@ extension Workspace {
         case .markdown: return SurfaceKind.markdown.rawValue
         case .filePreview: return SurfaceKind.filePreview.rawValue
         case .rightSidebarTool: return SurfaceKind.rightSidebarTool.rawValue
+        case .leftWorkspaceSelector: return SurfaceKind.leftWorkspaceSelector.rawValue
         case .customSidebar: return SurfaceKind.customSidebar.rawValue
         case .agentSession: return SurfaceKind.agentSession.rawValue
         case .project: return SurfaceKind.project.rawValue

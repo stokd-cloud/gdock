@@ -1599,6 +1599,10 @@ struct SessionCustomSidebarPanelSnapshot: Codable, Sendable { var name: String }
 /// Marker for a workspace todo pane; the pane has no content of its own (the checklist
 /// persists on the workspace), so the panel `type` plus this empty marker is enough to restore it.
 struct SessionWorkspaceTodoPanelSnapshot: Codable, Sendable {}
+/// Marker for a left workspace selector pane; chrome has no per-panel content
+/// beyond type (list state lives on TabManager / window), so type + empty marker
+/// is enough to restore.
+struct SessionLeftWorkspaceSelectorPanelSnapshot: Codable, Sendable {}
 struct SessionProjectPanelSnapshot: Codable, Sendable {
     var projectPath: String
     var selectedNodePath: String?
@@ -1655,6 +1659,7 @@ struct SessionPanelSnapshot: Sendable {
     var markdown: SessionMarkdownPanelSnapshot?
     var filePreview: SessionFilePreviewPanelSnapshot?
     var rightSidebarTool: SessionRightSidebarToolPanelSnapshot?
+    var leftWorkspaceSelector: SessionLeftWorkspaceSelectorPanelSnapshot? = nil
     var customSidebar: SessionCustomSidebarPanelSnapshot? = nil
     var agentSession: SessionAgentSessionPanelSnapshot? = nil
     var project: SessionProjectPanelSnapshot?

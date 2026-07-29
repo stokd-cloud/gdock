@@ -39,6 +39,7 @@ extension SessionPanelSnapshot: Codable {
         case markdown
         case filePreview
         case rightSidebarTool
+        case leftWorkspaceSelector
         case customSidebar
         case agentSession
         case project
@@ -96,6 +97,7 @@ extension SessionPanelSnapshot: Codable {
         markdown = nil
         filePreview = nil
         rightSidebarTool = nil
+        leftWorkspaceSelector = nil
         customSidebar = nil
         agentSession = nil
         project = nil
@@ -140,6 +142,10 @@ extension SessionPanelSnapshot: Codable {
         markdown = try container.decodeIfPresent(SessionMarkdownPanelSnapshot.self, forKey: .markdown)
         filePreview = try container.decodeIfPresent(SessionFilePreviewPanelSnapshot.self, forKey: .filePreview)
         rightSidebarTool = try container.decodeIfPresent(SessionRightSidebarToolPanelSnapshot.self, forKey: .rightSidebarTool)
+        leftWorkspaceSelector = try container.decodeIfPresent(
+            SessionLeftWorkspaceSelectorPanelSnapshot.self,
+            forKey: .leftWorkspaceSelector
+        )
         customSidebar = try container.decodeIfPresent(SessionCustomSidebarPanelSnapshot.self, forKey: .customSidebar)
         agentSession = try container.decodeIfPresent(SessionAgentSessionPanelSnapshot.self, forKey: .agentSession)
         project = try container.decodeIfPresent(SessionProjectPanelSnapshot.self, forKey: .project)
@@ -219,6 +225,8 @@ extension SessionPanelSnapshot {
         case .workspaceTodo:
             // Marker payload; empty object is fine.
             return try encoder.encode(workspaceTodo ?? SessionWorkspaceTodoPanelSnapshot())
+        case .leftWorkspaceSelector:
+            return try encoder.encode(leftWorkspaceSelector ?? SessionLeftWorkspaceSelectorPanelSnapshot())
         case .extensionBrowser, .cloudVMLoading:
             // Content-less kinds: empty payload.
             return Data()
@@ -252,6 +260,13 @@ extension SessionPanelSnapshot {
                 workspaceTodo = (try? decoder.decode(SessionWorkspaceTodoPanelSnapshot.self, from: payload))
                     ?? SessionWorkspaceTodoPanelSnapshot()
             }
+        case .leftWorkspaceSelector:
+            if payload.isEmpty {
+                leftWorkspaceSelector = SessionLeftWorkspaceSelectorPanelSnapshot()
+            } else {
+                leftWorkspaceSelector = (try? decoder.decode(SessionLeftWorkspaceSelectorPanelSnapshot.self, from: payload))
+                    ?? SessionLeftWorkspaceSelectorPanelSnapshot()
+            }
         case .extensionBrowser, .cloudVMLoading:
             break
         }
@@ -283,6 +298,7 @@ extension SessionPanelSnapshot {
         case .markdown: return markdown != nil
         case .filePreview: return filePreview != nil
         case .rightSidebarTool: return rightSidebarTool != nil
+        case .leftWorkspaceSelector: return true
         case .customSidebar: return customSidebar != nil
         case .agentSession: return agentSession != nil
         case .project: return project != nil
@@ -298,6 +314,7 @@ extension SessionPanelSnapshot {
             markdown != nil,
             filePreview != nil,
             rightSidebarTool != nil,
+            leftWorkspaceSelector != nil,
             customSidebar != nil,
             agentSession != nil,
             project != nil,
@@ -311,6 +328,7 @@ extension SessionPanelSnapshot {
         let keepMarkdown = type == .markdown ? markdown : nil
         let keepFilePreview = type == .filePreview ? filePreview : nil
         let keepRightSidebar = type == .rightSidebarTool ? rightSidebarTool : nil
+        let keepLeftSelector = type == .leftWorkspaceSelector ? leftWorkspaceSelector : nil
         let keepCustomSidebar = type == .customSidebar ? customSidebar : nil
         let keepAgent = type == .agentSession ? agentSession : nil
         let keepProject = type == .project ? project : nil
@@ -320,6 +338,7 @@ extension SessionPanelSnapshot {
         markdown = keepMarkdown
         filePreview = keepFilePreview
         rightSidebarTool = keepRightSidebar
+        leftWorkspaceSelector = keepLeftSelector
         customSidebar = keepCustomSidebar
         agentSession = keepAgent
         project = keepProject
@@ -347,6 +366,7 @@ enum SessionPanelDockableCodec {
         markdown: SessionMarkdownPanelSnapshot? = nil,
         filePreview: SessionFilePreviewPanelSnapshot? = nil,
         rightSidebarTool: SessionRightSidebarToolPanelSnapshot? = nil,
+        leftWorkspaceSelector: SessionLeftWorkspaceSelectorPanelSnapshot? = nil,
         customSidebar: SessionCustomSidebarPanelSnapshot? = nil,
         agentSession: SessionAgentSessionPanelSnapshot? = nil,
         project: SessionProjectPanelSnapshot? = nil,
@@ -367,6 +387,7 @@ enum SessionPanelDockableCodec {
             markdown: markdown,
             filePreview: filePreview,
             rightSidebarTool: rightSidebarTool,
+            leftWorkspaceSelector: leftWorkspaceSelector,
             customSidebar: customSidebar,
             agentSession: agentSession,
             project: project,
@@ -394,7 +415,7 @@ private extension PanelType {
     var requiresStatefulDockPayload: Bool {
         switch self {
         case .terminal, .browser, .markdown, .filePreview, .rightSidebarTool,
-                .customSidebar, .agentSession, .project, .workspaceTodo:
+                .leftWorkspaceSelector, .customSidebar, .agentSession, .project, .workspaceTodo:
             return true
         case .extensionBrowser, .cloudVMLoading:
             return false

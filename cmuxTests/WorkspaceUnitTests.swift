@@ -5887,6 +5887,145 @@ final class WorkspacePanelGitBranchTests: XCTestCase {
         XCTAssertEqual(workspace.focusedPanelId, firstPanel.id)
     }
 
+    /// VAL-RIGHT-PANES-001: singleton openOrFocus per mode for Files / Find / Vault.
+    func testOpenOrFocusRightSidebarToolSurfaceIsSingletonPerMode() {
+        let workspace = Workspace()
+        guard let paneId = workspace.bonsplitController.focusedPaneId else {
+            XCTFail("Expected focused pane")
+            return
+        }
+
+        var created: [RightSidebarMode: UUID] = [:]
+        for mode in RightSidebarMode.paneModes {
+            guard let first = workspace.openOrFocusRightSidebarToolSurface(
+                inPane: paneId,
+                mode: mode,
+                focus: true
+            ) else {
+                XCTFail("Expected \(mode.rawValue) tool surface to be created")
+                return
+            }
+            guard let second = workspace.openOrFocusRightSidebarToolSurface(
+                inPane: paneId,
+                mode: mode,
+                focus: true
+            ) else {
+                XCTFail("Expected existing \(mode.rawValue) tool surface to be focused")
+                return
+            }
+            XCTAssertEqual(first.id, second.id, "Expected singleton openOrFocus for \(mode.rawValue)")
+            XCTAssertEqual(workspace.focusedPanelId, first.id)
+            created[mode] = first.id
+            XCTAssertEqual(
+                workspace.panels.values.compactMap { $0 as? RightSidebarToolPanel }.filter { $0.mode == mode }.count,
+                1,
+                "Expected at most one \(mode.rawValue) pane"
+            )
+        }
+
+        // One of each mode may coexist; re-focusing any mode reuses that singleton.
+        XCTAssertEqual(created.count, RightSidebarMode.paneModes.count)
+        XCTAssertEqual(
+            Set(created.values).count,
+            RightSidebarMode.paneModes.count,
+            "Expected distinct panel identities across Files/Find/Vault"
+        )
+        for mode in RightSidebarMode.paneModes {
+            let again = workspace.openOrFocusRightSidebarToolSurface(inPane: paneId, mode: mode, focus: true)
+            XCTAssertEqual(again?.id, created[mode])
+        }
+    }
+
+    /// VAL-RIGHT-PANES-001: canvas mode with no fixed host still opens singleton panes.
+    func testShowOrFocusRightSidebarToolPaneInCanvasIsSingletonAndCreatesFreeFloatingPane() {
+        let workspace = Workspace()
+        workspace.setLayoutMode(.canvas)
+        XCTAssertEqual(workspace.layoutMode, .canvas)
+
+        var created: [RightSidebarMode: UUID] = [:]
+        for mode in RightSidebarMode.paneModes {
+            guard let first = workspace.showOrFocusRightSidebarToolPane(mode: mode, focus: true) else {
+                XCTFail("Expected \(mode.rawValue) canvas tool pane to be created with right host unused")
+                return
+            }
+            guard let second = workspace.showOrFocusRightSidebarToolPane(mode: mode, focus: true) else {
+                XCTFail("Expected existing \(mode.rawValue) canvas tool pane to be focused")
+                return
+            }
+            XCTAssertEqual(first.id, second.id)
+            XCTAssertEqual(first.mode, mode)
+            XCTAssertEqual(workspace.focusedPanelId, first.id)
+            created[mode] = first.id
+        }
+
+        XCTAssertEqual(created.count, 3)
+        XCTAssertEqual(
+            workspace.panels.values.compactMap { $0 as? RightSidebarToolPanel }.count,
+            3,
+            "Expected one Files, one Find, and one Vault pane"
+        )
+    }
+
+    /// VAL-LEFT-001: real left selector is a dockable singleton (not fixed-host only).
+    func testOpenOrFocusLeftWorkspaceSelectorSurfaceIsSingleton() {
+        let workspace = Workspace()
+        guard let paneId = workspace.bonsplitController.focusedPaneId else {
+            XCTFail("Expected focused pane")
+            return
+        }
+
+        guard let first = workspace.openOrFocusLeftWorkspaceSelectorSurface(inPane: paneId, focus: true) else {
+            XCTFail("Expected left selector surface to be created")
+            return
+        }
+        guard let second = workspace.openOrFocusLeftWorkspaceSelectorSurface(inPane: paneId, focus: true) else {
+            XCTFail("Expected existing left selector surface to be focused")
+            return
+        }
+
+        XCTAssertEqual(first.id, second.id)
+        XCTAssertEqual(first.panelType, .leftWorkspaceSelector)
+        XCTAssertEqual(
+            workspace.panels.values.compactMap { $0 as? LeftWorkspaceSelectorPanel }.count,
+            1
+        )
+        XCTAssertEqual(workspace.focusedPanelId, first.id)
+        XCTAssertEqual(
+            workspace.surfaceIdFromPanelId(first.id).flatMap { workspace.bonsplitController.tab($0)?.kind },
+            SurfaceKind.leftWorkspaceSelector.rawValue
+        )
+        // Real list host class (not a stub placeholder panel type).
+        XCTAssertEqual(
+            first.displayTitle,
+            String(localized: "leftWorkspaceSelectorPane.title", defaultValue: "Workspaces")
+        )
+        XCTAssertEqual(first.displayIcon, "sidebar.left")
+    }
+
+    /// VAL-LEFT-001: canvas free-float openOrFocus with no fixed left host.
+    func testShowOrFocusLeftWorkspaceSelectorPaneInCanvasIsSingletonAndCreatesFreeFloatingPane() {
+        let workspace = Workspace()
+        workspace.setLayoutMode(.canvas)
+        XCTAssertEqual(workspace.layoutMode, .canvas)
+
+        guard let first = workspace.showOrFocusLeftWorkspaceSelectorPane(focus: true) else {
+            XCTFail("Expected left selector canvas pane with fixed left unused")
+            return
+        }
+        guard let second = workspace.showOrFocusLeftWorkspaceSelectorPane(focus: true) else {
+            XCTFail("Expected existing left selector canvas pane to be focused")
+            return
+        }
+
+        XCTAssertEqual(first.id, second.id)
+        XCTAssertEqual(first.panelType, .leftWorkspaceSelector)
+        XCTAssertEqual(workspace.focusedPanelId, first.id)
+        XCTAssertEqual(
+            workspace.panels.values.compactMap { $0 as? LeftWorkspaceSelectorPanel }.count,
+            1
+        )
+    }
+
     func testClosingFocusedSplitRestoresBranchForRemainingFocusedPanel() {
         let workspace = Workspace()
         guard let firstPanelId = workspace.focusedPanelId else {

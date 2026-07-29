@@ -15,8 +15,8 @@ final class DockableKindsMatrixTests: XCTestCase {
         DockableBootstrap.registerAllIfNeeded()
     }
 
-    func testMatrixCoversExactlyElevenKinds() {
-        XCTAssertEqual(DockableSupportMatrix.allRows.count, 11)
+    func testMatrixCoversExactlyTwelveKinds() {
+        XCTAssertEqual(DockableSupportMatrix.allRows.count, 12)
         XCTAssertEqual(DockableSupportMatrix.kindSet, Set(DockableKind.allCases))
         for kind in DockableKind.allCases {
             XCTAssertNotNil(DockableSupportMatrix.row(for: kind), "missing matrix row for \(kind)")

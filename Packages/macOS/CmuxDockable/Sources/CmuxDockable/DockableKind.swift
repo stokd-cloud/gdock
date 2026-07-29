@@ -14,6 +14,7 @@ public enum DockableKind: String, Codable, Sendable, CaseIterable {
     case markdown
     case filePreview = "filepreview"
     case rightSidebarTool
+    case leftWorkspaceSelector
     case customSidebar
     case agentSession
     case project

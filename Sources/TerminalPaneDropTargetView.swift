@@ -399,6 +399,8 @@ final class PaneDropTargetView: NSView {
             return nil
         case .rightSidebarTool:
             return nil
+        case .leftWorkspaceSelector:
+            return nil
         case .customSidebar:
             return nil
         case .agentSession, .project:

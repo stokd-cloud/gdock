@@ -7,7 +7,7 @@ import CmuxDockable
 @testable import cmux
 #endif
 
-/// Bidirectional PanelType ↔ DockableKind raw-value parity for all 11 kinds.
+/// Bidirectional PanelType ↔ DockableKind raw-value parity for all 12 kinds.
 final class DockableKindParityTests: XCTestCase {
     private let expectedRaws: Set<String> = [
         "terminal",
@@ -15,6 +15,7 @@ final class DockableKindParityTests: XCTestCase {
         "markdown",
         "filepreview",
         "rightSidebarTool",
+        "leftWorkspaceSelector",
         "customSidebar",
         "agentSession",
         "project",
@@ -25,7 +26,7 @@ final class DockableKindParityTests: XCTestCase {
 
     func testDockableKindRawValueSetMatchesExpected() {
         let raws = Set(DockableKind.allCases.map(\.rawValue))
-        XCTAssertEqual(DockableKind.allCases.count, 11)
+        XCTAssertEqual(DockableKind.allCases.count, 12)
         XCTAssertEqual(raws, expectedRaws)
     }
 
@@ -38,7 +39,7 @@ final class DockableKindParityTests: XCTestCase {
     }
 
     @MainActor
-    func testAllElevenPanelKindsMapDockableKindFromPanelType() {
+    func testAllTwelvePanelKindsMapDockableKindFromPanelType() {
         let workspace = Workspace()
         let fileURL = URL(fileURLWithPath: "/tmp/cmux-dockable-parity.md")
         try? "parity".write(to: fileURL, atomically: true, encoding: .utf8)
@@ -50,6 +51,7 @@ final class DockableKindParityTests: XCTestCase {
             MarkdownPanel(workspaceId: workspace.id, filePath: fileURL.path),
             FilePreviewPanel(workspaceId: workspace.id, filePath: fileURL.path),
             RightSidebarToolPanel(workspace: workspace, mode: .files),
+            LeftWorkspaceSelectorPanel(workspace: workspace),
             CustomSidebarPanel(workspace: workspace, name: "demo", fileURL: fileURL),
             AgentSessionPanel(workspaceId: workspace.id, rendererKind: .react),
             ProjectPanel(projectURL: URL(fileURLWithPath: "/tmp/Demo.xcodeproj")),
@@ -58,7 +60,7 @@ final class DockableKindParityTests: XCTestCase {
             CloudVMLoadingPanel(workspaceId: workspace.id),
         ]
 
-        XCTAssertEqual(panels.count, 11)
+        XCTAssertEqual(panels.count, 12)
         var kinds = Set<DockableKind>()
         for panel in panels {
             let kind = panel.dockableKind

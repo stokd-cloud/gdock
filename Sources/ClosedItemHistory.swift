@@ -718,6 +718,8 @@ final class ClosedItemHistoryStore: ObservableObject {
                 return mode.label
             }
             return String(localized: "menu.history.recentlyClosed.panel.tool", defaultValue: "Tool")
+        case .leftWorkspaceSelector:
+            return String(localized: "leftWorkspaceSelectorPane.title", defaultValue: "Workspaces")
         case .customSidebar:
             return String(localized: "menu.history.recentlyClosed.panel.customSidebar", defaultValue: "Custom Sidebar")
         case .agentSession:

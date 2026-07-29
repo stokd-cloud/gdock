@@ -21,6 +21,12 @@ extension RightSidebarToolPanel {
     }
 }
 
+extension LeftWorkspaceSelectorPanel {
+    func encodeDockPayload() throws -> Data {
+        try JSONEncoder().encode(SessionLeftWorkspaceSelectorPanelSnapshot())
+    }
+}
+
 extension CustomSidebarPanel {
     func encodeDockPayload() throws -> Data {
         try JSONEncoder().encode(SessionCustomSidebarPanelSnapshot(name: name))

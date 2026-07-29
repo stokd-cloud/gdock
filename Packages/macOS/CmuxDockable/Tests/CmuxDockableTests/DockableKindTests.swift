@@ -12,6 +12,7 @@ struct DockableKindTests {
         "markdown",
         "filepreview",
         "rightSidebarTool",
+        "leftWorkspaceSelector",
         "customSidebar",
         "agentSession",
         "project",
@@ -21,7 +22,7 @@ struct DockableKindTests {
     ]
 
     @Test func rawValueParityWithPanelType() {
-        #expect(DockableKind.allCases.count == 11)
+        #expect(DockableKind.allCases.count == 12)
         let actual = Set(DockableKind.allCases.map(\.rawValue))
         #expect(actual == Self.expectedRawValues)
 

@@ -104,6 +104,9 @@ enum DockableBootstrap {
                   let mode = ctx.rightSidebarMode,
                   mode.canOpenAsPane else { return nil }
             return RightSidebarToolPanel(workspace: workspace, mode: mode)
+        case .leftWorkspaceSelector:
+            guard let workspace else { return nil }
+            return LeftWorkspaceSelectorPanel(workspace: workspace)
         case .customSidebar:
             guard let workspace,
                   let name = ctx.customSidebarName,
@@ -179,6 +182,14 @@ enum DockableBootstrap {
                 return nil
             }
             return RightSidebarToolPanel(workspace: workspace, mode: mode)
+        case .leftWorkspaceSelector:
+            guard let workspace else { return nil }
+            if !payload.isEmpty {
+                guard (try? decoder.decode(SessionLeftWorkspaceSelectorPanelSnapshot.self, from: payload)) != nil else {
+                    return nil
+                }
+            }
+            return LeftWorkspaceSelectorPanel(workspace: workspace)
         case .customSidebar:
             guard let snap = try? decoder.decode(SessionCustomSidebarPanelSnapshot.self, from: payload),
                   let workspace else {
