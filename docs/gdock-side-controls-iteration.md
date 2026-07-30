@@ -1,8 +1,8 @@
 # ghostty-dock (gdock) — Iteration 1: side controls on canvas
 
-**Date:** 2026-07-28  
-**Status:** Implemented (uncommitted at draft time; ship with this branch)  
-**Product:** **ghostty-dock** (short: **gdock**) — the cmux fork.  
+**Date:** 2026-07-28
+**Status:** Implemented (uncommitted at draft time; ship with this branch)
+**Product:** **ghostty-dock** (short: **gdock**) — the cmux fork.
 **Builds on:** existing **canvas mode** + canvas Dockable plumbing. Do **not** re-build canvas mode or re-do `CmuxDockable`.
 
 ## Naming (do not reintroduce)

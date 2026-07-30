@@ -5,9 +5,9 @@
 **Derived From:** User dogfood of `docs/cmux-canvas-dockable-refactor.prd.md` (mission closed 2026-07-28). Reaction: canvas panel kinds became Dockable, but fixed chrome (left sidebar, right sidebar / Files rail) still cannot be placed arbitrarily. Explicit ask: *not* a half-version of existing UI made dockable — **all UI dockable**; put left and right chrome wherever the user wants.
 
 **Feature Name:** ghostty-dock all-UI dockable (gdock)
-**Naming:** Prefer ghostty-dock / gdock. Do not brand this as "chrome-*" product brands — docking is placeable surfaces, not a chrome-only subsystem.  
-**PRD Owner:** user (stokd)  
-**Last Updated:** 2026-07-28  
+**Naming:** Prefer ghostty-dock / gdock. Do not brand this as "chrome-*" product brands — docking is placeable surfaces, not a chrome-only subsystem.
+**PRD Owner:** user (stokd)
+**Last Updated:** 2026-07-28
 **Repository:** `apps/ghostty-dock` / fork `stokd-cloud/ghostty-dock` (same isolation model as prior mission).
 
 ### Relationship to prior mission (do not re-run)
@@ -99,21 +99,21 @@ For each surface:
 
 **Left / workspace chrome (non-exhaustive seed):**
 
-- Workspace / tab list and selection chrome  
-- Session index / sessions panel surfaces in the left stack  
-- Feed / notifications strip if fixed left  
-- Git / PR sidebar chrome if fixed left  
+- Workspace / tab list and selection chrome
+- Session index / sessions panel surfaces in the left stack
+- Feed / notifications strip if fixed left
+- Git / PR sidebar chrome if fixed left
 - Any secondary left column (e.g. nested tool lists)
 
 **Right chrome (non-exhaustive seed):**
 
-- File explorer (Files mode) — **primary pain**  
-- Find in directory  
-- Vault  
-- Sessions (if right)  
-- Feed (if right)  
-- Dock tools / extension browser chrome  
-- Mode switcher for the right rail itself  
+- File explorer (Files mode) — **primary pain**
+- Find in directory
+- Vault
+- Sessions (if right)
+- Feed (if right)
+- Dock tools / extension browser chrome
+- Mode switcher for the right rail itself
 
 **Already placeable (must remain placeable; may become the *only* home for tools):**
 
@@ -121,10 +121,10 @@ For each surface:
 
 **Decoration candidates (default non-placeable unless inventory disagrees):**
 
-- Window titlebar / traffic lights  
-- Pure resize handles  
-- Toast/banner “THIS IS A DEV BUILD”  
-- Modal alerts  
+- Window titlebar / traffic lights
+- Pure resize handles
+- Toast/banner “THIS IS A DEV BUILD”
+- Modal alerts
 
 Phase 0 **fails** if left or right primary tools are omitted or marked `out-of-scope` without user decision.
 
@@ -155,8 +155,8 @@ Phase 0 **fails** if left or right primary tools are omitted or marked `out-of-s
 
 **Acceptance**
 
-- AC-0.1: Inventory lists **all** left and right primary tools; none silently dropped.  
-- AC-0.2: User/owner sign-off recorded (decision file) on inventory + non-goals.  
+- AC-0.1: Inventory lists **all** left and right primary tools; none silently dropped.
+- AC-0.2: User/owner sign-off recorded (decision file) on inventory + non-goals.
 - AC-0.3: Mission plan maps VAL-* 1:1 to inventory placeable rows (or explicit groups).
 
 **No code placement changes in Phase 0.**
@@ -175,9 +175,9 @@ Phase 0 **fails** if left or right primary tools are omitted or marked `out-of-s
 
 **Acceptance**
 
-- AC-1.1: Files pane can exist **without** the fixed right rail visible.  
-- AC-1.2: At least one left primary list (workspace or sessions — per inventory) can exist **without** the fixed left column.  
-- AC-1.3: Registry/matrix tests cover new kinds; no dummy factories.  
+- AC-1.1: Files pane can exist **without** the fixed right rail visible.
+- AC-1.2: At least one left primary list (workspace or sessions — per inventory) can exist **without** the fixed left column.
+- AC-1.3: Registry/matrix tests cover new kinds; no dummy factories.
 - AC-1.4: Focused unit/integration tests for mount/focus/unmount of Files + one left tool.
 
 ---
@@ -188,16 +188,16 @@ Phase 0 **fails** if left or right primary tools are omitted or marked `out-of-s
 
 **Work**
 
-- Undock: from default left/right chrome → split or canvas pane (drag and/or command).  
-- Dock: from free pane → left/right edge drop zones **optional**; if edge docks remain, they are conveniences, not prisons.  
-- Commands/shortcuts/palette/CLI: Show/Toggle Files, Show Workspaces, etc. route through shared actions that operate on panes, not “toggle fixed column only.”  
+- Undock: from default left/right chrome → split or canvas pane (drag and/or command).
+- Dock: from free pane → left/right edge drop zones **optional**; if edge docks remain, they are conveniences, not prisons.
+- Commands/shortcuts/palette/CLI: Show/Toggle Files, Show Workspaces, etc. route through shared actions that operate on panes, not “toggle fixed column only.”
 - Multi-entrypoint policy: one code path.
 
 **Acceptance**
 
-- AC-2.1: From default layout, user undocks Files to center split; app usable; fixed right column gone or empty-collapsed.  
-- AC-2.2: User undocks left workspace list to canvas freeform; can focus and select workspaces.  
-- AC-2.3: “Toggle right sidebar” either: (a) toggles visibility of a **Files pane** in preferred placement, or (b) is renamed/replaced with clear pane-oriented commands — no forever-fixed-only behavior.  
+- AC-2.1: From default layout, user undocks Files to center split; app usable; fixed right column gone or empty-collapsed.
+- AC-2.2: User undocks left workspace list to canvas freeform; can focus and select workspaces.
+- AC-2.3: “Toggle right sidebar” either: (a) toggles visibility of a **Files pane** in preferred placement, or (b) is renamed/replaced with clear pane-oriented commands — no forever-fixed-only behavior.
 - AC-2.4: Shared-behavior tests or harness for shortcut + palette + socket for Show Files.
 
 ---
@@ -208,14 +208,14 @@ Phase 0 **fails** if left or right primary tools are omitted or marked `out-of-s
 
 **Work**
 
-- Bootstrap default workspace = left list pane(s) + terminal + optional Files pane, all Dockable.  
-- Migrate existing users: fixed chrome open → equivalent panes + frames.  
+- Bootstrap default workspace = left list pane(s) + terminal + optional Files pane, all Dockable.
+- Migrate existing users: fixed chrome open → equivalent panes + frames.
 - Remove or gut dead code paths that only support fixed-host embedding once migration is proven.
 
 **Acceptance**
 
-- AC-3.1: Fresh profile default layout works with **no** mandatory fixed-only host types in the critical path.  
-- AC-3.2: Migration from pre-mission sessions restores tools as panes without data loss (files path, workspace selection, etc.).  
+- AC-3.1: Fresh profile default layout works with **no** mandatory fixed-only host types in the critical path.
+- AC-3.2: Migration from pre-mission sessions restores tools as panes without data loss (files path, workspace selection, etc.).
 - AC-3.3: Grep/architecture guard: no new `fixedRightOnly` / parallel host for Files.
 
 ---
@@ -224,16 +224,16 @@ Phase 0 **fails** if left or right primary tools are omitted or marked `out-of-s
 
 **Work**
 
-- Snapshot chrome-origin panes in workspace/session restore.  
-- Multi-window: move Files or left list to another window (panel-id moves already exist; prove no kind switch).  
-- Performance: file explorer in freeform canvas does not reintroduce list invalidation storms (snapshot-boundary rules).  
+- Snapshot chrome-origin panes in workspace/session restore.
+- Multi-window: move Files or left list to another window (panel-id moves already exist; prove no kind switch).
+- Performance: file explorer in freeform canvas does not reintroduce list invalidation storms (snapshot-boundary rules).
 - Docs + CHANGELOG + localization audit.
 
 **Acceptance**
 
-- AC-4.1: Quit/relaunch restores positions of left-origin and right-origin panes.  
-- AC-4.2: Dogfood matrix from Phase 0 green for all `dockable-*` inventory rows (or recorded deferrals).  
-- AC-4.3: CHANGELOG + locale audit complete.  
+- AC-4.1: Quit/relaunch restores positions of left-origin and right-origin panes.
+- AC-4.2: Dogfood matrix from Phase 0 green for all `dockable-*` inventory rows (or recorded deferrals).
+- AC-4.3: CHANGELOG + locale audit complete.
 - AC-4.4: Tagged build dogfoodable via reload tag + optional `gdock` update.
 
 ---
@@ -255,10 +255,10 @@ Author full `VAL-*` files after Phase 0. Families:
 
 **Hard fail examples**
 
-- Files only available inside fixed `⌘⌥B` rail.  
-- Left workspace list only available in fixed left column.  
-- Canvas kind exists but primary UX still forces fixed host.  
-- Dummy registry factories.  
+- Files only available inside fixed `⌘⌥B` rail.
+- Left workspace list only available in fixed left column.
+- Canvas kind exists but primary UX still forces fixed host.
+- Dummy registry factories.
 - Dual code paths for “show files” (chrome vs pane) that diverge.
 
 ---
@@ -267,11 +267,11 @@ Author full `VAL-*` files after Phase 0. Families:
 
 For **Files** and **each left primary tool**:
 
-1. Default layout open  
-2. Undock to horizontal/vertical split  
-3. Move to freeform canvas  
-4. Close and reopen via command/shortcut (preferred placement)  
-5. Quit / relaunch restore  
+1. Default layout open
+2. Undock to horizontal/vertical split
+3. Move to freeform canvas
+4. Close and reopen via command/shortcut (preferred placement)
+5. Quit / relaunch restore
 6. Second window move (if multi-window in scope)
 
 Record video or screenshots optional; automated mount/focus/restore tests required for core kinds.
@@ -293,21 +293,21 @@ Record video or screenshots optional; automated mount/focus/restore tests requir
 
 ## 8. Success Criteria (mission done)
 
-1. User can place **left primary chrome tools** and **right primary chrome tools** in splits, canvas, and (if supported) other windows.  
-2. No mandatory fixed-only prison for Files or the main left list.  
-3. Default layout still usable and familiar, composed of panes.  
-4. Restore works.  
-5. Contract assertions validated with evidence; gates green.  
+1. User can place **left primary chrome tools** and **right primary chrome tools** in splits, canvas, and (if supported) other windows.
+2. No mandatory fixed-only prison for Files or the main left list.
+3. Default layout still usable and familiar, composed of panes.
+4. Restore works.
+5. Contract assertions validated with evidence; gates green.
 6. Dogfood on tagged build; user can say the product matches “put that wherever I want” for **left and right**, not only canvas terminals.
 
 ---
 
 ## 9. Open Questions (resolve in Phase 0 decisions)
 
-1. Exact left stack members in v1 (workspace list only vs full feed/PR chrome).  
-2. Keep optional edge “snap to right” affordance or pure free placement?  
-3. Rename/replace `toggleFileExplorer` (⌘⌥B) semantics.  
-4. Float vs canvas-only for chrome tools.  
+1. Exact left stack members in v1 (workspace list only vs full feed/PR chrome).
+2. Keep optional edge “snap to right” affordance or pure free placement?
+3. Rename/replace `toggleFileExplorer` (⌘⌥B) semantics.
+4. Float vs canvas-only for chrome tools.
 5. Whether custom sidebars / extensions already cover some left tools.
 
 ---
