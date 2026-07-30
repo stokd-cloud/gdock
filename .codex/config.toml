@@ -4,11 +4,6 @@ model_reasoning_effort = "xhigh"
 [features]
 memories = true
 
-model = "gpt-5.5"
-sandbox_mode = "danger-full-access"
-model_reasoning_effort = "xhigh"
-[features]
-memories = true
 # BEGIN zenith
 [mcp_servers.zenith]
 command = "uv"
