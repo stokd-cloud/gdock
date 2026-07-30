@@ -1,5 +1,6 @@
 import CoreGraphics
 import CmuxCore
+import CmuxDockable
 import Foundation
 import Bonsplit
 import CmuxWorkspaces
@@ -1598,6 +1599,10 @@ struct SessionCustomSidebarPanelSnapshot: Codable, Sendable { var name: String }
 /// Marker for a workspace todo pane; the pane has no content of its own (the checklist
 /// persists on the workspace), so the panel `type` plus this empty marker is enough to restore it.
 struct SessionWorkspaceTodoPanelSnapshot: Codable, Sendable {}
+/// Marker for a left workspace selector pane; chrome has no per-panel content
+/// beyond type (list state lives on TabManager / window), so type + empty marker
+/// is enough to restore.
+struct SessionLeftWorkspaceSelectorPanelSnapshot: Codable, Sendable {}
 struct SessionProjectPanelSnapshot: Codable, Sendable {
     var projectPath: String
     var selectedNodePath: String?
@@ -1620,7 +1625,16 @@ struct SessionProjectPanelSnapshot: Codable, Sendable {
     }
 }
 
-struct SessionPanelSnapshot: Codable, Sendable {
+/// In-memory panel snapshot used by session restore and ClosedItemHistory.
+///
+/// **On-disk primary shape (new writes):** common metadata plus a nested
+/// ``DockableSnapshot`` (`id` / `kind` / opaque `payload`). The nine legacy
+/// per-kind optional fields are **not** primary-encoded.
+///
+/// **Legacy decode:** pre-refactor records with `terminal` / `browser` / …
+/// optional fields still decode; payload is reconstructed for registry restore.
+/// Codable implementation lives in `SessionPanelSnapshot+DockableCodec.swift`.
+struct SessionPanelSnapshot: Sendable {
     var id: UUID
     var stableSurfaceId: UUID? = nil
     var type: PanelType
@@ -1639,11 +1653,13 @@ struct SessionPanelSnapshot: Codable, Sendable {
     var gitBranch: SessionGitBranchSnapshot?
     var listeningPorts: [Int]
     var ttyName: String?
+    /// In-memory typed payload adapters. Not primary-encoded for new writes.
     var terminal: SessionTerminalPanelSnapshot?
     var browser: SessionBrowserPanelSnapshot?
     var markdown: SessionMarkdownPanelSnapshot?
     var filePreview: SessionFilePreviewPanelSnapshot?
     var rightSidebarTool: SessionRightSidebarToolPanelSnapshot?
+    var leftWorkspaceSelector: SessionLeftWorkspaceSelectorPanelSnapshot? = nil
     var customSidebar: SessionCustomSidebarPanelSnapshot? = nil
     var agentSession: SessionAgentSessionPanelSnapshot? = nil
     var project: SessionProjectPanelSnapshot?

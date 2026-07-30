@@ -163,7 +163,9 @@ extension DockSplitStore {
         var needsFollowUpPass = false
         flushDockWindowLayouts()
         let visiblePanels = selectedVisibleDockPortalPanels()
-        let visiblePanelIds = Set(visiblePanels.map(\.id))
+        // Explicit closure avoids SILGen crash on key-path components for
+        // existential `any Panel` when Panel refines Dockable/Identifiable.
+        let visiblePanelIds = Set(visiblePanels.map { $0.id })
         let activePanelId = focusedPanelId
 
         withCoalescedTerminalViewReattach {

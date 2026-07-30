@@ -319,7 +319,7 @@ struct AppDelegateSurfaceShortcutRoutingTests {
 
             window.makeKeyAndOrderFront(nil)
             workspace.setLayoutMode(.canvas)
-            let secondPanelId = try #require(workspace.openNewCanvasPane(type: .terminal, focus: true))
+            let secondPanelId = try #require(workspace.openNewCanvasPane(kind: .terminal, focus: true))
             let viewport = CanvasViewportSpy()
             workspace.canvasModel.viewport = viewport
             workspace.focusPanel(firstPanelId)
@@ -347,7 +347,7 @@ struct AppDelegateSurfaceShortcutRoutingTests {
 
         workspace.setLayoutMode(.canvas)
         for _ in 1..<10 {
-            panelIds.append(try #require(workspace.openNewCanvasPane(type: .terminal, focus: true)))
+            panelIds.append(try #require(workspace.openNewCanvasPane(kind: .terminal, focus: true)))
         }
         #expect(panelIds.count == 10)
 
@@ -379,7 +379,7 @@ struct AppDelegateSurfaceShortcutRoutingTests {
 
             window.makeKeyAndOrderFront(nil)
             workspace.setLayoutMode(.canvas)
-            let secondPanelId = try #require(workspace.openNewCanvasPane(type: .terminal, focus: true))
+            let secondPanelId = try #require(workspace.openNewCanvasPane(kind: .terminal, focus: true))
             let originalBonsplitPaneCount = workspace.bonsplitController.allPaneIds.count
             workspace.canvasModel.setFrame(CGRect(x: 0, y: 0, width: 640, height: 420), for: firstPanelId)
             workspace.canvasModel.setFrame(CGRect(x: 720, y: 0, width: 320, height: 260), for: secondPanelId)

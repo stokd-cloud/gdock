@@ -3,6 +3,7 @@ import AppKit
 import Bonsplit
 import CmuxAppKitSupportUI
 import CmuxCanvasUI
+import CmuxDockable
 import CmuxSettings
 import CmuxSettingsUI
 
@@ -13,7 +14,7 @@ import CmuxSettingsUI
 /// (`CanvasPaneDescriptor`), and hands them to the `CmuxCanvasUI` package
 /// through an `NSViewRepresentable`. The canvas itself never observes
 /// stores, and the package never sees panel types — content crosses the
-/// seam as `CanvasPaneContentMount` witnesses.
+/// seam as `CanvasPaneContentMount` witnesses over ``any Dockable``.
 struct WorkspaceCanvasHostView: View {
     @ObservedObject var workspace: Workspace
     let isWorkspaceVisible: Bool
@@ -44,6 +45,14 @@ struct WorkspaceCanvasHostView: View {
             storedMaximumWidth: storedSessionContentMaximumWidth,
             storedAlignment: storedSessionContentAlignment
         )
+        let mountEnvironment = DockableCanvasMountEnvironment(
+            workspace: workspace,
+            isWorkspaceVisible: isWorkspaceVisible,
+            portalPriority: portalPriority,
+            appearance: appearance,
+            windowAppearance: windowAppearance,
+            settingsRuntime: settingsRuntime
+        )
         return workspace.orderedPanelIds.compactMap { panelId in
             guard let panel = workspace.panels[panelId] else { return nil }
             let isFocused = isWorkspaceInputActive && focusedPanelId == panelId
@@ -57,23 +66,18 @@ struct WorkspaceCanvasHostView: View {
                 isFocused: isFocused,
                 closeActionLabel: closeActionLabel,
                 makeMount: { [weak workspace] container in
-                    CanvasPaneContentMount(
-                        content: Self.makeContent(
-                            panel: panel,
-                            workspace: workspace,
-                            isWorkspaceVisible: isWorkspaceVisible,
-                            portalPriority: portalPriority,
-                            appearance: appearance,
-                            windowAppearance: windowAppearance,
-                            settingsRuntime: settingsRuntime,
-                            sessionContentWidthPresentation: sessionContentWidthPresentation
-                        ),
-                        panelId: panelId,
-                        container: container,
-                        onFocusPanel: { [weak workspace] panelId in
-                            workspace?.focusPanel(panelId)
-                        }
-                    )
+                    // Install canvas host environment so makeDockContentView can
+                    // build the shared SwiftUI hosted path without a content enum.
+                    DockableCanvasMountEnvironmentStorage.withEnvironment(mountEnvironment) {
+                        CanvasPaneContentMount(
+                            dockable: panel,
+                            panelId: panelId,
+                            container: container,
+                            onFocusPanel: { [weak workspace] panelId in
+                                workspace?.focusPanel(panelId)
+                            }
+                        )
+                    }
                 },
                 updateMount: { mount in
                     guard let mount = mount as? CanvasPaneContentMount else { return }
@@ -96,6 +100,7 @@ struct WorkspaceCanvasHostView: View {
         case .markdown: return "doc.richtext"
         case .filePreview: return "doc.text.magnifyingglass"
         case .rightSidebarTool: return "sidebar.right"
+        case .leftWorkspaceSelector: return "sidebar.left"
         case .customSidebar: return "wand.and.stars"
         case .agentSession: return "sparkles"
         case .project: return "folder"
@@ -103,45 +108,6 @@ struct WorkspaceCanvasHostView: View {
         case .workspaceTodo: return "checklist"
         case .cloudVMLoading: return "cloud.fill"
         }
-    }
-
-    @MainActor
-    private static func makeContent(
-        panel: any Panel,
-        workspace: Workspace?,
-        isWorkspaceVisible: Bool,
-        portalPriority: Int,
-        appearance: PanelAppearance,
-        windowAppearance: WindowAppearanceSnapshot,
-        settingsRuntime: SettingsRuntime?,
-        sessionContentWidthPresentation: SessionContentWidthPresentation
-    ) -> CanvasPaneContent {
-        if let terminalPanel = panel as? TerminalPanel {
-            return .terminal(terminalPanel, sessionContentWidthPresentation)
-        }
-        let workspaceId = workspace?.id ?? UUID()
-        let paneId = workspace?.bonsplitPaneId(forPanelId: panel.id) ?? PaneID()
-        let content = CanvasHostedPanelContentView(
-            panel: panel,
-            workspaceId: workspaceId,
-            paneId: paneId,
-            isFocused: false,
-            isVisibleInUI: isWorkspaceVisible,
-            portalPriority: portalPriority,
-            appearance: appearance,
-            windowAppearance: windowAppearance,
-            customSidebarTabManager: workspace?.owningTabManager,
-            onRequestPanelFocus: { [weak workspace] in
-                workspace?.focusPanel(panel.id)
-            }
-        )
-        let hosted = NSHostingView(rootView: AnyView(
-            content.environment(\.settingsRuntime, settingsRuntime)
-        ))
-        // The pane's content container dictates the size; never let the
-        // hosting view shrink to SwiftUI's ideal size.
-        hosted.sizingOptions = []
-        return .hosted(panel, hosted)
     }
 }
 

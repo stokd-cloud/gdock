@@ -1,6 +1,7 @@
 import Foundation
 import CmuxCore
 import CmuxBrowser
+import CmuxDockable
 import CmuxFoundation
 import CmuxSettings
 import Combine
@@ -5449,6 +5450,64 @@ final class BrowserPanel: Panel, ObservableObject {
         webViewDidRequestClose = nil
         detachWebViewObservers()
         faviconTask?.cancel(); faviconTask = nil
+    }
+
+    // MARK: - Dockable
+
+    /// Builds canvas-hosted content and marks the webview as inline-hosted so
+    /// portal reconcilers leave it to the pane hierarchy.
+    func makeDockContentView(context: DockableMountContext) -> NSView {
+        // Mount-time visibility: same as the former hosted canvas content branch.
+        canvasInlineHostingActive = true
+        noteWebViewVisibility(true, reason: "canvas.mount")
+        if let env = DockableCanvasMountEnvironmentStorage.current {
+            return Self.makeCanvasHostedContentView(
+                panel: self,
+                environment: env,
+                onFocus: context.onFocus
+            )
+        }
+        let view = NSView(frame: context.container.bounds)
+        view.autoresizingMask = [.width, .height]
+        view.wantsLayer = true
+        return view
+    }
+
+    /// Drives webview visibility for canvas render/occlude without clearing
+    /// ``canvasInlineHostingActive`` (that flag is mount/unmount only).
+    func setDockRendering(_ rendering: Bool) {
+        noteWebViewVisibility(
+            rendering,
+            reason: rendering ? "canvas.render" : "canvas.occlude"
+        )
+    }
+
+    /// Canvas unmount parity: leave portal reconcilers free to manage the
+    /// webview again and hide it for discard/restore lifecycle.
+    func tearDownDockMount() {
+        canvasInlineHostingActive = false
+        noteWebViewVisibility(false, reason: "canvas.unmount")
+    }
+
+    /// Encodes browser session fields used by registry decode.
+    func encodeDockPayload() throws -> Data {
+        let historySnapshot = sessionNavigationHistorySnapshot()
+        let diffViewerComponents = diffViewerSessionComponents()
+        let snapshot = SessionBrowserPanelSnapshot(
+            urlString: preferredURLStringForSessionSnapshot(),
+            profileID: profileID,
+            shouldRenderWebView: shouldRenderWebViewForSessionSnapshot(),
+            pageZoom: Double(currentPageZoomFactor()),
+            developerToolsVisible: isDeveloperToolsVisible(),
+            isMuted: isMuted,
+            omnibarVisible: isOmnibarVisible,
+            backHistoryURLStrings: historySnapshot.backHistoryURLStrings,
+            forwardHistoryURLStrings: historySnapshot.forwardHistoryURLStrings,
+            transparentBackground: sessionSnapshotTransparentBackground,
+            diffViewerToken: diffViewerComponents?.token,
+            diffViewerRequestPath: diffViewerComponents?.requestPath
+        )
+        return try JSONEncoder().encode(snapshot)
     }
 
     // MARK: - Popup window management
