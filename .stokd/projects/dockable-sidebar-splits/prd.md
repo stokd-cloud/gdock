@@ -12,7 +12,21 @@
 
 ### Summary
 
-Two deliverables, bundled at the requester's explicit instruction. First, the left and right sidebars become **dockable spaces**: the tool panels they host can be reordered, split into two stacked slots inside one sidebar, and moved between the two sidebars, with the arrangement persisted as part of the saved layout. Second, a fifth **quad split** button is appended to the pane tab-bar split-button row.
+Two deliverables, bundled at the requester's explicit instruction. First, the left and right sidebars become **dockable spaces** modeled on the VS Code sidebar: a rail holds **N vertically stacked sections**, each with a titled header that is **collapsible** and separated by **drag-resizable** separators. A tool tab (Files, Search, Vault) can be dragged from the tab strip down into the lower portion of either the left or right rail and dropped to create a new section there. Sections can be reordered, moved between the two rails, and the whole arrangement persists as part of the saved layout. Second, a fifth **quad split** button is appended to the pane tab-bar split-button row.
+
+### Revision — 2026-07-31 (rev 2)
+
+The first revision of this document was landed and then corrected the same day after the requester clarified three things. The original text is preserved where it is still accurate; superseded decisions are marked as such in §5 rather than deleted, per the axiom on preserving decision history.
+
+| What changed | Was (rev 1) | Now (rev 2) |
+|---|---|---|
+| Sections per rail | Hard cap of **two** stacked sections, enforced on new splits | **N sections.** The requester said a three-way-or-more split is reasonable and that several of the panels they intend to build are physically small. The cap is removed entirely; no max-sections constant exists. |
+| Collapse | Not a requirement | **First-class requirement.** Each section header collapses to header height, VS Code style, with the expanded extent remembered. |
+| Resize | Divider draggable (implied) | **Explicit requirement**, stated per section boundary alongside collapse. |
+| Prior-pass post-mortem | Attributed the failure to the canvas framing | Corrected to the requester's own stated reasons, below. |
+| "Dock any tool anywhere" | Treated as withdrawn scope with no reason recorded | Withdrawn **with its technical reason** recorded, below. |
+
+Everything else — the fork-only landing, the beta flag, the persistence design, the quad split, and the orientation-inversion warning — is unchanged from rev 1.
 
 ### Request, paraphrased
 
@@ -20,10 +34,20 @@ The requester's message, condensed. No screenshot content is reproduced here, an
 
 > I made a previous pass at building a dockable system and I've changed my mind on exactly how I want this to work. I'm fine keeping the left and right bars segregated as a different kind of space, but I want to be able to move the items and to split them horizontally. I should be able to drag the Files tab down toward the bottom of that area and have it snap into a dockable space where Files is on the bottom and Find/Vault on the top. I need this because I'm going to add several new things to this area, and I likely want to be able to put any of these tabs on the right into the bottom half of the left side. I want these customizations saved as part of the layout wherever layouts are saved. One additional simple feature: I want a 5th button added — a quad splitter. Vertical, then horizontal, then split quad at the end.
 
-Two consequences of that wording are load-bearing and are honored throughout:
+### Clarification, 2026-07-31 (the authority for rev 2)
 
-- "Keeping the left and right bars segregated as a different kind of space" is an explicit **withdrawal** of the earlier "all UI placeable anywhere" escalation. Sidebar tools are never placed on the freeform canvas by this work.
-- "I'm going to add several new things to this area" is a forward-looking capacity requirement. It is why the slot cap below is a named constant with non-destructive restore rather than a hard structural limit (see §5).
+The requester then corrected the above, condensed:
+
+> The primary thing I wanted to achieve was to be able to dock each tool on the left/right panel wherever I want. The previous attempt made panels from the right side show up in the tab spaces and be dockable that way **while still leaving the existing right panel in place**, and it **never addressed the left** at all — though admittedly I don't think I communicated the intent well. Since then I've recognized that the context of the currently-selected panel changes the state of each of the right-hand toolbars, so solving full dock-anywhere would require even more changes than I hoped. I've also decided the way the left and right panels work is better than I thought — but I still want to be able to split them. Your summary said top and bottom specifically; I don't think I said that, and a three-way split or more would be reasonable, because some of the panels I want to build are actually pretty small.
+>
+> Be more specific: make it work like the VS Code left panel. Imagine the cmux equivalent of where it says EXPLORER there are also WORKTREES and TOKEN USAGE; clicking those tabs fills the entire side with that content. I want to grab one of the current tabs — Files, Search, Vault — drag it down to the bottom portion of the right window or the bottom portion of the left window, and drop it to create a separator that is draggable to resize and also collapsible, like the VS Code left panel.
+
+Four consequences are load-bearing and are honored throughout:
+
+- **The model is the VS Code sidebar**, not a two-pane split: a rail is a vertical stack of titled sections, each collapsible, separated by draggable resize handles. The reference screenshot shows one rail holding EXPLORER, OUTLINE, TIMELINE, GLOBAL CONFIGS, WORKTREES, WORKTREE DETAIL, and TOKEN USAGE simultaneously.
+- **N sections, not two.** "A three-way split or more would be reasonable" plus "some of the panels I want to build are actually pretty small" removes any fixed cap. Rev 1's two-slot cap was the author's invention and is deleted.
+- **Collapse is a requirement, not a nicety.** It is what makes N small sections usable in a fixed-width rail: a collapsed section costs only its header.
+- **"Dock any tool anywhere" is withdrawn, and the reason is technical.** The selected panel's context drives the state of the right-hand toolbars, so a tool detached to an arbitrary host would need a context-resolution story this project does not attempt. Sections live in rails only. Sidebar tools are likewise never placed on the freeform canvas.
 
 ### Definitions
 
@@ -31,8 +55,10 @@ Used precisely throughout; the overloading of "dock" in this codebase is a real 
 
 - **Rail** — the left or right edge-anchored sidebar, considered as a container. Synonymous with **sidebar dock space**. Never used for the pre-existing right-sidebar `.dock` mode.
 - **The Dock** — always written with a capital D and the definite article. The pre-existing `RightSidebarMode.dock` feature: a `DockSplitStore`-backed Bonsplit container of terminals and browsers, shown as one mode of the right sidebar behind the `rightSidebar.beta.dock.enabled` flag. It is untouched by this PRD except for gaining the quad button.
-- **Slot** — one Bonsplit `PaneID` inside a rail's `BonsplitController`. A rail has 1 or 2 slots. In persistence a slot is one `SessionPaneLayoutSnapshot`.
-- **Tool panel** — a `Panel` hosted in a rail slot: a `RightSidebarToolPanel` (Files, Find, Vault) or the new `WorkspaceSelectorPanel`.
+- **Section** — one Bonsplit `PaneID` inside a rail's `BonsplitController`, rendered as a titled, collapsible strip in the rail's vertical stack. This is the VS Code "view" equivalent (EXPLORER, WORKTREES, TOKEN USAGE in the reference screenshot). A rail holds **N sections, N ≥ 1, with no fixed upper bound** — see §5. In persistence a section is one `SessionPaneLayoutSnapshot`. Rev 1 called this a "slot" and capped it at 2; both are superseded.
+- **Section header** — the Bonsplit pane tab bar of a section, serving as its VS Code-style title row and its collapse control.
+- **Collapsed section** — a section pinned to exactly its header height, contributing no content area. Its pre-collapse extent is remembered and restored on expand.
+- **Tool panel** — a `Panel` hosted in a rail section: a `RightSidebarToolPanel` (Files, Find, Vault) or the new `WorkspaceSelectorPanel`.
 - **`**Landing:**`** — each work item states its landing target twice on purpose: once as a standalone line for structural checks, and once as the first Implementation Details bullet, because the PRD→phases extractor preserves `implementation_details` but has no field for a fifth block.
 
 ### Orientation inversion — the single most likely implementation error
@@ -84,18 +110,30 @@ Two facts follow that the first draft of this PRD got wrong:
 
 The prior attempt is `origin/mission/canvas-dockable-refactor-20260725-170934` (tip `17d8a5cde2`, 68 files, +6304/−228), duplicated with unrelated commits on the local-only `feature/failedDock` (tip `63ef054955`, byte-identical dock code). It is **not merged**; `main` has zero fork-only commits.
 
-It added `Packages/macOS/CmuxDockable` (`Dockable`, `DockableKind`, `DockableRegistry`, `DockableSnapshot`, `PortalHostable`), moved canvas panes onto it, and added a `LeftWorkspaceSelectorPanel` so the workspace selector could be placed **on the canvas**. Its own follow-up `docs/cmux-all-ui-dockable.prd.md` records the dogfood verdict: canvas panel kinds became dockable but the fixed rails still could not be placed, and the ask escalated to "all UI dockable". The current request reduces that scope: the rails stay segregated, and docking happens *inside* them. `CmuxDockable` is therefore not resurrected (§5).
+It added `Packages/macOS/CmuxDockable` (`Dockable`, `DockableKind`, `DockableRegistry`, `DockableSnapshot`, `PortalHostable`), moved canvas panes onto it, and added a `LeftWorkspaceSelectorPanel` so the workspace selector could be placed **on the canvas**. Its own follow-up `docs/cmux-all-ui-dockable.prd.md` records a dogfood verdict at the time: canvas panel kinds became dockable but the fixed rails still could not be placed.
+
+**Why it actually failed, per the requester (this supersedes rev 1's account).** The goal was to dock each left/right tool wherever they wanted. Three specific things went wrong:
+
+1. It made right-side panels available in the tab spaces and dockable there, but it **left the existing right panel in place** while doing so. The result duplicated the tools into a second home instead of making the existing rail the thing that reorganizes — so the feature read as an addition bolted alongside the UI rather than a change to it. Rev 2 avoids this by construction: the rail itself becomes the section stack, so there is no second home to diverge from.
+2. It **never addressed the left** sidebar at all, which was half the ask.
+3. The requester notes they did not communicate the intent well, so the miss is not solely an implementation fault. Rev 1 of this PRD then compounded it by attributing the failure to the canvas framing alone, which was the author's inference rather than the requester's stated reason.
+
+Since that attempt the requester has also concluded that **full dock-anywhere is not worth its cost**: the currently-selected panel's context drives the state of each right-hand toolbar, so hosting a tool outside the rails would require a context-resolution design this project deliberately does not attempt. And they have decided the existing left/right panel behavior is better than they first judged, so rev 2 changes those panels as little as possible: same rails, same width and visibility behavior, same tab strip — with the single new ability to pull a tab down into its own stacked, resizable, collapsible section.
+
+`CmuxDockable` is therefore not resurrected (§5). This PRD's scope is deliberately narrower than that package's: it does not introduce a general placement abstraction, only an N-section stack inside each of the two existing rails.
 
 ## 1. Objectives & Constraints
 
 ### Objectives
 
-- A rail can be split by a horizontal divider into two stacked slots, both by dragging a tool panel tab onto the rail's top or bottom drop band and by a deterministic non-drag command.
-- Tool panel tabs can be reordered within a slot, moved between slots of one rail, and moved between the left and right rails.
-- The rails remain distinct, edge-anchored spaces; no sidebar tool is placed on the canvas.
-- The arrangement (which panels, which rail, which slot, order, divider ratio, per-slot selection) survives quit and relaunch and is carried by named saved layouts.
+- A rail is a vertical stack of **N sections** (N ≥ 1, no fixed upper bound), each a titled strip separated from its neighbours by a horizontal divider — the VS Code sidebar model.
+- A tool tab can be pulled out of the rail's tab strip into a **new section of its own**, both by dragging it onto the rail's lower drop band and by a deterministic non-drag command. The same works for the left rail and the right rail.
+- Every section boundary is a **draggable resize handle**, and every section is **collapsible** to its header height with its expanded extent remembered — the two behaviors the requester named explicitly.
+- Sections can be reordered within a rail and moved between the left and right rails; tabs can be reordered within a section.
+- The rails remain distinct, edge-anchored spaces. No sidebar tool is placed on the canvas or in any host outside the two rails, because the right-hand toolbars' state is driven by the selected panel's context and this project does not attempt a context-resolution design for detached hosts.
+- The arrangement (which panels, which rail, which section, order, divider extents, collapsed state, per-section selection) survives quit and relaunch and is carried by named saved layouts.
 - A fifth "Split Quad" button is appended to the pane tab-bar split-button row, producing a 2×2 pane grid, reachable from every entrypoint that can already split.
-- A user who never rearranges anything sees no change: a one-slot rail keeps today's chrome.
+- A user who never rearranges anything sees no change: a one-section rail keeps today's chrome, with no visible header row.
 
 ### Constraints
 
@@ -170,12 +208,17 @@ Passing any argument suppresses `test-unit.sh`'s implicit `test` action, so `tes
       let bonsplitController: BonsplitController
       var panels: [UUID: any Panel] = [:]
       var surfaceIdToPanelId: [TabID: UUID] = [:]
-      static let maxSlotsPerRail = 2
-      static func makeConfiguration() -> BonsplitConfiguration
+      /// Pre-collapse extent per collapsed split, so expand restores the prior size.
+      var rememberedExtentBySplitId: [UUID: CGFloat] = [:]
+      static func makeConfiguration(collapsedSectionHeight: CGFloat) -> BonsplitConfiguration
   }
   ```
+  There is deliberately **no maximum-section constant.** A rail holds as many sections as the user creates; the requester intends several small panels and asked for three-way-or-more splits.
   Structurally modeled on `DockSplitStore` (`Sources/DockSplitStore.swift:14`) but far smaller: tool panels only, no config-file seeding, no trust prompt, no remote-browser plumbing.
-- `makeConfiguration()` sets: `allowSplits = true`, `allowTabReordering = true`, `allowCrossPaneTabMove = true`, `allowCloseLastPane = false`, `autoCloseEmptyPanes = true`, `tabBarVisibility = .multipleTabs` (`showsTabBar(tabCount:)` returns `tabCount >= 2`, `vendor/bonsplit/Sources/Bonsplit/Public/BonsplitConfiguration.swift:35-42`), and **`appearance.showSplitButtons = false`**. The lane is suppressed **unconditionally** because (a) at 140pt for five buttons it occupies 51–58% of a 240–276pt rail and crowds the tab strip (it does not clip — see the corrected lane arithmetic in §0), and (b) `newTerminal`/`newBrowser` would create terminal and browser panels in a rail, which work item 1.2's placement matrix forbids. Set `appearance.tabBarHeight = RightSidebarChromeMetrics.titlebarHeight` (`Sources/WindowChromeMetrics.swift:35`; the enum is declared at `:34`) so a rail tab bar matches today's mode-bar height.
+- `makeConfiguration(collapsedSectionHeight:)` sets: `allowSplits = true`, `allowTabReordering = true`, `allowCrossPaneTabMove = true`, `allowCloseLastPane = false`, `autoCloseEmptyPanes = true`, and **`appearance.showSplitButtons = false`**.
+- **`appearance.minimumPaneHeight = collapsedSectionHeight`** (public var, `vendor/bonsplit/Sources/Bonsplit/Public/BonsplitConfiguration.swift:553`, default **100**, enforced at `vendor/bonsplit/Sources/Bonsplit/Internal/Views/SplitContainerView.swift:820`). Lowering it to the section-header height is what makes collapse possible at all: at the default 100 a section can never shrink to a ~28pt header. `collapsedSectionHeight` is `RightSidebarChromeMetrics.titlebarHeight` (`Sources/WindowChromeMetrics.swift:35`).
+- **`tabBarVisibility`.** Rev 1 used `.multipleTabs` so a one-panel rail showed no tab bar. That still holds for a **one-section** rail, which must look exactly like today. But once a rail has two or more sections, every section needs a visible header — it is both the VS Code title row and the collapse control. So the store selects `.multipleTabs` when the rail has exactly one section and `.always` when it has two or more, re-applying on every section add/remove. `TabBarVisibility` has exactly these two cases (`vendor/bonsplit/Sources/Bonsplit/Public/BonsplitConfiguration.swift:28-42`); `showsTabBar(tabCount:)` returns `tabCount >= 2` for `.multipleTabs` and `true` for `.always`.
+- Also set `dividerThickness` to a visible value (public var, `BonsplitConfiguration.swift:~560`) so the resize handle between sections is discoverable, matching the requester's "separator that is draggable to resize". The lane is suppressed **unconditionally** because (a) at 140pt for five buttons it occupies 51–58% of a 240–276pt rail and crowds the tab strip (it does not clip — see the corrected lane arithmetic in §0), and (b) `newTerminal`/`newBrowser` would create terminal and browser panels in a rail, which work item 1.2's placement matrix forbids. Set `appearance.tabBarHeight = RightSidebarChromeMetrics.titlebarHeight` (`Sources/WindowChromeMetrics.swift:35`; the enum is declared at `:34`) so a rail tab bar matches today's mode-bar height.
 - Add `Sources/Sidebar/SidebarDockStoreRegistry.swift` (NEW):
   ```swift
   @MainActor @Observable final class SidebarDockStoreRegistry {
@@ -190,7 +233,9 @@ Passing any argument suppresses `test-unit.sh`'s implicit `test` action, so `tes
 
 **Acceptance Criteria**
 - AC-1.1.a: `SidebarDockEdge` declares exactly `left` and `right` → one type addresses both rails.
-- AC-1.1.b: `makeConfiguration()` returns `tabBarVisibility == .multipleTabs`, `allowCloseLastPane == false`, and `appearance.showSplitButtons == false` → a one-slot rail shows no tab bar, a rail cannot reach zero slots, and no terminal/browser creation buttons appear in a rail.
+- AC-1.1.b: `makeConfiguration(collapsedSectionHeight:)` returns `allowCloseLastPane == false`, `appearance.showSplitButtons == false`, and `appearance.minimumPaneHeight == collapsedSectionHeight` → a rail cannot reach zero sections, no terminal/browser creation buttons appear in a rail, and the minimum pane height permits a collapse to header height instead of Bonsplit's default 100pt floor.
+- AC-1.1.g: `tabBarVisibility` resolves to `.multipleTabs` for a one-section rail and `.always` for a rail with two or more sections → today's chrome-free look is preserved at one section, and every section gains a visible header once the rail stacks.
+- AC-1.1.h: `SidebarDockStore` declares no maximum-section constant → nothing in the substrate caps how many sections a rail may hold.
 - AC-1.1.c: `./scripts/test-unit.sh -only-testing:cmuxTests/SidebarDockStoreTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
 - AC-1.1.d: `RightSidebarBetaFeatureSettings.sidebarDockEnabledKey == "sidebar.beta.dock.enabled"`, `defaultSidebarDockEnabled == false`, and `isSidebarDockEnabled` on an empty `UserDefaults` returns `false` → the gate exists in this phase and defaults off.
 - AC-1.1.e: No new file under `Sources/Sidebar/` holds a store reference in a row-level view → `rg` finds no `@ObservedObject`/`@EnvironmentObject`/`@StateObject`/`@Bindable` in the new files.
@@ -198,7 +243,9 @@ Passing any argument suppresses `test-unit.sh`'s implicit `test` action, so `tes
 
 **Acceptance Tests**
 - Test-1.1.a: Unit — `cmuxTests/SidebarDockStoreTests.swift` (NEW) `edgeEnumHasLeftAndRight()`.
-- Test-1.1.b: Unit — `configurationSuppressesLaneAndHidesSingleTabBar()` asserts the three configuration values plus `showsTabBar(tabCount: 1) == false` and `showsTabBar(tabCount: 2) == true`.
+- Test-1.1.b: Unit — `configurationSuppressesLaneAndLowersMinimumPaneHeight()` asserts the three configuration values and that `minimumPaneHeight` equals the passed collapsed-section height rather than Bonsplit's 100pt default.
+- Test-1.1.g: Unit — `tabBarVisibilityTracksSectionCount()` asserts `.multipleTabs` at one section (so `showsTabBar(tabCount: 1) == false`) and `.always` at two or more (so a header shows even for a single-tab section).
+- Test-1.1.h: Regression — `storeDeclaresNoSectionCap()` greps the source for the absence of a max-section constant.
 - Test-1.1.c: The same suite is the executable gate for AC-1.1.c.
 - Test-1.1.d: Unit — `sidebarDockFlagKeyDefaultsOffWhenAbsent()`.
 - Test-1.1.e: Regression — `noStoreReferenceInRowViews()` greps the new files.
@@ -214,6 +261,10 @@ test -f Sources/Sidebar/SidebarDockStoreRegistry.swift
 grep -qF 'showSplitButtons = false' Sources/Sidebar/SidebarDockStore.swift
 grep -qF 'tabBarVisibility' Sources/Sidebar/SidebarDockStore.swift
 grep -qF 'allowCloseLastPane' Sources/Sidebar/SidebarDockStore.swift
+grep -qF 'minimumPaneHeight' Sources/Sidebar/SidebarDockStore.swift
+grep -qF 'tabBarVisibility' Sources/Sidebar/SidebarDockStore.swift
+# No section cap may be reintroduced.
+! rg -qi 'maxSections|maxSlots|sectionLimit' Sources/Sidebar/
 grep -qF 'sidebar.beta.dock.enabled' Sources/App/WorkspaceRuntimeSettings.swift
 grep -qF 'defaultSidebarDockEnabled = false' Sources/App/WorkspaceRuntimeSettings.swift
 rg -q '\.environment\([^)]*[Rr]egistry' Sources/AppDelegate.swift
@@ -233,31 +284,44 @@ rg -q '\.environment\([^)]*[Rr]egistry' Sources/AppDelegate.swift
 - **Landing:** fork-only.
 - Add `Sources/Sidebar/SidebarDockPanelView.swift` (NEW), modeled on `DockPanelView` (`Sources/DockPanelView.swift:11`) including its `visibilityHostId` pattern and appearance-refresh observers. Signature: `init(store: SidebarDockStore, isRailVisible: Bool, windowAppearance: WindowAppearanceSnapshot)`.
 - **Splitting a rail.** A drop on the rail's top or bottom band calls `BonsplitController.splitPane(_:orientation:movingTab:insertFirst:)` (`vendor/bonsplit/Sources/Bonsplit/Public/BonsplitController.swift:653`) with `orientation: .vertical` — stacked, top/bottom, per §0 — and `insertFirst: true` for the top band, `false` for the bottom.
-- **Refusing side-by-side and third slots.** Implement `splitTabBar(_:shouldSplitPane:orientation:)` (`vendor/bonsplit/Sources/Bonsplit/Public/BonsplitDelegate.swift:38`, default `true` at `:104`) returning `false` when `orientation == .horizontal` or when `bonsplitController.allPaneIds.count >= SidebarDockStore.maxSlotsPerRail`. All three `splitPane` overloads consult this veto (`BonsplitController.swift:518`, `:589`, `:671`), so no submodule change is needed.
-  - The veto is **veto-only and receives no tab identity**, so it cannot substitute a `moveTab`. A drop on the bottom band of an already-split rail is therefore **refused and the tab stays put** — it does not relocate into the existing bottom slot. Moving a tab into an existing slot is done by dropping on that slot's `.center` zone or its tab bar.
-- **Deterministic non-drag affordance (required, not optional).** Per §0, the top/bottom bands are reachable only in `x ∈ [80, 196]` at a 276pt right rail, `x ∈ [80, 160]` at a default 240pt left rail, and **not at all** at a left rail configured ≤ 160pt (inside the supported `120...260` range). Drag is therefore not a dependable path and for a narrow left rail not a path at all. Add a tab context-menu item and a command-palette command, both localized, that split the rail and move the invoked tab to the new slot: `SidebarDockStore.splitRail(movingTab:toEdgeSlot:)` where `toEdgeSlot` is `.top`/`.bottom`. This is the path the acceptance tests drive, and the one documented as primary.
-- Add `Sources/Sidebar/SidebarDockPlacementMatrix.swift` (NEW): a checked-in table declaring, per `PanelType`, whether it may occupy a rail slot. Rows: `rightSidebarTool` → allowed; `workspaceSelector` → allowed; every other `PanelType` case → refused. This adopts the one genuinely good artifact of the prior pass (`DockableSupportMatrix`) without its ambient-global machinery.
-- Divider position defaults to `0.5`, clamped by `configuration.dividerPositionRange`, adjustable via `setDividerPosition(_:forSplit:fromExternal:)` (`BonsplitController.swift:1016`). Emptying a slot collapses the rail through `autoCloseEmptyPanes`.
-- Localize the two new affordances with `en` + `ja` keys `sidebarDock.splitRail.top` and `sidebarDock.splitRail.bottom`.
-- Failure modes: a split request for a disallowed `PanelType` is refused with a logged reason; a request on a rail already at `maxSlotsPerRail` is refused; a drop of a pane's only tab onto its own `.center` zone is a no-op (`PaneContainerView.swift:449-458`).
+- **N sections, built as a right-leaning chain.** Adding a section to the bottom of a rail splits the current bottom-most pane with `orientation: .vertical, insertFirst: false`. Repeating this yields a right-leaning chain of binary splits — the representation of an N-section stack in a binary split tree. **No section count is refused.** Rev 1 capped a rail at two and vetoed a third; that cap is deleted per §5.
+- **Refusing side-by-side only.** Implement `splitTabBar(_:shouldSplitPane:orientation:)` (`vendor/bonsplit/Sources/Bonsplit/Public/BonsplitDelegate.swift:38`, default `true` at `:104`) returning `false` when and only when `orientation == .horizontal`. All three `splitPane` overloads consult this veto (`BonsplitController.swift:518`, `:589`, `:671`), so no submodule change is needed. A rail is a fixed-width column; a side-by-side split would yield two ~138pt columns no tool renders usably.
+- **Deterministic non-drag affordance (required, not optional).** Per §0, the top/bottom bands are reachable only in `x ∈ [80, 196]` at a 276pt right rail, `x ∈ [80, 160]` at a default 240pt left rail, and **not at all** at a left rail configured ≤ 160pt (inside the supported `120...260` range). Drag is therefore not a dependable path and for a narrow left rail not a path at all. Add a tab context-menu item and a command-palette command, both localized, calling `SidebarDockStore.moveTabToNewSection(_:position:)` where `position` is `.top`/`.bottom` of the rail. This is the path the acceptance tests drive and the one documented as primary.
+- **Collapse and expand — the mechanism, which is not obvious.** Bonsplit has no collapse API; collapse is composed from the pixel-extent primitive:
+  - `public func setImposedFirstExtent(_ extent: CGFloat?, forSplit splitId: UUID, fromExternal: Bool = false) -> Bool` (`vendor/bonsplit/Sources/Bonsplit/Public/BonsplitController.swift:1072`) pins a split's **first** child to an exact pixel extent, deliberately "escap[ing] the split to fraction semantics" so `dividerPositionRange` does not clamp it. `retryImposedFirstExtent(forSplit:)` (`:1108`) re-applies after constraints change, and refuses during an active divider drag.
+  - Collapsing section *k* where *k* is the **first** child of split *S*: store the current extent in `rememberedExtentBySplitId[S]`, then `setImposedFirstExtent(collapsedSectionHeight, forSplit: S)`.
+  - Collapsing the **last** section in the chain is the asymmetric case, because it is a *second* child and `setImposedFirstExtent` only pins first children. Collapse it by imposing on its parent split *P* an extent of `availableExtent(P) - collapsedSectionHeight`, which is container-dependent and must therefore be re-imposed when the rail resizes — exactly the case the API's doc comment describes ("hosts re-impose after their container resizes"). Re-impose from the rail's size-change observer, not from a view body.
+  - Expanding: `setImposedFirstExtent(nil, forSplit: S)` then restore the remembered extent via `setDividerPosition(_:forSplit:fromExternal:)` (`BonsplitController.swift:1016`), falling back to an even distribution if nothing was remembered.
+  - Collapse state lives in the store, not the view, and is persisted (work item 3.2).
+- **Resize.** Every section boundary is already a draggable Bonsplit divider; set a visible `dividerThickness` (1.1) so it reads as a separator. A drag on a boundary adjacent to a collapsed section must first clear that section's imposed extent, or the drag fights the imposition.
+- Add `Sources/Sidebar/SidebarDockPlacementMatrix.swift` (NEW): a checked-in table declaring, per `PanelType`, whether it may occupy a rail section. Rows: `rightSidebarTool` → allowed; `workspaceSelector` → allowed; every other `PanelType` case → refused. This adopts the one genuinely good artifact of the prior pass (`DockableSupportMatrix`) without its ambient-global machinery.
+- New sections are created at an even share of the rail; emptying a section removes it through `autoCloseEmptyPanes`, and the surviving sections redistribute.
+- Localize with `en` + `ja` keys `sidebarDock.moveToNewSection.top`, `sidebarDock.moveToNewSection.bottom`, `sidebarDock.section.collapse`, and `sidebarDock.section.expand`.
+- Failure modes: a split request for a disallowed `PanelType` is refused with a logged reason; a drop of a pane's only tab onto its own `.center` zone is a no-op (`PaneContainerView.swift:449-458`); collapsing every section in a rail is permitted (the rail becomes a stack of headers) but the rail's own visibility toggle is unaffected; a collapse request during an active divider drag is deferred to drag end, mirroring `retryImposedFirstExtent`'s refusal contract.
 
 **Acceptance Criteria**
-- AC-1.2.a: `splitRail(movingTab:toEdgeSlot: .bottom)` on a one-slot rail yields 2 slots with a `.vertical` split and the moved tab alone in the second slot → the requested arrangement is reachable deterministically.
-- AC-1.2.b: `toEdgeSlot: .top` puts the moved tab in the **first** slot (`insertFirst == true`) → both halves are targetable.
-- AC-1.2.c: `shouldSplitPane` returns `false` for `.horizontal` and for any rail already at `maxSlotsPerRail`, and a left-band drop leaves the tree unchanged → no side-by-side split and no third slot is ever created.
+- AC-1.2.a: `moveTabToNewSection(_:position: .bottom)` on a one-section rail yields 2 sections with a `.vertical` split and the moved tab alone in the second → the requested arrangement is reachable deterministically.
+- AC-1.2.b: `position: .top` puts the moved tab in the **first** section (`insertFirst == true`) → both ends of the stack are targetable.
+- AC-1.2.c: Repeating `moveTabToNewSection` **four** times yields **five** sections, all in one `.vertical` chain → N sections work, and nothing caps the count. This is the criterion that would have failed under rev 1.
 - AC-1.2.d: `./scripts/test-unit.sh -only-testing:cmuxTests/SidebarDockSplitTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
-- AC-1.2.e: The placement matrix refuses every `PanelType` except `rightSidebarTool` and `workspaceSelector` → no terminal, browser, markdown, or file-preview panel can occupy a rail slot.
-- AC-1.2.f: Emptying one slot collapses the rail to 1 slot → `allPaneIds.count == 1`.
-- AC-1.2.g: Both new affordance strings have `en` and `ja` entries with `state == "translated"` and differing values → the new UI text is genuinely localized.
+- AC-1.2.e: `shouldSplitPane` returns `false` for `.horizontal` and `true` for `.vertical` regardless of the current section count, and a left-band drop leaves the tree unchanged → side-by-side is refused while stacking is never refused.
+- AC-1.2.f: Collapsing a non-last section pins its extent to `collapsedSectionHeight`; expanding restores the pre-collapse extent to within 1pt → collapse/expand round-trips without drift.
+- AC-1.2.g: Collapsing the **last** section in the chain also reduces it to `collapsedSectionHeight`, and it stays collapsed across a rail resize → the asymmetric second-child case is implemented and re-imposed, not merely handled at rest.
+- AC-1.2.h: The placement matrix refuses every `PanelType` except `rightSidebarTool` and `workspaceSelector` → no terminal, browser, markdown, or file-preview panel can occupy a rail section.
+- AC-1.2.i: Emptying a section removes it and the rail's section count drops by one → `autoCloseEmptyPanes` governs teardown.
+- AC-1.2.j: All four new affordance strings have `en` and `ja` entries with `state == "translated"` and differing values → the new UI text is genuinely localized.
 
 **Acceptance Tests**
-- Test-1.2.a: Integration — `cmuxTests/SidebarDockSplitTests.swift` (NEW) `splitRailToBottomPutsTabInSecondSlot()`.
-- Test-1.2.b: Integration — `splitRailToTopInsertsFirst()`.
-- Test-1.2.c: Regression — `railRefusesHorizontalAndThirdSlot()` calls the veto directly and then attempts a left-band drop.
+- Test-1.2.a: Integration — `cmuxTests/SidebarDockSplitTests.swift` (NEW) `moveTabToBottomCreatesSecondSection()`.
+- Test-1.2.b: Integration — `moveTabToTopInsertsFirst()`.
+- Test-1.2.c: Integration — `fiveSectionsStackInOneVerticalChain()` performs four successive moves, asserts five panes and that every split node in the tree is `.vertical`.
 - Test-1.2.d: The same suite is the executable gate for AC-1.2.d.
-- Test-1.2.e: Regression — `placementMatrixRefusesNonToolPanels()` iterates every `PanelType` case.
-- Test-1.2.f: Integration — `emptyingSlotCollapsesRail()`.
-- Test-1.2.g: Unit — `splitRailStringsAreLocalized()` parses the xcstrings catalog.
+- Test-1.2.e: Regression — `railRefusesHorizontalButNeverRefusesVertical()` calls the veto directly at several section counts, then attempts a left-band drop.
+- Test-1.2.f: Integration — `collapseThenExpandRestoresExtent()` asserts the collapsed extent equals the header height and the restored extent matches the original within 1pt.
+- Test-1.2.g: Integration — `collapsingLastSectionSurvivesRailResize()` collapses the trailing section, changes the rail's height, and re-asserts the collapsed extent.
+- Test-1.2.h: Regression — `placementMatrixRefusesNonToolPanels()` iterates every `PanelType` case.
+- Test-1.2.i: Integration — `emptyingSectionRemovesIt()`.
+- Test-1.2.j: Unit — `sectionAffordanceStringsAreLocalized()` parses the xcstrings catalog for all four keys.
 
 **Verification Commands**
 ```bash
@@ -267,13 +331,15 @@ test -f Sources/Sidebar/SidebarDockPanelView.swift
 test -f Sources/Sidebar/SidebarDockPlacementMatrix.swift
 grep -qF 'shouldSplitPane' Sources/Sidebar/SidebarDockStore.swift
 grep -qF 'orientation: .vertical' Sources/Sidebar/SidebarDockStore.swift
-grep -qF 'maxSlotsPerRail' Sources/Sidebar/SidebarDockStore.swift
+grep -qF 'setImposedFirstExtent' Sources/Sidebar/SidebarDockStore.swift
+grep -qF 'moveTabToNewSection' Sources/Sidebar/SidebarDockStore.swift
 ! rg -n 'orientation: \.horizontal' Sources/Sidebar/
 python3 - <<'PY'
 import json,sys
 d=json.load(open("Resources/Localizable.xcstrings"))["strings"]
 bad=[]
-for k in ["sidebarDock.splitRail.top","sidebarDock.splitRail.bottom"]:
+for k in ["sidebarDock.moveToNewSection.top","sidebarDock.moveToNewSection.bottom",
+          "sidebarDock.section.collapse","sidebarDock.section.expand"]:
     loc=d.get(k,{}).get("localizations",{})
     en=loc.get("en",{}).get("stringUnit",{}); ja=loc.get("ja",{}).get("stringUnit",{})
     if ja.get("state")!="translated" or not ja.get("value") or ja.get("value")==en.get("value"):
@@ -445,10 +511,10 @@ git -C vendor/bonsplit diff --cached --quiet
 - **Tab set, stated per mode.** `RightSidebarMode` has six cases (`Sources/RightSidebarPanelView.swift:17-22`) but only three have a `Panel` adapter (`paneModes = [.files, .find, .sessions]`, `:59`). Dispositions:
   - `.files`, `.find`, `.sessions` → included, each backed by `RightSidebarToolPanel(workspace:mode:)` (`Sources/RightSidebarToolPanel.swift:22`).
   - `.feed` → **excluded** from the rail tab set; it keeps rendering through the legacy `contentForMode` path when selected. No `FeedToolPanel` is created by this PRD.
-  - `.dock` → **excluded.** The Dock is itself a `BonsplitController`; nesting one inside a rail slot's Bonsplit pane is out of scope.
+  - `.dock` → **excluded.** The Dock is itself a `BonsplitController`; nesting one inside a rail section's Bonsplit pane is out of scope.
   - `.customSidebar` → **excluded**; it is already filtered out of `availableModes()` and renders `EmptyView()`.
   A fresh right rail therefore has exactly three tabs: Files, Find, Vault.
-- **Source-of-truth contract for selection (the load-bearing rule).** `SidebarDockStore` is the **sole source of truth**. `FileExplorerState.mode` becomes a *derived mirror* defined as *the mode of the selected tab in the focused slot*. It is written exactly once, from `splitTabBar(_:didSelectTab:inPane:)` and `splitTabBar(_:didFocusPane:)` — never from a view body, per §1. `mode`'s public setter is replaced by `SidebarDockStore.focusTab(for:)`, and all existing setters are rewritten to call it: tab click (`Sources/RightSidebarPanelView.swift:238-245`), `keyDown` (`:500-508`), command palette (`Sources/ContentView+RightSidebarCommandPalette.swift`), CLI/socket (`Sources/RightSidebarRemoteCommand.swift`, `Sources/AppDelegate.swift:6644`/`:6771`/`:6917`), and focus memory (`Sources/MainWindowFocusController.swift:147`/`:157`). When two slots are visible, `mode` names only the focused slot's selection — it is explicitly incapable of describing both, which is why the store, not `mode`, is persisted. On restore the snapshot wins and `rightSidebar.mode` is overwritten from it.
+- **Source-of-truth contract for selection (the load-bearing rule).** `SidebarDockStore` is the **sole source of truth**. `FileExplorerState.mode` becomes a *derived mirror* defined as *the mode of the selected tab in the focused section*. It is written exactly once, from `splitTabBar(_:didSelectTab:inPane:)` and `splitTabBar(_:didFocusPane:)` — never from a view body, per §1. `mode`'s public setter is replaced by `SidebarDockStore.focusTab(for:)`, and all existing setters are rewritten to call it: tab click (`Sources/RightSidebarPanelView.swift:238-245`), `keyDown` (`:500-508`), command palette (`Sources/ContentView+RightSidebarCommandPalette.swift`), CLI/socket (`Sources/RightSidebarRemoteCommand.swift`, `Sources/AppDelegate.swift:6644`/`:6771`/`:6917`), and focus memory (`Sources/MainWindowFocusController.swift:147`/`:157`). When two or more sections are visible, `mode` names only the focused section's selection — it is explicitly incapable of describing both, which is why the store, not `mode`, is persisted. On restore the snapshot wins and `rightSidebar.mode` is overwritten from it.
 - **Chrome disposition — explicit, because most of `modeBar` has no Bonsplit equivalent.** Bonsplit's tab bar has one host-extensible lane (`splitButtons`) and that lane is suppressed for rails (1.1). Per affordance in `modeBar` (`Sources/RightSidebarPanelView.swift:216-266`):
   | Affordance | Disposition under the flag |
   |---|---|
@@ -468,7 +534,7 @@ git -C vendor/bonsplit diff --cached --quiet
 - AC-2.1.a: With the flag off, `RightSidebarPanelView` renders the legacy `modeBar` path and the three UI test suites above pass unchanged → the change is reversible at runtime.
 - AC-2.1.b: With the flag on, a fresh right rail has exactly 3 tabs (Files, Find, Vault) and `.feed`/`.dock`/`.customSidebar` are absent → the tab set is exactly as specified.
 - AC-2.1.c: `./scripts/test-unit.sh -only-testing:cmuxTests/RightSidebarDockMountTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
-- AC-2.1.d: `FileExplorerState.mode` changes when focus moves between two slots with different selections, and is written only from the two delegate callbacks → the derived-mirror contract holds and no view body writes it.
+- AC-2.1.d: `FileExplorerState.mode` changes when focus moves between two sections with different selections, and is written only from the two delegate callbacks → the derived-mirror contract holds and no view body writes it.
 - AC-2.1.e: `RightSidebar` and `RightSidebarModeBar` resolve with the flag on → the container identifiers survive.
 - AC-2.1.f: Every UI test asserting `RightSidebarModeButton.*` or the mode-bar height is conditionalized on the flag → the known identifier loss does not silently red CI.
 - AC-2.1.g: Any new header string has `en` + `ja` with `state == "translated"` and differing values.
@@ -588,7 +654,7 @@ grep -qF 'SidebarDockStore' Sources/ContentView.swift
 
 ## Phase 3: Cross-Rail Moves and Persistence
 
-**Purpose:** This phase cannot start until Phase 2 has mounted both rails, because a tab cannot move between rails that are not both dock spaces, and the persisted arrangement cannot be captured until there is a two-rail arrangement to capture. Cross-rail movement and persistence are one phase rather than two because the schema shape is fixed by Phase 2 (two rails, ≤2 slots each) and cross-rail movement adds no schema surface — a tool panel serialized in `leftSidebarDock` is byte-identical however it arrived. Their only coupling is 3.2's restore-time guard against a placement-matrix-disallowed panel, which is one guard, not a schema driver; the `**Dependencies:**` lines encode that ordering. The phase's third item, 3.3, carries the same arrangement into named saved layouts and depends on 3.2 because it reuses the captured shape; it is in this phase rather than a later one because "wherever layouts are saved" is a single requirement spanning two storage mechanisms and splitting them across phases would let the project be declared done with only half of it satisfied.
+**Purpose:** This phase cannot start until Phase 2 has mounted both rails, because a tab cannot move between rails that are not both dock spaces, and the persisted arrangement cannot be captured until there is a two-rail arrangement to capture. Cross-rail movement and persistence are one phase rather than two because the schema shape is fixed by Phase 2 (two rails, each an N-section `.vertical` chain) and cross-rail movement adds no schema surface — a tool panel serialized in `leftSidebarDock` is byte-identical however it arrived. Their only coupling is 3.2's restore-time guard against a placement-matrix-disallowed panel, which is one guard, not a schema driver; the `**Dependencies:**` lines encode that ordering. The phase's third item, 3.3, carries the same arrangement into named saved layouts and depends on 3.2 because it reuses the captured shape; it is in this phase rather than a later one because "wherever layouts are saved" is a single requirement spanning two storage mechanisms and splitting them across phases would let the project be declared done with only half of it satisfied.
 
 ### 3.1 Moving a tool panel between rails
 
@@ -600,14 +666,14 @@ grep -qF 'SidebarDockStore' Sources/ContentView.swift
 - **Landing:** fork-only.
 - Add `Sources/Sidebar/SidebarDockStore+ExternalDrop.swift` (NEW), setting `bonsplitController.onExternalTabDrop` on each rail store. Bonsplit routes a drag begun in a different controller to the receiving controller as external; this is the mechanism `DockSplitStore` uses at `Sources/DockSplitStore.swift:113-120`.
 - The live panel is **moved, not copied**: remove it from the source store's `panels`/`surfaceIdToPanelId` and insert into the destination's, preserving `id` and `stableSurfaceIdentity` so session identity and focus history survive.
-- A drop on the destination rail's bottom band creates the destination's second slot with `orientation: .vertical, insertFirst: false` — the arrangement the request describes.
+- A drop on the destination rail's bottom band creates the destination's second section with `orientation: .vertical, insertFirst: false` — the arrangement the request describes.
 - **The handler must route `.split` destinations through `bonsplitController.splitPane`.** `ExternalTabDropRequest.Destination` (`vendor/bonsplit/Sources/Bonsplit/Public/BonsplitController.swift:9-24`) includes `.split(targetPane:orientation:insertFirst:)`, and the zone-derived destination is handed to the host (`vendor/bonsplit/Sources/Bonsplit/Internal/Views/PaneContainerView.swift:495-497`), so a drop onto the destination rail's **left or right** band arrives as `.split(orientation: .horizontal)` for the host to act on. 1.2's `shouldSplitPane` veto is consulted only by the `splitPane` overloads (`BonsplitController.swift:518`, `:589`, `:671`), so it protects this path **only if** the handler goes through them. Implementing the split by hand here would bypass the veto and admit a side-by-side rail split via the cross-rail route.
 - Declare a **new** UTType `com.cmux.sidebar-panel-tab.transfer` in `Resources/Info.plist` under `UTExportedTypeDeclarations`, conforming to `public.data`, alongside the three existing declarations (`com.splittabbar.tabtransfer`, `com.cmux.sidebar-tab-reorder`, `com.cmux.filepreview.transfer`). Reusing `com.cmux.sidebar-tab-reorder` is forbidden: it carries workspace ids and is already accepted by terminals, browsers, and file-preview panes, so reuse would make a tool tab droppable onto a terminal as a workspace.
 - Enforce `SidebarDockPlacementMatrix` (1.2) on receipt.
 - Failure modes: a disallowed `PanelType` is refused and the drag returns to origin; a move that would leave the left rail with no panels when the workspace selector is its only panel is refused.
 
 **Acceptance Criteria**
-- AC-3.1.a: A tab moved from the right rail to the left rail's bottom band lands in the left rail's second slot and is absent from the right rail → the requested cross-rail move works.
+- AC-3.1.a: A tab moved from the right rail to the left rail's bottom band lands in the left rail's second section and is absent from the right rail → the requested cross-rail move works.
 - AC-3.1.b: The moved panel keeps its `id` and `stableSurfaceIdentity` → it is a move, not a re-creation.
 - AC-3.1.c: `./scripts/test-unit.sh -only-testing:cmuxTests/SidebarDockCrossRailTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
 - AC-3.1.d: `Resources/Info.plist` declares `com.cmux.sidebar-panel-tab.transfer` conforming to `public.data`, with 4 unique identifiers total → the new type exists and is distinct from the reorder type.
@@ -658,11 +724,12 @@ PY
 - Add two additive optional fields to `SessionWindowSnapshot` (`Sources/SessionPersistence.swift:1867`), mirroring `var dock: SessionSplitContainerSnapshot? = nil` (`:1876`):
   `var leftSidebarDock: SessionSplitContainerSnapshot? = nil` and `var rightSidebarDock: SessionSplitContainerSnapshot? = nil`.
 - **Do not bump `SessionSnapshotSchema.currentVersion`** (currently `1`, `Sources/SessionPersistence.swift:14`). `Optional … = nil` is the established pattern, proven by `legacySessionWithoutDockFieldsDecodesCleanly()` in `cmuxTests/DockSessionPersistenceTests.swift`.
-- Reuse `SessionSplitContainerSnapshot` (`Sources/SessionSplitContainerSnapshot.swift:8`) verbatim. The stacked split serializes as `SessionSplitLayoutSnapshot(orientation: .vertical, dividerPosition:)`; per-slot ordered tabs and selection as `SessionPaneLayoutSnapshot.panelIds`/`.selectedPanelId`. Do not add a third `SessionWorkspaceLayoutSnapshot` case.
+- Reuse `SessionSplitContainerSnapshot` (`Sources/SessionSplitContainerSnapshot.swift:8`) verbatim. The stacked split serializes as `SessionSplitLayoutSnapshot(orientation: .vertical, dividerPosition:)`; per-section ordered tabs and selection as `SessionPaneLayoutSnapshot.panelIds`/`.selectedPanelId`. Do not add a third `SessionWorkspaceLayoutSnapshot` case.
 - Add `Sources/Sidebar/SidebarDockStore+SessionSnapshot.swift` (NEW) and `Sources/Sidebar/SidebarDockStore+SessionRestore.swift` (NEW), modeled on the `DockSplitStore` equivalents, using `SessionSplitContainerLayoutCodec` (`Sources/SessionSplitContainerLayoutCodec.swift:8`): `snapshot(panelIdForTabId:)`, `pruned(_:keeping:)`, `restoreScaffold(_:)`, then `applyDividerPositions(snapshotNode:liveNode:)`.
 - Wire capture into `Sources/AppDelegate.swift:4535-4547` (beside `sidebar` and `dock`) and restore at `:3568-3572` / `:8715-8732`. **Add both fields to the autosave dirty fingerprint at `Sources/AppDelegate.swift:3992-4000`**, which today hashes only left-sidebar visibility, width, and selection — without this the 8-second autosave never notices a rearrangement, which is the highest-risk silent-data-loss path in this PRD and therefore carries its own acceptance criterion.
-- **Legacy migration, non-destructive.** Right-rail state lives in global `UserDefaults` today (`rightSidebar.mode`, `fileExplorer.isVisible`, `fileExplorer.width`, `Sources/FileExplorerState.swift:7-15`). On first launch with the flag on and `rightSidebarDock == nil`, seed a one-slot right rail with the three tool tabs and the selection taken from `rightSidebar.mode`. Leave every legacy key intact and unmodified so turning the flag off returns the user to their exact prior state. This PRD does **not** retire `fileExplorer.dividerPosition`: it is orthogonal, would be an ungated behavior change, and `FileExplorerState` does read it in `init` (`:54-55`) even though nothing renders it.
-- **Restore is non-destructive.** A snapshot describing more slots than `maxSlotsPerRail` is restored **as-is** if it round-trips; the cap is enforced on new splits only. This deliberately avoids destroying data that a future cap raise would want (§5).
+- **Legacy migration, non-destructive.** Right-rail state lives in global `UserDefaults` today (`rightSidebar.mode`, `fileExplorer.isVisible`, `fileExplorer.width`, `Sources/FileExplorerState.swift:7-15`). On first launch with the flag on and `rightSidebarDock == nil`, seed a one-section right rail with the three tool tabs and the selection taken from `rightSidebar.mode`. Leave every legacy key intact and unmodified so turning the flag off returns the user to their exact prior state. This PRD does **not** retire `fileExplorer.dividerPosition`: it is orthogonal, would be an ungated behavior change, and `FileExplorerState` does read it in `init` (`:54-55`) even though nothing renders it.
+- **Collapse state is persisted.** `SessionPaneLayoutSnapshot` carries no collapse field, and `SessionSplitLayoutSnapshot` has `orientation`, `dividerPosition`, `first`, `second` only (`Sources/SessionPersistence.swift:1719-1730`) — no place for an imposed pixel extent. Since §1 forbids adding a `SessionWorkspaceLayoutSnapshot` case and bumping the schema version, persist collapse **outside** the layout tree: add `collapsedPanelIds: [UUID]?` (additive, defaulted `nil`) to the rail's `SessionSplitContainerSnapshot` envelope in a **new** wrapper type rather than mutating the shared struct, or equivalently store it as a sibling optional field on `SessionWindowSnapshot` keyed by rail edge. Either way it is an additive `Optional … = nil` field and the version stays `1`. On restore, rebuild the tree first, then re-impose the collapsed extents through the same path 1.2 uses.
+- **Restore imposes no section limit.** A snapshot describing any number of sections restores as-is. There is no cap to enforce on either side; rev 1's two-slot cap and its associated pruning are deleted.
 - Failure modes: a `panelId` with no decodable panel drops that tab and keeps the rest, never failing the window decode; a matrix-disallowed panel type in a rail snapshot is dropped.
 
 **Acceptance Criteria**
@@ -670,20 +737,20 @@ PY
 - AC-3.2.b: `Sources/SessionPersistence.swift` still contains `static let currentVersion = 1` → no existing session file is invalidated, checked by content rather than by a diff.
 - AC-3.2.c: `./scripts/test-unit.sh -only-testing:cmuxTests/SidebarDockPersistenceTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
 - AC-3.2.d: A session JSON with both keys absent decodes with both fields `nil` → old snapshots keep working.
-- AC-3.2.e: A two-slot rail round-trips orientation, divider position, per-slot ordered `panelIds`, and `selectedPanelId` → the arrangement is fully persisted.
+- AC-3.2.e: An N-section rail round-trips orientation, per-section divider extents, per-section ordered `panelIds`, `selectedPanelId`, and collapsed state → the whole arrangement is persisted, including collapse.
 - AC-3.2.f: The autosave dirty fingerprint changes when a rail is rearranged → an arrangement is not silently lost at the 8-second boundary.
-- AC-3.2.g: With `rightSidebarDock == nil` and `rightSidebar.mode == "find"`, the seeded rail has one slot with Find selected, and all legacy `UserDefaults` keys are unchanged → migration is non-destructive.
-- AC-3.2.h: A snapshot describing 3 slots restores as 3 slots, and a new split on it is refused → restore is non-destructive while the cap still binds new splits.
+- AC-3.2.g: With `rightSidebarDock == nil` and `rightSidebar.mode == "find"`, the seeded rail has one section with Find selected, and all legacy `UserDefaults` keys are unchanged → migration is non-destructive.
+- AC-3.2.h: A snapshot describing **five** sections restores as five sections with their per-section divider extents and collapsed flags intact → persistence is not silently capped and collapse survives relaunch.
 
 **Acceptance Tests**
 - Test-3.2.a: Unit — `cmuxTests/SidebarDockPersistenceTests.swift` (NEW) `windowSnapshotDeclaresOptionalRailFields()`.
 - Test-3.2.b: Regression — `schemaVersionStillOne()`.
 - Test-3.2.c: The same suite is the executable gate for AC-3.2.c.
 - Test-3.2.d: Regression — `legacySessionWithoutRailFieldsDecodesCleanly()`, modeled on the same-named dock test.
-- Test-3.2.e: Integration — `twoSlotRailRoundTrips()`.
+- Test-3.2.e: Integration — `nSectionRailRoundTripsIncludingCollapse()` builds a three-section rail with the middle one collapsed and asserts every field survives encode/decode.
 - Test-3.2.f: Regression — `autosaveFingerprintReactsToRearrangement()`.
 - Test-3.2.g: Integration — `seedsFromLegacyModeAndLeavesKeysIntact()`.
-- Test-3.2.h: Regression — `restoreIsNonDestructiveAboveSlotCap()`.
+- Test-3.2.h: Regression — `fiveSectionSnapshotRestoresUncapped()` asserts five sections survive with extents and collapsed flags.
 
 **Verification Commands**
 ```bash
@@ -713,19 +780,23 @@ grep -qF 'fileExplorer.dividerPosition' Sources/FileExplorerState.swift
 - Add an optional field to `CmuxWorkspaceDefinition` (`Sources/CmuxWorkspaceDefinition.swift:3`) and declare the shape explicitly in `Sources/Sidebar/CmuxSidebarDockDefinition.swift` (NEW). A session snapshot cannot be reused here because it carries live panel UUIDs, meaningless in a reusable template:
   ```swift
   struct CmuxSidebarDockDefinition: Codable, Sendable, Hashable {
-      struct Slot: Codable, Sendable, Hashable {
+      struct Section: Codable, Sendable, Hashable {
           var panels: [String]      // RightSidebarMode raw values, or "workspaceSelector"
           var selected: String?     // must be a member of `panels`
+          var collapsed: Bool?      // absent == expanded
+          var weight: Double?       // relative share of the rail; nil == equal share
       }
       struct Rail: Codable, Sendable, Hashable {
-          var slots: [Slot]         // 1 or 2 on write; more tolerated on read
-          var split: Double?        // clamped 0.1...0.9, as CmuxSplitDefinition does
+          var sections: [Section]   // 1..N, no upper bound
       }
       var left: Rail?
       var right: Rail?
   }
   ```
-  JSON keys are the property names verbatim (`left`, `right`, `slots`, `panels`, `selected`, `split`). `selected` is explicit because the declarative schema cannot express per-pane tab selection through the surrounding `focus` convention — a documented gap at `Sources/Workspace+LayoutCapture.swift:159-163` (issue #7444).
+  JSON keys are the property names verbatim (`left`, `right`, `sections`, `panels`, `selected`, `collapsed`, `weight`). Three notes on why this shape differs from the session snapshot's:
+  - `sections` is a **flat array**, not a nested binary tree. A rail is always a `.vertical` chain, so the tree adds nothing a template needs, and a flat list is what a human editing `layouts.json` can reason about. Applying it rebuilds the chain top-to-bottom.
+  - `weight` is a **relative share**, not a `0.1...0.9` divider ratio, because with N sections a single pairwise ratio is meaningless. Weights are normalized on apply; a `nil` weight takes an equal share. This deliberately diverges from `CmuxSplitDefinition`'s ratio-clamping convention, which only ever describes a binary split.
+  - `selected` is explicit because the declarative schema cannot express per-pane tab selection through the surrounding `focus` convention — a documented gap at `Sources/Workspace+LayoutCapture.swift:159-163` (issue #7444).
 - `layouts.json` has no version field, and an optional field on `CmuxWorkspaceDefinition` is transparently forward- and backward-compatible; every other field there already uses `decodeIfPresent`, so no migration is needed.
 - Capture in `Sources/Workspace+LayoutCapture.swift` (`captureLayoutDefinition()`), apply in `Sources/TabManager+SavedLayouts.swift`.
 - Failure modes: an unknown panel string is skipped and the rest applied; a `split` outside `0.1...0.9` is clamped; `selected` not in `panels` falls back to the first entry.
@@ -734,8 +805,8 @@ grep -qF 'fileExplorer.dividerPosition' Sources/FileExplorerState.swift
 - AC-3.3.a: `CmuxWorkspaceDefinition` gains the optional field decoded with `decodeIfPresent` → old `layouts.json` files decode unchanged.
 - AC-3.3.b: A pre-change `layouts.json` decodes with the field `nil` → back-compat holds without a version field.
 - AC-3.3.c: `./scripts/test-unit.sh -only-testing:cmuxTests/SidebarDockSavedLayoutTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
-- AC-3.3.d: Saving a layout from a window with a two-slot right rail and applying it to a fresh window reproduces two slots with the same panel strings, order, selection, and ratio → the arrangement travels with named layouts.
-- AC-3.3.e: A `split` of `0.02` is clamped to `0.1` → ratios are sanitized as `CmuxSplitDefinition` does.
+- AC-3.3.d: Saving a layout from a window with a three-section right rail (one collapsed) and applying it to a fresh window reproduces three sections with the same panel strings, order, selection, collapsed flag, and relative weights → the arrangement travels with named layouts.
+- AC-3.3.e: Section `weight` values are normalized on apply, so weights `[1, 1, 2]` yield shares of 25%/25%/50%, and a `nil` weight takes an equal share → relative weights replace the meaningless single pairwise ratio.
 - AC-3.3.f: An unknown panel string is skipped without throwing → a forward-compatible file does not break the apply path.
 - AC-3.3.g: A `selected` value absent from `panels` falls back to the first entry → malformed templates degrade rather than crash.
 
@@ -743,8 +814,8 @@ grep -qF 'fileExplorer.dividerPosition' Sources/FileExplorerState.swift
 - Test-3.3.a: Unit — `cmuxTests/SidebarDockSavedLayoutTests.swift` (NEW) `definitionDecodesIfPresent()`.
 - Test-3.3.b: Regression — `legacyLayoutsFileDecodesWithNilField()`.
 - Test-3.3.c: The same suite is the executable gate for AC-3.3.c.
-- Test-3.3.d: Integration — `saveThenApplyReproducesTwoSlotRail()`.
-- Test-3.3.e: Unit — `splitRatioIsClamped()`.
+- Test-3.3.d: Integration — `saveThenApplyReproducesThreeSectionRailWithCollapse()`.
+- Test-3.3.e: Unit — `sectionWeightsAreNormalizedOnApply()` asserts the 1/1/2 case and the nil-weight equal-share case.
 - Test-3.3.f: Regression — `unknownPanelStringIsSkipped()`.
 - Test-3.3.g: Regression — `invalidSelectedFallsBackToFirst()`.
 
@@ -819,12 +890,12 @@ python3 scripts/lint-feature-flags.py
 - **The shipped Dock docs page is localized and must not be missed:** `web/app/[locale]/(landing)/docs/dock/page.tsx` renders via `useTranslations("docs.dock")` from `web/messages/{en,ja}.json`. Updating only the internal `docs/dock.md` would leave the user-visible page stale in both locales, violating §1's "update every supported message catalog". Update the `docs.dock` keys covering the split affordances and shortcuts, including the Dock-focused shortcut behavior described at `docs/dock.md:23`.
 - Run the prescribed audit: parse the touched localization files, compare changed keys across `en`/`ja`, and `rg` the changed Swift/TS/TSX/docs files for newly introduced bare English in `Text(`, `Button(`, `.help(`, `.safeHelp(`, `.tooltip(`, alert titles, and accessibility labels. Record the result in the handoff, including anything unverified. `defaultValue`, English fallback text, and schema descriptions do not count.
 - Record the locale bookkeeping accurately: `Resources/Localizable.xcstrings` has 20 locales; `knownRegions` has 19 entries = 18 locales + Base, missing `km` and `uk`; `CLAUDE.md` and `skills/cmux-localization/SKILL.md` both say "English and Japanese". This PRD meets the `en` + `ja` bar and does not attempt the other 18.
-- Add `docs/sidebar-docking.md` (NEW) documenting: rails as dock spaces; that a horizontal divider is Bonsplit `.vertical`; the drop bands being 25% edge bands with an 80pt floor, with the reachable band given for **both** rails (`x ∈ [80, 196]` at a 276pt right rail, `x ∈ [80, 160]` at a 240pt left rail, and unreachable at a left rail ≤ 160pt) and the non-drag command named as the primary path; the `maxSlotsPerRail` cap of 2 slots and its non-destructive restore; cross-rail moves; the placement matrix; and both persistence mechanisms (the session file and `layouts.json`).
+- Add `docs/sidebar-docking.md` (NEW) documenting: rails as dock spaces; that a horizontal divider is Bonsplit `.vertical`; the drop bands being 25% edge bands with an 80pt floor, with the reachable band given for **both** rails (`x ∈ [80, 196]` at a 276pt right rail, `x ∈ [80, 160]` at a 240pt left rail, and unreachable at a left rail ≤ 160pt) and the non-drag command named as the primary path; that a rail holds N sections with no cap; that each section is collapsible via an imposed pixel extent and every boundary is a drag-resize handle; cross-rail moves; the placement matrix; and both persistence mechanisms (the session file and `layouts.json`).
 - Update `docs/dock.md` to distinguish the Dock from sidebar dock spaces, and add a `CHANGELOG.md` entry.
 
 **Acceptance Criteria**
 - AC-4.2.a: Every key in the enumerated list has `en` + `ja` with `state == "translated"` and differing values → the audit passes for the complete surface list.
-- AC-4.2.b: `docs/sidebar-docking.md` documents the orientation inversion, the drop-band geometry **with both rails' numbers including the unreachable ≤160pt left-rail case**, the slot cap, and both persistence mechanisms → the four non-obvious constraints are written down against the real worst case.
+- AC-4.2.b: `docs/sidebar-docking.md` documents the orientation inversion, the drop-band geometry **with both rails' numbers including the unreachable ≤160pt left-rail case**, the absence of a section cap, the collapse mechanism, and both persistence mechanisms → the non-obvious constraints are written down against the real worst case.
 - AC-4.2.c: All CI guard scripts pass → `./scripts/check-pbxproj.sh`, `python3 scripts/check-workspace-package-groups.py --check`, `python3 scripts/check-package-resolved-policy.py`, `./tests/test_ci_pbxproj_test_wiring.sh`, and `python3 tests/test_ci_sidebar_lazy_layout_guard.py` all exit 0.
 - AC-4.2.d: `web/messages/en.json` and `ja.json` both contain `cmux.splitQuad`, and the `docs.dock` keys mention the quad affordance → the user-visible docs page is not stale in either locale.
 - AC-4.2.e: `docs/dock.md` distinguishes the Dock from sidebar dock spaces → the two features are not conflated.
@@ -844,7 +915,7 @@ set -euo pipefail
 xcodebuild -project cmux.xcodeproj -list >/dev/null
 test -f docs/sidebar-docking.md
 grep -qF 'Bonsplit `.vertical`' docs/sidebar-docking.md
-grep -qF 'maxSlotsPerRail' docs/sidebar-docking.md
+grep -qF 'setImposedFirstExtent' docs/sidebar-docking.md
 grep -qF '160' docs/sidebar-docking.md
 grep -qF '276' docs/sidebar-docking.md
 grep -qF 'layouts.json' docs/sidebar-docking.md
@@ -881,7 +952,7 @@ The project is complete when all of the following hold. Verification commands ar
 
 1. Every work item's Verification Commands block exits 0.
 2. A tagged Debug build succeeds: `CMUX_SKIP_ZIG_BUILD=1 ./scripts/reload.sh --tag sidebar-dock`.
-3. With the flag on: the non-drag split command puts a chosen tool tab into a new bottom slot of a rail with the other tabs above; a tool tab moves from the right rail into the left rail's second slot; both arrangements survive quit and relaunch; and saving then applying a named layout reproduces them.
+3. With the flag on: the non-drag command pulls a chosen tool tab into a new bottom section of a rail with the other tabs above; repeating it three times yields four stacked sections; each section collapses to its header and expands back to its prior size; every section boundary drag-resizes; a tool tab moves from the right rail into a new section of the left rail; all of that survives quit and relaunch; and saving then applying a named layout reproduces it.
 4. With the flag off, both rails behave exactly as on `PRD_BASE_SHA`, no session-snapshot rail field is written, and the three conditionalized UI test suites pass.
 5. The pane tab-bar split-button row shows five buttons ending in the quad splitter; the quad action produces a true 2×2 topology per AC-1.3.g (not merely four panes) and is reachable from all **five** entrypoints listed in 1.4; the pinned `vendor/bonsplit` SHA is unchanged and its worktree clean.
 6. `Sources/SessionPersistence.swift` still declares `static let currentVersion = 1`, and a session file written by `PRD_BASE_SHA` still restores without loss.
@@ -920,13 +991,16 @@ Every ambiguity was resolved autonomously; the decisions are recorded here. Thre
 - Decision: **Quad button position and icon** — appended 5th and last with `square.split.2x2`, matching "vertical, then horizontal, then split quad at the end" and the `square.split.2x1`/`1x2` family.
 - Decision: **Quad shortcut `⌃⌘D`, and it is an addition the request did not ask for** — the request asked only for a button. `⌃⌘D` was chosen after auditing all 13 `key: "d"` bindings across `Sources/KeyboardShortcutSettings.swift` and `Packages/macOS/CmuxSettings/Sources/CmuxSettings/Values/ShortcutAction+Defaults.swift`; the near neighbours are `⌘D` (splitRight), `⌘⇧D` (splitDown), `⌥⌘D` / `⌥⌘⇧D` (browser splits), `⌃⌘⇧D` (`openDiffViewer`), `⌥⌃⌘D`, and `⌃D` (`diffViewerScrollHalfPageDown`). `⌃⌘D` is unbound. An earlier draft justified this by noting `⌃⌘=` was taken, which was a non-sequitur.
 - Decision: **"Split horizontally" means Bonsplit `.vertical`** — a horizontal divider producing top and bottom, which the request describes explicitly ("Files on the bottom, Find/Vault on the top"). Restated at every use site because an inverted implementation is the likeliest failure mode.
-- Decision: **Two slots per rail as a named constant, with non-destructive restore** — `SidebarDockStore.maxSlotsPerRail = 2` is enforced on new splits only. The request describes a top/bottom halving, but it also says "I'm going to add several new things to this area", which is the strongest available argument against a hard cap. So the cap binds new splits while restore is deliberately non-destructive (AC-3.2.h), meaning a future cap raise never has to recover data this project discarded. An earlier draft pruned 3-slot snapshots to 2 and would have destroyed exactly that.
+- Decision (rev 2, **supersedes** rev 1's two-slot cap): **N sections per rail, no cap.** Rev 1 defined a max-sections-per-rail constant equal to two on `SidebarDockStore` and vetoed a third section. That was the author's inference from the phrase "bottom half", not a requirement — the requester has since confirmed they never said two, that "a three-way split or more would be reasonable", and that several of the panels they intend to build are physically small. Every trace of the cap is removed: the constant, the count-based veto arm, the restore-time pruning, and the docs sentence. A reviewer of rev 1 flagged this exact risk from the phrase "I'm going to add several new things to this area", and rev 1 kept the cap anyway; recording that here so the same inference is not made a third time.
+- Decision (rev 2, new): **Collapse is composed from `setImposedFirstExtent`, not from a Bonsplit collapse API, because none exists.** The two enabling facts are that `appearance.minimumPaneHeight` is a public var (default 100, which would otherwise forbid a header-height pane) and that `setImposedFirstExtent` deliberately escapes fraction semantics for pixel-exact extents. The asymmetry that the API pins only a split's *first* child is why collapsing the trailing section is specified separately in 1.2 and needs re-imposition on rail resize.
+- Decision (rev 2, new): **A rail's tab bar visibility switches with its section count** — `.multipleTabs` at one section so today's chrome-free look is byte-for-byte preserved, `.always` at two or more so every section gets the titled header that doubles as its collapse control. Rev 1 fixed it at `.multipleTabs`, which would have left a stacked rail's sections headerless and uncollapsible.
+- Decision (rev 2, new): **Saved layouts describe a rail as a flat weighted section list, not a nested binary tree with a `0.1...0.9` ratio.** With N sections a single pairwise ratio cannot express the layout, and a flat list is what a human editing `layouts.json` can reason about. This is a deliberate divergence from `CmuxSplitDefinition`'s convention, which only ever describes a binary split.
 - Decision: **No side-by-side splits inside a rail, enforced by delegate veto** — a `.horizontal` split at 276pt yields two ~138pt columns no tool renders usably. Zone removal is impossible from host code: `DropZone`'s five cases and `zoneForLocation` are private to the internal `PaneContainerView`, and `BonsplitConfiguration` has no drop-zone knob. The veto `splitTabBar(_:shouldSplitPane:orientation:)` is consulted by all three `splitPane` overloads, so it is sufficient. Accepted cost: the left/right zone highlight still appears during a drag and the drop is then refused.
 - Decision: **Ship a non-drag split command as the primary path** — because the left/right bands consume 160 of 276pt and the top/bottom bands are reachable only in `x ∈ [80, 196]`, drag alone is not dependable. The context-menu and palette command in 1.2 make the interaction deterministic and are what the acceptance tests drive.
 - Decision: **`RightSidebarModeButton.<mode>` accessibility identifiers are lost under the flag** — Bonsplit tabs carry no identifier and expose no injection API, so preserving them needs a submodule change. Three UI test suites — the ones that actually assert the identifier or the mode-bar height — are conditionalized on the flag instead (2.1); `SettingsSidebarBetaBehaviorUITests` only mentions the identifier in comments and is excluded. This is real test-coverage debt, accepted because the container identifiers survive and the flag defaults off.
 - Decision: **Rail tab set is Files, Find, Vault only** — `.feed` and `.customSidebar` keep the legacy path and `.dock` is excluded because nesting a `BonsplitController` inside a Bonsplit pane is out of scope.
 - Decision: **The rail split-button lane is suppressed unconditionally** (`showSplitButtons = false`) — a five-button lane is 140pt of a 240–276pt rail and crowds the tab strip, and `newTerminal`/`newBrowser` would create panel types the placement matrix forbids. Two earlier drafts got the supporting argument wrong and both errors are recorded here so the reasoning is not re-derived incorrectly: the first claimed the 5th button forced Phase 2 to choose a lane composition; the second claimed a hard "69pt budget" that four buttons already overflowed. Neither is true — `maximumSplitButtonLaneWidth` is a `max(...)` whose `minimumVisibleSplitButtonLaneWidth` term guarantees full visibility for up to `minimumFullyVisibleSplitButtonCount = 5` buttons at any width, so the lane never clips. Unconditional suppression is what actually makes the quad button and the rail work independent.
-- Decision: **`SidebarDockStore` is the sole source of truth for selection**, with `FileExplorerState.mode` a derived mirror of the focused slot's selected tab, written only from two delegate callbacks. Necessary because `mode` is a single scalar and cannot describe two visible slots.
+- Decision: **`SidebarDockStore` is the sole source of truth for selection**, with `FileExplorerState.mode` a derived mirror of the focused section's selected tab, written only from two delegate callbacks. Necessary because `mode` is a single scalar and cannot describe two or more visible sections.
 - Decision: **Persist to both layout mechanisms** — the live session file and `~/.config/cmux/layouts.json`, because "wherever layouts are saved" is literally two files.
 - Decision: **Keep legacy right-sidebar `UserDefaults` keys, and do not retire `fileExplorer.dividerPosition`** — non-destructive migration makes a flag-off downgrade lossless. Retiring the dead divider key would be an ungated behavior change orthogonal to this work, and `FileExplorerState` does read it in `init` even though nothing renders it.
 - Decision: **Localize `en` + `ja` only**, with a genuine-translation check (`state == "translated"` and `ja != en`) because the catalog contains keys whose non-English values are verbatim English at `needs_review`.
