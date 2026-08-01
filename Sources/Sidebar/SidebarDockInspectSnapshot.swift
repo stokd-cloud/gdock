@@ -133,9 +133,10 @@ enum SidebarDockInspectBuilder {
             return SidebarDockInspectSnapshot.Section(
                 index: index,
                 paneId: pane.id.uuidString,
-                tabIds: tabs.map { $0.id.id.uuidString },
+                // TabID exposes public `uuid`; package-internal `id` is not reachable here.
+                tabIds: tabs.map { $0.id.uuid.uuidString },
                 tabTitles: tabs.map(\.title),
-                selectedTabId: selected?.id.uuidString,
+                selectedTabId: selected?.uuid.uuidString,
                 isCollapsed: store.isSectionCollapsed(paneId: pane),
                 extent: store.sectionExtent(forPane: pane).map(Double.init),
                 imposedCollapsedExtent: store.imposedCollapsedExtent(forPane: pane).map(Double.init),
