@@ -59,10 +59,49 @@ enum QuadSplitAction {
             return .vetoed(veto)
         }
 
-        // RED stub: intentional incomplete recipe for the red/green history.
-        // Preflight vetoes still work; the H(V(L,A),V(R,B)) mutation lands in green.
-        logLateFailure(surface: "workspace", completedSplits: 0, detail: "red stub: recipe not implemented")
-        return .lateFailure(completedSplits: 0)
+        workspace.clearSplitZoom()
+
+        // 1. side-by-side: left (L) | right (R)
+        guard workspace.splitPaneWithNewTerminal(
+            targetPane: paneId,
+            orientation: .horizontal,
+            insertFirst: false,
+            workingDirectory: nil,
+            initialInput: nil
+        ) != nil else {
+            return .lateFailure(completedSplits: 0)
+        }
+        guard let rightPaneId = workspace.bonsplitController.focusedPaneId,
+              rightPaneId != paneId else {
+            logLateFailure(surface: "workspace", completedSplits: 1, detail: "rightPane unresolved after horizontal split")
+            return .lateFailure(completedSplits: 1)
+        }
+
+        // 2. stack the left column: top (L) / bottom (A)
+        guard workspace.splitPaneWithNewTerminal(
+            targetPane: paneId,
+            orientation: .vertical,
+            insertFirst: false,
+            workingDirectory: nil,
+            initialInput: nil
+        ) != nil else {
+            logLateFailure(surface: "workspace", completedSplits: 1, detail: "left vertical split failed")
+            return .lateFailure(completedSplits: 1)
+        }
+
+        // 3. stack the right column: top (R) / bottom (B) — focus ends on B
+        guard workspace.splitPaneWithNewTerminal(
+            targetPane: rightPaneId,
+            orientation: .vertical,
+            insertFirst: false,
+            workingDirectory: nil,
+            initialInput: nil
+        ) != nil else {
+            logLateFailure(surface: "workspace", completedSplits: 2, detail: "right vertical split failed")
+            return .lateFailure(completedSplits: 2)
+        }
+
+        return .success
     }
 
     /// Lossless preflight for a workspace target. Never invokes the remote
@@ -125,9 +164,49 @@ enum QuadSplitAction {
             return .vetoed(veto)
         }
 
-        // RED stub: intentional incomplete recipe for the red/green history.
-        logLateFailure(surface: "dock", completedSplits: 0, detail: "red stub: recipe not implemented")
-        return .lateFailure(completedSplits: 0)
+        _ = dock.bonsplitController.clearPaneZoom()
+
+        // 1. side-by-side
+        guard let rightPanelId = dock.newSplit(
+            kind: .terminal,
+            orientation: .horizontal,
+            insertFirst: false,
+            sourcePanelId: dock.selectedPanelId(inPane: paneId),
+            focus: true
+        ) else {
+            return .lateFailure(completedSplits: 0)
+        }
+        guard let rightPaneId = dock.paneId(forPanelId: rightPanelId),
+              rightPaneId != paneId else {
+            logLateFailure(surface: "dock", completedSplits: 1, detail: "rightPane unresolved after horizontal split")
+            return .lateFailure(completedSplits: 1)
+        }
+
+        // 2. stack left column
+        guard dock.newSplit(
+            kind: .terminal,
+            orientation: .vertical,
+            insertFirst: false,
+            sourcePanelId: dock.selectedPanelId(inPane: paneId),
+            focus: true
+        ) != nil else {
+            logLateFailure(surface: "dock", completedSplits: 1, detail: "left vertical split failed")
+            return .lateFailure(completedSplits: 1)
+        }
+
+        // 3. stack right column — ends focused on B
+        guard dock.newSplit(
+            kind: .terminal,
+            orientation: .vertical,
+            insertFirst: false,
+            sourcePanelId: dock.selectedPanelId(inPane: rightPaneId),
+            focus: true
+        ) != nil else {
+            logLateFailure(surface: "dock", completedSplits: 2, detail: "right vertical split failed")
+            return .lateFailure(completedSplits: 2)
+        }
+
+        return .success
     }
 
     static func preflight(inPane paneId: PaneID?, dock: DockSplitStore) -> Veto? {
