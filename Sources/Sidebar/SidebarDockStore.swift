@@ -366,7 +366,7 @@ final class SidebarDockStore: BonsplitDelegate {
                 let fraction = min(max(clamped / available, 0), 1)
                 _ = bonsplitController.setDividerPosition(fraction, forSplit: parent)
             }
-            // lastExpandedPaneId = paneId.id  // RED stub
+            lastExpandedPaneId = paneId.id
             return true
         }
 
@@ -381,7 +381,7 @@ final class SidebarDockStore: BonsplitDelegate {
                 let fraction = min(max(clamped / available, 0), 1)
                 _ = bonsplitController.setDividerPosition(fraction, forSplit: parent)
             }
-            // lastExpandedPaneId = paneId.id  // RED stub
+            lastExpandedPaneId = paneId.id
             return true
         }
         return false
@@ -399,8 +399,17 @@ final class SidebarDockStore: BonsplitDelegate {
     /// Already-expanded targets succeed as a no-op so drag/context/palette share one path.
     @discardableResult
     func expandCollapsedForDrop(paneId: PaneID?) -> Bool {
-        // RED stub: intentionally incomplete for VAL-RAIL-005..008 red commit.
-        return false
+        if sectionCount == 1 {
+            if isSoleSectionCollapsed {
+                return expandSoleSection()
+            }
+            return true
+        }
+        guard let paneId else { return false }
+        if isSectionCollapsed(paneId: paneId) {
+            return expandSection(paneId: paneId)
+        }
+        return true
     }
 
     /// Sole left-section collapse into a header-height accessible surrogate (D-23).
@@ -423,7 +432,9 @@ final class SidebarDockStore: BonsplitDelegate {
     func expandSoleSection() -> Bool {
         guard sectionCount == 1, isSoleSectionCollapsed else { return false }
         isSoleSectionCollapsed = false
-        // RED: lastExpanded not recorded
+        if let pane = orderedSectionPaneIds().first {
+            lastExpandedPaneId = pane.id
+        }
         // Identity preserved — no tree rebuild. Host restores rail height from
         // soleSectionRememberedExtent via sectionExtent(forPane:).
         return true
