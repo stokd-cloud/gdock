@@ -1008,6 +1008,18 @@
           "additionalProperties": false,
           "description": "Experimental sidebar features.",
           "properties": {
+            "dock": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "Sidebar dock spaces (collapsible multi-section rails).",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Enable VS Code-style collapsible section stacks on the left and right sidebars."
+                }
+              }
+            },
             "workspaceTodos": {
               "type": "object",
               "additionalProperties": false,

@@ -1185,18 +1185,22 @@ final class CmuxSettingsFileStore {
                backups[Self.socketPasswordBackupIdentifier] == nil {
                 backups[Self.socketPasswordBackupIdentifier] = currentSocketPasswordBackupValue()
             }
-        }
 
-        for identifier in currentManagedIdentifiers.subtracting(nextManagedIdentifiers) {
-            guard let backup = backups[identifier] else { continue }
-            sideEffects.merge(
-                restoreBackup(
-                    backup,
-                    for: identifier,
-                    synchronizeManagedAppearanceTerminalTheme: synchronizeManagedAppearanceTerminalTheme
+            // Full reload only: restore keys that left the file-managed set.
+            // Reapply (updateBackups: false) must not consult the global backup
+            // map — temporary stores share UserDefaults and would otherwise
+            // clobber each other's just-applied managed keys (VAL-FLAG-001).
+            for identifier in currentManagedIdentifiers.subtracting(nextManagedIdentifiers) {
+                guard let backup = backups[identifier] else { continue }
+                sideEffects.merge(
+                    restoreBackup(
+                        backup,
+                        for: identifier,
+                        synchronizeManagedAppearanceTerminalTheme: synchronizeManagedAppearanceTerminalTheme
+                    )
                 )
-            )
-            backups.removeValue(forKey: identifier)
+                backups.removeValue(forKey: identifier)
+            }
         }
 
         for (defaultsKey, value) in snapshot.managedUserDefaults {

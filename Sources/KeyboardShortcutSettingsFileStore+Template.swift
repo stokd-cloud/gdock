@@ -133,6 +133,9 @@ extension CmuxSettingsFileStore {
                     "wrapWorkspaceTitles": SidebarWorkspaceTitleWrapSettings.defaultWrap,
                     "showWorkspaceDescription": SettingCatalog().sidebar.showWorkspaceDescription.defaultValue,
                     "beta": [
+                        "dock": [
+                            "enabled": SettingCatalog().betaFeatures.sidebarDock.defaultValue,
+                        ],
                         "workspaceTodos": [
                             "controls": [
                                 "enabled": SettingCatalog().betaFeatures.workspaceTodoControls.defaultValue,
