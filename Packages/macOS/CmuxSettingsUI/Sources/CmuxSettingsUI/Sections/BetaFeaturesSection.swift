@@ -9,6 +9,7 @@ import SwiftUI
 public struct BetaFeaturesSection: View {
     @State private var feed: DefaultsValueModel<Bool>
     @State private var dock: DefaultsValueModel<Bool>
+    @State private var sidebarDock: DefaultsValueModel<Bool>
     @State private var extensions: DefaultsValueModel<Bool>
     @State private var customSidebars: DefaultsValueModel<Bool>
     @State private var remoteTmux: DefaultsValueModel<Bool>
@@ -18,6 +19,7 @@ public struct BetaFeaturesSection: View {
     public init(defaultsStore: UserDefaultsSettingsStore, catalog: SettingCatalog) {
         _feed = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.betaFeatures.rightSidebarFeed))
         _dock = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.betaFeatures.rightSidebarDock))
+        _sidebarDock = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.betaFeatures.sidebarDock))
         _extensions = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.betaFeatures.extensions))
         _customSidebars = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.betaFeatures.customSidebars))
         _remoteTmux = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.betaFeatures.remoteTmux))
@@ -37,6 +39,8 @@ public struct BetaFeaturesSection: View {
                 SettingsCardDivider()
                 dockRow
                 SettingsCardDivider()
+                sidebarDockRow
+                SettingsCardDivider()
                 extensionsRow
                 SettingsCardDivider()
                 customSidebarsRow
@@ -55,6 +59,7 @@ public struct BetaFeaturesSection: View {
         let models: [any SettingObservationStarting] = [
             feed,
             dock,
+            sidebarDock,
             extensions,
             customSidebars,
             remoteTmux,
@@ -136,6 +141,23 @@ public struct BetaFeaturesSection: View {
                 .labelsHidden()
                 .controlSize(.small)
                 .accessibilityIdentifier("SettingsBetaDockToggle")
+        }
+    }
+
+    @ViewBuilder
+    private var sidebarDockRow: some View {
+        SettingsCardRow(
+            configurationReview: .json("sidebar.beta.dock.enabled"),
+            searchAnchorID: "setting:betaFeatures:sidebar-dock",
+            String(localized: "settings.betaFeatures.sidebarDock", defaultValue: "Sidebar Dock Spaces"),
+            subtitle: sidebarDock.current
+                ? String(localized: "settings.betaFeatures.sidebarDock.subtitleOn", defaultValue: "Lets you stack collapsible tool sections on the left and right sidebars.")
+                : String(localized: "settings.betaFeatures.sidebarDock.subtitleOff", defaultValue: "Keeps both sidebars in their classic single-panel layout until you enable this.")
+        ) {
+            Toggle("", isOn: Binding(get: { sidebarDock.current }, set: { sidebarDock.set($0) }))
+                .labelsHidden()
+                .controlSize(.small)
+                .accessibilityIdentifier("SettingsBetaSidebarDockToggle")
         }
     }
 

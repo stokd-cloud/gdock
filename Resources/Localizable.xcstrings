@@ -242483,6 +242483,70 @@
           }
         }
       }
+    },
+    "settings.betaFeatures.sidebarDock": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sidebar Dock Spaces"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サイドバードックスペース"
+          }
+        }
+      }
+    },
+    "settings.betaFeatures.sidebarDock.subtitleOn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lets you stack collapsible tool sections on the left and right sidebars."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "左右のサイドバーに折りたたみ可能なツールセクションを重ねて配置できます。"
+          }
+        }
+      }
+    },
+    "settings.betaFeatures.sidebarDock.subtitleOff": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keeps both sidebars in their classic single-panel layout until you enable this."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有効にするまで、両方のサイドバーを従来の単一パネルレイアウトのままにします。"
+          }
+        }
+      }
+    },
+    "settings.search.alias.setting.betaFeatures.sidebar-dock": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sidebar.beta.dock.enabled sidebar dock spaces rails collapsible sections left right beta"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sidebar.beta.dock.enabled サイドバー ドック スペース レール 折りたたみ セクション 左 右 ベータ"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

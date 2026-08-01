@@ -25,6 +25,15 @@ public struct BetaFeaturesCatalogSection: SettingCatalogSection {
         userDefaultsKey: "rightSidebar.beta.dock.enabled"
     )
 
+    /// Sidebar rails: VS Code-style vertical section stacks on the left and
+    /// right sidebars. Defaults off; not a PostHog feature flag — config and
+    /// Settings only (`sidebar.beta.dock.enabled`).
+    public let sidebarDock = DefaultsKey<Bool>(
+        id: "sidebar.beta.dock.enabled",
+        defaultValue: false,
+        userDefaultsKey: "sidebar.beta.dock.enabled"
+    )
+
     /// Extensions: the experimental ExtensionKit sidebar-extension surface
     /// (puzzle button, sidebar-toggle provider menu, installed-extension
     /// host, and the extensions browser). Defaults off; while off, every

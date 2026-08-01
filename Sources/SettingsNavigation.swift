@@ -420,6 +420,7 @@ enum SettingsSearchIndex {
         setting(.customSidebars, "renderer", String(localized: "settings.customSidebars.renderer", defaultValue: "Renderer"), "renderer in-process in app remote worker isolated process hover focus typing input"),
         setting(.betaFeatures, "feed", String(localized: "settings.betaFeatures.feed", defaultValue: "Feed"), "feed right sidebar agent decisions permissions questions"),
         setting(.betaFeatures, "dock", String(localized: "settings.betaFeatures.dock", defaultValue: "Dock"), "dock right sidebar terminal controls tui"),
+        setting(.betaFeatures, "sidebar-dock", String(localized: "settings.betaFeatures.sidebarDock", defaultValue: "Sidebar Dock Spaces"), "sidebar.beta.dock.enabled sidebar dock spaces rails collapsible sections left right beta"),
         setting(.betaFeatures, "workspace-todo-controls", String(localized: "settings.betaFeatures.workspaceTodoControls", defaultValue: "Workspace Todo Controls"), "workspace todo todos task status checklist add item controls beta"),
         setting(.betaFeatures, "workspace-todos-checklist-style", String(localized: "settings.betaFeatures.workspaceTodosChecklistStyle", defaultValue: "Checklist Style"), "workspace todo todos task status checklist popover inline presentation style beta"),
         setting(.automation, "socket-mode", String(localized: "settings.automation.socketMode", defaultValue: "Socket Control Mode"), "unix socket api access password auth"),
@@ -485,6 +486,7 @@ enum SettingsSearchIndex {
     private static let settingsPathAnchorIDs: [String: String] = [
         "rightSidebar.beta.feed.enabled": settingID(for: .betaFeatures, idSuffix: "feed"),
         "rightSidebar.beta.dock.enabled": settingID(for: .betaFeatures, idSuffix: "dock"),
+        "sidebar.beta.dock.enabled": settingID(for: .betaFeatures, idSuffix: "sidebar-dock"),
         "app.language": settingID(for: .app, idSuffix: "language"),
         "app.appearance": settingID(for: .app, idSuffix: "appearance"),
         "app.appIcon": settingID(for: .app, idSuffix: "app-icon"),
