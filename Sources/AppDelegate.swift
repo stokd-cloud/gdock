@@ -1325,6 +1325,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 "telemetry": telemetryEnabled ? "1" : "0"
             ]
         )
+        // Register Dockable kind factories before any canvas open / session restore path.
+        DockableBootstrap.registerAllIfNeeded()
         AppIconLaunchState.markDidFinishLaunching()
         AppearanceSettingsUserDefaultsObserver.shared.startObserving()
         systemAppearanceObserver.startObserving()
@@ -6740,6 +6742,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             guard mode.isAvailable() else {
                 return .failure(String(localized: "rightSidebar.remote.error.modeUnavailable", defaultValue: "ERROR: Right sidebar mode '\(mode.rawValue)' is not available"))
             }
+            if mode.canOpenAsPane {
+                // Files / Find / Vault: shared show path — pane when host hidden,
+                // in-rail mode switch when fixed host is already open.
+                if focus {
+                    guard showRightSidebarToolInActiveMainWindow(
+                        mode: mode,
+                        preferredWindow: preferredWindow
+                    ) else {
+                        return .failure(String(localized: "rightSidebar.remote.error.focusFailed", defaultValue: "ERROR: Failed to focus right sidebar"))
+                    }
+                } else if state.isVisible {
+                    state.mode = mode
+                    context?.keyboardFocusCoordinator.rememberRightSidebarMode(mode)
+                } else if let workspace = context?.tabManager.selectedWorkspace {
+                    // Host hidden: ensure singleton pane exists without forcing rail open.
+                    _ = workspace.showOrFocusRightSidebarToolPane(mode: mode, focus: false)
+                    state.mode = mode
+                    context?.keyboardFocusCoordinator.rememberRightSidebarMode(mode)
+                } else {
+                    state.mode = mode
+                    context?.keyboardFocusCoordinator.rememberRightSidebarMode(mode)
+                }
+                return .ok
+            }
             if focus {
                 guard focusRightSidebarInActiveMainWindow(mode: mode, focusFirstItem: true, preferredWindow: preferredWindow) else {
                     return .failure(String(localized: "rightSidebar.remote.error.focusFailed", defaultValue: "ERROR: Failed to focus right sidebar"))
@@ -6837,6 +6863,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     func shouldRouteRightSidebarModeShortcut(in window: NSWindow?) -> Bool {
         guard let window else { return false }
         let sidebarIntentActive = keyboardFocusCoordinator(for: window)?.activeRightSidebarMode != nil
+        // Tool panes are the primary home for Files/Find/Vault; allow mode
+        // shortcuts while a right-sidebar tool pane is focused.
+        if preferredRegisteredMainWindowContext(preferredWindow: window)?
+            .tabManager.selectedWorkspace?
+            .focusedPanelIsRightSidebarTool == true {
+            return true
+        }
         guard let responder = window.firstResponder else { return sidebarIntentActive }
         if isRightSidebarFocusResponder(responder, in: window) { return true }
         if sidebarIntentActive, responder is NSWindow { return true }
@@ -6957,6 +6990,138 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         )
 #endif
         return result
+    }
+
+    /// Show left workspace selector: openOrFocus singleton pane when the fixed
+    /// left host is closed/hidden; if the fixed host is already open, leave it
+    /// as the in-rail selector and only ensure visibility/focus of the host.
+    @discardableResult
+    func showLeftWorkspaceSelectorInActiveMainWindow(
+        preferredWindow: NSWindow? = nil
+    ) -> Bool {
+        let context = preferredRegisteredMainWindowContext(preferredWindow: preferredWindow)
+        let state = context?.sidebarState ?? sidebarState
+        if state?.isVisible == true {
+            // Fixed host already open: keep using the bolted column.
+            if let window = context.flatMap({ $0.window ?? windowForMainWindowId($0.windowId) }) {
+                mainWindowVisibilityController.focusForInWindowCommand(window, reason: .rightSidebarToggle)
+                setActiveMainWindow(window)
+            }
+            return true
+        }
+        return openOrFocusLeftWorkspaceSelectorPaneInActiveMainWindow(
+            preferredWindow: preferredWindow,
+            hideFixedHost: true
+        )
+    }
+
+    /// Shared openOrFocus path for the real left workspace selector pane.
+    /// Creates or focuses the singleton and optionally keeps the fixed left host hidden.
+    @discardableResult
+    func openOrFocusLeftWorkspaceSelectorPaneInActiveMainWindow(
+        preferredWindow: NSWindow? = nil,
+        hideFixedHost: Bool = true
+    ) -> Bool {
+        let context = preferredRegisteredMainWindowContext(preferredWindow: preferredWindow)
+        guard let context else { return false }
+
+        let window = context.window ?? windowForMainWindowId(context.windowId)
+        if let window {
+            mainWindowVisibilityController.focusForInWindowCommand(window, reason: .rightSidebarToggle)
+            setActiveMainWindow(window)
+        }
+
+        guard let workspace = context.tabManager.selectedWorkspace else { return false }
+        workspace.clearSplitZoom()
+        guard let panel = workspace.showOrFocusLeftWorkspaceSelectorPane(focus: true) else {
+            return false
+        }
+
+        let state = context.sidebarState ?? sidebarState
+        if hideFixedHost, let state, state.isVisible {
+            state.isVisible = false
+        }
+
+        workspace.focusPanel(panel.id)
+        panel.focus()
+        return true
+    }
+
+    /// Show Files / Find / Vault: openOrFocus singleton pane when the fixed host
+    /// is closed/hidden; if the fixed host is already open, keep focusing it for
+    /// in-rail mode switches. Shared show entrypoints call this.
+    @discardableResult
+    func showRightSidebarToolInActiveMainWindow(
+        mode: RightSidebarMode,
+        preferredWindow: NSWindow? = nil
+    ) -> Bool {
+        guard mode.canOpenAsPane else {
+            return focusRightSidebarInActiveMainWindow(
+                mode: mode,
+                focusFirstItem: true,
+                preferredWindow: preferredWindow
+            )
+        }
+        let context = preferredRegisteredMainWindowContext(preferredWindow: preferredWindow)
+        let state = context?.fileExplorerState ?? fileExplorerState
+        // Fixed host already open: mode switch stays in-rail (mode bar / focus).
+        // Host closed (canvas default / user hidden): openOrFocus pane path.
+        if state?.isVisible == true {
+            return focusRightSidebarInActiveMainWindow(
+                mode: mode,
+                focusFirstItem: true,
+                preferredWindow: preferredWindow
+            )
+        }
+        return openOrFocusRightSidebarToolPaneInActiveMainWindow(
+            mode: mode,
+            preferredWindow: preferredWindow,
+            hideFixedHost: true
+        )
+    }
+
+    /// Shared show/open path for Files, Find, and Vault panes. Focuses an
+    /// existing singleton or creates one; optionally hides the fixed right host
+    /// so the rail is not required to use the tool.
+    @discardableResult
+    func openOrFocusRightSidebarToolPaneInActiveMainWindow(
+        mode: RightSidebarMode,
+        preferredWindow: NSWindow? = nil,
+        hideFixedHost: Bool = true
+    ) -> Bool {
+        guard mode.canOpenAsPane else { return false }
+        let context = preferredRegisteredMainWindowContext(preferredWindow: preferredWindow)
+        guard let context else { return false }
+
+        let window = context.window ?? windowForMainWindowId(context.windowId)
+        if let window {
+            mainWindowVisibilityController.focusForInWindowCommand(window, reason: .rightSidebarFocus)
+            setActiveMainWindow(window)
+        }
+
+        guard let workspace = context.tabManager.selectedWorkspace else { return false }
+        workspace.clearSplitZoom()
+        guard let panel = workspace.showOrFocusRightSidebarToolPane(mode: mode, focus: true) else {
+            return false
+        }
+
+        let state = context.fileExplorerState ?? fileExplorerState
+        if let state {
+            // Keep mode memory in sync for chrome that still keys off FileExplorerState.
+            if state.mode != mode {
+                state.mode = mode
+            }
+            // Pane replaces the fixed rail for this show path; do not restore
+            // terminal focus here — the tool pane is about to take focus.
+            if hideFixedHost, state.isVisible {
+                state.setVisible(false)
+            }
+        }
+
+        // Focus the singleton tool pane surface.
+        workspace.focusPanel(panel.id)
+        panel.focus()
+        return true
     }
 
 #if DEBUG
@@ -13319,11 +13484,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
            let mode = rightSidebarModeShortcut(for: event),
            let rightSidebarWindow = mainWindowForShortcutEvent(event) ?? event.window ?? shortcutRoutingActiveWindow,
            shouldRouteRightSidebarModeShortcut(in: rightSidebarWindow) {
-            _ = focusRightSidebarInActiveMainWindow(
-                mode: mode,
-                focusFirstItem: true,
-                preferredWindow: rightSidebarWindow
-            )
+            // Pane modes: show path (pane when host hidden / already tool-focused).
+            // Feed/dock stay on fixed-host focus.
+            if mode.canOpenAsPane {
+                _ = showRightSidebarToolInActiveMainWindow(
+                    mode: mode,
+                    preferredWindow: rightSidebarWindow
+                )
+            } else {
+                _ = focusRightSidebarInActiveMainWindow(
+                    mode: mode,
+                    focusFirstItem: true,
+                    preferredWindow: rightSidebarWindow
+                )
+            }
             return true
         }
 
@@ -14835,7 +15009,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 if let workspace = terminalContext.tabManager.tabs.first(where: { $0.id == terminalContext.workspaceId }),
                    workspace.layoutMode == .canvas {
                     return workspace.openNewCanvasPane(
-                        type: .terminal,
+                        kind: .terminal,
                         focus: true,
                         direction: direction.canvasDirection
                     ) != nil
@@ -14849,7 +15023,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             if let workspace = tabManager?.selectedWorkspace,
                workspace.layoutMode == .canvas {
                 return workspace.openNewCanvasPane(
-                    type: .terminal,
+                    kind: .terminal,
                     focus: true,
                     direction: direction.canvasDirection
                 ) != nil

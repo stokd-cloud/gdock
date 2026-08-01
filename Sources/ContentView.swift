@@ -2329,16 +2329,59 @@ struct ContentView: View {
     }
 
     func openRightSidebarToolPane(_ mode: RightSidebarMode) {
-        guard mode.canOpenAsPane,
-              let workspace = tabManager.selectedWorkspace,
-              let paneId = workspace.bonsplitController.focusedPaneId ?? workspace.bonsplitController.allPaneIds.first else {
+        guard mode.canOpenAsPane else {
             NSSound.beep()
             return
         }
 
         sidebarSelectionState.selection = .tabs
+        // Shared AppDelegate path: openOrFocus singleton pane and hide fixed host.
+        if AppDelegate.shared?.openOrFocusRightSidebarToolPaneInActiveMainWindow(
+            mode: mode,
+            preferredWindow: observedWindow,
+            hideFixedHost: true
+        ) == true {
+            return
+        }
+
+        // Fallback when no registered main-window context (unit/previews).
+        guard let workspace = tabManager.selectedWorkspace else {
+            NSSound.beep()
+            return
+        }
         workspace.clearSplitZoom()
-        _ = workspace.openOrFocusRightSidebarToolSurface(inPane: paneId, mode: mode, focus: true)
+        guard workspace.showOrFocusRightSidebarToolPane(mode: mode, focus: true) != nil else {
+            NSSound.beep()
+            return
+        }
+        if fileExplorerState.isVisible {
+            fileExplorerState.setVisible(false)
+        }
+    }
+
+    /// Open the real left workspace selector as a dockable pane (singleton) and
+    /// hide the fixed left host so canvas mode is not dependent on the bolted column.
+    func openLeftWorkspaceSelectorPane() {
+        sidebarSelectionState.selection = .tabs
+        if AppDelegate.shared?.openOrFocusLeftWorkspaceSelectorPaneInActiveMainWindow(
+            preferredWindow: observedWindow,
+            hideFixedHost: true
+        ) == true {
+            return
+        }
+
+        guard let workspace = tabManager.selectedWorkspace else {
+            NSSound.beep()
+            return
+        }
+        workspace.clearSplitZoom()
+        guard workspace.showOrFocusLeftWorkspaceSelectorPane(focus: true) != nil else {
+            NSSound.beep()
+            return
+        }
+        if sidebarState.isVisible {
+            sidebarState.isVisible = false
+        }
     }
 
     private func openFilePreviewFromSidebar(filePath: String) {
@@ -2743,7 +2786,18 @@ struct ContentView: View {
         })
 
         view = AnyView(view.onReceive(NotificationCenter.default.publisher(for: .workspaceLayoutModeDidChange)) { notification in
-            guard (notification.object as? Workspace)?.id == tabManager.selectedTabId else { return }
+            guard let workspace = notification.object as? Workspace,
+                  workspace.id == tabManager.selectedTabId else { return }
+            // Canvas default: hide fixed side hosts; tools/selector open as dockable panes.
+            if workspace.layoutMode == .canvas {
+                if fileExplorerState.isVisible {
+                    fileExplorerState.setVisible(false)
+                    _ = AppDelegate.shared?.restoreTerminalFocusAfterRightSidebarHidden(in: observedWindow)
+                }
+                if sidebarState.isVisible {
+                    sidebarState.isVisible = false
+                }
+            }
             refreshTmuxWorkspacePaneWindowOverlay(in: observedWindow)
         })
 
@@ -5591,6 +5645,8 @@ struct ContentView: View {
             return String(localized: "commandPalette.kind.filePreview", defaultValue: "File Preview")
         case .rightSidebarTool:
             return String(localized: "commandPalette.kind.rightSidebarTool", defaultValue: "Tool")
+        case .leftWorkspaceSelector:
+            return String(localized: "commandPalette.kind.leftWorkspaceSelector", defaultValue: "Workspaces")
         case .customSidebar:
             return String(localized: "commandPalette.kind.customSidebar", defaultValue: "Custom Sidebar")
         case .agentSession:
@@ -5617,6 +5673,8 @@ struct ContentView: View {
             return ["file", "preview", "text", "pdf", "image", "audio", "video"]
         case .rightSidebarTool:
             return ["tool", "files", "find", "vault", "sidebar"]
+        case .leftWorkspaceSelector:
+            return ["workspace", "workspaces", "selector", "sidebar", "left", "sessions"]
         case .customSidebar:
             return ["custom", "sidebar", "pane"]
         case .agentSession:
@@ -7028,6 +7086,14 @@ struct ContentView: View {
                 keywords: ["toggle", "sidebar", "left", "layout"]
             )
         )
+        contributions.append(
+            CommandPaletteCommandContribution(
+                commandId: "palette.openLeftWorkspaceSelectorAsPane",
+                title: constant(String(localized: "command.openLeftWorkspaceSelectorAsPane.title", defaultValue: "Open Workspaces as Pane")),
+                subtitle: constant(String(localized: "command.openLeftWorkspaceSelectorAsPane.subtitle", defaultValue: "Pane")),
+                keywords: ["workspace", "workspaces", "selector", "sidebar", "left", "pane", "canvas"]
+            )
+        )
         // "Sidebar: <provider>" switch commands for each available view. The
         // built-in views are always offered; `descriptors` adds the hosted
         // extension sidebar only while the experimental Extensions beta is on.
@@ -8210,6 +8276,9 @@ struct ContentView: View {
         }
         registry.register(commandId: "palette.toggleSidebar") {
             sidebarState.toggle()
+        }
+        registry.register(commandId: "palette.openLeftWorkspaceSelectorAsPane") {
+            openLeftWorkspaceSelectorPane()
         }
         // Register a handler for every possible view (including the hosted
         // extension sidebar) regardless of the beta flag, so a contribution that
@@ -12117,6 +12186,8 @@ struct VerticalTabsSidebar: View, Equatable {
             return .filePreview
         case .rightSidebarTool:
             return .rightSidebarTool
+        case .leftWorkspaceSelector:
+            return .unknown
         case .customSidebar:
             return .unknown
         case .agentSession:

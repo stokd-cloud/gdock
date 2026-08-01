@@ -192,6 +192,18 @@ extension ContentView {
             NSSound.beep()
             return
         }
+        // Files / Find / Vault: shared show path (pane when host hidden; in-rail when open).
+        if mode.canOpenAsPane {
+            let window = observedWindow ?? NSApp.keyWindow ?? NSApp.mainWindow
+            if AppDelegate.shared?.showRightSidebarToolInActiveMainWindow(
+                mode: mode,
+                preferredWindow: window
+            ) != true {
+                // Host already hidden and no context: force pane open via ContentView path.
+                openRightSidebarToolPane(mode)
+            }
+            return
+        }
         if AppDelegate.shared?.focusRightSidebarInActiveMainWindow(
             mode: mode,
             focusFirstItem: true,
