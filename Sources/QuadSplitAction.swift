@@ -5,8 +5,9 @@ import Foundation
 ///
 /// Recipe for target leaf `L`: replace `L` with `H(V(L,A), V(R,B))` — a root
 /// side-by-side split whose children are stacked pairs — then focus `B`
-/// (bottom-right). Exactly three `splitPaneWithNewTerminal` / Dock terminal
-/// splits; no outer `isProgrammaticSplit` guard (each split call owns its own).
+/// (bottom-right). Exactly three local terminal splits (workspace API) or three
+/// Dock terminal splits; no outer programmatic-split guard (each split call
+/// owns its own).
 ///
 /// Known vetoes are preflighted without calling a side-effecting remote
 /// delegate (D-20 / D-25). An unexpected second/third split failure is logged
