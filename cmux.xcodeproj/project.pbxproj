@@ -1611,6 +1611,17 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		D7AB34310000000000000001 /* SidebarBonsplitWorkspaceRowDropModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AB34310000000000000002 /* SidebarBonsplitWorkspaceRowDropModifier.swift */; };
 		EA1F00000000000000000003 /* SidebarDirectoryText.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1F00000000000000000004 /* SidebarDirectoryText.swift */; };
 		B804A0270000000000000027 /* SidebarDividerTrackingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B804B0270000000000000027 /* SidebarDividerTrackingView.swift */; };
+		1836DCDDE07CDF990C1640C2 /* SidebarDockCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81CAFBD7EB645789DC69C6C6 /* SidebarDockCommand.swift */; };
+		9332702A430BAF9135E6390D /* SidebarDockEdge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 156D1E279B1C300527680DE8 /* SidebarDockEdge.swift */; };
+		68EDDFB05A6D52FDBE0EC8E2 /* SidebarDockFlagTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4E70E924295D338E336569 /* SidebarDockFlagTests.swift */; };
+		1411B3771C57309CC911FC64 /* SidebarDockPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EB242390A12A488F5CFD008 /* SidebarDockPanelView.swift */; };
+		FF67D5D70FE120356BAC7B9D /* SidebarDockPlacementMatrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65602FC450A3E83B78A6850B /* SidebarDockPlacementMatrix.swift */; };
+		C91868CD33B35D75282CB53E /* SidebarDockSectionPosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CF7ED4246D2DC0146593AC /* SidebarDockSectionPosition.swift */; };
+		D12D1A0C9197E6BF7103AC91 /* SidebarDockSectionSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61540E9435CC2456E50DF37B /* SidebarDockSectionSnapshot.swift */; };
+		DE71819B93DB3088830F6D5A /* SidebarDockSplitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEEB7752CAC925C78C086B09 /* SidebarDockSplitTests.swift */; };
+		32CEA94EE1B11663B06DC28B /* SidebarDockStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43CEFB99077EE7C26BBF16F6 /* SidebarDockStore.swift */; };
+		020BE9C292B1DB871773E378 /* SidebarDockStoreRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 380356E52D476EE585AD02CE /* SidebarDockStoreRegistry.swift */; };
+		11FC502A920CF85782218A05 /* SidebarDockStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AA39C1B63CA20A58D275AD0 /* SidebarDockStoreTests.swift */; };
 		8175A0010000000000000001 /* SidebarGitProcessCompositionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8175A0010000000000000002 /* SidebarGitProcessCompositionTests.swift */; };
 		B804A0200000000000000020 /* SidebarGroupHeaderRowModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B804B0200000000000000020 /* SidebarGroupHeaderRowModel.swift */; };
 		B804A0210000000000000021 /* SidebarGroupHeaderRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B804B0210000000000000021 /* SidebarGroupHeaderRowView.swift */; };
@@ -1859,7 +1870,6 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		C06552030000000000000001 /* TabManagerTitleUpdateStalenessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C06552030000000000000002 /* TabManagerTitleUpdateStalenessTests.swift */; };
 		C06552020000000000000001 /* TabManagerTitleUpdateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C06552020000000000000002 /* TabManagerTitleUpdateTests.swift */; };
 		B6BF3DC98DB1495E57900199 /* TabManagerUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42092CDB2109E250F7F2A76E /* TabManagerUnitTests.swift */; };
-		68EDDFB05A6D52FDBE0EC8E2 /* SidebarDockFlagTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4E70E924295D338E336569 /* SidebarDockFlagTests.swift */; };
 		A71100000000000000000001 /* TailscaleStatusProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71100000000000000000002 /* TailscaleStatusProviding.swift */; };
 		C7A507000000000000000002 /* TaskManagerResourcesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A507000000000000000001 /* TaskManagerResourcesTests.swift */; };
 		C7A503000000000000000002 /* TaskManagerSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A503000000000000000001 /* TaskManagerSnapshot.swift */; };
@@ -3847,6 +3857,17 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		D7AB34310000000000000002 /* SidebarBonsplitWorkspaceRowDropModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarBonsplitWorkspaceRowDropModifier.swift; sourceTree = "<group>"; };
 		EA1F00000000000000000004 /* SidebarDirectoryText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDirectoryText.swift; sourceTree = "<group>"; };
 		B804B0270000000000000027 /* SidebarDividerTrackingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDividerTrackingView.swift; sourceTree = "<group>"; };
+		81CAFBD7EB645789DC69C6C6 /* SidebarDockCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockCommand.swift; sourceTree = "<group>"; };
+		156D1E279B1C300527680DE8 /* SidebarDockEdge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockEdge.swift; sourceTree = "<group>"; };
+		1F4E70E924295D338E336569 /* SidebarDockFlagTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockFlagTests.swift; sourceTree = "<group>"; };
+		7EB242390A12A488F5CFD008 /* SidebarDockPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockPanelView.swift; sourceTree = "<group>"; };
+		65602FC450A3E83B78A6850B /* SidebarDockPlacementMatrix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockPlacementMatrix.swift; sourceTree = "<group>"; };
+		33CF7ED4246D2DC0146593AC /* SidebarDockSectionPosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockSectionPosition.swift; sourceTree = "<group>"; };
+		61540E9435CC2456E50DF37B /* SidebarDockSectionSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockSectionSnapshot.swift; sourceTree = "<group>"; };
+		DEEB7752CAC925C78C086B09 /* SidebarDockSplitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockSplitTests.swift; sourceTree = "<group>"; };
+		43CEFB99077EE7C26BBF16F6 /* SidebarDockStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockStore.swift; sourceTree = "<group>"; };
+		380356E52D476EE585AD02CE /* SidebarDockStoreRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockStoreRegistry.swift; sourceTree = "<group>"; };
+		0AA39C1B63CA20A58D275AD0 /* SidebarDockStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockStoreTests.swift; sourceTree = "<group>"; };
 		8175A0010000000000000002 /* SidebarGitProcessCompositionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarGitProcessCompositionTests.swift; sourceTree = "<group>"; };
 		B804B0200000000000000020 /* SidebarGroupHeaderRowModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/AppKitList/Cells/SidebarGroupHeaderRowModel.swift; sourceTree = "<group>"; };
 		B804B0210000000000000021 /* SidebarGroupHeaderRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/AppKitList/Cells/SidebarGroupHeaderRowView.swift; sourceTree = "<group>"; };
@@ -4087,7 +4108,6 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		C06552030000000000000002 /* TabManagerTitleUpdateStalenessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabManagerTitleUpdateStalenessTests.swift; sourceTree = "<group>"; };
 		C06552020000000000000002 /* TabManagerTitleUpdateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabManagerTitleUpdateTests.swift; sourceTree = "<group>"; };
 		42092CDB2109E250F7F2A76E /* TabManagerUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabManagerUnitTests.swift; sourceTree = "<group>"; };
-		1F4E70E924295D338E336569 /* SidebarDockFlagTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockFlagTests.swift; sourceTree = "<group>"; };
 		A71100000000000000000002 /* TailscaleStatusProviding.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TailscaleStatusProviding.swift; sourceTree = "<group>"; };
 		C7A507000000000000000001 /* TaskManagerResourcesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskManagerResourcesTests.swift; sourceTree = "<group>"; };
 		C7A503000000000000000001 /* TaskManagerSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskManagerSnapshot.swift; sourceTree = "<group>"; };
@@ -5083,6 +5103,14 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 				6042D0056042D0056042D005 /* WindowScopedShortcutHintModifierMonitor.swift */,
 				A5001901A1B2C3D4E5F60718 /* WindowBackgroundComposition.swift */,
 				D1614EAD3CCF70A177A51BD1 /* SidebarState.swift */,
+				81CAFBD7EB645789DC69C6C6 /* SidebarDockCommand.swift */,
+				156D1E279B1C300527680DE8 /* SidebarDockEdge.swift */,
+				7EB242390A12A488F5CFD008 /* SidebarDockPanelView.swift */,
+				65602FC450A3E83B78A6850B /* SidebarDockPlacementMatrix.swift */,
+				33CF7ED4246D2DC0146593AC /* SidebarDockSectionPosition.swift */,
+				61540E9435CC2456E50DF37B /* SidebarDockSectionSnapshot.swift */,
+				43CEFB99077EE7C26BBF16F6 /* SidebarDockStore.swift */,
+				380356E52D476EE585AD02CE /* SidebarDockStoreRegistry.swift */,
 				5B0C00010000000000000002 /* SidebarResizerOcclusionResolver.swift */,
 				C0DEFF200000000000000002 /* CommandPaletteOverlay.swift */,
 				C0DEF4110000000000000002 /* CommandPaletteSettingsToggle.swift */,
@@ -6644,6 +6672,8 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 				C06552030000000000000002 /* TabManagerTitleUpdateStalenessTests.swift */,
 				C06552020000000000000002 /* TabManagerTitleUpdateTests.swift */,
 				1F4E70E924295D338E336569 /* SidebarDockFlagTests.swift */,
+				0AA39C1B63CA20A58D275AD0 /* SidebarDockStoreTests.swift */,
+				DEEB7752CAC925C78C086B09 /* SidebarDockSplitTests.swift */,
 				42092CDB2109E250F7F2A76E /* TabManagerUnitTests.swift */,
 				AB12CD340000000000000002 /* WorkspaceTodoNotificationRegressionTests.swift */,
 				DCE71A0F7E02A07A155241E4 /* SidebarWorkspaceRowStatusGlyphRemovalTests.swift */,
@@ -8271,6 +8301,14 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 				D7AB34310000000000000001 /* SidebarBonsplitWorkspaceRowDropModifier.swift in Sources */,
 				EA1F00000000000000000003 /* SidebarDirectoryText.swift in Sources */,
 				B804A0270000000000000027 /* SidebarDividerTrackingView.swift in Sources */,
+				1836DCDDE07CDF990C1640C2 /* SidebarDockCommand.swift in Sources */,
+				9332702A430BAF9135E6390D /* SidebarDockEdge.swift in Sources */,
+				1411B3771C57309CC911FC64 /* SidebarDockPanelView.swift in Sources */,
+				FF67D5D70FE120356BAC7B9D /* SidebarDockPlacementMatrix.swift in Sources */,
+				C91868CD33B35D75282CB53E /* SidebarDockSectionPosition.swift in Sources */,
+				D12D1A0C9197E6BF7103AC91 /* SidebarDockSectionSnapshot.swift in Sources */,
+				32CEA94EE1B11663B06DC28B /* SidebarDockStore.swift in Sources */,
+				020BE9C292B1DB871773E378 /* SidebarDockStoreRegistry.swift in Sources */,
 				B804A0200000000000000020 /* SidebarGroupHeaderRowModel.swift in Sources */,
 				B804A0210000000000000021 /* SidebarGroupHeaderRowView.swift in Sources */,
 				AABBCC00000000000000020C /* SidebarInlineRenameAction.swift in Sources */,
@@ -9357,6 +9395,9 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 				F6001000A1B2C3D4E5F60718 /* ShortcutUnbindingTests.swift in Sources */,
 				C3467AB10000000000000001 /* ShortcutWhenClauseTests.swift in Sources */,
 				B804C0030000000000000003 /* SidebarAppKitRowCellTests.swift in Sources */,
+				68EDDFB05A6D52FDBE0EC8E2 /* SidebarDockFlagTests.swift in Sources */,
+				DE71819B93DB3088830F6D5A /* SidebarDockSplitTests.swift in Sources */,
+				11FC502A920CF85782218A05 /* SidebarDockStoreTests.swift in Sources */,
 				8175A0010000000000000001 /* SidebarGitProcessCompositionTests.swift in Sources */,
 				51D800000000000000000001 /* SidebarIdentifierFormattingTests.swift in Sources */,
 				AABBCC000000000000000206 /* SidebarInlineRenameKeyResolverTests.swift in Sources */,
@@ -9414,7 +9455,6 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 				C06552030000000000000001 /* TabManagerTitleUpdateStalenessTests.swift in Sources */,
 				C06552020000000000000001 /* TabManagerTitleUpdateTests.swift in Sources */,
 				B6BF3DC98DB1495E57900199 /* TabManagerUnitTests.swift in Sources */,
-				68EDDFB05A6D52FDBE0EC8E2 /* SidebarDockFlagTests.swift in Sources */,
 				C7A507000000000000000002 /* TaskManagerResourcesTests.swift in Sources */,
 				C7A507000000000000004529 /* TaskManagerViewSnapshotBoundaryTests.swift in Sources */,
 				46F6AC15863EC84DCD3770A2 /* TerminalAndGhosttyTests.swift in Sources */,
