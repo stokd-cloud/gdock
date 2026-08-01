@@ -85,6 +85,7 @@ final class SidebarDockStore: BonsplitDelegate {
             _ = bonsplitController.closeTab(tabId)
         }
         installActorContextMenuWiring()
+        installSharedDropWiring()
     }
 
     /// Tab context-menu destinations and move handler share the invoker path.
@@ -92,6 +93,15 @@ final class SidebarDockStore: BonsplitDelegate {
         bonsplitController.tabContextMoveDestinationsProvider = { [weak self] tabId, _ in
             guard let self else { return [] }
             return self.tabContextMoveDestinationsForActor(tabId: tabId)
+        }
+    }
+
+    /// External Bonsplit tab transfers use the same edge-band drop handler as
+    /// DEBUG `simulate_drop` and the vertical create command path.
+    private func installSharedDropWiring() {
+        bonsplitController.onExternalTabDrop = { [weak self] request in
+            guard let self else { return false }
+            return SidebarDockDropHandler.handleExternal(store: self, request: request)
         }
     }
 
@@ -716,44 +726,6 @@ final class SidebarDockStore: BonsplitDelegate {
 
     // MARK: - Whole-section reorder
 
-
-    /// RED stub: header reorder unconnected.
-    @discardableResult
-    func handleSectionHeaderReorder(from fromIndex: Int, to toIndex: Int) -> Bool {
-        _ = fromIndex
-        _ = toIndex
-        return false
-    }
-
-    /// RED stub: edge-band drop unconnected.
-    @discardableResult
-    func handleTabEdgeBandDrop(
-        tabId: TabID,
-        zone: SidebarDockEdgeBand.Zone,
-        targetPaneId: PaneID? = nil
-    ) -> SidebarDockDropHandler.Outcome {
-        SidebarDockDropHandler.handle(store: self, tabId: tabId, zone: zone, targetPaneId: targetPaneId)
-    }
-
-    func inspectEdgeSnapshot() -> SidebarDockInspectSnapshot.Edge {
-        SidebarDockInspectBuilder.buildEdge(store: self)
-    }
-
-    @discardableResult
-    func debugBeginDividerDrag(adjacentTo paneId: PaneID) -> Bool {
-        _ = paneId
-        return false
-    }
-
-    @discardableResult
-    func debugSetDividerExtent(firstChildPane paneId: PaneID, firstChildExtent: CGFloat) -> Bool {
-        _ = paneId
-        _ = firstChildExtent
-        return false
-    }
-
-    func debugEndDividerDrag() {}
-
     /// Deterministic whole-section reorder (header drag and command path share this).
     @discardableResult
     func reorderSection(from fromIndex: Int, to toIndex: Int) -> Bool {
@@ -765,6 +737,52 @@ final class SidebarDockStore: BonsplitDelegate {
         let item = snaps.remove(at: fromIndex)
         snaps.insert(item, at: toIndex)
         return rebuildSections(from: snaps)
+    }
+
+    /// Production header-drag entrypoint: same mutation as palette reorder commands.
+    @discardableResult
+    func handleSectionHeaderReorder(from fromIndex: Int, to toIndex: Int) -> Bool {
+        reorderSection(from: fromIndex, to: toIndex)
+    }
+
+    /// Edge-band drop entrypoint used by DEBUG simulation and external transfer wiring.
+    @discardableResult
+    func handleTabEdgeBandDrop(
+        tabId: TabID,
+        zone: SidebarDockEdgeBand.Zone,
+        targetPaneId: PaneID? = nil
+    ) -> SidebarDockDropHandler.Outcome {
+        SidebarDockDropHandler.handle(
+            store: self,
+            tabId: tabId,
+            zone: zone,
+            targetPaneId: targetPaneId
+        )
+    }
+
+    /// Immutable inspection snapshot for DEBUG `debug.sidebar_dock.inspect`.
+    func inspectEdgeSnapshot() -> SidebarDockInspectSnapshot.Edge {
+        SidebarDockInspectBuilder.buildEdge(store: self)
+    }
+
+    /// Divider-drag lifecycle helpers for DEBUG dogfood (same store methods UI uses).
+    @discardableResult
+    func debugBeginDividerDrag(adjacentTo paneId: PaneID) -> Bool {
+        prepareDividerDrag(adjacentTo: paneId)
+        // prepareDividerDrag is a no-op when the section is not collapsed; still
+        // a successful begin for dogfood (drag owns geometry either way).
+        return true
+    }
+
+    @discardableResult
+    func debugSetDividerExtent(firstChildPane paneId: PaneID, firstChildExtent: CGFloat) -> Bool {
+        resizeBoundary(firstChildPane: paneId, firstChildExtent: firstChildExtent)
+    }
+
+    func debugEndDividerDrag() {
+        flushPendingCollapses()
+        reimposeTrailingCollapseIfNeeded()
+        reimposeSoleSectionCollapseIfNeeded()
     }
 
     /// Rebuild the vertical chain from complete section snapshots, preserving
@@ -874,8 +892,19 @@ final class SidebarDockStore: BonsplitDelegate {
         shouldSplitPane pane: PaneID,
         orientation: SplitOrientation
     ) -> Bool {
-        // D-11: refuse side-by-side; never refuse stacked vertical.
-        orientation == .vertical
+        // D-11 / VAL-RAIL-004: refuse side-by-side without mutation.
+        guard orientation == .vertical else { return false }
+        // Sole-left surrogate expands before geometry (matches moveTabToNewSection / D-23).
+        if sectionCount == 1, isSoleSectionCollapsed {
+            _ = expandSoleSection()
+        }
+        // Geometry refuse is lossless: splitPane returns nil when this is false.
+        guard configurationAllowsNewSection() else { return false }
+        // Expand collapsed multi-section targets only when the split will proceed.
+        if sectionCount > 1 {
+            _ = expandCollapsedForDrop(paneId: pane)
+        }
+        return true
     }
 
     func splitTabBar(

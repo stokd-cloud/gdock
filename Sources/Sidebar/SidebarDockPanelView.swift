@@ -164,6 +164,19 @@ struct SidebarDockPanelView: View {
                     .foregroundStyle(.secondary)
                     .accessibilityHidden(true)
                     .help(String(localized: "sidebarDock.section.dragAffordance", defaultValue: "Drag section header to reorder"))
+                    .accessibilityIdentifier("SidebarDock.section.headerDragAffordance")
+                    // Whole-section header drag: vertical translation reorders via the
+                    // same command/mutation path as palette/context reorder buttons.
+                    .gesture(
+                        DragGesture(minimumDistance: 8)
+                            .onEnded { value in
+                                Self.handleSectionHeaderDragEnded(
+                                    store: store,
+                                    snapshot: snapshot,
+                                    translationY: value.translation.height
+                                )
+                            }
+                    )
             }
             Spacer(minLength: 0)
             if snapshot.canReorderUp {
@@ -223,6 +236,39 @@ struct SidebarDockPanelView: View {
         .frame(maxWidth: .infinity, minHeight: 18, maxHeight: 18)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("SidebarDock.section.headerControls")
+        // Full-header drag target (not only the affordance icon).
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture(minimumDistance: 10)
+                .onEnded { value in
+                    Self.handleSectionHeaderDragEnded(
+                        store: store,
+                        snapshot: snapshot,
+                        translationY: value.translation.height
+                    )
+                }
+        )
+    }
+
+    /// Header-drag completion: reorder by one step via the shared invoker path.
+    fileprivate static func handleSectionHeaderDragEnded(
+        store: SidebarDockStore,
+        snapshot: SidebarDockSectionHeaderControlsSnapshot,
+        translationY: CGFloat
+    ) {
+        let paneId = PaneID(id: snapshot.paneId)
+        let threshold: CGFloat = 12
+        if translationY < -threshold, snapshot.canReorderUp {
+            _ = store.performSectionContextMenuCommand(
+                SidebarDockCommand.reorderSectionUp,
+                paneId: paneId
+            )
+        } else if translationY > threshold, snapshot.canReorderDown {
+            _ = store.performSectionContextMenuCommand(
+                SidebarDockCommand.reorderSectionDown,
+                paneId: paneId
+            )
+        }
     }
 
     @ViewBuilder

@@ -2301,6 +2301,16 @@ class TerminalController {
         // on the socket worker (see ControlCommandExecutionPolicy + the worker
         // switch in processCommand) so its inter-tick Thread.sleep never blocks
         // the main actor.
+        // debug.sidebar_dock.* is app-side main-actor dogfood for rail sections
+        // (inspect / perform_command / simulate_drop / reorder / divider / resize /
+        // refuse_paths) and is not migrated into ControlCommandCoordinator.
+#if DEBUG
+        case let method where method.hasPrefix("debug.sidebar_dock."):
+            if let result = self.v2DebugSidebarDock(method: method, params: params) {
+                return v2Result(id: id, result)
+            }
+            return v2Error(id: id, code: "method_not_found", message: "Unknown method")
+#endif
 
             default:
                 return v2Error(id: id, code: "method_not_found", message: "Unknown method")

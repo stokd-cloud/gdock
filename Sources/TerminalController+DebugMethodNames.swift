@@ -46,6 +46,15 @@ extension TerminalController {
         "debug.window.screenshot",
         "debug.terminal.simulate_file_drop",
         "debug.sidebar.simulate_drag",
+        // Sidebar dock rail dogfood (VAL-RAIL-003..008). DEBUG-only; mutations
+        // share production invoker/drop/header paths — not a public substitute.
+        "debug.sidebar_dock.inspect",
+        "debug.sidebar_dock.perform_command",
+        "debug.sidebar_dock.simulate_drop",
+        "debug.sidebar_dock.reorder_section",
+        "debug.sidebar_dock.divider_drag",
+        "debug.sidebar_dock.resize_rail",
+        "debug.sidebar_dock.refuse_paths",
         "mobile.dev_stack_auth.configure",
     ]
 }
