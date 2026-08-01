@@ -129,17 +129,109 @@ struct SidebarDockPanelView: View {
 
     @ViewBuilder
     private var bonsplitTree: some View {
-        BonsplitView(controller: store.bonsplitController) { tab, paneId in
-            contentForTab(tab.id, paneId)
-        } emptyPane: { paneId in
-            Color.clear
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .onTapGesture { store.bonsplitController.focusPane(paneId) }
+        // Header chrome uses an immutable snapshot; menu items are resolved when opened.
+        let headerSnapshot = store.focusedSectionHeaderControlsSnapshot()
+        VStack(spacing: 0) {
+            if let headerSnapshot, headerSnapshot.sectionCount >= 2 {
+                focusedSectionHeaderControls(snapshot: headerSnapshot)
+            }
+            BonsplitView(controller: store.bonsplitController) { tab, paneId in
+                contentForTab(tab.id, paneId)
+            } emptyPane: { paneId in
+                Color.clear
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .onTapGesture { store.bonsplitController.focusPane(paneId) }
+            }
+            .contextMenu {
+                sectionContextMenuButtons(
+                    items: store.sectionContextMenuItems(for: store.bonsplitController.focusedPaneId)
+                )
+            }
         }
-        .contextMenu {
-            // Section-level commands surface through the store API; tab context
-            // menu items for move-to-new-section are registered on the controller
-            // when mounts wire them. Keep this view free of store mutation loops.
+    }
+
+    /// Focused-section chrome: collapse/expand/reorder via shared invoker path.
+    /// Built from an immutable snapshot so this strip never holds orthogonal store state.
+    @ViewBuilder
+    private func focusedSectionHeaderControls(
+        snapshot: SidebarDockSectionHeaderControlsSnapshot
+    ) -> some View {
+        let paneId = PaneID(id: snapshot.paneId)
+        HStack(spacing: 4) {
+            if snapshot.showsHeaderDragAffordance {
+                Image(systemName: "line.3.horizontal")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+                    .help(String(localized: "sidebarDock.section.dragAffordance", defaultValue: "Drag section header to reorder"))
+            }
+            Spacer(minLength: 0)
+            if snapshot.canReorderUp {
+                Button {
+                    _ = store.performSectionContextMenuCommand(
+                        SidebarDockCommand.reorderSectionUp,
+                        paneId: paneId
+                    )
+                } label: {
+                    Image(systemName: "chevron.up")
+                }
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("SidebarDock.section.reorderUp")
+                .accessibilityLabel(SidebarDockCommand.title(for: SidebarDockCommand.reorderSectionUp))
+            }
+            if snapshot.canReorderDown {
+                Button {
+                    _ = store.performSectionContextMenuCommand(
+                        SidebarDockCommand.reorderSectionDown,
+                        paneId: paneId
+                    )
+                } label: {
+                    Image(systemName: "chevron.down")
+                }
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("SidebarDock.section.reorderDown")
+                .accessibilityLabel(SidebarDockCommand.title(for: SidebarDockCommand.reorderSectionDown))
+            }
+            if snapshot.canCollapse {
+                Button {
+                    _ = store.performSectionContextMenuCommand(
+                        SidebarDockCommand.collapseSection,
+                        paneId: paneId
+                    )
+                } label: {
+                    Image(systemName: "rectangle.bottomhalf.inset.filled")
+                }
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("SidebarDock.section.collapse")
+                .accessibilityLabel(SidebarDockCommand.title(for: SidebarDockCommand.collapseSection))
+            }
+            if snapshot.canExpand {
+                Button {
+                    _ = store.performSectionContextMenuCommand(
+                        SidebarDockCommand.expandSection,
+                        paneId: paneId
+                    )
+                } label: {
+                    Image(systemName: "rectangle.tophalf.inset.filled")
+                }
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("SidebarDock.section.expand")
+                .accessibilityLabel(SidebarDockCommand.title(for: SidebarDockCommand.expandSection))
+            }
+        }
+        .padding(.horizontal, 6)
+        .frame(maxWidth: .infinity, minHeight: 18, maxHeight: 18)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("SidebarDock.section.headerControls")
+    }
+
+    @ViewBuilder
+    private func sectionContextMenuButtons(items: [SidebarDockCommand.MenuItem]) -> some View {
+        ForEach(items) { item in
+            Button(item.title) {
+                _ = store.performSectionContextMenuCommand(item.id, paneId: store.bonsplitController.focusedPaneId)
+            }
+            .disabled(!item.isEnabled)
         }
     }
 
@@ -151,7 +243,11 @@ struct SidebarDockPanelView: View {
                 .foregroundStyle(.secondary)
             Spacer(minLength: 0)
             Button {
-                _ = store.expandSoleSection()
+                // Sole-left Expand must share the invoker/command path (VAL-RAIL-001).
+                _ = store.performSectionContextMenuCommand(
+                    SidebarDockCommand.expandSection,
+                    paneId: store.orderedSectionPaneIds().first
+                )
             } label: {
                 Text(String(localized: "sidebarDock.section.expand", defaultValue: "Expand"))
             }

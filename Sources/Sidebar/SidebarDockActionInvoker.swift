@@ -16,8 +16,7 @@ enum SidebarDockActionInvoker {
         let paneId: PaneID?
     }
 
-    /// RED stub: production wiring lands in the green commit. Tests assert this routes to
-    /// `SidebarDockCommand.perform` and mutates the store.
+    /// Production bridge: palette, tab/section menus, and header controls all call this.
     @discardableResult
     static func perform(
         commandId: String,
@@ -25,12 +24,12 @@ enum SidebarDockActionInvoker {
         tabId: TabID?,
         paneId: PaneID?
     ) -> Bool {
-        // Intentionally unconnected until green wiring.
-        _ = commandId
-        _ = store
-        _ = tabId
-        _ = paneId
-        return false
+        SidebarDockCommand.perform(
+            commandId: commandId,
+            store: store,
+            tabId: tabId,
+            paneId: paneId
+        )
     }
 
     /// Resolve focused edge/pane/tab from the per-window registry without a parallel store.

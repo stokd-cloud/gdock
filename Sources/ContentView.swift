@@ -7186,6 +7186,7 @@ struct ContentView: View {
         }
         contributions.append(contentsOf: Self.commandPaletteRightSidebarModeCommandContributions())
         contributions.append(contentsOf: Self.commandPaletteRightSidebarToolPaneCommandContributions())
+        contributions.append(contentsOf: Self.commandPaletteSidebarDockCommandContributions())
         contributions.append(
             CommandPaletteCommandContribution(
                 commandId: "palette.toggleMatchTerminalBackground",
@@ -8383,6 +8384,7 @@ struct ContentView: View {
                 handleCommandPaletteRightSidebarToolPane(descriptor.mode)
             }
         }
+        registerSidebarDockCommandHandlers(&registry)
         registry.register(commandId: "palette.toggleMatchTerminalBackground") {
             sidebarMatchTerminalBackground.toggle()
         }

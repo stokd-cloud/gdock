@@ -242802,6 +242802,23 @@
           }
         }
       }
+    },
+    "sidebarDock.section.dragAffordance": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drag section header to reorder"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "セクションヘッダーをドラッグして並べ替え"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

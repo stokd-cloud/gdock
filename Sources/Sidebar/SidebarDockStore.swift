@@ -84,8 +84,15 @@ final class SidebarDockStore: BonsplitDelegate {
         for tabId in bonsplitController.allTabIds {
             _ = bonsplitController.closeTab(tabId)
         }
-        // RED: actor tab-context destinations are not wired until green commit.
-        // Green installs tabContextMoveDestinationsProvider + move handler.
+        installActorContextMenuWiring()
+    }
+
+    /// Tab context-menu destinations and move handler share the invoker path.
+    private func installActorContextMenuWiring() {
+        bonsplitController.tabContextMoveDestinationsProvider = { [weak self] tabId, _ in
+            guard let self else { return [] }
+            return self.tabContextMoveDestinationsForActor(tabId: tabId)
+        }
     }
 
     // MARK: - Configuration
@@ -870,37 +877,65 @@ final class SidebarDockStore: BonsplitDelegate {
 
     // MARK: - Actor wiring seams (palette / context / header)
 
-    /// RED stub: production tab context destinations land in green wiring.
+    /// Tab context-menu destinations that create a new vertical section (shared with palette).
     func tabContextMoveDestinationsForActor(tabId: TabID) -> [TabContextMoveDestination] {
-        _ = tabId
-        return []
+        SidebarDockCommand.tabMoveDestinations(store: self, tabId: tabId)
     }
 
-    /// RED stub: destination selection must route through the invoker in green.
+    /// Destination selection routes through the invoker → `SidebarDockCommand.perform`.
     @discardableResult
     func handleTabContextMoveDestination(_ destinationId: String, for tabId: TabID) -> Bool {
-        _ = destinationId
-        _ = tabId
-        return false
+        SidebarDockActionInvoker.perform(
+            commandId: destinationId,
+            store: self,
+            tabId: tabId,
+            paneId: paneId(forTabId: tabId)
+        )
     }
 
-    /// RED stub: section context menu items for the focused/clicked pane.
+    /// Section context-menu items for the focused/clicked pane.
     func sectionContextMenuItems(for paneId: PaneID?) -> [SidebarDockCommand.MenuItem] {
-        _ = paneId
-        return []
+        let resolved = paneId
+            ?? bonsplitController.focusedPaneId
+            ?? orderedSectionPaneIds().first
+        return SidebarDockCommand.sectionMenuItems(store: self, paneId: resolved)
     }
 
-    /// RED stub: run a section context-menu command through the shared invoker.
+    /// Run a section context-menu / header control command through the shared invoker.
     @discardableResult
     func performSectionContextMenuCommand(_ commandId: String, paneId: PaneID?) -> Bool {
-        _ = commandId
-        _ = paneId
-        return false
+        let resolvedPane = paneId
+            ?? bonsplitController.focusedPaneId
+            ?? orderedSectionPaneIds().first
+        let tabId: TabID? = {
+            guard let resolvedPane else { return nil }
+            return bonsplitController.selectedTab(inPane: resolvedPane)?.id
+                ?? bonsplitController.tabs(inPane: resolvedPane).first?.id
+        }()
+        return SidebarDockActionInvoker.perform(
+            commandId: commandId,
+            store: self,
+            tabId: tabId,
+            paneId: resolvedPane
+        )
     }
 
-    /// RED stub: immutable focused-section header control snapshot.
+    /// Immutable focused-section header control snapshot (no store refs for row subtrees).
     func focusedSectionHeaderControlsSnapshot() -> SidebarDockSectionHeaderControlsSnapshot? {
-        return nil
+        let panes = orderedSectionPaneIds()
+        guard let pane = bonsplitController.focusedPaneId ?? panes.first else { return nil }
+        let eligibility = SidebarDockCommand.eligibility(store: self, tabId: nil, paneId: pane)
+        let collapsed = isSectionCollapsed(paneId: pane)
+        return SidebarDockSectionHeaderControlsSnapshot(
+            paneId: pane.id,
+            sectionCount: sectionCount,
+            isCollapsed: collapsed,
+            canCollapse: eligibility.canCollapse,
+            canExpand: eligibility.canExpand,
+            canReorderUp: eligibility.canReorderUp,
+            canReorderDown: eligibility.canReorderDown,
+            showsHeaderDragAffordance: sectionCount >= 2
+        )
     }
 
     /// Handle Bonsplit "Move Tab" destination ids for new-section commands.
@@ -912,9 +947,7 @@ final class SidebarDockStore: BonsplitDelegate {
     ) {
         _ = controller
         _ = pane
-        // RED: unconnected until green wiring installs invoker routing.
-        _ = destinationId
-        _ = tab
+        _ = handleTabContextMoveDestination(destinationId, for: tab.id)
     }
 
     func splitTabBar(
