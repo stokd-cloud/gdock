@@ -841,10 +841,12 @@ final class SidebarDockStore: BonsplitDelegate {
 
     func splitTabBar(
         _ controller: BonsplitController,
-        didSelectTab tab: Tab,
+        didSelectTab tab: Bonsplit.Tab,
         inPane pane: PaneID
     ) {
         // Sole mirror write path for rail tool selection (VAL-RAIL-002/009).
+        // Must use Bonsplit.Tab — app module has `typealias Tab = Workspace`, which
+        // would otherwise produce a non-witness overload and the empty default body.
         _ = tab
         _ = pane
         publishFocusedToolModeMirror()
@@ -861,12 +863,14 @@ final class SidebarDockStore: BonsplitDelegate {
 
     func splitTabBar(
         _ controller: BonsplitController,
-        shouldCreateTab tab: Tab,
+        shouldCreateTab tab: Bonsplit.Tab,
         inPane pane: PaneID
     ) -> Bool {
         // Allow programmatic creates; external unknown kinds still go through
         // attachPanel which enforces the placement matrix.
-        true
+        // Use Bonsplit.Tab (not app `Tab` alias) so this is the real protocol witness.
+        _ = tab
+        return true
     }
 
     func splitTabBar(_ controller: BonsplitController, shouldNotifyDuringDrag: Bool) -> Bool {
