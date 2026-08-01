@@ -46,13 +46,16 @@ enum SidebarDockCommand {
             guard let tabId else { return false }
             return store.moveTabToNewSection(tabId, position: .bottom)
         case collapseSection:
+            if store.sectionCount == 1 {
+                return store.collapseSoleSection()
+            }
             guard let paneId else { return false }
             return store.collapseSection(paneId: paneId)
         case expandSection:
-            guard let paneId else { return false }
             if store.sectionCount == 1 {
                 return store.expandSoleSection()
             }
+            guard let paneId else { return false }
             return store.expandSection(paneId: paneId)
         case reorderSectionUp:
             guard let paneId else { return false }

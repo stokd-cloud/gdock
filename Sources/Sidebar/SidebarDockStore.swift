@@ -38,6 +38,9 @@ final class SidebarDockStore: BonsplitDelegate {
     private(set) var isSoleSectionCollapsed = false
     private var soleSectionRememberedExtent: CGFloat?
 
+    /// Pane id of the section most recently expanded (divider/collapse lifecycle).
+    private(set) var lastExpandedPaneId: UUID?
+
     /// Collapse requests deferred while a divider drag is active.
     private var pendingCollapsePaneIds: [PaneID] = []
 
@@ -215,6 +218,10 @@ final class SidebarDockStore: BonsplitDelegate {
     /// Shared mutation path for drag edge-band, tab context menu, and palette.
     @discardableResult
     func moveTabToNewSection(_ tabId: TabID, position: SidebarDockSectionPosition) -> Bool {
+        // Drop/command onto a sole-left collapsed surrogate expands first (D-23).
+        if sectionCount == 1, isSoleSectionCollapsed {
+            _ = expandSoleSection()
+        }
         guard configurationAllowsNewSection() else {
             Self.logger.info("sidebar-dock: geometry refused new section on \(self.edge.rawValue, privacy: .public)")
             return false
@@ -242,6 +249,9 @@ final class SidebarDockStore: BonsplitDelegate {
         }
         guard let targetPane else { return false }
 
+        // Expand a collapsed target section before the drop lands.
+        _ = expandCollapsedForDrop(paneId: targetPane)
+
         // Programmatic path uses the moving-tab split API so empty-pane
         // auto-close reaps the source when it was the last tab.
         let newPane = bonsplitController.splitPane(
@@ -254,6 +264,15 @@ final class SidebarDockStore: BonsplitDelegate {
         refreshTabBarVisibility()
         dropOrphanTabs()
         return true
+    }
+
+    /// True when removing `tabId` from this rail would leave zero sections (D-18).
+    /// Cross-rail consumers must refuse the move when this returns true.
+    func wouldEmptyRail(removing tabId: TabID) -> Bool {
+        guard sectionCount == 1 else { return false }
+        guard let pane = paneId(forTabId: tabId) else { return false }
+        let tabs = bonsplitController.tabs(inPane: pane)
+        return tabs.count == 1 && tabs.first?.id == tabId
     }
 
     /// Geometry check: another header must fit without data loss.
@@ -342,9 +361,12 @@ final class SidebarDockStore: BonsplitDelegate {
             rememberedExtentBySplitId.removeValue(forKey: parent)
             _ = bonsplitController.setImposedFirstExtent(nil, forSplit: parent)
             if let remembered, let available = availableExtent(forSplit: parent), available > 0 {
-                let fraction = min(max(remembered / available, 0), 1)
+                // Clamp restore so both sides keep at least header height.
+                let clamped = clampFirstChildExtent(remembered, available: available)
+                let fraction = min(max(clamped / available, 0), 1)
                 _ = bonsplitController.setDividerPosition(fraction, forSplit: parent)
             }
+            // lastExpandedPaneId = paneId.id  // RED stub
             return true
         }
 
@@ -355,9 +377,11 @@ final class SidebarDockStore: BonsplitDelegate {
             _ = bonsplitController.setImposedFirstExtent(nil, forSplit: parent)
             if let remembered, let available = availableExtent(forSplit: parent), available > 0 {
                 let firstExtent = max(0, available - remembered)
-                let fraction = min(max(firstExtent / available, 0), 1)
+                let clamped = clampFirstChildExtent(firstExtent, available: available)
+                let fraction = min(max(clamped / available, 0), 1)
                 _ = bonsplitController.setDividerPosition(fraction, forSplit: parent)
             }
+            // lastExpandedPaneId = paneId.id  // RED stub
             return true
         }
         return false
@@ -369,6 +393,14 @@ final class SidebarDockStore: BonsplitDelegate {
             return expandSection(paneId: paneId)
         }
         return collapseSection(paneId: paneId)
+    }
+
+    /// Expand a collapsed section (any position) or the sole-left surrogate before a drop.
+    /// Already-expanded targets succeed as a no-op so drag/context/palette share one path.
+    @discardableResult
+    func expandCollapsedForDrop(paneId: PaneID?) -> Bool {
+        // RED stub: intentionally incomplete for VAL-RAIL-005..008 red commit.
+        return false
     }
 
     /// Sole left-section collapse into a header-height accessible surrogate (D-23).
@@ -391,13 +423,18 @@ final class SidebarDockStore: BonsplitDelegate {
     func expandSoleSection() -> Bool {
         guard sectionCount == 1, isSoleSectionCollapsed else { return false }
         isSoleSectionCollapsed = false
-        // Identity preserved — no tree rebuild. Extent restore is host-driven.
+        // RED: lastExpanded not recorded
+        // Identity preserved — no tree rebuild. Host restores rail height from
+        // soleSectionRememberedExtent via sectionExtent(forPane:).
         return true
     }
 
     /// Imposed first-child extent currently remembered for tests / restore.
     func rememberedExtent(forPane paneId: PaneID) -> CGFloat? {
-        if sectionCount == 1, isSoleSectionCollapsed {
+        if sectionCount == 1 {
+            if isSoleSectionCollapsed {
+                return soleSectionRememberedExtent
+            }
             return soleSectionRememberedExtent
         }
         guard let parent = parentSplitId(of: paneId) else { return nil }
@@ -410,12 +447,73 @@ final class SidebarDockStore: BonsplitDelegate {
         return collapsedSectionHeight
     }
 
+    /// Live section extent in points (header height when collapsed).
+    /// Uses imposed pins, divider fractions, and the host rail height — no view body.
+    func sectionExtent(forPane paneId: PaneID) -> CGFloat? {
+        if sectionCount == 1 {
+            if isSoleSectionCollapsed {
+                return collapsedSectionHeight
+            }
+            if railContentHeight > 0 { return railContentHeight }
+            return soleSectionRememberedExtent
+        }
+        guard let parent = parentSplitId(of: paneId) else { return nil }
+        let available = availableExtent(forSplit: parent) ?? railContentHeight
+        guard available > 0 else { return nil }
+        if isSectionCollapsed(paneId: paneId) {
+            return collapsedSectionHeight
+        }
+        if isFirstChild(paneId, ofSplit: parent) {
+            return currentFirstChildExtent(forSplit: parent)
+        }
+        if isSecondChild(paneId, ofSplit: parent) {
+            let first = currentFirstChildExtent(forSplit: parent) ?? (available / 2)
+            return max(0, available - first)
+        }
+        return nil
+    }
+
     // MARK: - Divider lifecycle
+
+    /// Clamp a first-child extent so both sides keep at least header height.
+    func clampFirstChildExtent(_ extent: CGFloat, available: CGFloat) -> CGFloat {
+        guard available > collapsedSectionHeight * 2 else {
+            return min(max(extent, 0), available)
+        }
+        return min(max(extent, collapsedSectionHeight), available - collapsedSectionHeight)
+    }
+
+    /// Drag-resize the boundary whose first child is `paneId` (or its parent first side).
+    /// Collapsed adjacent sections are cleared first so the drag does not fight imposition.
+    @discardableResult
+    func resizeBoundary(firstChildPane paneId: PaneID, firstChildExtent: CGFloat) -> Bool {
+        if isSectionCollapsed(paneId: paneId) {
+            prepareDividerDrag(adjacentTo: paneId)
+        }
+        // Also clear a collapsed second-child sibling if present.
+        if let parent = parentSplitId(of: paneId),
+           trailingCollapsedParentSplitId == parent {
+            if let second = secondChildPane(ofSplit: parent) {
+                prepareDividerDrag(adjacentTo: second)
+            }
+        }
+        guard let parent = parentSplitId(of: paneId) else { return false }
+        let available = availableExtent(forSplit: parent) ?? railContentHeight
+        guard available > 0 else { return false }
+        let clamped = clampFirstChildExtent(firstChildExtent, available: available)
+        let fraction = clamped / available
+        return bonsplitController.setDividerPosition(fraction, forSplit: parent, fromExternal: true)
+    }
 
     /// Called when a boundary drag begins adjacent to a collapsed section:
     /// clears imposition first so the drag does not fight the pin.
     func prepareDividerDrag(adjacentTo paneId: PaneID) {
         guard isSectionCollapsed(paneId: paneId) else { return }
+        if sectionCount == 1 {
+            // Sole surrogate: expand so content can accept the drag/drop.
+            _ = expandSoleSection()
+            return
+        }
         guard let parent = parentSplitId(of: paneId) else { return }
         // Clear imposition without restoring remembered expand state — the
         // drag owns the divider from here.
@@ -472,15 +570,30 @@ final class SidebarDockStore: BonsplitDelegate {
     @discardableResult
     func moveTab(_ tabId: TabID, toPane targetPaneId: PaneID, atIndex index: Int? = nil) -> Bool {
         guard surfaceIdToPanelId[tabId] != nil else { return false }
+        // Expand collapsed destination before the drop (shared drag path).
+        _ = expandCollapsedForDrop(paneId: targetPaneId)
+        // D-18: refuse moves that would leave zero sections on this rail.
+        // Within-rail moves that empty a non-final section still tear down that section only.
+        if wouldEmptyRail(removing: tabId),
+           paneId(forTabId: tabId)?.id != targetPaneId.id {
+            // Sole section with one tab cannot leave the rail for another pane
+            // that is not itself — there is no other pane in a one-section rail.
+            Self.logger.info("sidebar-dock: refused move that would empty \(self.edge.rawValue, privacy: .public) rail")
+            return false
+        }
         let before = sectionCount
+        let beforeSelection = sectionSnapshots().map(\.selectedPanelId)
         let ok = bonsplitController.moveTab(tabId, toPane: targetPaneId, atIndex: index)
         if ok {
             dropOrphanTabs()
             refreshTabBarVisibility()
             if sectionCount < before {
-                // Empty section torn down; clear stale collapse state.
+                // Empty section torn down; clear stale collapse state and
+                // redistribute surviving extents via bonsplit auto-layout.
                 pruneCollapseState()
             }
+            // Selection remains authoritative for panes that still exist.
+            _ = beforeSelection
         }
         return ok
     }
@@ -759,6 +872,11 @@ final class SidebarDockStore: BonsplitDelegate {
         return leafPaneIds(in: split.second).contains(where: { $0.id == paneId.id })
     }
 
+    private func secondChildPane(ofSplit splitId: UUID) -> PaneID? {
+        guard let split = findSplit(splitId, in: bonsplitController.treeSnapshot()) else { return nil }
+        return leafPaneIds(in: split.second).last
+    }
+
     private func findSplit(_ splitId: UUID, in node: ExternalTreeNode) -> ExternalSplitNode? {
         switch node {
         case .pane:
@@ -782,18 +900,20 @@ final class SidebarDockStore: BonsplitDelegate {
     }
 
     private func availableExtent(forSplit splitId: UUID) -> CGFloat? {
-        // Prefer layout snapshot pane frames if available; fall back to rail height.
+        // Prefer layout snapshot pane frames if they have real height; fall back
+        // to host-reported rail height (unit tests and pre-layout mounts).
         let snap = bonsplitController.layoutSnapshot()
         guard let split = findSplit(splitId, in: bonsplitController.treeSnapshot()) else {
             return railContentHeight > 0 ? railContentHeight : nil
         }
-        // Approximate available height as sum of leaf pane heights under this split.
         let leaves = leafPaneIds(in: .split(split))
         let heights = leaves.compactMap { pane -> CGFloat? in
             snap.panes.first(where: { $0.paneId == pane.id.uuidString }).map { CGFloat($0.frame.height) }
         }
-        if !heights.isEmpty {
-            return heights.reduce(0, +)
+        let sum = heights.reduce(0, +)
+        // Zero-height layout frames are not useful (no host view yet).
+        if sum > 0.5 {
+            return sum
         }
         return railContentHeight > 0 ? railContentHeight : nil
     }
