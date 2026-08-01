@@ -716,6 +716,44 @@ final class SidebarDockStore: BonsplitDelegate {
 
     // MARK: - Whole-section reorder
 
+
+    /// RED stub: header reorder unconnected.
+    @discardableResult
+    func handleSectionHeaderReorder(from fromIndex: Int, to toIndex: Int) -> Bool {
+        _ = fromIndex
+        _ = toIndex
+        return false
+    }
+
+    /// RED stub: edge-band drop unconnected.
+    @discardableResult
+    func handleTabEdgeBandDrop(
+        tabId: TabID,
+        zone: SidebarDockEdgeBand.Zone,
+        targetPaneId: PaneID? = nil
+    ) -> SidebarDockDropHandler.Outcome {
+        SidebarDockDropHandler.handle(store: self, tabId: tabId, zone: zone, targetPaneId: targetPaneId)
+    }
+
+    func inspectEdgeSnapshot() -> SidebarDockInspectSnapshot.Edge {
+        SidebarDockInspectBuilder.buildEdge(store: self)
+    }
+
+    @discardableResult
+    func debugBeginDividerDrag(adjacentTo paneId: PaneID) -> Bool {
+        _ = paneId
+        return false
+    }
+
+    @discardableResult
+    func debugSetDividerExtent(firstChildPane paneId: PaneID, firstChildExtent: CGFloat) -> Bool {
+        _ = paneId
+        _ = firstChildExtent
+        return false
+    }
+
+    func debugEndDividerDrag() {}
+
     /// Deterministic whole-section reorder (header drag and command path share this).
     @discardableResult
     func reorderSection(from fromIndex: Int, to toIndex: Int) -> Bool {

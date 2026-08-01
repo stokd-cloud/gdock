@@ -1618,11 +1618,15 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		EA1F00000000000000000003 /* SidebarDirectoryText.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1F00000000000000000004 /* SidebarDirectoryText.swift */; };
 		B804A0270000000000000027 /* SidebarDividerTrackingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B804B0270000000000000027 /* SidebarDividerTrackingView.swift */; };
 		BE7A0010SIDEBARDOCKINV02 /* SidebarDockActionInvoker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKINV01 /* SidebarDockActionInvoker.swift */; };
+		BE7A0010SIDEBARDOCKACT02 /* SidebarDockActorSurfaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKACT01 /* SidebarDockActorSurfaceTests.swift */; };
 		BE7A0010SIDEBARDOCKBEHAV02 /* SidebarDockBehaviorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKBEHAV01 /* SidebarDockBehaviorTests.swift */; };
 		1836DCDDE07CDF990C1640C2 /* SidebarDockCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81CAFBD7EB645789DC69C6C6 /* SidebarDockCommand.swift */; };
 		BE7A0010SIDEBARDOCKWIRE02 /* SidebarDockCommandWiringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKWIRE01 /* SidebarDockCommandWiringTests.swift */; };
+		BE7A0010SIDEBARDOCKDROP02 /* SidebarDockDropHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKDROP01 /* SidebarDockDropHandler.swift */; };
 		9332702A430BAF9135E6390D /* SidebarDockEdge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 156D1E279B1C300527680DE8 /* SidebarDockEdge.swift */; };
+		BE7A0010SIDEBARDOCKBAND02 /* SidebarDockEdgeBand.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKBAND01 /* SidebarDockEdgeBand.swift */; };
 		68EDDFB05A6D52FDBE0EC8E2 /* SidebarDockFlagTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4E70E924295D338E336569 /* SidebarDockFlagTests.swift */; };
+		BE7A0010SIDEBARDOCKINSP02 /* SidebarDockInspectSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKINSP01 /* SidebarDockInspectSnapshot.swift */; };
 		A1B2C3D4E5F60001MNT02 /* SidebarDockMountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60001MNT01 /* SidebarDockMountTests.swift */; };
 		1411B3771C57309CC911FC64 /* SidebarDockPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EB242390A12A488F5CFD008 /* SidebarDockPanelView.swift */; };
 		FF67D5D70FE120356BAC7B9D /* SidebarDockPlacementMatrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65602FC450A3E83B78A6850B /* SidebarDockPlacementMatrix.swift */; };
@@ -1948,6 +1952,7 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		7738C0087738C0087738C008 /* TerminalController+RemoteTmuxControlRefs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7738D0087738D0087738D008 /* TerminalController+RemoteTmuxControlRefs.swift */; };
 		7738C0047738C0047738C004 /* TerminalController+RemoteTmuxControlTopology.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7738D0047738D0047738D004 /* TerminalController+RemoteTmuxControlTopology.swift */; };
 		B49282191C80DC84B8AB0BCB /* TerminalController+RemoteTmuxTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CCFC650BD590101D445C4A0 /* TerminalController+RemoteTmuxTestSupport.swift */; };
+		BE7A0010SIDEBARDOCKDBG02 /* TerminalController+SidebarDockDebug.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKDBG01 /* TerminalController+SidebarDockDebug.swift */; };
 		C79470010000000000000003 /* TerminalController+SocketClientCapability.swift in Sources */ = {isa = PBXBuildFile; fileRef = C79470010000000000000004 /* TerminalController+SocketClientCapability.swift */; };
 		A79840030000000000000002 /* TerminalController+SocketConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A79840030000000000000001 /* TerminalController+SocketConfiguration.swift */; };
 		C79470020000000000000001 /* TerminalController+SocketListenerRearm.swift in Sources */ = {isa = PBXBuildFile; fileRef = C79470020000000000000002 /* TerminalController+SocketListenerRearm.swift */; };
@@ -3877,11 +3882,15 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		EA1F00000000000000000004 /* SidebarDirectoryText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDirectoryText.swift; sourceTree = "<group>"; };
 		B804B0270000000000000027 /* SidebarDividerTrackingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDividerTrackingView.swift; sourceTree = "<group>"; };
 		BE7A0010SIDEBARDOCKINV01 /* SidebarDockActionInvoker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockActionInvoker.swift; sourceTree = "<group>"; };
+		BE7A0010SIDEBARDOCKACT01 /* SidebarDockActorSurfaceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockActorSurfaceTests.swift; sourceTree = "<group>"; };
 		BE7A0010SIDEBARDOCKBEHAV01 /* SidebarDockBehaviorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockBehaviorTests.swift; sourceTree = "<group>"; };
 		81CAFBD7EB645789DC69C6C6 /* SidebarDockCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockCommand.swift; sourceTree = "<group>"; };
 		BE7A0010SIDEBARDOCKWIRE01 /* SidebarDockCommandWiringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockCommandWiringTests.swift; sourceTree = "<group>"; };
+		BE7A0010SIDEBARDOCKDROP01 /* SidebarDockDropHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockDropHandler.swift; sourceTree = "<group>"; };
 		156D1E279B1C300527680DE8 /* SidebarDockEdge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockEdge.swift; sourceTree = "<group>"; };
+		BE7A0010SIDEBARDOCKBAND01 /* SidebarDockEdgeBand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockEdgeBand.swift; sourceTree = "<group>"; };
 		1F4E70E924295D338E336569 /* SidebarDockFlagTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockFlagTests.swift; sourceTree = "<group>"; };
+		BE7A0010SIDEBARDOCKINSP01 /* SidebarDockInspectSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockInspectSnapshot.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60001MNT01 /* SidebarDockMountTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockMountTests.swift; sourceTree = "<group>"; };
 		7EB242390A12A488F5CFD008 /* SidebarDockPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockPanelView.swift; sourceTree = "<group>"; };
 		65602FC450A3E83B78A6850B /* SidebarDockPlacementMatrix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockPlacementMatrix.swift; sourceTree = "<group>"; };
@@ -4199,6 +4208,7 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		7738D0087738D0087738D008 /* TerminalController+RemoteTmuxControlRefs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TerminalController+RemoteTmuxControlRefs.swift"; sourceTree = "<group>"; };
 		7738D0047738D0047738D004 /* TerminalController+RemoteTmuxControlTopology.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TerminalController+RemoteTmuxControlTopology.swift"; sourceTree = "<group>"; };
 		1CCFC650BD590101D445C4A0 /* TerminalController+RemoteTmuxTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Debug/RemoteTmux/TerminalController+RemoteTmuxTestSupport.swift"; sourceTree = "<group>"; };
+		BE7A0010SIDEBARDOCKDBG01 /* TerminalController+SidebarDockDebug.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalController+SidebarDockDebug.swift; sourceTree = "<group>"; };
 		C79470010000000000000004 /* TerminalController+SocketClientCapability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TerminalController+SocketClientCapability.swift"; sourceTree = "<group>"; };
 		A79840030000000000000001 /* TerminalController+SocketConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TerminalController+SocketConfiguration.swift"; sourceTree = "<group>"; };
 		C79470020000000000000002 /* TerminalController+SocketListenerRearm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TerminalController+SocketListenerRearm.swift"; sourceTree = "<group>"; };
@@ -5132,6 +5142,9 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 				D1614EAD3CCF70A177A51BD1 /* SidebarState.swift */,
 				81CAFBD7EB645789DC69C6C6 /* SidebarDockCommand.swift */,
 				BE7A0010SIDEBARDOCKINV01 /* SidebarDockActionInvoker.swift */,
+				BE7A0010SIDEBARDOCKINSP01 /* SidebarDockInspectSnapshot.swift */,
+				BE7A0010SIDEBARDOCKDROP01 /* SidebarDockDropHandler.swift */,
+				BE7A0010SIDEBARDOCKBAND01 /* SidebarDockEdgeBand.swift */,
 				BE7A0010SIDEBARDOCKHDR01 /* SidebarDockSectionHeaderControlsSnapshot.swift */,
 				156D1E279B1C300527680DE8 /* SidebarDockEdge.swift */,
 				7EB242390A12A488F5CFD008 /* SidebarDockPanelView.swift */,
@@ -5454,6 +5467,7 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 				C0DE00000000000000000C81 /* TerminalController+ControlBrowserPanelContext.swift */,
 				C0DE00000000000000000C6D /* TerminalController+ControlDebugContext.swift */,
 				C0DEBEEF0000000000000001 /* TerminalController+DebugMethodNames.swift */,
+				BE7A0010SIDEBARDOCKDBG01 /* TerminalController+SidebarDockDebug.swift */,
 				C0DE00000000000000000C6F /* TerminalController+ControlProjectContext.swift */,
 				C0DE00000000000000000C71 /* TerminalController+ControlSidebarContext.swift */,
 				C0DE00000000000000000C73 /* TerminalController+ControlSidebarContext2.swift */,
@@ -6709,6 +6723,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				682F73FA96A248028EC8CDBD /* QuadSplitButtonTests.swift */,
 BE7A0010SIDEBARDOCKBEHAV01 /* SidebarDockBehaviorTests.swift */,
 				BE7A0010SIDEBARDOCKWIRE01 /* SidebarDockCommandWiringTests.swift */,
+				BE7A0010SIDEBARDOCKACT01 /* SidebarDockActorSurfaceTests.swift */,
 				A1B2C3D4E5F60001SEL01 /* RightSidebarSelectionRouterTests.swift */,
 				A1B2C3D4E5F60001MNT01 /* SidebarDockMountTests.swift */,
 				DEEB7752CAC925C78C086B09 /* SidebarDockSplitTests.swift */,
@@ -8344,7 +8359,10 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				B804A0270000000000000027 /* SidebarDividerTrackingView.swift in Sources */,
 				BE7A0010SIDEBARDOCKINV02 /* SidebarDockActionInvoker.swift in Sources */,
 				1836DCDDE07CDF990C1640C2 /* SidebarDockCommand.swift in Sources */,
+				BE7A0010SIDEBARDOCKDROP02 /* SidebarDockDropHandler.swift in Sources */,
 				9332702A430BAF9135E6390D /* SidebarDockEdge.swift in Sources */,
+				BE7A0010SIDEBARDOCKBAND02 /* SidebarDockEdgeBand.swift in Sources */,
+				BE7A0010SIDEBARDOCKINSP02 /* SidebarDockInspectSnapshot.swift in Sources */,
 				1411B3771C57309CC911FC64 /* SidebarDockPanelView.swift in Sources */,
 				FF67D5D70FE120356BAC7B9D /* SidebarDockPlacementMatrix.swift in Sources */,
 				BE7A0010SIDEBARDOCKHDR02 /* SidebarDockSectionHeaderControlsSnapshot.swift in Sources */,
@@ -8589,6 +8607,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				7738C0087738C0087738C008 /* TerminalController+RemoteTmuxControlRefs.swift in Sources */,
 				7738C0047738C0047738C004 /* TerminalController+RemoteTmuxControlTopology.swift in Sources */,
 				B49282191C80DC84B8AB0BCB /* TerminalController+RemoteTmuxTestSupport.swift in Sources */,
+				BE7A0010SIDEBARDOCKDBG02 /* TerminalController+SidebarDockDebug.swift in Sources */,
 				C79470010000000000000003 /* TerminalController+SocketClientCapability.swift in Sources */,
 				A79840030000000000000002 /* TerminalController+SocketConfiguration.swift in Sources */,
 				C79470020000000000000001 /* TerminalController+SocketListenerRearm.swift in Sources */,
@@ -9442,6 +9461,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				F6001000A1B2C3D4E5F60718 /* ShortcutUnbindingTests.swift in Sources */,
 				C3467AB10000000000000001 /* ShortcutWhenClauseTests.swift in Sources */,
 				B804C0030000000000000003 /* SidebarAppKitRowCellTests.swift in Sources */,
+				BE7A0010SIDEBARDOCKACT02 /* SidebarDockActorSurfaceTests.swift in Sources */,
 BE7A0010SIDEBARDOCKBEHAV02 /* SidebarDockBehaviorTests.swift in Sources */,
 				BE7A0010SIDEBARDOCKWIRE02 /* SidebarDockCommandWiringTests.swift in Sources */,
 				68EDDFB05A6D52FDBE0EC8E2 /* SidebarDockFlagTests.swift in Sources */,
