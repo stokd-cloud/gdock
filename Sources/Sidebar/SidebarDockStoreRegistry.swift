@@ -13,11 +13,21 @@ final class SidebarDockStoreRegistry {
     let windowId: UUID
     let left: SidebarDockStore
     let right: SidebarDockStore
+    /// Last edge that received focus/selection inside this window's rails.
+    /// Used only as a soft preference for palette/context resolution — not a
+    /// second selection store (tab/pane selection remains on each rail store).
+    private(set) var lastFocusedEdge: SidebarDockEdge?
 
     init(windowId: UUID) {
         self.windowId = windowId
         self.left = SidebarDockStore(edge: .left, windowId: windowId)
         self.right = SidebarDockStore(edge: .right, windowId: windowId)
+        self.left.onRailFocusChanged = { [weak self] in
+            self?.lastFocusedEdge = .left
+        }
+        self.right.onRailFocusChanged = { [weak self] in
+            self?.lastFocusedEdge = .right
+        }
     }
 
     func store(for edge: SidebarDockEdge) -> SidebarDockStore {
@@ -25,6 +35,10 @@ final class SidebarDockStoreRegistry {
         case .left: return left
         case .right: return right
         }
+    }
+
+    func noteFocusedEdge(_ edge: SidebarDockEdge) {
+        lastFocusedEdge = edge
     }
 }
 

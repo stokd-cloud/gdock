@@ -56,6 +56,9 @@ final class SidebarDockStore: BonsplitDelegate {
     /// Production selection entrypoints must not write `FileExplorerState.mode` for rail tools.
     var onFocusedToolModeChanged: ((RightSidebarMode?) -> Void)?
 
+    /// Soft focus signal for the per-window registry (not a second selection store).
+    var onRailFocusChanged: (() -> Void)?
+
     /// Counts content mount generations for hidden-rail lifecycle tests (VAL-RAIL-010).
     private(set) var toolContentMountGeneration: Int = 0
     private(set) var toolContentUnmountGeneration: Int = 0
@@ -81,6 +84,8 @@ final class SidebarDockStore: BonsplitDelegate {
         for tabId in bonsplitController.allTabIds {
             _ = bonsplitController.closeTab(tabId)
         }
+        // RED: actor tab-context destinations are not wired until green commit.
+        // Green installs tabContextMoveDestinationsProvider + move handler.
     }
 
     // MARK: - Configuration
@@ -849,6 +854,7 @@ final class SidebarDockStore: BonsplitDelegate {
         // would otherwise produce a non-witness overload and the empty default body.
         _ = tab
         _ = pane
+        onRailFocusChanged?()
         publishFocusedToolModeMirror()
     }
 
@@ -858,7 +864,57 @@ final class SidebarDockStore: BonsplitDelegate {
     ) {
         // Focused section's selected tab defines the derived legacy mode.
         _ = pane
+        onRailFocusChanged?()
         publishFocusedToolModeMirror()
+    }
+
+    // MARK: - Actor wiring seams (palette / context / header)
+
+    /// RED stub: production tab context destinations land in green wiring.
+    func tabContextMoveDestinationsForActor(tabId: TabID) -> [TabContextMoveDestination] {
+        _ = tabId
+        return []
+    }
+
+    /// RED stub: destination selection must route through the invoker in green.
+    @discardableResult
+    func handleTabContextMoveDestination(_ destinationId: String, for tabId: TabID) -> Bool {
+        _ = destinationId
+        _ = tabId
+        return false
+    }
+
+    /// RED stub: section context menu items for the focused/clicked pane.
+    func sectionContextMenuItems(for paneId: PaneID?) -> [SidebarDockCommand.MenuItem] {
+        _ = paneId
+        return []
+    }
+
+    /// RED stub: run a section context-menu command through the shared invoker.
+    @discardableResult
+    func performSectionContextMenuCommand(_ commandId: String, paneId: PaneID?) -> Bool {
+        _ = commandId
+        _ = paneId
+        return false
+    }
+
+    /// RED stub: immutable focused-section header control snapshot.
+    func focusedSectionHeaderControlsSnapshot() -> SidebarDockSectionHeaderControlsSnapshot? {
+        return nil
+    }
+
+    /// Handle Bonsplit "Move Tab" destination ids for new-section commands.
+    func splitTabBar(
+        _ controller: BonsplitController,
+        didRequestTabMoveToDestination destinationId: String,
+        for tab: Bonsplit.Tab,
+        inPane pane: PaneID
+    ) {
+        _ = controller
+        _ = pane
+        // RED: unconnected until green wiring installs invoker routing.
+        _ = destinationId
+        _ = tab
     }
 
     func splitTabBar(

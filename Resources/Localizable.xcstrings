@@ -242785,6 +242785,23 @@
           }
         }
       }
+    },
+    "sidebarDock.command.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sidebar Dock"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サイドバードック"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
