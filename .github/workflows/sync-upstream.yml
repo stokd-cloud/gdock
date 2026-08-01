@@ -1,0 +1,51 @@
+name: sync-upstream
+
+# Keep `upstream-main` a pristine, fast-forwarded mirror of upstream cmux.
+# Model B: `main` is the stokd working line; this branch is CI-only and never
+# carries a stokd commit. (AX-GHOSTTY-DOCK-FORK-UPSTREAM-FLOW)
+
+on:
+  schedule:
+    - cron: '17 8 * * *'   # daily 08:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout mirror branch
+        uses: actions/checkout@v4
+        with:
+          ref: upstream-main
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Fast-forward upstream-main to upstream/main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config user.name  "stokd-sync-bot"
+          git config user.email "sync-bot@stokd.cloud"
+          git remote add upstream https://github.com/manaflow-ai/cmux.git \
+            || git remote set-url upstream https://github.com/manaflow-ai/cmux.git
+          git fetch upstream main --tags
+          if git merge-base --is-ancestor HEAD upstream/main; then
+            git merge --ff-only upstream/main
+            git push origin HEAD:upstream-main
+            echo "upstream-main fast-forwarded to $(git rev-parse --short upstream/main)"
+          else
+            echo "::error::upstream-main diverged from upstream/main (non-FF)."
+            gh issue create \
+              --title "sync-upstream: upstream-main diverged (manual review)" \
+              --body "Scheduled sync could not fast-forward upstream-main to upstream/main. The mirror must stay pristine — reset it to upstream/main." \
+              || true
+            exit 1
+          fi
