@@ -1,9 +1,9 @@
 import AppKit
 import Bonsplit
 import CmuxCore
+import CmuxSettings
 import Foundation
 import Testing
-import XCTest
 
 #if canImport(cmux_DEV)
 @testable import cmux_DEV
