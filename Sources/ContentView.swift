@@ -3027,6 +3027,20 @@ struct ContentView: View {
             openCommandPaletteCommands()
         })
 
+#if DEBUG
+        view = AnyView(view.onReceive(NotificationCenter.default.publisher(for: .commandPaletteDebugSetQueryRequested)) { notification in
+            let requestedWindow = notification.object as? NSWindow
+            guard Self.shouldHandleCommandPaletteRequest(
+                observedWindow: observedWindow,
+                requestedWindow: requestedWindow,
+                keyWindow: NSApp.keyWindow,
+                mainWindow: NSApp.mainWindow
+            ) else { return }
+            let query = (notification.userInfo?["query"] as? String) ?? Self.commandPaletteCommandsPrefix
+            applyCommandPaletteDebugQuery(query)
+        })
+#endif
+
         view = AnyView(view.onReceive(NotificationCenter.default.publisher(for: .savedLayoutSaveRequested)) { notification in
             if Self.shouldHandleSavedLayoutSaveRequest(observedWindow: observedWindow, requestedWindow: notification.object as? NSWindow, keyWindow: NSApp.keyWindow, mainWindow: NSApp.mainWindow) {
                 presentSavedLayoutSavePrompt()
@@ -5126,8 +5140,19 @@ struct ContentView: View {
         let usageHistory = commandPaletteUsageHistoryByCommandId
         let queryIsEmpty = CommandPaletteFuzzyMatcher.preparedQuery(matchingQuery).isEmpty
         let historyTimestamp = Date().timeIntervalSince1970
-        let additionalScoreBoost: (String, Bool) -> Int = { commandId, _ in
-            Self.commandPaletteForkPriorityBoost(commandId: commandId, query: matchingQuery)
+        let paletteWindowId = windowId
+        let additionalScoreBoost: (String, Bool) -> Int = { commandId, queryIsEmpty in
+            var boost = Self.commandPaletteForkPriorityBoost(commandId: commandId, query: matchingQuery)
+            // Eligible dock rail actions are late in contribution rank order.
+            // When the commands list is unfiltered, boost them so the public
+            // palette actually surfaces sidebarDock.* while `when` still gates
+            // flag-off / wrong-context cases.
+            if queryIsEmpty,
+               commandId.hasPrefix("sidebarDock."),
+               Self.sidebarDockPaletteCommandIsAvailable(commandId, windowId: paletteWindowId) {
+                boost += 5_000
+            }
+            return boost
         }
         let visiblePreviewResultLimit = Self.commandPaletteVisiblePreviewResultLimit
         if preservePendingActivation {
@@ -9425,7 +9450,10 @@ struct ContentView: View {
             mode = "workspace_description_input"
         }
 
-        let rows = Array(commandPaletteVisibleResults.prefix(20)).map { result in
+        // Cap high enough that dogfood `debug.command_palette.results` limit
+        // (up to 100) can surface late-ranked but eligible dock commands after
+        // a real query filter; the socket layer still applies its own limit.
+        let rows = Array(commandPaletteVisibleResults.prefix(100)).map { result in
                 CommandPaletteDebugResultRow(
                     commandId: result.command.id,
                     title: result.command.title,
@@ -9461,6 +9489,32 @@ struct ContentView: View {
         refreshCommandPaletteUsageHistory()
         resetCommandPaletteListState(initialQuery: initialQuery)
     }
+
+#if DEBUG
+    /// DEBUG dogfood: set the live palette query and rebuild production results.
+    private func applyCommandPaletteDebugQuery(_ query: String) {
+        let normalized: String = {
+            if query.hasPrefix(Self.commandPaletteCommandsPrefix) {
+                return query
+            }
+            if query.isEmpty {
+                return Self.commandPaletteCommandsPrefix
+            }
+            return Self.commandPaletteCommandsPrefix + query
+        }()
+        if !isCommandPalettePresented {
+            presentCommandPalette(initialQuery: normalized)
+            return
+        }
+        commandPaletteMode = .commands
+        commandPaletteQuery = normalized
+        commandPaletteSelectedResultIndex = 0
+        commandPaletteSelectionAnchorCommandID = nil
+        scheduleCommandPaletteResultsRefresh(forceSearchCorpusRefresh: true)
+        syncCommandPaletteOverlayCommandListState()
+        syncCommandPaletteDebugStateForObservedWindow()
+    }
+#endif
 
     private func resetCommandPaletteListState(initialQuery: String) {
         commandPaletteMode = .commands

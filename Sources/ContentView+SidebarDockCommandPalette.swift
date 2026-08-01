@@ -107,79 +107,159 @@ extension ContentView {
 
     /// Pure availability for tests and DEBUG dogfood (flag + explicit rail target).
     ///
-    /// RED stub intentionally returns `false` so reachability regressions fail
-    /// until the green wiring lands.
+    /// Does not weaken the eligibility predicate: unsafe commands stay hidden
+    /// even when the flag is on and a rail exists.
     static func sidebarDockPaletteCommandIsAvailable(
         _ commandId: String,
         flagEnabled: Bool,
         target: SidebarDockActionInvoker.Target?
     ) -> Bool {
-        _ = commandId
-        _ = flagEnabled
-        _ = target
-        return false
+        guard flagEnabled else { return false }
+        guard let target else { return false }
+        return SidebarDockCommand.eligibility(
+            store: target.store,
+            tabId: target.tabId,
+            paneId: target.paneId
+        ).isAvailable(commandId)
     }
 
     /// Live eligibility for palette `when` gates (flag + window-scoped rail).
     ///
-    /// RED stub keeps the historical key-window-only path incomplete for the
-    /// pure target evaluator; live path still resolves via invoker for compile.
+    /// Prefer `windowId` from the presenting ContentView so availability does
+    /// not require `NSApp.keyWindow` (tagged-socket dogfood often leaves it nil).
     static func sidebarDockPaletteCommandIsAvailable(
         _ commandId: String,
         windowId: UUID? = nil
     ) -> Bool {
-        guard RightSidebarBetaFeatureSettings.isSidebarDockEnabled() else { return false }
-        // Prefer the ContentView window id so availability does not require the
-        // window to be key (tagged-socket dogfood often leaves keyWindow nil).
+        let flagEnabled = RightSidebarBetaFeatureSettings.isSidebarDockEnabled()
         let preferredWindow: NSWindow? = {
             if windowId != nil { return nil }
             return NSApp.keyWindow ?? NSApp.mainWindow
         }()
-        guard let target = SidebarDockActionInvoker.resolveTarget(
+        let target = SidebarDockActionInvoker.resolveTarget(
             windowId: windowId,
             preferredWindow: preferredWindow
-        ) else {
-            return false
-        }
-        // RED: force pure evaluator (stub) so tests fail until green implements it.
+        )
         return sidebarDockPaletteCommandIsAvailable(
             commandId,
-            flagEnabled: true,
+            flagEnabled: flagEnabled,
             target: target
         )
     }
 
     /// Production registry search over dock contributions (title/keywords/ids).
     ///
-    /// RED stub returns no hits so query→id regressions fail until green.
+    /// Uses the same contribution descriptors and `when` semantics as the live
+    /// palette, scored with the production fuzzy matcher so a typed query can
+    /// surface `sidebarDock.*` results that sit late in empty-query rank order.
     static func sidebarDockPaletteRegistryResults(
         query: String,
         flagEnabled: Bool,
         target: SidebarDockActionInvoker.Target?,
         limit: Int = 48
     ) -> [SidebarDockPaletteRegistryResult] {
-        _ = query
-        _ = flagEnabled
-        _ = target
-        _ = limit
-        return []
+        let contributions = commandPaletteSidebarDockCommandContributions(windowId: nil)
+        let context = CommandPaletteContextSnapshot()
+        var corpus: [CommandPaletteSearchCorpusEntry<String>] = []
+        corpus.reserveCapacity(contributions.count)
+        var rank = 0
+        for contribution in contributions {
+            // Evaluate eligibility against the explicit target rather than live
+            // AppDelegate state so tests and dogfood share one pure path.
+            guard sidebarDockPaletteCommandIsAvailable(
+                contribution.commandId,
+                flagEnabled: flagEnabled,
+                target: target
+            ) else { continue }
+            // Keep contribution `when` contract for flag-off / no-target cases
+            // when callers pass live nil targets (still false via pure evaluator).
+            _ = contribution.when
+            _ = context
+            let title = contribution.title(context)
+            var searchable = [title, contribution.subtitle(context), contribution.commandId]
+            searchable.append(contentsOf: contribution.keywords)
+            corpus.append(
+                CommandPaletteSearchCorpusEntry(
+                    payload: contribution.commandId,
+                    rank: rank,
+                    title: title,
+                    searchableTexts: searchable
+                )
+            )
+            rank += 1
+        }
+        guard !corpus.isEmpty else { return [] }
+
+        let matchingQuery = Self.sidebarDockPaletteMatchingQuery(query)
+        let prepared = CommandPaletteFuzzyMatcher.preparedQuery(matchingQuery)
+        let queryIsEmpty = prepared.isEmpty
+        let engine = CommandPaletteSearchEngine(entries: corpus)
+        let hits = engine.search(
+            query: matchingQuery,
+            resultLimit: max(1, limit),
+            historyBoost: { commandId, isEmpty in
+                // When the query is empty, boost dock commands so eligible
+                // actions remain discoverable above late contribution ranks.
+                if isEmpty { return 5_000 }
+                // Prefer exact command-id / keyword hits slightly when typing.
+                if commandId.hasPrefix("sidebarDock.") { return 500 }
+                return 0
+            }
+        )
+        _ = queryIsEmpty
+        return hits.map { hit in
+            SidebarDockPaletteRegistryResult(
+                commandId: hit.payload,
+                title: hit.title,
+                score: hit.score
+            )
+        }
+    }
+
+    /// Normalize a dogfood/user query into the matching suffix used by the
+    /// production commands list (`>` prefix is optional).
+    nonisolated static func sidebarDockPaletteMatchingQuery(_ query: String) -> String {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.hasPrefix(">") {
+            return String(trimmed.dropFirst()).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return trimmed
     }
 
     /// Registered-handler shape for palette activation (returns handled).
     ///
-    /// RED stub never mutates — regressions fail until green routes through
-    /// `SidebarDockCommand.perform` via the shared invoker inside the handler.
+    /// Routes through `SidebarDockActionInvoker.perform` → `SidebarDockCommand.perform`
+    /// so palette dogfood and UI share one mutation path. Callers (tests /
+    /// `debug.command_palette.query_run`) must not touch the store directly.
     static func sidebarDockPaletteRegisteredHandler(
         commandId: String,
         store: SidebarDockStore,
         tabId: TabID?,
         paneId: PaneID?
     ) -> () -> Bool {
-        _ = commandId
-        _ = store
-        _ = tabId
-        _ = paneId
-        return { false }
+        {
+            SidebarDockActionInvoker.perform(
+                commandId: commandId,
+                store: store,
+                tabId: tabId,
+                paneId: paneId
+            )
+        }
+    }
+
+    /// Live registered-handler factory for a window-scoped target.
+    static func sidebarDockPaletteRegisteredHandler(
+        commandId: String,
+        windowId: UUID?,
+        preferredWindow: NSWindow? = nil
+    ) -> () -> Bool {
+        {
+            SidebarDockActionInvoker.performFocused(
+                commandId: commandId,
+                windowId: windowId,
+                preferredWindow: preferredWindow ?? NSApp.keyWindow ?? NSApp.mainWindow
+            )
+        }
     }
 
     func registerSidebarDockCommandHandlers(_ registry: inout CommandPaletteHandlerRegistry) {
@@ -191,14 +271,13 @@ extension ContentView {
     }
 
     func handleSidebarDockPaletteCommand(_ commandId: String) {
-        // Resolve via ContentView.windowId first; preferredWindow is a soft
-        // fallback only. Do not read ContentView.observedWindow here — it is
-        // private to ContentView.swift (same pattern as static availability).
-        let handled = SidebarDockActionInvoker.performFocused(
+        // Registered handler path: window-scoped invoker (same factory dogfood uses).
+        // Do not read ContentView.observedWindow — it is private to ContentView.swift.
+        let handled = Self.sidebarDockPaletteRegisteredHandler(
             commandId: commandId,
             windowId: windowId,
             preferredWindow: NSApp.keyWindow ?? NSApp.mainWindow
-        )
+        )()
         if !handled {
             NSSound.beep()
         }

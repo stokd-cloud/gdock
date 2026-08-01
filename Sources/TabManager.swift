@@ -6329,6 +6329,8 @@ extension Notification.Name {
     static let commandPaletteMoveSelection = Notification.Name("cmux.commandPaletteMoveSelection")
     static let commandPaletteRenameInputInteractionRequested = Notification.Name("cmux.commandPaletteRenameInputInteractionRequested")
     static let commandPaletteRenameInputDeleteBackwardRequested = Notification.Name("cmux.commandPaletteRenameInputDeleteBackwardRequested")
+    /// DEBUG dogfood: set the real palette query string for a target window.
+    static let commandPaletteDebugSetQueryRequested = Notification.Name("cmux.commandPaletteDebugSetQueryRequested")
     static let feedbackComposerRequested = Notification.Name("cmux.feedbackComposerRequested")
     static let ghosttyDidSetTitle = Notification.Name("ghosttyDidSetTitle")
     static let ghosttyDidFocusTab = Notification.Name("ghosttyDidFocusTab")
