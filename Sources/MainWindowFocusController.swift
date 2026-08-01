@@ -486,7 +486,12 @@ final class MainWindowFocusController {
         publishFeedFocusSnapshot()
         yieldCurrentTerminalSurfaceFocus(reason: terminalYieldReason)
         state.setVisible(true)
-        if state.mode != mode {
+        // Dock rail tools: do not compete with the window selection router.
+        // Rail tab authority + legacy mirror come from selectToolMode → Bonsplit
+        // didSelectTab/didFocusPane only (VAL-RAIL-009 / D-32).
+        let dockRailMode = RightSidebarBetaFeatureSettings.isSidebarDockEnabled()
+            && SidebarDockPlacementMatrix.allows(mode: mode)
+        if !dockRailMode, state.mode != mode {
             state.mode = mode
         }
 

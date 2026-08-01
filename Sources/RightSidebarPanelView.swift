@@ -366,13 +366,15 @@ struct RightSidebarPanelView: View {
                         )
                     ) {
                         let mode = item.mode
-                        if AppDelegate.shared?.focusRightSidebarInActiveMainWindow(
+                        // Selection authority first (router → selectToolMode → callbacks),
+                        // then keyboard focus. Never skip selectMode when focus succeeds
+                        // (D-32 R3: focus-only left selected_tab_id stale).
+                        selectMode(mode)
+                        _ = AppDelegate.shared?.focusRightSidebarInActiveMainWindow(
                             mode: mode,
                             focusFirstItem: true,
                             preferredWindow: NSApp.keyWindow ?? NSApp.mainWindow
-                        ) != true {
-                            selectMode(mode)
-                        }
+                        )
                     }
                 }
                 Spacer(minLength: 0)

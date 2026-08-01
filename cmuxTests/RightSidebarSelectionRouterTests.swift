@@ -1,4 +1,5 @@
 import AppKit
+import Bonsplit
 import Foundation
 import Testing
 
@@ -515,8 +516,9 @@ struct RightSidebarSelectionRouterTests {
             panelSource.contains("routeRightSidebarSelection")
                 || panelSource.contains("RightSidebarSelectionRouter.apply")
         )
-        // Must not skip selectMode when focus succeeds (the R3 bypass).
-        #expect(!panelSource.contains("focusRightSidebarInActiveMainWindow(\n                            mode: mode,\n                            focusFirstItem: true,\n                            preferredWindow: NSApp.keyWindow ?? NSApp.mainWindow\n                        ) != true {\n                        selectMode(mode)"))
+        // Must not gate selectMode on focus failure (the R3 bypass).
+        #expect(!panelSource.contains(") != true {\n                        selectMode(mode)"))
+        #expect(panelSource.contains("Selection authority first"))
 
         let appURL = root
             .appendingPathComponent("Sources")
@@ -524,21 +526,16 @@ struct RightSidebarSelectionRouterTests {
         let appSource = try String(contentsOf: appURL, encoding: .utf8)
         // Dock-on focus / show / debug reveal must ensure rail selection authority.
         #expect(appSource.contains("routeRightSidebarSelection"))
-        #expect(
-            appSource.contains("ensureRightSidebarRailSelection")
-                || appSource.contains("focus: false, source: .railPaneFocus")
-                || appSource.contains("source: .railPaneFocus")
-        )
+        #expect(appSource.contains("ensureRightSidebarRailSelection"))
+        #expect(appSource.contains("source: .railPaneFocus"))
 
         let focusURL = root
             .appendingPathComponent("Sources")
             .appendingPathComponent("MainWindowFocusController.swift")
         let focusSource = try String(contentsOf: focusURL, encoding: .utf8)
         // No competing scalar mode write for dock rail tools.
-        #expect(
-            focusSource.contains("SidebarDockPlacementMatrix.allows")
-                || focusSource.contains("isSidebarDockEnabled")
-        )
+        #expect(focusSource.contains("SidebarDockPlacementMatrix.allows"))
+        #expect(focusSource.contains("isSidebarDockEnabled"))
 
         let inspectURL = root
             .appendingPathComponent("Sources")

@@ -16,6 +16,12 @@ struct SidebarDockInspectSnapshot: Equatable, Sendable {
         var soleSectionCollapsed: Bool
         var railContentHeight: Double
         var isDividerDragActive: Bool
+        /// Authoritative focused section (Bonsplit focused pane).
+        var focusedPaneId: String?
+        /// Selected tab in the focused section — window-edge selection authority.
+        var focusedSelectedTabId: String?
+        /// Tool mode for the focused selected tab (right rail only).
+        var focusedToolMode: String?
         var sections: [Section]
     }
 
@@ -52,14 +58,14 @@ struct SidebarDockInspectSnapshot: Equatable, Sendable {
 
 extension SidebarDockInspectSnapshot.Edge {
     func asEdgeDictionary() -> [String: Any] {
-        [
+        var dict: [String: Any] = [
             "edge": edge,
             "section_count": sectionCount,
             "sole_section_collapsed": soleSectionCollapsed,
             "rail_content_height": railContentHeight,
             "is_divider_drag_active": isDividerDragActive,
             "sections": sections.map { section in
-                var dict: [String: Any] = [
+                var sectionDict: [String: Any] = [
                     "index": section.index,
                     "pane_id": section.paneId,
                     "tab_ids": section.tabIds,
@@ -67,28 +73,41 @@ extension SidebarDockInspectSnapshot.Edge {
                     "is_collapsed": section.isCollapsed,
                 ]
                 if let selectedTabId = section.selectedTabId {
-                    dict["selected_tab_id"] = selectedTabId
+                    sectionDict["selected_tab_id"] = selectedTabId
                 }
                 if let extent = section.extent {
-                    dict["extent"] = extent
+                    sectionDict["extent"] = extent
                 }
                 if let imposed = section.imposedCollapsedExtent {
-                    dict["imposed_collapsed_extent"] = imposed
+                    sectionDict["imposed_collapsed_extent"] = imposed
                 }
                 if let remembered = section.rememberedExtent {
-                    dict["remembered_extent"] = remembered
+                    sectionDict["remembered_extent"] = remembered
                 }
                 if let frame = section.frame {
-                    dict["frame"] = [
+                    sectionDict["frame"] = [
                         "x": frame.x,
                         "y": frame.y,
                         "width": frame.width,
                         "height": frame.height,
                     ]
                 }
-                return dict
+                return sectionDict
             },
         ]
+        // Edge-level authority (VAL-RAIL-007/009). `selected_tab_id` mirrors the
+        // focused section's selection so dogfood can compare one authoritative id.
+        if let focusedPaneId {
+            dict["focused_pane_id"] = focusedPaneId
+        }
+        if let focusedSelectedTabId {
+            dict["focused_selected_tab_id"] = focusedSelectedTabId
+            dict["selected_tab_id"] = focusedSelectedTabId
+        }
+        if let focusedToolMode {
+            dict["focused_tool_mode"] = focusedToolMode
+        }
+        return dict
     }
 }
 
@@ -144,12 +163,22 @@ enum SidebarDockInspectBuilder {
                 frame: frameByPane[pane.id.uuidString]
             )
         }
+        let focusedPane = store.bonsplitController.focusedPaneId
+            ?? panes.first
+        let focusedSelected = focusedPane.flatMap { store.bonsplitController.selectedTab(inPane: $0)?.id }
+        let focusedMode: String? = {
+            guard store.edge == .right else { return nil }
+            return store.focusedToolMode()?.rawValue
+        }()
         return SidebarDockInspectSnapshot.Edge(
             edge: store.edge.rawValue,
             sectionCount: store.sectionCount,
             soleSectionCollapsed: store.isSoleSectionCollapsed,
             railContentHeight: Double(store.railContentHeight),
             isDividerDragActive: store.bonsplitController.isDividerDragActive,
+            focusedPaneId: focusedPane?.id.uuidString,
+            focusedSelectedTabId: focusedSelected?.uuid.uuidString,
+            focusedToolMode: focusedMode,
             sections: sections
         )
     }

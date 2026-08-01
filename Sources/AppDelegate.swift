@@ -7011,6 +7011,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             "fr=\(beforeResponder)"
         )
 #endif
+        // Dock rail: establish selected-tab authority before keyboard focus so
+        // mode focus cannot land as a scalar-only write (VAL-RAIL-007/009, D-32).
+        // `focus: false` here avoids re-entering this method via the router.
+        if RightSidebarBetaFeatureSettings.isSidebarDockEnabled() {
+            let modeForRail = requestedMode
+                ?? context.fileExplorerState?.mode
+                ?? fileExplorerState?.mode
+            if let modeForRail, SidebarDockPlacementMatrix.allows(mode: modeForRail) {
+                _ = ensureRightSidebarRailSelection(
+                    mode: modeForRail,
+                    focus: false,
+                    source: .railPaneFocus,
+                    windowId: context.windowId
+                )
+            }
+        }
         if let window {
             mainWindowVisibilityController.focusForInWindowCommand(window, reason: .rightSidebarFocus)
         }
@@ -7027,6 +7043,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         )
 #endif
         return result
+    }
+
+    /// Ensure dock-on rail tool selection updates the window-scoped store tab
+    /// (and callback mirror) without competing scalar writes.
+    @discardableResult
+    func ensureRightSidebarRailSelection(
+        mode: RightSidebarMode,
+        focus: Bool,
+        source: RightSidebarSelectionSource,
+        windowId: UUID? = nil
+    ) -> RightSidebarSelectionRoute {
+        guard RightSidebarBetaFeatureSettings.isSidebarDockEnabled() else { return .rejected }
+        guard SidebarDockPlacementMatrix.allows(mode: mode) else { return .rejected }
+        return routeRightSidebarSelection(
+            RightSidebarSelectionRequest(
+                mode: mode,
+                focus: focus,
+                source: source,
+                windowId: windowId
+            )
+        )
     }
 
     /// Show left workspace selector: openOrFocus singleton pane when the fixed
@@ -7104,6 +7141,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         // Fixed host already open: mode switch stays in-rail (mode bar / focus).
         // Host closed (canvas default / user hidden): openOrFocus pane path.
         if state?.isVisible == true {
+            // Shortcut / show path: selection authority first when dock rails are on.
+            if RightSidebarBetaFeatureSettings.isSidebarDockEnabled(),
+               SidebarDockPlacementMatrix.allows(mode: mode) {
+                _ = ensureRightSidebarRailSelection(
+                    mode: mode,
+                    focus: false,
+                    source: .shortcutWindow,
+                    windowId: context?.windowId
+                )
+            }
             return focusRightSidebarInActiveMainWindow(
                 mode: mode,
                 focusFirstItem: true,
@@ -7197,10 +7244,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             )
         }
 
-        if state.mode != mode {
+        state.setVisible(true)
+        // Dock rail tools: route selection so selected_tab_id / focused_tool_mode
+        // update; mirror owns the legacy scalar. Flag-off / non-rail still write mode.
+        if RightSidebarBetaFeatureSettings.isSidebarDockEnabled(),
+           SidebarDockPlacementMatrix.allows(mode: mode) {
+            _ = ensureRightSidebarRailSelection(
+                mode: mode,
+                focus: false,
+                source: .debugFocus,
+                windowId: context?.windowId
+            )
+        } else if state.mode != mode {
             state.mode = mode
         }
-        state.setVisible(true)
 
         let focusApplied = context?.keyboardFocusCoordinator.focusRightSidebar(
             mode: mode,
