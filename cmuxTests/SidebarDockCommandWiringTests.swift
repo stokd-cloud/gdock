@@ -145,7 +145,8 @@ struct SidebarDockCommandWiringTests {
         store.updateRailContentHeight(400)
         #expect(SidebarDockSeeding.seedLeftIfEmpty(store: store, workspace: workspace))
         let panelId = try #require(store.panels.keys.first)
-        let tabIdsBefore = store.bonsplitController.allTabIds.map(\.id)
+        // Compare TabID values via Equatable (public); do not read package-internal TabID.id.
+        let tabIdsBefore = store.bonsplitController.allTabIds
 
         #expect(SidebarDockActionInvoker.perform(
             commandId: SidebarDockCommand.collapseSection,
@@ -166,7 +167,7 @@ struct SidebarDockCommandWiringTests {
         #expect(store.panels[panelId] != nil)
         // Tree identity preserved (no rebuild / re-seed).
         #expect(store.sectionCount == 1)
-        #expect(store.bonsplitController.allTabIds.map(\.id) == tabIdsBefore)
+        #expect(store.bonsplitController.allTabIds == tabIdsBefore)
         #expect(store.panels[panelId] != nil)
     }
 

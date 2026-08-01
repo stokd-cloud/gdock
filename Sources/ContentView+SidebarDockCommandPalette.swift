@@ -85,10 +85,13 @@ extension ContentView {
     }
 
     func handleSidebarDockPaletteCommand(_ commandId: String) {
+        // Resolve via ContentView.windowId first; preferredWindow is a soft
+        // fallback only. Do not read ContentView.observedWindow here — it is
+        // private to ContentView.swift (same pattern as static availability).
         let handled = SidebarDockActionInvoker.performFocused(
             commandId: commandId,
             windowId: windowId,
-            preferredWindow: observedWindow ?? NSApp.keyWindow ?? NSApp.mainWindow
+            preferredWindow: NSApp.keyWindow ?? NSApp.mainWindow
         )
         if !handled {
             NSSound.beep()

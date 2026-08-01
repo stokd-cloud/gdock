@@ -97,7 +97,7 @@ extension TerminalController {
         }
         let edge = v2SidebarDockEdge(params) ?? resolved.registry.lastFocusedEdge ?? .right
         let store = resolved.registry.store(for: edge)
-        let tabId = v2UUID(params, "tab_id").map { TabID(id: $0) }
+        let tabId = v2UUID(params, "tab_id").map { TabID(uuid: $0) }
         let paneId = v2UUID(params, "pane_id").map { PaneID(id: $0) }
         let handled = SidebarDockActionInvoker.perform(
             commandId: commandId,
@@ -165,7 +165,7 @@ extension TerminalController {
         let targetPane = v2UUID(params, "target_pane_id").map { PaneID(id: $0) }
         let before = store.sectionSnapshots()
         let outcome = store.handleTabEdgeBandDrop(
-            tabId: TabID(id: tabUUID),
+            tabId: TabID(uuid: tabUUID),
             zone: zone,
             targetPaneId: targetPane
         )
@@ -322,7 +322,7 @@ extension TerminalController {
             return .err(code: "invalid_params", message: "Missing or invalid tab_id", data: nil)
         }
         let store = resolved.registry.store(for: edge)
-        let tabId = TabID(id: tabUUID)
+        let tabId = TabID(uuid: tabUUID)
         let before = store.sectionSnapshots()
         let beforePanels = store.panels.count
         let beforeTabs = store.surfaceIdToPanelId.count
