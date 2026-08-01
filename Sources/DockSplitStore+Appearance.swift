@@ -46,6 +46,10 @@ extension DockSplitStore {
             minimumPaneWidth: Self.minimumDockPaneSize,
             minimumPaneHeight: Self.minimumDockPaneSize,
             dividerHitExpansion: PortalSplitDividerRegion.dividerHitExpansion,
+            // Match the main area's five-button list (newTerminal, newBrowser,
+            // splitRight, splitDown, splitQuad). Without an explicit list the
+            // Dock would keep bonsplit's four-button defaults.
+            splitButtons: QuadSplitAction.defaultSplitActionButtons,
             splitButtonBackdropEffect: Workspace.bonsplitSplitButtonBackdropEffect(),
             splitButtonTooltips: Workspace.currentSplitButtonTooltips(),
             enableAnimations: false,
@@ -58,5 +62,19 @@ extension DockSplitStore {
             ),
             usesSharedBackdrop: sharesWindowBackdrop
         )
+    }
+
+    /// Handles bonsplit custom split-button actions (currently Split Quad).
+    func splitTabBar(
+        _ controller: BonsplitController,
+        didRequestCustomAction identifier: String,
+        inPane pane: PaneID
+    ) {
+        guard identifier == QuadSplitAction.customActionIdentifier
+            || identifier == "splitQuad"
+            || CmuxSurfaceTabBarBuiltInAction(configID: identifier) == .splitQuad else {
+            return
+        }
+        _ = QuadSplitAction.perform(inPane: pane, dock: self)
     }
 }

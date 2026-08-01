@@ -70,9 +70,11 @@ extension TerminalController {
         guard let tabManager = resolveTabManager(routing: routing) else {
             return .tabManagerUnavailable
         }
+        let isQuad = QuadSplitAction.isQuadDirectionToken(inputs.directionRaw)
         // The coordinator pre-validates the same token set; if parseSplitDirection
         // ever drifts this still surfaces as the legacy invalid_params error.
-        guard let direction = parseSplitDirection(inputs.directionRaw) else {
+        let direction = isQuad ? nil : parseSplitDirection(inputs.directionRaw)
+        if !isQuad, direction == nil {
             return .invalidDirection
         }
         let panelType = inputs.typeRaw.flatMap { surfacePanelType(forRawToken: $0) } ?? .terminal
@@ -90,6 +92,48 @@ extension TerminalController {
 
         guard let ws = resolveSurfaceWorkspace(routing: routing, tabManager: tabManager) else {
             return .workspaceNotFound
+        }
+        if isQuad {
+            // Known veto: remote-tmux never receives a local partial grid and the
+            // side-effecting remote split delegate is not called as a preflight.
+            if ws.isRemoteTmuxMirror {
+                return .mirrorUnsupportedOptions(["direction=quad"])
+            }
+            let targetSurfaceId: UUID?
+            if let requested = inputs.requestedSourceSurfaceID {
+                guard ws.panels[requested] != nil else {
+                    return .requestedSurfaceNotFound(requested)
+                }
+                targetSurfaceId = requested
+            } else {
+                targetSurfaceId = ws.focusedPanelId
+            }
+            guard let targetSurfaceId, ws.panels[targetSurfaceId] != nil else {
+                return .noFocusedSurface
+            }
+            // Non-focus CLI/socket invocation must not steal app focus.
+            let focus = v2FocusAllowed(requested: inputs.requestedFocus)
+            v2MaybeFocusWindow(for: tabManager)
+            v2MaybeSelectWorkspace(tabManager, workspace: ws)
+            guard tabManager.createQuadSplit(
+                tabId: ws.id,
+                surfaceId: targetSurfaceId,
+                focus: focus
+            ) else {
+                return .createFailed
+            }
+            let focused = ws.focusedPanelId ?? targetSurfaceId
+            return .created(
+                windowID: v2ResolveWindowId(tabManager: tabManager),
+                workspaceID: ws.id,
+                paneID: ws.paneId(forPanelId: focused)?.id,
+                surfaceID: focused,
+                typeRawValue: ws.panels[focused]?.panelType.rawValue
+            )
+        }
+
+        guard let direction else {
+            return .invalidDirection
         }
         if let remote = controlRemoteTmuxSurfaceSplit(
             workspace: ws,

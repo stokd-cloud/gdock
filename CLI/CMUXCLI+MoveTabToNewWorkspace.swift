@@ -28,6 +28,21 @@ extension CMUXCLI {
         }
     }
 
+    /// Direction tokens accepted by `new-split` / `new_split`, including the
+    /// shared Quad Split action (`quad`). Direction-only APIs continue to use
+    /// ``validatedSplitDirection`` so drag-to-edge and split-off stay compass-only.
+    func validatedNewSplitDirection(_ raw: String?, commandName: String) throws -> String {
+        guard let direction = raw, !direction.hasPrefix("--") else {
+            throw CLIError(message: "\(commandName) requires a direction")
+        }
+        switch direction.lowercased() {
+        case "left", "right", "up", "down", "l", "r", "u", "d", "quad", "q":
+            return direction
+        default:
+            throw CLIError(message: "\(commandName): direction must be left|right|up|down|quad")
+        }
+    }
+
     func rejectConflictingFocusFlags(_ commandArgs: [String]) throws {
         if commandArgs.contains("--focus"), commandArgs.contains("--no-focus") {
             throw CLIError(message: "--focus and --no-focus cannot be used together")

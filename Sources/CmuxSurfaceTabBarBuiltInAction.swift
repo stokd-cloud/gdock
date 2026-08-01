@@ -10,6 +10,8 @@ enum CmuxSurfaceTabBarBuiltInAction: String, Codable, Sendable, CaseIterable, Ha
     case newBrowser = "cmux.newBrowser"
     case splitRight = "cmux.splitRight"
     case splitDown = "cmux.splitDown"
+    /// Fork-only 2×2 terminal split via bonsplit `.custom("cmux.splitQuad")` (D-5).
+    case splitQuad = "cmux.splitQuad"
 
     init?(configID: String) {
         switch configID {
@@ -32,6 +34,8 @@ enum CmuxSurfaceTabBarBuiltInAction: String, Codable, Sendable, CaseIterable, Ha
             self = .splitRight
         case "cmux.splitDown", "splitDown":
             self = .splitDown
+        case "cmux.splitQuad", "splitQuad":
+            self = .splitQuad
         default:
             return nil
         }
@@ -59,6 +63,8 @@ enum CmuxSurfaceTabBarBuiltInAction: String, Codable, Sendable, CaseIterable, Ha
             return "square.split.2x1"
         case .splitDown:
             return "square.split.1x2"
+        case .splitQuad:
+            return "square.split.2x2"
         }
     }
 
@@ -74,6 +80,9 @@ enum CmuxSurfaceTabBarBuiltInAction: String, Codable, Sendable, CaseIterable, Ha
             return .splitRight
         case .splitDown:
             return .splitDown
+        case .splitQuad:
+            // D-5: fork cannot push bonsplit; use custom action id filtered out of remote-tmux.
+            return .custom(rawValue)
         }
     }
 }

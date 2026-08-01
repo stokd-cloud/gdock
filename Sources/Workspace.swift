@@ -12327,6 +12327,8 @@ extension Workspace: BonsplitDelegate {
                 _ = AppDelegate.shared?.performCloudVMAction(tabManager: owningTabManager, preferredWindow: presentingWindow, debugSource: "surfaceTabBar.cloudVM")
             case .mobileConnect:
                 MobilePairingWindowController.shared.show()
+            case .splitQuad:
+                _ = QuadSplitAction.perform(inPane: pane, workspace: self)
             case .newTerminal, .newBrowser, .splitRight, .splitDown:
                 break
             }
@@ -12434,6 +12436,15 @@ extension Workspace: BonsplitDelegate {
             "pane=\(pane.id.uuidString.prefix(5)) identifier=\(identifier)"
         )
 #endif
+        // Split Quad uses bonsplit `.custom("cmux.splitQuad")` (D-5). Built-ins with a
+        // non-nil bonsplitAction are not registered in surfaceTabBarCommandButtons, so
+        // route the shared action here before the executable-button lookup.
+        if identifier == QuadSplitAction.customActionIdentifier
+            || identifier == "splitQuad"
+            || CmuxSurfaceTabBarBuiltInAction(configID: identifier) == .splitQuad {
+            _ = QuadSplitAction.perform(inPane: pane, workspace: self)
+            return
+        }
         executeSurfaceTabBarCommandButton(identifier: identifier, inPane: pane)
     }
 

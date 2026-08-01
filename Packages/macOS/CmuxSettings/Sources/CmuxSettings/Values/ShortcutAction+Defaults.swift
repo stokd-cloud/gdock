@@ -92,6 +92,9 @@ extension ShortcutAction {
         case .splitDown: return ShortcutStroke(key: "d", command: true, shift: true)
         case .toggleSplitZoom: return ShortcutStroke(key: "\r", command: true, shift: true)
         case .equalizeSplits: return ShortcutStroke(key: "=", command: true, control: true)
+        case .splitQuad:
+            // D-3: unbound by default. ⌃⌘D is macOS-reserved; Cmd+D family exhausted.
+            return nil
         case .splitBrowserRight: return ShortcutStroke(key: "d", command: true, option: true)
         case .splitBrowserDown: return ShortcutStroke(key: "d", command: true, shift: true, option: true)
         case .toggleCanvasLayout: return ShortcutStroke(key: "c", command: true, control: true)

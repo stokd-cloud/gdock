@@ -14160,6 +14160,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             return true
         }
 
+        if matchConfiguredShortcut(event: event, action: .splitQuad) {
+#if DEBUG
+            cmuxDebugLog("shortcut.action name=splitQuad \(debugShortcutRouteSnapshot(event: event))")
+#endif
+            // Tri-state Dock routing: when the Dock owns focus, never fall through
+            // to the main area — even if the Dock quad fails (VAL-QUAD-003).
+            switch routeQuadToFocusedDock(preferredWindow: event.window) {
+            case .handled:
+                return true
+            case .notApplicable:
+                break
+            }
+            if shouldSuppressSplitShortcutForTransientTerminalFocusState(direction: .right) {
+                return true
+            }
+            _ = performQuadSplitShortcut(
+                preferredWindow: event.window ?? shortcutRoutingActiveWindow
+            )
+            return true
+        }
+
         if matchConfiguredShortcut(event: event, action: .splitBrowserRight) {
 #if DEBUG
             cmuxDebugLog("shortcut.action name=splitBrowserRight \(debugShortcutRouteSnapshot(event: event))")
@@ -14966,6 +14987,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
 #endif
 
+    /// Shared main-area Quad Split entrypoint used by shortcut, View menu, and
+    /// configured-action adapters. Dock routing is handled by callers so tri-state
+    /// fallthrough rules stay explicit at each surface.
+    @discardableResult
+    func performQuadSplitShortcut(preferredWindow: NSWindow? = nil) -> Bool {
+        let targetWindow = preferredWindow ?? shortcutRoutingActiveWindow
+        let terminalContext = focusedTerminalShortcutContext(preferredWindow: targetWindow)
+        _ = synchronizeActiveMainWindowContext(preferredWindow: targetWindow)
+
+        if let terminalContext {
+            if let workspace = terminalContext.tabManager.tabs.first(where: { $0.id == terminalContext.workspaceId }),
+               workspace.layoutMode == .canvas {
+                return false
+            }
+            return terminalContext.tabManager.createQuadSplit(
+                tabId: terminalContext.workspaceId,
+                surfaceId: terminalContext.panelId,
+                focus: true
+            )
+        }
+        if let workspace = tabManager?.selectedWorkspace,
+           workspace.layoutMode == .canvas {
+            return false
+        }
+        return tabManager?.createQuadSplit(focus: true) == true
+    }
+
     @discardableResult
     func performSplitShortcut(direction: SplitDirection, preferredWindow: NSWindow? = nil) -> Bool {
         let targetWindow = preferredWindow ?? shortcutRoutingActiveWindow
@@ -15720,6 +15768,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                     direction: .down,
                     preferredWindow: preferredWindow ?? shortcutRoutingActiveWindow
                 )
+                if didSplit { onExecuted?() }
+                return didSplit
+            case .splitQuad:
+                let window = preferredWindow ?? shortcutRoutingActiveWindow
+                // Tri-state Dock routing: an applicable Dock failure must not fall
+                // through to the main area (VAL-QUAD-003).
+                switch routeQuadToFocusedDock(preferredWindow: window) {
+                case .handled(let success):
+                    if success { onExecuted?() }
+                    return true
+                case .notApplicable:
+                    break
+                }
+                if shouldSuppressSplitShortcutForTransientTerminalFocusState(
+                    direction: .right,
+                    tabManager: context.tabManager
+                ) {
+                    return true
+                }
+                let didSplit = performQuadSplitShortcut(preferredWindow: window)
                 if didSplit { onExecuted?() }
                 return didSplit
             }

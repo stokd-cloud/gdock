@@ -7030,6 +7030,19 @@ class GhosttyNSView: NSView, NSUserInterfaceValidations {
             systemSymbolName: "rectangle.righthalf.inset.filled",
             accessibilityDescription: nil
         )
+
+        let splitQuadItem = menu.addItem(
+            withTitle: String(localized: "terminalContextMenu.splitQuad", defaultValue: "Split Quad"),
+            action: #selector(splitQuad(_:)),
+            keyEquivalent: ""
+        )
+        splitQuadItem.target = self
+        applyConfiguredMenuShortcut(KeyboardShortcutSettings.menuShortcut(for: .splitQuad), to: splitQuadItem)
+        splitQuadItem.image = NSImage(
+            systemSymbolName: "square.split.2x2",
+            accessibilityDescription: nil
+        )
+        splitQuadItem.isEnabled = canSplitCurrentSurface()
         appendCurrentSurfaceContextMenuItems(to: menu)
         let resetTerminalItem = menu.addItem(
             withTitle: String(localized: "terminalContextMenu.resetTerminal", defaultValue: "Reset Terminal"),
@@ -7084,6 +7097,10 @@ class GhosttyNSView: NSView, NSUserInterfaceValidations {
         _ = splitCurrentSurface(direction: .right)
     }
 
+    @objc private func splitQuad(_ sender: Any?) {
+        _ = splitCurrentSurfaceQuad()
+    }
+
     @discardableResult
     private func splitCurrentSurface(direction: SplitDirection) -> Bool {
         guard let surfaceId = terminalSurface?.id else { return false }
@@ -7099,6 +7116,32 @@ class GhosttyNSView: NSView, NSUserInterfaceValidations {
             return false
         }
         return manager.createSplit(tabId: tabId, surfaceId: surfaceId, direction: direction) != nil
+    }
+
+    /// Context-menu / Dock-ownership-aware quad split. When the surface lives in
+    /// a Dock controller, route there; otherwise use the shared workspace action.
+    /// Remote-tmux never gets a local partial grid (known veto).
+    @discardableResult
+    private func splitCurrentSurfaceQuad() -> Bool {
+        guard let surfaceId = terminalSurface?.id else { return false }
+        if let controller = AppDelegate.shared?.remoteTmuxController,
+           controller.isMirrorPaneSurface(surfaceId) {
+            // Quad is not a supported remote-tmux direction; refuse without side effects.
+            return false
+        }
+        guard let app = AppDelegate.shared else { return false }
+
+        // Dock ownership resolution: if this surface is a Dock panel, mutate Dock only.
+        if let dock = app.windowDockContainingPanel(surfaceId),
+           let paneId = dock.paneId(forPanelId: surfaceId) {
+            return QuadSplitAction.perform(inPane: paneId, dock: dock)
+        }
+
+        guard let tabId,
+              let manager = app.tabManagerFor(tabId: tabId) ?? app.tabManager else {
+            return false
+        }
+        return manager.createQuadSplit(tabId: tabId, surfaceId: surfaceId, focus: true)
     }
 
     @objc private func triggerFlash(_ sender: Any?) {

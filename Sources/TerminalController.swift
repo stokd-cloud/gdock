@@ -10776,7 +10776,7 @@ class TerminalController {
           close_workspace <id>        - Close workspace by ID
 
         Split & surface commands:
-          new_split <direction> [panel]   - Split panel (left/right/up/down)
+          new_split <direction> [panel]   - Split panel (left/right/up/down/quad)
           drag_surface_to_split <id|idx> <direction> - Move surface into a new split (drag-to-edge)
           new_pane [--type=terminal|browser] [--direction=left|right|up|down] [--url=...]
           new_surface [--type=terminal|browser] [--pane=<pane-id|index>] [--url=...]
@@ -11974,14 +11974,15 @@ class TerminalController {
         let trimmed = args.trimmingCharacters(in: .whitespacesAndNewlines)
         let parts = trimmed.split(separator: " ", maxSplits: 1).map(String.init)
         guard !parts.isEmpty else {
-            return "ERROR: Invalid direction. Use left, right, up, or down."
+            return "ERROR: Invalid direction. Use left, right, up, down, or quad."
         }
 
         let directionArg = parts[0]
         let panelArg = parts.count > 1 ? parts[1] : ""
+        let isQuad = QuadSplitAction.isQuadDirectionToken(directionArg)
 
-        guard let direction = parseSplitDirection(directionArg) else {
-            return "ERROR: Invalid direction. Use left, right, up, or down."
+        if !isQuad, parseSplitDirection(directionArg) == nil {
+            return "ERROR: Invalid direction. Use left, right, up, down, or quad."
         }
 
         var result = "ERROR: Failed to create split"
@@ -12005,6 +12006,17 @@ class TerminalController {
 
             guard let targetSurface = surfaceId else {
                 result = "ERROR: No surface to split"
+                return
+            }
+
+            if isQuad {
+                if tabManager.createQuadSplit(tabId: tabId, surfaceId: targetSurface, focus: true) {
+                    result = "OK \(tab.focusedPanelId?.uuidString ?? targetSurface.uuidString)"
+                }
+                return
+            }
+
+            guard let direction = parseSplitDirection(directionArg) else {
                 return
             }
 

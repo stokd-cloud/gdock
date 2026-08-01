@@ -1661,6 +1661,7 @@
               "focusDown",
               "splitRight",
               "splitDown",
+              "splitQuad",
               "toggleSplitZoom",
               "equalizeSplits",
               "splitBrowserRight",

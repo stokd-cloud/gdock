@@ -52,6 +52,15 @@ extension AppDelegate {
         return panelId
     }
 
+    /// Tri-state Dock routing result so an applicable Dock failure cannot fall
+    /// through to the main area (VAL-QUAD-003).
+    enum DockRouteOutcome: Equatable {
+        /// Dock does not own focus — caller may fall through to main.
+        case notApplicable
+        /// Dock owned the request (success or handled failure). Do not fall through.
+        case handled(success: Bool)
+    }
+
     /// Splits the focused Dock pane (terminal or browser). Returns `true` when
     /// handled, or `false` to fall through to the main-area split path. Reuses the
     /// main area's `SplitDirection` → orientation/insert mapping so Dock splits
@@ -62,19 +71,51 @@ extension AppDelegate {
         direction: SplitDirection,
         preferredWindow: NSWindow?
     ) -> Bool {
-        if kind == .browser, !BrowserAvailabilitySettings.isEnabled() {
+        switch routeSplitToFocusedDockOutcome(
+            kind: kind,
+            direction: direction,
+            preferredWindow: preferredWindow
+        ) {
+        case .notApplicable:
             return false
+        case .handled(let success):
+            return success
+        }
+    }
+
+    /// Tri-state compass split routing for the focused Dock.
+    func routeSplitToFocusedDockOutcome(
+        kind: DockSurfaceKind,
+        direction: SplitDirection,
+        preferredWindow: NSWindow?
+    ) -> DockRouteOutcome {
+        if kind == .browser, !BrowserAvailabilitySettings.isEnabled() {
+            return .notApplicable
         }
         guard let store = focusedDockStoreForShortcut(preferredWindow: preferredWindow) else {
-            return false
+            return .notApplicable
         }
-        return store.newSplit(
+        let success = store.newSplit(
             kind: kind,
             orientation: direction.orientation,
             insertFirst: direction.insertFirst,
             sourcePanelId: store.focusedPanelId,
             focus: true
         ) != nil
+        return .handled(success: success)
+    }
+
+    /// Routes a Quad Split to the focused Dock with tri-state semantics so a
+    /// Dock-owned failure never falls through to the main area.
+    func routeQuadToFocusedDock(preferredWindow: NSWindow?) -> DockRouteOutcome {
+        guard let store = focusedDockStoreForShortcut(preferredWindow: preferredWindow) else {
+            return .notApplicable
+        }
+        guard let pane = store.resolvePane(requestedPaneID: nil) else {
+            return .handled(success: false)
+        }
+        let success = QuadSplitAction.perform(inPane: pane, dock: store)
+        return .handled(success: success)
     }
 
     /// Executes a semantic surface/focus command when the Dock owns keyboard

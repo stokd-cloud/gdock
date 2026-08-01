@@ -7912,6 +7912,15 @@ struct ContentView: View {
         )
         contributions.append(
             CommandPaletteCommandContribution(
+                commandId: "palette.terminalSplitQuad",
+                title: constant(String(localized: "command.terminalSplitQuad.title", defaultValue: "Split Quad")),
+                subtitle: constant(String(localized: "command.terminalSplitRight.subtitle", defaultValue: "Terminal Layout")),
+                keywords: ["terminal", "split", "quad", "2x2", "grid", "four"],
+                when: { $0.bool(CommandPaletteContextKeys.panelIsTerminal) }
+            )
+        )
+        contributions.append(
+            CommandPaletteCommandContribution(
                 commandId: "palette.forkAgentConversationRight",
                 title: constant(String(localized: "command.forkAgentConversationRight.title", defaultValue: "Fork Conversation to the Right")),
                 subtitle: terminalPanelSubtitle,
@@ -8718,6 +8727,24 @@ struct ContentView: View {
         registry.register(commandId: "palette.terminalSplitDown") {
             if !executeConfiguredAction(id: CmuxSurfaceTabBarBuiltInAction.splitDown.configID) {
                 tabManager.createSplit(direction: .down)
+            }
+        }
+        registry.register(commandId: "palette.terminalSplitQuad") {
+            // Shared path with View menu / shortcut: Dock tri-state first, then main.
+            let preferredWindow = NSApp.keyWindow ?? NSApp.mainWindow
+            if let appDelegate = AppDelegate.shared {
+                switch appDelegate.routeQuadToFocusedDock(preferredWindow: preferredWindow) {
+                case .handled:
+                    return
+                case .notApplicable:
+                    break
+                }
+                if appDelegate.performQuadSplitShortcut(preferredWindow: preferredWindow) {
+                    return
+                }
+            }
+            if !executeConfiguredAction(id: CmuxSurfaceTabBarBuiltInAction.splitQuad.configID) {
+                _ = tabManager.createQuadSplit(focus: true)
             }
         }
         registry.register(commandId: "palette.terminalSplitBrowserRight") {

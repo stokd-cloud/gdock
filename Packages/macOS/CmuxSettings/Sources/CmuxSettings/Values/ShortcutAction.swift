@@ -97,6 +97,8 @@ public enum ShortcutAction: String, CaseIterable, Sendable, Hashable, SettingCod
     case splitDown
     case toggleSplitZoom
     case equalizeSplits
+    /// True 2×2 terminal grid. Unbound by default (D-3); Settings-editable.
+    case splitQuad
     case splitBrowserRight
     case splitBrowserDown
     case toggleRightSidebar = "toggleFileExplorer"
@@ -196,7 +198,7 @@ extension ShortcutAction {
              .clearScreenKeepScrollback:
             return .navigation
         case .focusLeft, .focusRight, .focusUp, .focusDown, .splitRight, .splitDown,
-             .toggleSplitZoom, .equalizeSplits, .splitBrowserRight, .splitBrowserDown,
+             .toggleSplitZoom, .equalizeSplits, .splitQuad, .splitBrowserRight, .splitBrowserDown,
              .toggleRightSidebar, .fileExplorerOpenSelection, .fileExplorerOpenSelectionFinderAlias,
              .toggleCanvasLayout, .canvasRevealFocusedPane, .canvasOverview,
              .canvasZoomIn, .canvasZoomOut, .canvasZoomReset, .canvasTidy,
@@ -404,6 +406,8 @@ extension ShortcutAction {
         case .splitDown: return "Split Down"
         case .toggleSplitZoom: return "Toggle Pane Zoom"
         case .equalizeSplits: return "Equalize Splits"
+        case .splitQuad:
+            return String(localized: "shortcut.splitQuad.label", defaultValue: "Split Quad")
         case .splitBrowserRight: return "Split Browser Right"
         case .splitBrowserDown: return "Split Browser Down"
         case .toggleRightSidebar: return "Toggle Right Sidebar"

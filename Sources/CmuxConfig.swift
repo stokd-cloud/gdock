@@ -937,6 +937,10 @@ struct CmuxSurfaceTabBarButton: Codable, Sendable, Hashable, Identifiable {
     static let newBrowser = actionReference(CmuxSurfaceTabBarBuiltInAction.newBrowser.configID)
     static let splitRight = actionReference(CmuxSurfaceTabBarBuiltInAction.splitRight.configID)
     static let splitDown = actionReference(CmuxSurfaceTabBarBuiltInAction.splitDown.configID)
+    static let splitQuad = actionReference(
+        CmuxSurfaceTabBarBuiltInAction.splitQuad.configID,
+        tooltip: String(localized: "workspace.tooltip.splitQuad", defaultValue: "Split Quad")
+    )
 
     static let mobileConnect = actionReference(CmuxSurfaceTabBarBuiltInAction.mobileConnect.configID)
 
@@ -944,7 +948,8 @@ struct CmuxSurfaceTabBarButton: Codable, Sendable, Hashable, Identifiable {
         .newTerminal,
         .newBrowser,
         .splitRight,
-        .splitDown
+        .splitDown,
+        .splitQuad
     ]
 
     static func builtIn(
@@ -1392,6 +1397,9 @@ struct CmuxResolvedConfigAction: Identifiable, Sendable, Hashable {
         case .splitDown:
             title = String(localized: "command.terminalSplitDown.title", defaultValue: "Split Down")
             keywords = ["terminal", "split", "down"]
+        case .splitQuad:
+            title = String(localized: "command.terminalSplitQuad.title", defaultValue: "Split Quad")
+            keywords = ["terminal", "split", "quad", "2x2", "grid", "four"]
         }
 
         return CmuxResolvedConfigAction(
@@ -1402,7 +1410,9 @@ struct CmuxResolvedConfigAction: Identifiable, Sendable, Hashable {
             palette: true,
             shortcut: nil,
             icon: .symbol(builtIn.defaultIcon),
-            tooltip: nil,
+            tooltip: builtIn == .splitQuad
+                ? String(localized: "workspace.tooltip.splitQuad", defaultValue: "Split Quad")
+                : nil,
             action: .builtIn(builtIn),
             confirm: nil,
             terminalCommandTarget: nil,
@@ -2094,7 +2104,11 @@ final class CmuxConfigStore: ObservableObject {
             .builtIn(.newTerminal),
             .builtIn(.newBrowser),
             .builtIn(.splitRight),
-            .builtIn(.splitDown)
+            .builtIn(.splitDown),
+            .builtIn(
+                .splitQuad,
+                tooltip: String(localized: "workspace.tooltip.splitQuad", defaultValue: "Split Quad")
+            )
         ]
         let resolvedButtons = resolvedSurfaceTabBarButtons(
             configuredButtons,

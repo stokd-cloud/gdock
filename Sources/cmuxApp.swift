@@ -1034,6 +1034,10 @@ struct cmuxApp: App {
                 performSplitFromMenu(direction: .down)
             }
 
+            splitCommandButton(title: String(localized: "menu.view.splitQuad", defaultValue: "Split Quad"), shortcut: menuShortcut(for: .splitQuad)) {
+                performQuadSplitFromMenu()
+            }
+
             splitCommandButton(title: String(localized: "menu.view.splitBrowserRight", defaultValue: "Split Browser Right"), shortcut: menuShortcut(for: .splitBrowserRight)) {
                 performBrowserSplitFromMenu(direction: .right)
             }
@@ -1177,6 +1181,24 @@ struct cmuxApp: App {
             return
         }
         tabManager.createSplit(direction: direction)
+    }
+
+    private func performQuadSplitFromMenu() {
+        let preferredWindow = NSApp.keyWindow ?? NSApp.mainWindow
+        guard let appDelegate = AppDelegate.shared else {
+            _ = tabManager.createQuadSplit(focus: true)
+            return
+        }
+        switch appDelegate.routeQuadToFocusedDock(preferredWindow: preferredWindow) {
+        case .handled:
+            return
+        case .notApplicable:
+            break
+        }
+        if appDelegate.performQuadSplitShortcut(preferredWindow: preferredWindow) {
+            return
+        }
+        _ = tabManager.createQuadSplit(focus: true)
     }
 
     private func performBrowserSplitFromMenu(direction: SplitDirection) {

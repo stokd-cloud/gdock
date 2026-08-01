@@ -3744,6 +3744,34 @@ class TabManager: ObservableObject {
         return newSplit(tabId: tabId, surfaceId: surfaceId, direction: direction, focus: focus)
     }
 
+    /// Create a true 2×2 terminal grid from an explicit source panel via the shared
+    /// ``QuadSplitAction``. Returns whether the full grid was produced.
+    @discardableResult
+    func createQuadSplit(tabId: UUID, surfaceId: UUID, focus: Bool = true) -> Bool {
+        guard let tab = tabs.first(where: { $0.id == tabId }),
+              tab.panels[surfaceId] != nil,
+              let paneId = tab.paneId(forPanelId: surfaceId) else { return false }
+        sentryBreadcrumb("split.create", data: ["direction": "quad"])
+        let didCreate = QuadSplitAction.perform(inPane: paneId, workspace: tab)
+        if didCreate, !focus, let originalPane = Optional(paneId) {
+            // Recipe focuses bottom-right (B). When focus is false, restore the
+            // original leaf pane if it still exists in the tree.
+            if tab.bonsplitController.allPaneIds.contains(where: { $0 == originalPane }) {
+                tab.bonsplitController.focusPane(originalPane)
+            }
+        }
+        return didCreate
+    }
+
+    /// Create a quad split from the currently focused terminal panel.
+    @discardableResult
+    func createQuadSplit(focus: Bool = true) -> Bool {
+        guard let selectedTabId,
+              let tab = tabs.first(where: { $0.id == selectedTabId }),
+              let focusedPanelId = tab.focusedPanelId else { return false }
+        return createQuadSplit(tabId: selectedTabId, surfaceId: focusedPanelId, focus: focus)
+    }
+
     /// Create a new browser split from the currently focused panel.
     @discardableResult
     func createBrowserSplit(direction: SplitDirection, url: URL? = nil) -> UUID? {
