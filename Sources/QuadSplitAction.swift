@@ -1,3 +1,4 @@
+import AppKit
 import Bonsplit
 import Foundation
 
@@ -18,7 +19,7 @@ enum QuadSplitAction {
     static let customActionIdentifier = CmuxSurfaceTabBarBuiltInAction.splitQuad.configID
 
     /// Known veto catalog — preflighted before any local mutation.
-    enum Veto: String, Equatable, Sendable {
+    enum Veto: String, Equatable, Sendable, CaseIterable {
         case missingTarget
         case invalidTarget
         case allowSplitsDisabled
@@ -40,6 +41,26 @@ enum QuadSplitAction {
         case vetoed(Veto)
         /// Unexpected inconsistency after one or more splits already applied.
         case lateFailure(completedSplits: Int)
+    }
+
+    // MARK: - Test / injection seams (RED stub: declared for compile; not wired)
+
+    /// When set to `1` or `2`, the workspace/Dock recipe should return
+    /// `.lateFailure(completedSplits:)` after that many successful splits.
+    /// RED stub: intentionally ignored so late-failure tests fail until the fix.
+    static var testingFailAfterCompletedSplits: Int?
+
+    static var testingForceTransientFocusSuppressed = false
+    static var testingForceDelegateRestriction = false
+    static var testingRemoteCommandLog: [String] = []
+    static var testingLateFailureEvents: [String] = []
+
+    static func resetTestingHooks() {
+        testingFailAfterCompletedSplits = nil
+        testingForceTransientFocusSuppressed = false
+        testingForceDelegateRestriction = false
+        testingRemoteCommandLog = []
+        testingLateFailureEvents = []
     }
 
     // MARK: - Workspace
@@ -72,6 +93,7 @@ enum QuadSplitAction {
         ) != nil else {
             return .lateFailure(completedSplits: 0)
         }
+        // RED: injection seam intentionally not honored.
         guard let rightPaneId = workspace.bonsplitController.focusedPaneId,
               rightPaneId != paneId else {
             logLateFailure(surface: "workspace", completedSplits: 1, detail: "rightPane unresolved after horizontal split")
@@ -89,6 +111,7 @@ enum QuadSplitAction {
             logLateFailure(surface: "workspace", completedSplits: 1, detail: "left vertical split failed")
             return .lateFailure(completedSplits: 1)
         }
+        // RED: injection seam intentionally not honored.
 
         // 3. stack the right column: top (R) / bottom (B) — focus ends on B
         guard workspace.splitPaneWithNewTerminal(
@@ -107,6 +130,8 @@ enum QuadSplitAction {
 
     /// Lossless preflight for a workspace target. Never invokes the remote
     /// tmux mirror split delegate (side-effecting).
+    /// RED: incomplete catalog — invalidTarget / transientFocus / remoteUnsupported /
+    /// delegateRestriction never returned; empty dock only on zero panes.
     static func preflight(inPane paneId: PaneID, workspace: Workspace) -> Veto? {
         let controller = workspace.bonsplitController
         guard controller.configuration.allowSplits else {
@@ -130,15 +155,12 @@ enum QuadSplitAction {
         case .connecting, .reconnecting, .suspended:
             return .remoteConnecting
         case .disconnected, .error:
-            // Only veto when a remote configuration is present; a pure local
-            // workspace is normally `.disconnected` and must still split.
             if workspace.remoteConfiguration != nil {
                 return .remoteDisconnected
             }
         case .connected:
             break
         }
-        // Unresolved remote PTY surfaces that still live in a local tree.
         if let selectedTab = controller.selectedTab(inPane: paneId),
            let panelId = workspace.panelIdFromSurfaceId(selectedTab.id),
            workspace.isRemoteTerminalSurface(panelId) {
@@ -177,6 +199,7 @@ enum QuadSplitAction {
         ) else {
             return .lateFailure(completedSplits: 0)
         }
+        // RED: injection seam intentionally not honored.
         guard let rightPaneId = dock.paneId(forPanelId: rightPanelId),
               rightPaneId != paneId else {
             logLateFailure(surface: "dock", completedSplits: 1, detail: "rightPane unresolved after horizontal split")
@@ -194,6 +217,7 @@ enum QuadSplitAction {
             logLateFailure(surface: "dock", completedSplits: 1, detail: "left vertical split failed")
             return .lateFailure(completedSplits: 1)
         }
+        // RED: injection seam intentionally not honored.
 
         // 3. stack right column — ends focused on B
         guard dock.newSplit(
@@ -270,8 +294,9 @@ enum QuadSplitAction {
     private static func logLateFailure(surface: String, completedSplits: Int, detail: String) {
         let message =
             "quad.lateFailure surface=\(surface) completedSplits=\(completedSplits) detail=\(detail)"
-        cmuxDebugLog(message)
+        testingLateFailureEvents.append(message)
         #if DEBUG
+        cmuxDebugLog(message)
         print(message)
         #endif
     }
