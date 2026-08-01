@@ -323,20 +323,23 @@ struct RightSidebarPanelView: View {
         guard isSidebarDockSpacesEnabled, let registry = dockRegistry else { return }
         guard let workspace = tabManager.selectedWorkspace
                 ?? tabManager.tabs.first else { return }
+        // Wire mirror before seed so selectToolMode → didSelectTab owns the
+        // derived legacy mode write (VAL-RAIL-009). Never assign mode here.
+        wireMirror(store: registry.right)
         SidebarDockSeeding.seedRegistryIfEmpty(
             registry: registry,
             workspace: workspace,
             preferredRightMode: fileExplorerState.mode
         )
-        wireMirror(store: registry.right)
-        // Attach mirror without competing: if store already has a selection, sync once.
+        // Seed no-op (already populated): re-drive selection through the store so
+        // Bonsplit callbacks refresh a stale scalar without a competing write.
         if let mode = registry.right.focusedToolMode(),
            SidebarDockPlacementMatrix.allows(mode: mode),
            fileExplorerState.mode != mode,
            fileExplorerState.mode != .feed,
-           fileExplorerState.mode != .dock {
-            // Prefer store (source of truth) over stale legacy scalar.
-            fileExplorerState.mode = mode
+           fileExplorerState.mode != .dock,
+           fileExplorerState.mode != .customSidebar {
+            _ = registry.right.selectToolMode(mode, focus: false)
         }
     }
 

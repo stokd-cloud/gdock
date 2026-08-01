@@ -240,6 +240,12 @@ final class SidebarDockStore: BonsplitDelegate {
     }
 
     /// Select/focus a rail tool by mode. Mirror updates via Bonsplit callbacks only.
+    ///
+    /// Programmatic and user selection share one path: `BonsplitController.selectTab`
+    /// (and `focusPane` when focus is requested and the pane is not already focused).
+    /// Those APIs notify `didSelectTab` / `didFocusPane`, which are the sole owners of
+    /// ``publishFocusedToolModeMirror()`` (VAL-RAIL-002 / VAL-RAIL-009). Do not write
+    /// the derived legacy mirror from this method.
     @discardableResult
     func selectToolMode(_ mode: RightSidebarMode, focus: Bool = true) -> Bool {
         guard edge == .right else { return false }
@@ -250,16 +256,17 @@ final class SidebarDockStore: BonsplitDelegate {
               let tabId = surfaceId(forPanelId: panel.id) else {
             return false
         }
+        // selectTab always notifies didSelectTab → callback-owned mirror publish.
+        // It also focuses the tab's pane internally (without didFocusPane).
         bonsplitController.selectTab(tabId)
         if focus, let pane = paneId(forTabId: tabId) {
-            bonsplitController.focusPane(pane)
+            // Only emit didFocusPane when the focused pane still differs so a
+            // same-section tab switch publishes the mirror exactly once.
+            if bonsplitController.focusedPaneId?.id != pane.id {
+                bonsplitController.focusPane(pane)
+            }
         }
-        // Programmatic select always refreshes the derived mirror. Bonsplit's
-        // didSelectTab fires on user interaction; for same-pane re-select or
-        // focus:false paths, publish explicitly so FileExplorerState stays
-        // consistent without competing write sites outside this seam.
-        publishFocusedToolModeMirror()
-        return true
+        return focusedToolMode() == mode
     }
 
     /// Hidden-rail short-circuit: mount tool content only while visible (VAL-RAIL-010).

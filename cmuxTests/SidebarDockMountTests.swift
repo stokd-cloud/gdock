@@ -93,8 +93,9 @@ struct SidebarDockMountTests {
             workspace: workspace,
             preferredMode: .files
         ))
-        // Selecting tools publishes the derived mirror through the store seam
-        // (Bonsplit callbacks + selectToolMode publish; VAL-RAIL-002).
+        // Selecting tools publishes the derived mirror only through Bonsplit
+        // didSelectTab / didFocusPane (VAL-RAIL-002 / VAL-RAIL-009). Programmatic
+        // selectToolMode must not write the legacy mode directly.
         let before = mirrorWrites
         #expect(store.selectToolMode(.sessions, focus: true))
         #expect(mirrorWrites > before)

@@ -1747,16 +1747,26 @@ struct ContentView: View {
               let workspace = tabManager.selectedWorkspace ?? tabManager.tabs.first else {
             return
         }
-        SidebarDockSeeding.seedRegistryIfEmpty(
-            registry: registry,
-            workspace: workspace,
-            preferredRightMode: fileExplorerState.mode
-        )
+        // Wire mirror before seed so programmatic select publishes only via
+        // Bonsplit didSelectTab / didFocusPane (VAL-RAIL-009).
         registry.right.onFocusedToolModeChanged = { [fileExplorerState] mode in
             guard let mode else { return }
             if fileExplorerState.mode != mode {
                 fileExplorerState.mode = mode
             }
+        }
+        SidebarDockSeeding.seedRegistryIfEmpty(
+            registry: registry,
+            workspace: workspace,
+            preferredRightMode: fileExplorerState.mode
+        )
+        if let mode = registry.right.focusedToolMode(),
+           SidebarDockPlacementMatrix.allows(mode: mode),
+           fileExplorerState.mode != mode,
+           fileExplorerState.mode != .feed,
+           fileExplorerState.mode != .dock,
+           fileExplorerState.mode != .customSidebar {
+            _ = registry.right.selectToolMode(mode, focus: false)
         }
     }
 
