@@ -553,6 +553,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         weak var window: NSWindow?
         /// Per-window Dock owned by this context and torn down with it.
         var windowDock: DockSplitStore?
+        /// Per-window left/right rail stores (flag-on dock spaces).
+        var sidebarDockRegistry: SidebarDockStoreRegistry?
 
         init(
             windowId: UUID,
@@ -6741,6 +6743,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         case .setMode(let mode, let focus):
             guard mode.isAvailable() else {
                 return .failure(String(localized: "rightSidebar.remote.error.modeUnavailable", defaultValue: "ERROR: Right sidebar mode '\(mode.rawValue)' is not available"))
+            }
+            // Single window-scoped selection seam (VAL-RAIL-009).
+            let source: RightSidebarSelectionSource = focus ? .remoteSet : .remoteSetNoFocus
+            let request = RightSidebarSelectionRequest(
+                mode: mode,
+                focus: focus,
+                source: source,
+                windowId: context?.windowId ?? target.windowId
+            )
+            if RightSidebarBetaFeatureSettings.isSidebarDockEnabled() {
+                let route = routeRightSidebarSelection(request)
+                if route == .rejected {
+                    // Fall back to legacy host paths when registry is not yet wired.
+                    if mode.canOpenAsPane, focus {
+                        guard showRightSidebarToolInActiveMainWindow(
+                            mode: mode,
+                            preferredWindow: preferredWindow
+                        ) else {
+                            return .failure(String(localized: "rightSidebar.remote.error.focusFailed", defaultValue: "ERROR: Failed to focus right sidebar"))
+                        }
+                        return .ok
+                    }
+                    if focus {
+                        guard focusRightSidebarInActiveMainWindow(mode: mode, focusFirstItem: true, preferredWindow: preferredWindow) else {
+                            return .failure(String(localized: "rightSidebar.remote.error.focusFailed", defaultValue: "ERROR: Failed to focus right sidebar"))
+                        }
+                        return .ok
+                    }
+                    state.setVisible(true)
+                    state.mode = mode
+                    context?.keyboardFocusCoordinator.rememberRightSidebarMode(mode)
+                    return .ok
+                }
+                context?.keyboardFocusCoordinator.rememberRightSidebarMode(mode)
+                return .ok
             }
             if mode.canOpenAsPane {
                 // Files / Find / Vault: shared show path — pane when host hidden,

@@ -105,6 +105,9 @@ extension RightSidebarMode {
 }
 
 /// Right sidebar root view. Hosts a segmented mode picker plus the active panel.
+///
+/// When `sidebar.beta.dock.enabled` is on, the rail mounts ``SidebarDockPanelView``
+/// seeded with Files/Find/Vault; Feed/Dock keep non-rail presentation (VAL-FLAG-003).
 struct RightSidebarPanelView: View {
     @ObservedObject var tabManager: TabManager
     @ObservedObject var fileExplorerStore: FileExplorerStore
@@ -117,6 +120,8 @@ struct RightSidebarPanelView: View {
     let onOpenFilePreview: (String) -> Void
     let onOpenAsPane: (RightSidebarMode) -> Void
     let onClose: () -> Void
+    /// Per-window dock registry; nil when the host has not created rails yet.
+    var dockRegistry: SidebarDockStoreRegistry? = nil
 
     @State private var modeShortcutHintMonitor = WindowScopedShortcutHintModifierMonitor(activation: .commandOrControl) { window in
         guard let responder = window.firstResponder else { return false }
@@ -136,6 +141,8 @@ struct RightSidebarPanelView: View {
     private var feedEnabled = RightSidebarBetaFeatureSettings.defaultFeedEnabled
     @AppStorage(RightSidebarBetaFeatureSettings.dockEnabledKey)
     private var dockEnabled = RightSidebarBetaFeatureSettings.defaultDockEnabled
+    @AppStorage(RightSidebarBetaFeatureSettings.sidebarDockEnabledKey)
+    private var sidebarDockEnabled = RightSidebarBetaFeatureSettings.defaultSidebarDockEnabled
 
     // Re-reading the observable store inside modeBar causes SwiftUI to
     // track the pending count so the badge updates live when hooks push
@@ -172,12 +179,17 @@ struct RightSidebarPanelView: View {
         closeShortcutHintMonitor.stop()
     }
 
+    private var isSidebarDockSpacesEnabled: Bool {
+        sidebarDockEnabled
+    }
+
     var body: some View {
-        VStack(spacing: 0) {
-            modeBar
-                .rightSidebarChromeBottomBorder()
-            contentForMode
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        Group {
+            if isSidebarDockSpacesEnabled, let registry = dockRegistry {
+                dockRailBody(registry: registry)
+            } else {
+                legacyModeBarBody
+            }
         }
         .shortcutHintVisibilityAnimation(value: focusShortcutHintAnimationValue)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -199,6 +211,7 @@ struct RightSidebarPanelView: View {
             startShortcutHintMonitorsIfNeeded()
             if fileExplorerState.isVisible { hasMountedRightSidebarContent = true }
             fileExplorerState.refreshModeAvailability()
+            seedDockRailsIfNeeded()
         }
         .onDisappear {
             stopShortcutHintMonitors()
@@ -211,6 +224,120 @@ struct RightSidebarPanelView: View {
         }
         .onChange(of: feedEnabled) { _, _ in refreshModeAvailabilityAndFocusIfNeeded() }
         .onChange(of: dockEnabled) { _, _ in refreshModeAvailabilityAndFocusIfNeeded() }
+        .onChange(of: sidebarDockEnabled) { _, enabled in
+            if enabled {
+                seedDockRailsIfNeeded()
+            }
+        }
+    }
+
+    /// Flag-off path: legacy mode bar + single content host (VAL-FLAG-002).
+    @ViewBuilder
+    private var legacyModeBarBody: some View {
+        VStack(spacing: 0) {
+            modeBar
+                .rightSidebarChromeBottomBorder()
+            contentForMode
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    /// Flag-on path: dock rail for tools; feed/dock keep non-rail content.
+    @ViewBuilder
+    private func dockRailBody(registry: SidebarDockStoreRegistry) -> some View {
+        let store = registry.right
+        let showingExcludedNonRail =
+            fileExplorerState.mode == .feed
+            || fileExplorerState.mode == .dock
+            || fileExplorerState.mode == .customSidebar
+
+        VStack(spacing: 0) {
+            if showingExcludedNonRail {
+                // Preserved non-rail entrypoints (D-19): feed/dock still use
+                // the classic content host while tools live in the rail.
+                contentForMode
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                SidebarDockPanelView(
+                    store: store,
+                    isRailVisible: fileExplorerState.isVisible,
+                    contentForTab: { tabId, _ in
+                        AnyView(dockToolContent(for: tabId, store: store))
+                    },
+                    openAsPaneMode: store.focusedToolMode() ?? fileExplorerState.mode,
+                    onOpenAsPane: { mode in onOpenAsPane(mode) },
+                    onClose: onClose,
+                    shortCircuitHiddenContent: true
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .onAppear {
+            wireMirror(store: store)
+            seedDockRailsIfNeeded()
+        }
+    }
+
+    @ViewBuilder
+    private func dockToolContent(for tabId: TabID, store: SidebarDockStore) -> some View {
+        if let tool = store.panel(for: tabId) as? RightSidebarToolPanel {
+            switch tool.mode {
+            case .files:
+                FileExplorerPanelView(
+                    store: fileExplorerStore,
+                    state: fileExplorerState,
+                    onOpenFilePreview: onOpenFilePreview,
+                    presentation: .files
+                )
+            case .find:
+                FileExplorerPanelView(
+                    store: fileExplorerStore,
+                    state: fileExplorerState,
+                    onOpenFilePreview: onOpenFilePreview,
+                    presentation: .find
+                )
+            case .sessions:
+                SessionIndexView(store: sessionIndexStore, onResume: onResumeSession)
+                    .onAppear {
+                        sessionIndexStore.setCurrentDirectoryIfChanged(sessionIndexDirectory)
+                    }
+            case .feed, .dock, .customSidebar:
+                Color.clear
+            }
+        } else {
+            Color.clear
+        }
+    }
+
+    private func wireMirror(store: SidebarDockStore) {
+        store.onFocusedToolModeChanged = { [fileExplorerState] mode in
+            guard let mode else { return }
+            // Derived mirror only — rail tools never write mode from views.
+            if fileExplorerState.mode != mode {
+                fileExplorerState.mode = mode
+            }
+        }
+    }
+
+    private func seedDockRailsIfNeeded() {
+        guard isSidebarDockSpacesEnabled, let registry = dockRegistry else { return }
+        guard let workspace = tabManager.selectedWorkspace
+                ?? tabManager.tabs.first else { return }
+        SidebarDockSeeding.seedRegistryIfEmpty(
+            registry: registry,
+            workspace: workspace,
+            preferredRightMode: fileExplorerState.mode
+        )
+        wireMirror(store: registry.right)
+        // Attach mirror without competing: if store already has a selection, sync once.
+        if let mode = registry.right.focusedToolMode(),
+           SidebarDockPlacementMatrix.allows(mode: mode),
+           fileExplorerState.mode != mode,
+           fileExplorerState.mode != .feed,
+           fileExplorerState.mode != .dock {
+            // Prefer store (source of truth) over stale legacy scalar.
+            fileExplorerState.mode = mode
+        }
     }
 
     private var modeBar: some View {
@@ -433,7 +560,30 @@ struct RightSidebarPanelView: View {
     }
 
     private func selectMode(_ mode: RightSidebarMode) {
-        fileExplorerState.mode = mode
+        // Single window-scoped selection seam (VAL-RAIL-009).
+        if let registry = dockRegistry, isSidebarDockSpacesEnabled {
+            var context = RightSidebarSelectionContext(
+                windowId: registry.windowId,
+                fileExplorerState: fileExplorerState,
+                rightStore: registry.right,
+                isDockEnabled: true,
+                ensureVisible: {
+                    if !fileExplorerState.isVisible {
+                        fileExplorerState.setVisible(true)
+                    }
+                }
+            )
+            _ = RightSidebarSelectionRouter.apply(
+                RightSidebarSelectionRequest(mode: mode, focus: false, source: .modeTabClick),
+                in: &context
+            )
+        } else if let app = AppDelegate.shared {
+            _ = app.routeRightSidebarSelection(
+                RightSidebarSelectionRequest(mode: mode, focus: false, source: .modeTabClick)
+            )
+        } else {
+            fileExplorerState.mode = mode
+        }
         if fileExplorerState.mode == .sessions {
             sessionIndexStore.setCurrentDirectoryIfChanged(sessionIndexDirectory)
             if sessionIndexStore.entries.isEmpty {

@@ -194,9 +194,20 @@ extension ContentView {
             NSSound.beep()
             return
         }
+        let source = RightSidebarSelectionRouter.paletteSource(for: mode)
+        let window = observedWindow ?? NSApp.keyWindow ?? NSApp.mainWindow
+        // Dock rails: single selection seam (VAL-RAIL-009).
+        if RightSidebarBetaFeatureSettings.isSidebarDockEnabled(),
+           let app = AppDelegate.shared {
+            let route = app.routeRightSidebarSelection(
+                RightSidebarSelectionRequest(mode: mode, focus: true, source: source)
+            )
+            if route != .rejected {
+                return
+            }
+        }
         // Files / Find / Vault: shared show path (pane when host hidden; in-rail when open).
         if mode.canOpenAsPane {
-            let window = observedWindow ?? NSApp.keyWindow ?? NSApp.mainWindow
             if AppDelegate.shared?.showRightSidebarToolInActiveMainWindow(
                 mode: mode,
                 preferredWindow: window
@@ -209,7 +220,7 @@ extension ContentView {
         if AppDelegate.shared?.focusRightSidebarInActiveMainWindow(
             mode: mode,
             focusFirstItem: true,
-            preferredWindow: observedWindow ?? NSApp.keyWindow ?? NSApp.mainWindow
+            preferredWindow: window
         ) != true {
             fileExplorerState.setVisible(true)
             if fileExplorerState.mode != mode {

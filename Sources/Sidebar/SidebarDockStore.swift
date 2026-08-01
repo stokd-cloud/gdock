@@ -50,6 +50,17 @@ final class SidebarDockStore: BonsplitDelegate {
     /// Header / collapsed section height in points.
     let collapsedSectionHeight: CGFloat
 
+    /// Derived legacy-mode mirror callback (right rail only).
+    ///
+    /// Written **only** from Bonsplit `didSelectTab` / `didFocusPane` (VAL-RAIL-002/009).
+    /// Production selection entrypoints must not write `FileExplorerState.mode` for rail tools.
+    var onFocusedToolModeChanged: ((RightSidebarMode?) -> Void)?
+
+    /// Counts content mount generations for hidden-rail lifecycle tests (VAL-RAIL-010).
+    private(set) var toolContentMountGeneration: Int = 0
+    private(set) var toolContentUnmountGeneration: Int = 0
+    private(set) var isToolContentMounted: Bool = false
+
     private static let logger = Logger(subsystem: "ai.manaflow.cmux", category: "SidebarDockStore")
 
     // MARK: - Init
@@ -211,6 +222,63 @@ final class SidebarDockStore: BonsplitDelegate {
             bonsplitController.selectTab(firstTab.id)
         }
         refreshTabBarVisibility()
+    }
+
+    // MARK: - Tool selection (right rail)
+
+    /// Mode of the selected tab in the focused section (derived legacy mirror source).
+    func focusedToolMode() -> RightSidebarMode? {
+        guard edge == .right else { return nil }
+        let pane = bonsplitController.focusedPaneId
+            ?? orderedSectionPaneIds().first
+        guard let pane else { return nil }
+        guard let selected = bonsplitController.selectedTab(inPane: pane)
+                ?? bonsplitController.tabs(inPane: pane).first else {
+            return nil
+        }
+        return (panel(for: selected.id) as? RightSidebarToolPanel)?.mode
+    }
+
+    /// Select/focus a rail tool by mode. Mirror updates via Bonsplit callbacks only.
+    @discardableResult
+    func selectToolMode(_ mode: RightSidebarMode, focus: Bool = true) -> Bool {
+        guard edge == .right else { return false }
+        guard SidebarDockPlacementMatrix.allows(mode: mode) else { return false }
+        guard let panel = panels.values
+            .compactMap({ $0 as? RightSidebarToolPanel })
+            .first(where: { $0.mode == mode }),
+              let tabId = surfaceId(forPanelId: panel.id) else {
+            return false
+        }
+        bonsplitController.selectTab(tabId)
+        if focus, let pane = paneId(forTabId: tabId) {
+            bonsplitController.focusPane(pane)
+        }
+        // Programmatic select always refreshes the derived mirror. Bonsplit's
+        // didSelectTab fires on user interaction; for same-pane re-select or
+        // focus:false paths, publish explicitly so FileExplorerState stays
+        // consistent without competing write sites outside this seam.
+        publishFocusedToolModeMirror()
+        return true
+    }
+
+    /// Hidden-rail short-circuit: mount tool content only while visible (VAL-RAIL-010).
+    func setToolContentMounted(_ mounted: Bool) {
+        if mounted {
+            guard !isToolContentMounted else { return }
+            isToolContentMounted = true
+            toolContentMountGeneration += 1
+        } else {
+            guard isToolContentMounted else { return }
+            isToolContentMounted = false
+            toolContentUnmountGeneration += 1
+        }
+    }
+
+    /// Publish the derived legacy mode from the focused section's selection.
+    func publishFocusedToolModeMirror() {
+        guard edge == .right else { return }
+        onFocusedToolModeChanged?(focusedToolMode())
     }
 
     // MARK: - Move tab to new section (shared drag/context/palette path)
@@ -762,6 +830,26 @@ final class SidebarDockStore: BonsplitDelegate {
         // Seed a placeholder is unnecessary for programmatic moving-tab splits;
         // ensure tab bar visibility tracks section count.
         refreshTabBarVisibility()
+    }
+
+    func splitTabBar(
+        _ controller: BonsplitController,
+        didSelectTab tab: Tab,
+        inPane pane: PaneID
+    ) {
+        // Sole mirror write path for rail tool selection (VAL-RAIL-002/009).
+        _ = tab
+        _ = pane
+        publishFocusedToolModeMirror()
+    }
+
+    func splitTabBar(
+        _ controller: BonsplitController,
+        didFocusPane pane: PaneID
+    ) {
+        // Focused section's selected tab defines the derived legacy mode.
+        _ = pane
+        publishFocusedToolModeMirror()
     }
 
     func splitTabBar(

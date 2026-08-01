@@ -863,6 +863,10 @@ struct ContentView: View {
     @StateObject private var fullscreenControlsViewModel = TitlebarControlsViewModel()
     @StateObject private var fileExplorerStore = FileExplorerStore()
     @StateObject private var sessionIndexStore = SessionIndexStore()
+    /// Per-window left/right dock rails (created once; seeded when flag is on).
+    @State private var sidebarDockRegistry: SidebarDockStoreRegistry?
+    @AppStorage(RightSidebarBetaFeatureSettings.sidebarDockEnabledKey)
+    private var sidebarDockEnabled = RightSidebarBetaFeatureSettings.defaultSidebarDockEnabled
     @StateObject private var selectedWorkspaceDirectoryObserver = SelectedWorkspaceDirectoryObserver()
     @State private var commandPaletteOverlayRenderModel = CommandPaletteOverlayRenderModel()
     @State private var backgroundWorkspacePrimeCoordinator = BackgroundWorkspacePrimeCoordinator()
@@ -1682,19 +1686,78 @@ struct ContentView: View {
             selection: $sidebarSelectionState.selection,
             selectedTabIds: $selectedTabIds, lastSidebarSelectionIndex: $lastSidebarSelectionIndex, sidebarRenderWorkerClient: $sidebarRenderWorkerClient
         )
-        return Group {
+        let hosted: AnyView = {
             if CmuxFeatureFlags.shared.isAppKitSidebarListEnabled {
                 // FLAG(sidebar-appkit-list-experiment): parent-driven
                 // re-evaluations (divider width ticks, unrelated ContentView
                 // state churn) skip the sidebar subtree; all sidebar content
                 // flows through tracked dependencies that bypass the gate.
-                sidebar.equatable()
+                return AnyView(sidebar.equatable())
+            }
+            return AnyView(sidebar)
+        }()
+
+        // Flag on + default provider: mount selector inside left dock rail.
+        // Extension/custom providers keep the legacy VerticalTabsSidebar branch
+        // (provider switch lives inside the sidebar; flag-off is identical).
+        return Group {
+            if sidebarDockEnabled, let registry = sidebarDockRegistry {
+                SidebarDockPanelView(
+                    store: registry.left,
+                    isRailVisible: sidebarState.isVisible,
+                    contentForTab: { _, _ in hosted },
+                    shortCircuitHiddenContent: false
+                )
+                .accessibilityIdentifier("SidebarDock.left")
             } else {
-                sidebar
+                hosted
             }
         }
         .modifier(SidebarWidthFrameModifier(layout: sidebarLayout))
         .frame(maxHeight: .infinity, alignment: .topLeading)
+        .background(leftDockRailSeedProbe)
+    }
+
+    /// Ensures the per-window registry exists and left rail is seeded once.
+    @ViewBuilder
+    private var leftDockRailSeedProbe: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .onAppear { ensureSidebarDockRegistrySeeded() }
+            .onChange(of: sidebarDockEnabled) { _, enabled in
+                if enabled { ensureSidebarDockRegistrySeeded() }
+            }
+            .accessibilityHidden(true)
+    }
+
+    private func ensureSidebarDockRegistrySeeded() {
+        let registry: SidebarDockStoreRegistry
+        if let existing = sidebarDockRegistry {
+            registry = existing
+        } else {
+            let created = SidebarDockStoreRegistry(windowId: windowId)
+            sidebarDockRegistry = created
+            registry = created
+        }
+        // Attach registry to window context for selection router / socket targeting.
+        if let context = AppDelegate.shared?.mainWindowContexts.values.first(where: { $0.windowId == windowId }) {
+            context.sidebarDockRegistry = registry
+        }
+        guard sidebarDockEnabled,
+              let workspace = tabManager.selectedWorkspace ?? tabManager.tabs.first else {
+            return
+        }
+        SidebarDockSeeding.seedRegistryIfEmpty(
+            registry: registry,
+            workspace: workspace,
+            preferredRightMode: fileExplorerState.mode
+        )
+        registry.right.onFocusedToolModeChanged = { [fileExplorerState] mode in
+            guard let mode else { return }
+            if fileExplorerState.mode != mode {
+                fileExplorerState.mode = mode
+            }
+        }
     }
 
     /// Native titlebar inset reported by AppKit. Standard mode follows cmux's visual chrome;
@@ -1930,8 +1993,10 @@ struct ContentView: View {
                 cmuxDebugLog("rightSidebar.closeButton")
                 #endif
                 _ = AppDelegate.shared?.closeRightSidebarInActiveMainWindow(preferredWindow: observedWindow)
-            }
+            },
+            dockRegistry: sidebarDockRegistry
         )
+        .onAppear { ensureSidebarDockRegistrySeeded() }
         .frame(width: rightSidebarWidth)
         .clipped()
         .allowsHitTesting(rightSidebarVisible)

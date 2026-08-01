@@ -4,7 +4,13 @@ import CoreGraphics
 import ImageIO
 
 final class RightSidebarChromeHeightUITests: XCTestCase {
-    func testSecondaryBarMatchesModeBarAndPaneTabs() {
+    func testSecondaryBarMatchesModeBarAndPaneTabs() throws {
+        // D-12 / VAL-FLAG-002: per-tab RightSidebarModeButton.* ids are lost under
+        // sidebar.beta.dock.enabled; keep this suite on the legacy mode-bar path.
+        try XCTSkipIf(
+            UserDefaults.standard.bool(forKey: "sidebar.beta.dock.enabled"),
+            "RightSidebarModeButton.* accessibility ids are accepted debt under dock rails (D-12)"
+        )
         let app = XCUIApplication()
         let dataPath = "/tmp/cmux-ui-test-right-sidebar-chrome-\(UUID().uuidString).json"
         try? FileManager.default.removeItem(atPath: dataPath)
@@ -16,6 +22,8 @@ final class RightSidebarChromeHeightUITests: XCTestCase {
         app.launchArguments += ["-workspacePresentationMode", "minimal"]
         app.launchArguments += ["-rightSidebar.beta.feed.enabled", "YES"]
         app.launchArguments += ["-rightSidebar.beta.dock.enabled", "YES"]
+        // Explicit flag-off so host defaults cannot flip the suite onto rails.
+        app.launchArguments += ["-sidebar.beta.dock.enabled", "NO"]
         app.launch()
         defer { app.terminate() }
 

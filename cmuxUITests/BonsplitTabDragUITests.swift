@@ -100,7 +100,12 @@ final class BonsplitTabDragUITests: XCTestCase {
         )
     }
 
-    func testRightSidebarModeBarKeepsFixedHeightAcrossPresentationModes() {
+    func testRightSidebarModeBarKeepsFixedHeightAcrossPresentationModes() throws {
+        // D-12: mode-bar height geometry reporting is dropped under dock rails.
+        try XCTSkipIf(
+            UserDefaults.standard.bool(forKey: "sidebar.beta.dock.enabled"),
+            "Mode-bar height assertions are flag-conditionalized (D-12)"
+        )
         let expectedModeBarHeight: CGFloat = 28
         var referenceTopInset: CGFloat?
 
