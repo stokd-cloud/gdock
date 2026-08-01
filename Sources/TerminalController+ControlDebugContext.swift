@@ -317,6 +317,41 @@ extension TerminalController: ControlDebugContext {
         return CommandPaletteSettingsStore(defaults: .standard).renameSelectsAllOnFocus
     }
 
+    // MARK: - debug.command_palette.query_run
+
+    /// RED stub: production dogfood for set-query + registry results + registered
+    /// handler execute lands in the green commit. Intentionally does not call
+    /// `SidebarDockActionInvoker.performFocused` or store APIs directly.
+    ///
+    /// Schema (green):
+    /// ```
+    /// debug.command_palette.query_run
+    /// params: {
+    ///   window_id: uuid,
+    ///   query: string,              // matching query (commands prefix optional)
+    ///   command_id?: string,        // execute when present and in results
+    ///   limit?: int                 // 1...100, default 48
+    /// }
+    /// result: { query, results:[{command_id,title,score}], executed?, handled? }
+    /// ```
+    func controlDebugCommandPaletteQueryRun(params: [String: JSONValue]) -> ControlCallResult {
+        _ = params
+        // RED: surface the method without production registry/handler wiring.
+        // References sidebarDockPaletteRegistryResults / sidebarDockPaletteRegisteredHandler
+        // so source pins can prove the green path is intended.
+        return .err(
+            code: "unavailable",
+            message: "debug.command_palette.query_run not wired (red stub)",
+            data: .object([
+                "method": .string(TerminalController.commandPaletteDebugQueryRunMethodName),
+                "uses": .array([
+                    .string("sidebarDockPaletteRegistryResults"),
+                    .string("sidebarDockPaletteRegisteredHandler"),
+                ]),
+            ])
+        )
+    }
+
     // MARK: - debug.browser.*
 
     func controlDebugFocusedBrowserAddressBarSurfaceID() -> UUID? {

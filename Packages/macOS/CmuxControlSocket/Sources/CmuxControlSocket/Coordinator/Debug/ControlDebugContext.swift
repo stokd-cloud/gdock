@@ -239,6 +239,15 @@ public protocol ControlDebugContext: AnyObject {
     /// - Returns: The snapshot (missing window reads as the empty snapshot).
     func controlDebugCommandPaletteSnapshot(windowID: UUID) -> ControlDebugCommandPaletteSnapshot
 
+    /// Sets the real palette query, returns production registry results, and
+    /// optionally executes a returned command id through its registered handler
+    /// for `debug.command_palette.query_run`.
+    ///
+    /// - Parameter params: Decoded request params (`window_id`, `query`,
+    ///   optional `command_id`, optional `limit`).
+    /// - Returns: The full call result.
+    func controlDebugCommandPaletteQueryRun(params: [String: JSONValue]) -> ControlCallResult
+
     /// Reads the rename-input field editor's selection in a window for
     /// `debug.command_palette.rename_input.selection`.
     ///

@@ -1619,6 +1619,7 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		B804A0270000000000000027 /* SidebarDividerTrackingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B804B0270000000000000027 /* SidebarDividerTrackingView.swift */; };
 		BE7A0010SIDEBARDOCKINV02 /* SidebarDockActionInvoker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKINV01 /* SidebarDockActionInvoker.swift */; };
 		BE7A0010SIDEBARDOCKACT02 /* SidebarDockActorSurfaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKACT01 /* SidebarDockActorSurfaceTests.swift */; };
+		BE7A0010SIDEBARDOCKRCH02 /* SidebarDockCommandPaletteReachabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKRCH01 /* SidebarDockCommandPaletteReachabilityTests.swift */; };
 		BE7A0010SIDEBARDOCKBEHAV02 /* SidebarDockBehaviorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKBEHAV01 /* SidebarDockBehaviorTests.swift */; };
 		1836DCDDE07CDF990C1640C2 /* SidebarDockCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81CAFBD7EB645789DC69C6C6 /* SidebarDockCommand.swift */; };
 		BE7A0010SIDEBARDOCKWIRE02 /* SidebarDockCommandWiringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKWIRE01 /* SidebarDockCommandWiringTests.swift */; };
@@ -3883,6 +3884,7 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		B804B0270000000000000027 /* SidebarDividerTrackingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDividerTrackingView.swift; sourceTree = "<group>"; };
 		BE7A0010SIDEBARDOCKINV01 /* SidebarDockActionInvoker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockActionInvoker.swift; sourceTree = "<group>"; };
 		BE7A0010SIDEBARDOCKACT01 /* SidebarDockActorSurfaceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockActorSurfaceTests.swift; sourceTree = "<group>"; };
+		BE7A0010SIDEBARDOCKRCH01 /* SidebarDockCommandPaletteReachabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockCommandPaletteReachabilityTests.swift; sourceTree = "<group>"; };
 		BE7A0010SIDEBARDOCKBEHAV01 /* SidebarDockBehaviorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockBehaviorTests.swift; sourceTree = "<group>"; };
 		81CAFBD7EB645789DC69C6C6 /* SidebarDockCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockCommand.swift; sourceTree = "<group>"; };
 		BE7A0010SIDEBARDOCKWIRE01 /* SidebarDockCommandWiringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockCommandWiringTests.swift; sourceTree = "<group>"; };
@@ -6724,6 +6726,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 BE7A0010SIDEBARDOCKBEHAV01 /* SidebarDockBehaviorTests.swift */,
 				BE7A0010SIDEBARDOCKWIRE01 /* SidebarDockCommandWiringTests.swift */,
 				BE7A0010SIDEBARDOCKACT01 /* SidebarDockActorSurfaceTests.swift */,
+				BE7A0010SIDEBARDOCKRCH01 /* SidebarDockCommandPaletteReachabilityTests.swift */,
 				A1B2C3D4E5F60001SEL01 /* RightSidebarSelectionRouterTests.swift */,
 				A1B2C3D4E5F60001MNT01 /* SidebarDockMountTests.swift */,
 				DEEB7752CAC925C78C086B09 /* SidebarDockSplitTests.swift */,
@@ -9462,6 +9465,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				C3467AB10000000000000001 /* ShortcutWhenClauseTests.swift in Sources */,
 				B804C0030000000000000003 /* SidebarAppKitRowCellTests.swift in Sources */,
 				BE7A0010SIDEBARDOCKACT02 /* SidebarDockActorSurfaceTests.swift in Sources */,
+				BE7A0010SIDEBARDOCKRCH02 /* SidebarDockCommandPaletteReachabilityTests.swift in Sources */,
 BE7A0010SIDEBARDOCKBEHAV02 /* SidebarDockBehaviorTests.swift in Sources */,
 				BE7A0010SIDEBARDOCKWIRE02 /* SidebarDockCommandWiringTests.swift in Sources */,
 				68EDDFB05A6D52FDBE0EC8E2 /* SidebarDockFlagTests.swift in Sources */,

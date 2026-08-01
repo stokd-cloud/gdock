@@ -18,6 +18,7 @@ extension TerminalController {
         "debug.command_palette.visible",
         "debug.command_palette.selection",
         "debug.command_palette.results",
+        "debug.command_palette.query_run",
         "debug.command_palette.rename_input.interact",
         "debug.command_palette.rename_input.delete_backward",
         "debug.command_palette.rename_input.selection",

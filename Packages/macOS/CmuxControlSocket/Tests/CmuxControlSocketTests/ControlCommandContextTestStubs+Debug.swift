@@ -46,6 +46,9 @@ extension ControlDebugContext {
     func controlDebugCommandPaletteVisible(windowID: UUID) -> Bool { false }
     func controlDebugCommandPaletteSelectionIndex(windowID: UUID) -> Int { 0 }
     func controlDebugCommandPaletteSnapshot(windowID: UUID) -> ControlDebugCommandPaletteSnapshot { .empty }
+    func controlDebugCommandPaletteQueryRun(params: [String: JSONValue]) -> ControlCallResult {
+        .err(code: "unavailable", message: "not implemented", data: nil)
+    }
     func controlDebugCommandPaletteRenameInputSelection(
         windowID: UUID
     ) -> ControlDebugRenameInputSelectionResolution { .windowNotFound }

@@ -7186,7 +7186,7 @@ struct ContentView: View {
         }
         contributions.append(contentsOf: Self.commandPaletteRightSidebarModeCommandContributions())
         contributions.append(contentsOf: Self.commandPaletteRightSidebarToolPaneCommandContributions())
-        contributions.append(contentsOf: Self.commandPaletteSidebarDockCommandContributions())
+        contributions.append(contentsOf: Self.commandPaletteSidebarDockCommandContributions(windowId: windowId))
         contributions.append(
             CommandPaletteCommandContribution(
                 commandId: "palette.toggleMatchTerminalBackground",
