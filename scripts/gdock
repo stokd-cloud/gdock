@@ -1,0 +1,519 @@
+#!/usr/bin/env bash
+# gdock — build or launch the current ghostty-dock branch's tagged DEV app.
+set -euo pipefail
+
+SKIP_ZIG="${GDOCK_SKIP_ZIG:-1}"
+TAG_PREFIX="${GDOCK_TAG:-gdock}"
+STATE_DIR="${GDOCK_STATE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/gdock}"
+WORKTREE_OVERRIDE="${GDOCK_WORKTREE:-}"
+DERIVED_DATA_OVERRIDE="${GDOCK_DERIVED_DATA:-}"
+APP_OVERRIDE="${GDOCK_APP:-}"
+
+LAST_RUN_LOG="${STATE_DIR}/last-run.log"
+LAST_RUN_META="${STATE_DIR}/last-run.meta"
+LAST_RUN_LOG_PREV="${STATE_DIR}/last-run.log.prev"
+LAST_RUN_META_PREV="${STATE_DIR}/last-run.meta.prev"
+
+FORCE_BUILD=0
+LAUNCH=1
+PATH_ONLY=0
+SHOW_LAST_RUN=0
+
+usage() {
+  cat <<'USAGE'
+gdock — build or launch a branch-specific ghostty-dock DEV app
+
+Usage:
+  gdock              Build when the current branch changed; then launch.
+  gdock --build      Force a rebuild of the current branch; then launch.
+  gdock --build-only Force a rebuild; do not launch.
+  gdock --no-launch  Build only when needed; do not launch.
+  gdock --path       Print the selected branch app (or last launched app).
+  gdock --last-run   Print the path and contents of the last saved run transcript.
+  gdock --help
+
+Every run (except --help / --last-run) is saved to:
+  $GDOCK_STATE_DIR/last-run.log   full stdout+stderr transcript
+  $GDOCK_STATE_DIR/last-run.meta  exit code, branch, tag, args, timestamp
+Previous run is rotated to last-run.log.prev / last-run.meta.prev.
+
+Inside a ghostty-dock worktree, gdock fingerprints HEAD plus tracked,
+untracked, and submodule state. Each branch gets its own tagged build and
+cache entry. Outside ghostty-dock, gdock opens the last app it launched.
+
+Environment overrides:
+  GDOCK_TAG            Branch-tag prefix (default: gdock).
+  GDOCK_WORKTREE       Explicit ghostty-dock worktree instead of $PWD.
+  GDOCK_DERIVED_DATA   Pass a derived-data override to reload.sh.
+  GDOCK_APP            Fallback app outside a repo when no last app exists.
+  GDOCK_STATE_DIR      Cache root (default: $XDG_CACHE_HOME/gdock or ~/.cache/gdock).
+  GDOCK_SKIP_ZIG       Default: 1; set 0 to run Ghostty zig build phases.
+
+Tagged CLI usage is printed after a branch is selected:
+  CMUX_TAG=<branch-tag> scripts/cmux-debug-cli.sh …
+USAGE
+}
+
+print_last_run() {
+  if [[ ! -f "$LAST_RUN_LOG" ]]; then
+    echo "gdock: no last-run transcript yet (run gdock once first)" >&2
+    echo "gdock: expected path: $LAST_RUN_LOG" >&2
+    return 1
+  fi
+  echo "gdock: last run log: $LAST_RUN_LOG"
+  if [[ -f "$LAST_RUN_META" ]]; then
+    echo "gdock: last run meta: $LAST_RUN_META"
+    echo "----- meta -----"
+    cat "$LAST_RUN_META"
+    echo "----- transcript -----"
+  fi
+  cat "$LAST_RUN_LOG"
+  if [[ -f "${STATE_DIR}/last-reload.log" ]]; then
+    echo ""
+    echo "----- full reload log (path) -----"
+    echo "${STATE_DIR}/last-reload.log"
+    echo "(use: less "${STATE_DIR}/last-reload.log"  or  tail -n 200 "${STATE_DIR}/last-reload.log")"
+  fi
+}
+
+# --- early flags that must not overwrite last-run ---
+for arg in "$@"; do
+  case "$arg" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --last-run)
+      SHOW_LAST_RUN=1
+      ;;
+  esac
+done
+
+if [[ "$SHOW_LAST_RUN" -eq 1 ]]; then
+  # Only --last-run (optionally with other ignored flags) — do not mutate last-run.
+  if [[ "$#" -eq 1 ]]; then
+    print_last_run
+    exit $?
+  fi
+  # If mixed with other args, treat --last-run as exclusive.
+  print_last_run
+  exit $?
+fi
+
+# --- outer logging wrapper: re-exec and capture entire run ---
+if [[ "${GDOCK_INNER:-0}" != "1" ]]; then
+  mkdir -p "$STATE_DIR"
+  # Rotate previous successful/failed transcript
+  if [[ -f "$LAST_RUN_LOG" ]]; then
+    mv -f "$LAST_RUN_LOG" "$LAST_RUN_LOG_PREV"
+  fi
+  if [[ -f "$LAST_RUN_META" ]]; then
+    mv -f "$LAST_RUN_META" "$LAST_RUN_META_PREV"
+  fi
+
+  started_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  started_epoch="$(date +%s)"
+  # shellcheck disable=SC2124
+  args_joined="$*"
+
+  set +e
+  # Capture combined stdout+stderr; preserve inner exit via PIPESTATUS.
+  GDOCK_INNER=1 "$0" "$@" 2>&1 | tee "$LAST_RUN_LOG"
+  exit_code=${PIPESTATUS[0]}
+  set -e
+
+  ended_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  ended_epoch="$(date +%s)"
+  duration=$((ended_epoch - started_epoch))
+
+  # Best-effort metadata enrichment from transcript / cache
+  branch_guess=""
+  tag_guess=""
+  app_guess=""
+  if [[ -f "$LAST_RUN_LOG" ]]; then
+    branch_guess="$(sed -n 's/^gdock: branch=\([^ ]*\).*/\1/p' "$LAST_RUN_LOG" | tail -1)"
+    tag_guess="$(sed -n 's/^gdock: branch=[^ ]* tag=\(.*\)$/\1/p' "$LAST_RUN_LOG" | tail -1)"
+    app_guess="$(sed -n 's/^gdock: opening //p' "$LAST_RUN_LOG" | tail -1)"
+  fi
+  if [[ -z "$app_guess" && -f "$STATE_DIR/last-app" ]]; then
+    app_guess="$(IFS= read -r line < "$STATE_DIR/last-app"; printf '%s' "${line:-}")"
+  fi
+
+  {
+    printf 'timestamp_start=%s\n' "$started_at"
+    printf 'timestamp_end=%s\n' "$ended_at"
+    printf 'duration_seconds=%s\n' "$duration"
+    printf 'exit_code=%s\n' "$exit_code"
+    printf 'cwd=%s\n' "$PWD"
+    printf 'args=%s\n' "$args_joined"
+    printf 'branch=%s\n' "${branch_guess:-}"
+    printf 'tag=%s\n' "${tag_guess:-}"
+    printf 'app=%s\n' "${app_guess:-}"
+    printf 'pid=%s\n' "$$"
+    printf 'user=%s\n' "${USER:-}"
+    printf 'host=%s\n' "$(hostname 2>/dev/null || true)"
+    printf 'log_path=%s\n' "$LAST_RUN_LOG"
+    printf 'reload_log_path=%s\n' "${STATE_DIR}/last-reload.log"
+    printf 'reload_console_log_path=%s\n' "${STATE_DIR}/last-reload-console.log"
+  } > "$LAST_RUN_META"
+
+  # Always announce where the transcript lives (even on failure).
+  echo "gdock: last run saved: $LAST_RUN_LOG" >&2
+  echo "gdock: last run meta:  $LAST_RUN_META (exit_code=$exit_code)" >&2
+  exit "$exit_code"
+fi
+
+# === GDOCK_INNER=1: real work (all output captured by outer wrapper) ===
+
+for arg in "$@"; do
+  case "$arg" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --last-run)
+      print_last_run
+      exit $?
+      ;;
+    --path)
+      PATH_ONLY=1
+      ;;
+    --build|-b)
+      FORCE_BUILD=1
+      ;;
+    --build-only)
+      FORCE_BUILD=1
+      LAUNCH=0
+      ;;
+    --no-launch)
+      LAUNCH=0
+      ;;
+    *)
+      echo "gdock: unknown argument: $arg" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+hash_stream() {
+  shasum -a 256 | awk '{ print $1 }'
+}
+
+hash_text() {
+  printf '%s' "$1" | hash_stream
+}
+
+absolute_path() {
+  local path="$1"
+  local parent
+  parent="$(CDPATH= cd -- "$(dirname -- "$path")" 2>/dev/null && pwd -P)" || return 1
+  printf '%s/%s\n' "$parent" "$(basename -- "$path")"
+}
+
+is_ghostty_dock_root() {
+  local root="$1"
+  local origin_url
+  [[ -x "$root/scripts/reload.sh" ]] || return 1
+  origin_url="$(git -C "$root" remote get-url origin 2>/dev/null || true)"
+  case "$origin_url" in
+    */ghostty-dock|*/ghostty-dock.git|*:ghostty-dock|*:ghostty-dock.git)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+resolve_repo_root() {
+  local start root
+  start="${WORKTREE_OVERRIDE:-$PWD}"
+  if [[ -n "$WORKTREE_OVERRIDE" && ! -d "$WORKTREE_OVERRIDE" ]]; then
+    echo "gdock: worktree does not exist: $WORKTREE_OVERRIDE" >&2
+    return 2
+  fi
+  root="$(git -C "$start" rev-parse --show-toplevel 2>/dev/null)" || return 1
+  if ! is_ghostty_dock_root "$root"; then
+    if [[ -n "$WORKTREE_OVERRIDE" ]]; then
+      echo "gdock: not a ghostty-dock worktree: $root" >&2
+      return 2
+    fi
+    return 1
+  fi
+  printf '%s\n' "$root"
+}
+
+branch_name() {
+  local root="$1"
+  local branch
+  if branch="$(git -C "$root" symbolic-ref --quiet --short HEAD 2>/dev/null)"; then
+    printf '%s\n' "$branch"
+  else
+    printf 'detached-%s\n' "$(git -C "$root" rev-parse --short=12 HEAD)"
+  fi
+}
+
+sanitize_tag_part() {
+  local value="$1"
+  value="$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-')"
+  value="${value#-}"
+  value="${value%-}"
+  value="${value:0:28}"
+  printf '%s\n' "${value:-branch}"
+}
+
+tag_for_branch() {
+  local branch="$1"
+  local branch_slug branch_hash prefix_slug
+  branch_slug="$(sanitize_tag_part "$branch")"
+  branch_hash="$(hash_text "$branch")"
+  prefix_slug="$(sanitize_tag_part "$TAG_PREFIX")"
+  printf '%s-%s-%s\n' "$prefix_slug" "$branch_slug" "${branch_hash:0:8}"
+}
+
+repo_identity() {
+  local root="$1"
+  local origin_url common_dir
+  origin_url="$(git -C "$root" remote get-url origin)"
+  common_dir="$(git -C "$root" rev-parse --git-common-dir)"
+  if [[ "$common_dir" != /* ]]; then
+    common_dir="$root/$common_dir"
+  fi
+  common_dir="$(absolute_path "$common_dir")"
+  printf '%s\n%s\n' "$origin_url" "$common_dir" | hash_stream
+}
+
+hash_untracked_files() {
+  local path
+  while IFS= read -r -d '' path; do
+    printf 'untracked:%s\0' "$path"
+    if [[ -f "$path" || -L "$path" ]]; then
+      git hash-object -- "$path"
+    else
+      printf 'special\n'
+    fi
+  done < <(git ls-files --others --exclude-standard -z)
+}
+
+repo_fingerprint() {
+  local root="$1"
+  (
+    cd "$root"
+    {
+      printf 'head\0'
+      git rev-parse HEAD
+      printf 'tracked\0'
+      git diff --no-ext-diff --binary HEAD --
+      printf 'untracked\0'
+      hash_untracked_files
+      printf 'submodules\0'
+      git submodule status --recursive 2>/dev/null || true
+      git submodule foreach --quiet --recursive '
+        printf "submodule:%s\n" "$name"
+        git rev-parse HEAD
+        git diff --no-ext-diff --binary HEAD --
+        while IFS= read -r -d "" path; do
+          printf "untracked:%s\\0" "$path"
+          if test -f "$path" || test -L "$path"; then
+            git hash-object -- "$path"
+          else
+            printf "special\\n"
+          fi
+        done < <(git ls-files --others --exclude-standard -z)
+      ' 2>/dev/null || true
+    } | hash_stream
+  )
+}
+
+read_first_line() {
+  local file="$1"
+  [[ -f "$file" ]] || return 1
+  IFS= read -r REPLY < "$file" || [[ -n "${REPLY:-}" ]]
+  printf '%s\n' "${REPLY:-}"
+}
+
+write_atomic_line() {
+  local file="$1"
+  local value="$2"
+  local temp
+  mkdir -p "$(dirname -- "$file")"
+  temp="$(mktemp "${file}.tmp.XXXXXX")"
+  printf '%s\n' "$value" > "$temp"
+  mv -f "$temp" "$file"
+}
+
+expected_app_path() {
+  local tag="$1"
+  if [[ -n "$DERIVED_DATA_OVERRIDE" ]]; then
+    printf '%s/Build/Products/Debug/cmux DEV %s.app\n' "$DERIVED_DATA_OVERRIDE" "$tag"
+  else
+    printf '%s/Library/Developer/Xcode/DerivedData/cmux-%s/Build/Products/Debug/cmux DEV %s.app\n' "$HOME" "$tag" "$tag"
+  fi
+}
+
+launch_app() {
+  local app="$1"
+  [[ -d "$app" ]] || {
+    echo "gdock: app is missing: $app" >&2
+    return 1
+  }
+  echo "gdock: opening $app" >&2
+  open -a "$app"
+  write_atomic_line "$STATE_DIR/last-app" "$app"
+}
+
+last_app_path() {
+  local app=""
+  app="$(read_first_line "$STATE_DIR/last-app" 2>/dev/null || true)"
+  if [[ -z "$app" && -n "$APP_OVERRIDE" ]]; then
+    app="$APP_OVERRIDE"
+  fi
+  [[ -n "$app" ]] || return 1
+  printf '%s\n' "$app"
+}
+
+build_branch() {
+  local root="$1"
+  local tag="$2"
+  local branch_state_dir="$3"
+  local output_file app fingerprint
+  local -a reload_args
+  local reload_status=0
+
+  output_file="$(mktemp "${TMPDIR:-/tmp}/gdock-reload.XXXXXX")"
+  trap 'rm -f "$output_file"' RETURN
+  reload_args=(--tag "$tag")
+  if [[ -n "$DERIVED_DATA_OVERRIDE" ]]; then
+    reload_args+=(--derived-data "$DERIVED_DATA_OVERRIDE")
+  fi
+
+  echo "gdock: building tag=$tag worktree=$root" >&2
+  set +e
+  (
+    cd "$root"
+    if [[ "$SKIP_ZIG" == "1" ]]; then
+      export CMUX_SKIP_ZIG_BUILD=1
+    else
+      unset CMUX_SKIP_ZIG_BUILD || true
+    fi
+    ./scripts/reload.sh "${reload_args[@]}"
+  ) 2>&1 | tee "$output_file" >&2
+  # tee preserves reload's exit code via PIPESTATUS; keep stdout clean for caller.
+  reload_status=${PIPESTATUS[0]}
+  set -e
+  # Always keep the console chunk from this build.
+  cp -f "$output_file" "${STATE_DIR}/last-reload-console.log" 2>/dev/null || true
+  # Prefer the full reload.sh log (xcodebuild transcript) when present.
+  if [[ -f "/tmp/cmux-reload-${tag}.log" ]]; then
+    cp -f "/tmp/cmux-reload-${tag}.log" "${STATE_DIR}/last-reload.log" 2>/dev/null || true
+    echo "gdock: full reload log saved: ${STATE_DIR}/last-reload.log" >&2
+  else
+    cp -f "$output_file" "${STATE_DIR}/last-reload.log" 2>/dev/null || true
+  fi
+
+  if [[ "$reload_status" -ne 0 ]]; then
+    echo "gdock: reload.sh failed with exit $reload_status" >&2
+    echo "gdock: --- last 80 lines of reload log ---" >&2
+    tail -n 80 "${STATE_DIR}/last-reload.log" 2>/dev/null >&2 || true
+    return "$reload_status"
+  fi
+
+  app="$(awk '
+    /^App path:$/ {
+      if (getline > 0) {
+        sub(/^[[:space:]]+/, "")
+        print
+        exit
+      }
+    }
+  ' "$output_file")"
+  [[ -n "$app" ]] || {
+    echo "gdock: reload succeeded but emitted no App path" >&2
+    return 1
+  }
+  [[ -d "$app" ]] || {
+    echo "gdock: reload emitted a missing app path: $app" >&2
+    return 1
+  }
+
+  fingerprint="$(repo_fingerprint "$root")"
+  write_atomic_line "$branch_state_dir/app" "$app"
+  write_atomic_line "$branch_state_dir/fingerprint" "$fingerprint"
+  write_atomic_line "$branch_state_dir/tag" "$tag"
+  printf '%s\n' "$app"
+}
+
+repo_root=""
+resolve_status=0
+repo_root="$(resolve_repo_root)" || resolve_status=$?
+if [[ "$resolve_status" -eq 2 ]]; then
+  exit 1
+fi
+
+if [[ -z "$repo_root" ]]; then
+  if [[ "$FORCE_BUILD" -eq 1 ]]; then
+    echo "gdock: --build requires a ghostty-dock worktree" >&2
+    exit 1
+  fi
+  app="$(last_app_path)" || {
+    echo "gdock: no previously launched app; run gdock inside a ghostty-dock worktree first" >&2
+    exit 1
+  }
+  if [[ "$PATH_ONLY" -eq 1 ]]; then
+    printf '%s\n' "$app"
+    exit 0
+  fi
+  if [[ "$LAUNCH" -eq 1 ]]; then
+    launch_app "$app"
+  fi
+  exit 0
+fi
+
+branch="$(branch_name "$repo_root")"
+tag="$(tag_for_branch "$branch")"
+repo_key="$(repo_identity "$repo_root")"
+branch_key="$(hash_text "$branch")"
+branch_state_dir="$STATE_DIR/builds/${repo_key:0:16}/${branch_key:0:16}"
+recorded_app="$(read_first_line "$branch_state_dir/app" 2>/dev/null || true)"
+recorded_fingerprint="$(read_first_line "$branch_state_dir/fingerprint" 2>/dev/null || true)"
+
+if [[ "$PATH_ONLY" -eq 1 ]]; then
+  if [[ -n "$recorded_app" ]]; then
+    printf '%s\n' "$recorded_app"
+  else
+    expected_app_path "$tag"
+  fi
+  exit 0
+fi
+
+fingerprint="$(repo_fingerprint "$repo_root")"
+needs_build=0
+reason=""
+if [[ "$FORCE_BUILD" -eq 1 ]]; then
+  needs_build=1
+  reason="forced"
+elif [[ -z "$recorded_app" || -z "$recorded_fingerprint" ]]; then
+  needs_build=1
+  reason="no successful build recorded"
+elif [[ ! -d "$recorded_app" ]]; then
+  needs_build=1
+  reason="recorded app is missing"
+elif [[ "$fingerprint" != "$recorded_fingerprint" ]]; then
+  needs_build=1
+  reason="branch changed"
+fi
+
+app="$recorded_app"
+if [[ "$needs_build" -eq 1 ]]; then
+  echo "gdock: rebuild needed ($reason)" >&2
+  app="$(build_branch "$repo_root" "$tag" "$branch_state_dir")"
+else
+  echo "gdock: branch unchanged; reusing $app" >&2
+fi
+
+echo "gdock: branch=$branch tag=$tag" >&2
+echo "gdock: CLI: CMUX_TAG=$tag scripts/cmux-debug-cli.sh …" >&2
+if [[ "$LAUNCH" -eq 1 ]]; then
+  launch_app "$app"
+fi

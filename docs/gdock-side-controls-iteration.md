@@ -74,7 +74,18 @@ gdock --build          # rebuild tag gdock from mission worktree, then launch
 gdock                  # open existing DEV build (rebuild once if missing)
 gdock --build-only     # rebuild only
 gdock --path           # print .app path
+gdock --last-run       # print the saved transcript of the previous gdock invocation
 ```
+
+Source of truth for the helper: `scripts/gdock` (install with `cp scripts/gdock ~/.local/bin/gdock && chmod +x ~/.local/bin/gdock`).
+
+Every run (except `--help` / `--last-run`) is archived under `~/.cache/gdock/`:
+
+- `last-run.log` / `last-run.meta` — console transcript + exit code / branch / tag
+- `last-run.log.prev` / `last-run.meta.prev` — previous run
+- `last-reload.log` — full `reload.sh` / xcodebuild log when a rebuild ran
+
+You do **not** need to re-run gdock to inspect a failure; open the last-run files.
 
 Defaults:
 
