@@ -193,6 +193,7 @@ final class SidebarDockStore: BonsplitDelegate {
             let collapsed = isSectionCollapsed(paneId: pane)
             let remembered = rememberedExtent(forPane: pane)
             return SidebarDockSectionSnapshot(
+                sectionId: sectionId(forPane: pane).rawValue,
                 paneId: pane.id,
                 tabPanelIds: panelIds,
                 selectedPanelId: selected,
@@ -200,6 +201,39 @@ final class SidebarDockStore: BonsplitDelegate {
                 rememberedExtent: remembered
             )
         }
+    }
+
+    // MARK: - Stable section identity
+
+    /// Pane-host → durable section id. Bonsplit pane hosts may be replaced; this
+    /// map is the app-owned oracle for complete snapshots (VAL-RAIL-008 / D-33).
+    ///
+    /// RED (pre-fix): intentionally empty so `sectionId(forPane:)` falls back to
+    /// the current pane host UUID. Whole-section reorder that rebuilds pane hosts
+    /// therefore loses section identity until the green mapping lands.
+    private var sectionIdByPaneHost: [UUID: SidebarDockSectionID] = [:]
+
+    /// App-owned stable section id for a pane host.
+    ///
+    /// Distinct from `pane.id`. When no durable binding exists yet, falls back to
+    /// a host-derived id so callers always get a value (red-state / recovery).
+    func sectionId(forPane pane: PaneID) -> SidebarDockSectionID {
+        if let bound = sectionIdByPaneHost[pane.id] {
+            return bound
+        }
+        // Red-state fallback: mirror the replaceable host (fails identity across
+        // host-replacing reorder). Green path binds durable ids before read.
+        return SidebarDockSectionID(pane.id)
+    }
+
+    /// Ordered durable section ids (top → bottom), one per live leaf pane.
+    func orderedSectionIds() -> [SidebarDockSectionID] {
+        orderedSectionPaneIds().map { sectionId(forPane: $0) }
+    }
+
+    /// Number of durable pane-host → section-id bindings (tests / inspect).
+    var sectionIdentityBindingCount: Int {
+        sectionIdByPaneHost.count
     }
 
     // MARK: - Seed / attach
@@ -772,7 +806,9 @@ final class SidebarDockStore: BonsplitDelegate {
 
     /// Live section capture for identity-preserving whole-section reorder.
     /// Holds tab surface ids (not only panel ids) so reorder never recreates tabs.
+    /// Carries the app-owned stable section id so host replacement cannot lose it.
     private struct LiveSectionCapture: Equatable {
+        var sectionId: SidebarDockSectionID
         var tabIds: [TabID]
         var selectedTabId: TabID?
         var isCollapsed: Bool
@@ -820,6 +856,7 @@ final class SidebarDockStore: BonsplitDelegate {
                 return selected.id
             }()
             return LiveSectionCapture(
+                sectionId: sectionId(forPane: pane),
                 tabIds: liveTabs.map(\.id),
                 selectedTabId: selectedLive,
                 isCollapsed: isSectionCollapsed(paneId: pane),
@@ -1046,6 +1083,7 @@ final class SidebarDockStore: BonsplitDelegate {
             }()
             captures.append(
                 LiveSectionCapture(
+                    sectionId: SidebarDockSectionID(snap.sectionId),
                     tabIds: tabIds,
                     selectedTabId: selectedTab,
                     isCollapsed: snap.isCollapsed,

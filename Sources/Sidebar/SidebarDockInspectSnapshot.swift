@@ -29,6 +29,9 @@ struct SidebarDockInspectSnapshot: Equatable, Sendable {
 
     struct Section: Equatable, Sendable {
         var index: Int
+        /// App-owned durable section identity (oracle for reorder/move/persist).
+        var sectionId: String
+        /// Current Bonsplit pane host (replaceable rendering host).
         var paneId: String
         var tabIds: [String]
         var tabTitles: [String]
@@ -70,6 +73,7 @@ extension SidebarDockInspectSnapshot.Edge {
             "sections": sections.map { section in
                 var sectionDict: [String: Any] = [
                     "index": section.index,
+                    "section_id": section.sectionId,
                     "pane_id": section.paneId,
                     "tab_ids": section.tabIds,
                     "tab_titles": section.tabTitles,
@@ -154,6 +158,7 @@ enum SidebarDockInspectBuilder {
             let selected = store.bonsplitController.selectedTab(inPane: pane)?.id
             return SidebarDockInspectSnapshot.Section(
                 index: index,
+                sectionId: store.sectionId(forPane: pane).uuidString,
                 paneId: pane.id.uuidString,
                 // TabID exposes public `uuid`; package-internal `id` is not reachable here.
                 tabIds: tabs.map { $0.id.uuid.uuidString },

@@ -1634,6 +1634,7 @@ BE7A0010SIDEBARDOCKLIVE02 /* SidebarDockLiveSectionSemanticsTests.swift in Sourc
 		1411B3771C57309CC911FC64 /* SidebarDockPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EB242390A12A488F5CFD008 /* SidebarDockPanelView.swift */; };
 		FF67D5D70FE120356BAC7B9D /* SidebarDockPlacementMatrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65602FC450A3E83B78A6850B /* SidebarDockPlacementMatrix.swift */; };
 		BE7A0010SIDEBARDOCKHDR02 /* SidebarDockSectionHeaderControlsSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKHDR01 /* SidebarDockSectionHeaderControlsSnapshot.swift */; };
+		BE7A0010SIDEBARDOCKSECID02 /* SidebarDockSectionID.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKSECID01 /* SidebarDockSectionID.swift */; };
 		C91868CD33B35D75282CB53E /* SidebarDockSectionPosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CF7ED4246D2DC0146593AC /* SidebarDockSectionPosition.swift */; };
 		BE7A0010SIDEBARDOCKREORD02 /* SidebarDockSectionReorderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKREORD01 /* SidebarDockSectionReorderTests.swift */; };
 		D12D1A0C9197E6BF7103AC91 /* SidebarDockSectionSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61540E9435CC2456E50DF37B /* SidebarDockSectionSnapshot.swift */; };
@@ -3902,6 +3903,7 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 		7EB242390A12A488F5CFD008 /* SidebarDockPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockPanelView.swift; sourceTree = "<group>"; };
 		65602FC450A3E83B78A6850B /* SidebarDockPlacementMatrix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockPlacementMatrix.swift; sourceTree = "<group>"; };
 		BE7A0010SIDEBARDOCKHDR01 /* SidebarDockSectionHeaderControlsSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockSectionHeaderControlsSnapshot.swift; sourceTree = "<group>"; };
+		BE7A0010SIDEBARDOCKSECID01 /* SidebarDockSectionID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockSectionID.swift; sourceTree = "<group>"; };
 		33CF7ED4246D2DC0146593AC /* SidebarDockSectionPosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockSectionPosition.swift; sourceTree = "<group>"; };
 		BE7A0010SIDEBARDOCKREORD01 /* SidebarDockSectionReorderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockSectionReorderTests.swift; sourceTree = "<group>"; };
 		61540E9435CC2456E50DF37B /* SidebarDockSectionSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockSectionSnapshot.swift; sourceTree = "<group>"; };
@@ -5158,6 +5160,7 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 				7EB242390A12A488F5CFD008 /* SidebarDockPanelView.swift */,
 				65602FC450A3E83B78A6850B /* SidebarDockPlacementMatrix.swift */,
 				33CF7ED4246D2DC0146593AC /* SidebarDockSectionPosition.swift */,
+				BE7A0010SIDEBARDOCKSECID01 /* SidebarDockSectionID.swift */,
 				61540E9435CC2456E50DF37B /* SidebarDockSectionSnapshot.swift */,
 				43CEFB99077EE7C26BBF16F6 /* SidebarDockStore.swift */,
 				A1B2C3D4E5F60001ROUT01 /* RightSidebarSelectionRouter.swift */,
@@ -8378,6 +8381,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				1411B3771C57309CC911FC64 /* SidebarDockPanelView.swift in Sources */,
 				FF67D5D70FE120356BAC7B9D /* SidebarDockPlacementMatrix.swift in Sources */,
 				BE7A0010SIDEBARDOCKHDR02 /* SidebarDockSectionHeaderControlsSnapshot.swift in Sources */,
+				BE7A0010SIDEBARDOCKSECID02 /* SidebarDockSectionID.swift in Sources */,
 				C91868CD33B35D75282CB53E /* SidebarDockSectionPosition.swift in Sources */,
 				D12D1A0C9197E6BF7103AC91 /* SidebarDockSectionSnapshot.swift in Sources */,
 				A1B2C3D4E5F60001SEED02 /* SidebarDockSeeding.swift in Sources */,

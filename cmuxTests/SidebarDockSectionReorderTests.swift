@@ -28,22 +28,47 @@ private final class ReorderRailPanel: Panel {
 }
 
 /// Complete live section snapshot used by VAL-RAIL-008 identity assertions.
+///
+/// Identity oracle is the app-owned `sectionId` (not the Bonsplit pane host).
+/// `paneId` is observational only and may change when public Bonsplit ops
+/// rebuild topology (D-33 / VAL-RAIL-008).
 @MainActor
 private struct CompleteSectionSnapshot: Equatable {
+    var sectionId: UUID
+    var paneId: UUID
     var tabUUIDs: [UUID]
     var panelIds: [UUID]
     var selectedTabUUID: UUID?
     var selectedPanelId: UUID?
     var isCollapsed: Bool
     var rememberedExtent: CGFloat?
+
+    static func == (lhs: CompleteSectionSnapshot, rhs: CompleteSectionSnapshot) -> Bool {
+        // paneId intentionally excluded: host may be replaced; durable id travels.
+        lhs.sectionId == rhs.sectionId
+            && lhs.tabUUIDs == rhs.tabUUIDs
+            && lhs.panelIds == rhs.panelIds
+            && lhs.selectedTabUUID == rhs.selectedTabUUID
+            && lhs.selectedPanelId == rhs.selectedPanelId
+            && lhs.isCollapsed == rhs.isCollapsed
+            && extentEqual(lhs.rememberedExtent, rhs.rememberedExtent)
+    }
+
+    private static func extentEqual(_ a: CGFloat?, _ b: CGFloat?) -> Bool {
+        switch (a, b) {
+        case (nil, nil): return true
+        case let (l?, r?): return abs(l - r) <= 1.0
+        default: return false
+        }
+    }
 }
 
-/// VAL-RAIL-008 complete-snapshot whole-section reorder (D-32).
+/// VAL-RAIL-008 complete-snapshot whole-section reorder with durable section ids (D-33).
 ///
-/// Red suite for the R3 defect: header/command reorder dropped a section (3→2),
-/// recreated tab UUIDs, and lost mid-section collapse identity. Asserts first /
-/// middle / last moves through the shared production path retain every live
-/// section, tabs, selection, collapse, remembered extent, and identity.
+/// Red suite: header/command reorder that rebuilds Bonsplit pane hosts must still
+/// preserve app-owned section_id + tabs + selection + collapse + remembered extent.
+/// Title-only / source-pin checks are insufficient — complete stable-id snapshots
+/// compare across first/middle/last and create/teardown.
 @MainActor
 @Suite("SidebarDock section reorder complete snapshot VAL-RAIL-008", .serialized)
 struct SidebarDockSectionReorderTests {
@@ -71,6 +96,8 @@ struct SidebarDockSectionReorderTests {
                 store.surfaceIdToPanelId[tab.id] != nil ? tab.id : nil
             }
             return CompleteSectionSnapshot(
+                sectionId: store.sectionId(forPane: pane).rawValue,
+                paneId: pane.id,
                 tabUUIDs: liveTabs.map(\.id.uuid),
                 panelIds: liveTabs.compactMap { store.surfaceIdToPanelId[$0.id] },
                 selectedTabUUID: selectedLive?.uuid,
@@ -109,6 +136,10 @@ struct SidebarDockSectionReorderTests {
         #expect(before[1].rememberedExtent != nil)
         #expect(!before[0].isCollapsed)
         #expect(!before[2].isCollapsed)
+        // Durable ids are unique and present for every live section.
+        let ids = before.map(\.sectionId)
+        #expect(Set(ids).count == ids.count)
+        #expect(ids.allSatisfy { $0 != UUID(uuidString: "00000000-0000-0000-0000-000000000000") })
         return (store, before)
     }
 
@@ -123,8 +154,12 @@ struct SidebarDockSectionReorderTests {
         #expect(store.sectionCount == before.count)
         #expect(unmappedCount(in: store) == 0)
 
-        // Complete snapshot: tab UUIDs, panels, selection, collapse, remembered extent.
+        // Complete snapshot by durable section id + tabs/selection/collapse/extent.
         #expect(after == expectedOrder)
+
+        // Stable section ids travel with the section (not recreated).
+        #expect(after.map(\.sectionId) == expectedOrder.map(\.sectionId))
+        #expect(Set(after.map(\.sectionId)) == Set(before.map(\.sectionId)))
 
         // Every pre-move live tab UUID still present exactly once (no recreate).
         let beforeTabs = before.flatMap(\.tabUUIDs)
@@ -136,6 +171,9 @@ struct SidebarDockSectionReorderTests {
         let beforePanels = before.flatMap(\.panelIds)
         let afterPanels = after.flatMap(\.panelIds)
         #expect(Set(afterPanels) == Set(beforePanels))
+
+        // No duplicate section ids after topology rebuild.
+        #expect(Set(after.map(\.sectionId)).count == after.count)
     }
 
     // MARK: First → last (header production path)
@@ -148,11 +186,13 @@ struct SidebarDockSectionReorderTests {
         #expect(store.handleSectionHeaderReorder(from: 0, to: 2))
         expectIdentityPreservingReorder(store: store, before: before, expectedOrder: expected)
 
-        // Collapse still rides with the mid section (now index 0).
-        #expect(completeSnapshots(in: store)[0].isCollapsed)
-        #expect(completeSnapshots(in: store)[0].tabUUIDs == before[1].tabUUIDs)
+        // Collapse still rides with the mid section (now index 0) under the same section id.
+        let after = completeSnapshots(in: store)
+        #expect(after[0].isCollapsed)
+        #expect(after[0].sectionId == before[1].sectionId)
+        #expect(after[0].tabUUIDs == before[1].tabUUIDs)
         if let rememberedBefore = before[1].rememberedExtent,
-           let rememberedAfter = completeSnapshots(in: store)[0].rememberedExtent {
+           let rememberedAfter = after[0].rememberedExtent {
             #expect(abs(rememberedAfter - rememberedBefore) <= 1.0)
         }
     }
@@ -166,8 +206,10 @@ struct SidebarDockSectionReorderTests {
 
         #expect(store.reorderSection(from: 2, to: 0))
         expectIdentityPreservingReorder(store: store, before: before, expectedOrder: expected)
-        #expect(completeSnapshots(in: store)[2].isCollapsed)
-        #expect(completeSnapshots(in: store)[2].tabUUIDs == before[1].tabUUIDs)
+        let after = completeSnapshots(in: store)
+        #expect(after[2].isCollapsed)
+        #expect(after[2].sectionId == before[1].sectionId)
+        #expect(after[2].tabUUIDs == before[1].tabUUIDs)
     }
 
     // MARK: Middle moves
@@ -179,16 +221,20 @@ struct SidebarDockSectionReorderTests {
         #expect(store.reorderSection(from: 1, to: 0))
         var after = completeSnapshots(in: store)
         #expect(after.count == 3)
+        #expect(after[0].sectionId == mid.sectionId)
         #expect(after[0].tabUUIDs == mid.tabUUIDs)
         #expect(after[0].isCollapsed)
         #expect(unmappedCount(in: store) == 0)
+        #expect(Set(after.map(\.sectionId)) == Set(before.map(\.sectionId)))
 
         #expect(store.reorderSection(from: 0, to: 2))
         after = completeSnapshots(in: store)
         #expect(after.count == 3)
+        #expect(after[2].sectionId == mid.sectionId)
         #expect(after[2].tabUUIDs == mid.tabUUIDs)
         #expect(after[2].isCollapsed)
         #expect(after.flatMap(\.tabUUIDs).count == before.flatMap(\.tabUUIDs).count)
+        #expect(Set(after.map(\.sectionId)) == Set(before.map(\.sectionId)))
     }
 
     // MARK: Shared command / DEBUG bridge
@@ -196,6 +242,7 @@ struct SidebarDockSectionReorderTests {
     @Test func commandAndHeaderShareIdentityPreservingMutation() throws {
         let (store, before) = try threeSectionCollapsedMid()
         let lastPane = try #require(store.orderedSectionPaneIds().last)
+        let lastSectionId = before[2].sectionId
 
         // Deterministic command path (palette / context / header affordance).
         #expect(SidebarDockCommand.perform(
@@ -206,8 +253,10 @@ struct SidebarDockSectionReorderTests {
         ))
         var after = completeSnapshots(in: store)
         #expect(after.count == 3)
+        #expect(after[1].sectionId == lastSectionId)
         #expect(after[1].tabUUIDs == before[2].tabUUIDs)
         #expect(Set(after.flatMap(\.tabUUIDs)) == Set(before.flatMap(\.tabUUIDs)))
+        #expect(Set(after.map(\.sectionId)) == Set(before.map(\.sectionId)))
         #expect(unmappedCount(in: store) == 0)
 
         // Header path (DEBUG reorder_section bridges here) continues without loss.
@@ -216,10 +265,67 @@ struct SidebarDockSectionReorderTests {
         after = completeSnapshots(in: store)
         #expect(after.count == 3)
         #expect(Set(after.flatMap(\.tabUUIDs)) == Set(midBefore.flatMap(\.tabUUIDs)))
+        #expect(Set(after.map(\.sectionId)) == Set(midBefore.map(\.sectionId)))
         #expect(unmappedCount(in: store) == 0)
-        // Collapsed mid (B) still present somewhere with same tab UUIDs.
+        // Collapsed mid (B) still present somewhere with same tab UUIDs + section id.
         let collapsedMid = before[1]
-        #expect(after.contains(where: { $0.tabUUIDs == collapsedMid.tabUUIDs && $0.isCollapsed }))
+        #expect(after.contains(where: {
+            $0.sectionId == collapsedMid.sectionId
+                && $0.tabUUIDs == collapsedMid.tabUUIDs
+                && $0.isCollapsed
+        }))
     }
 
+    // MARK: Create / teardown lifecycle
+
+    @Test func createMintsDistinctSectionIdAndTeardownDropsBinding() throws {
+        let (store, tabs) = try seeded(titles: ["RootA", "RootB", "Peel"])
+        let rootBefore = completeSnapshots(in: store)
+        #expect(rootBefore.count == 1)
+        let rootId = rootBefore[0].sectionId
+
+        #expect(store.moveTabToNewSection(tabs[2], position: .bottom))
+        let afterCreate = completeSnapshots(in: store)
+        #expect(afterCreate.count == 2)
+        #expect(afterCreate[0].sectionId == rootId)
+        #expect(afterCreate[1].sectionId != rootId)
+        #expect(Set(afterCreate.map(\.sectionId)).count == 2)
+        // Durable bindings track live sections (no duplicates / no orphan hosts).
+        #expect(store.sectionIdentityBindingCount == store.sectionCount)
+
+        let newSectionId = afterCreate[1].sectionId
+        let peelTab = tabs[2]
+        #expect(store.closeTab(peelTab))
+        let afterTeardown = completeSnapshots(in: store)
+        #expect(afterTeardown.count == 1)
+        #expect(afterTeardown[0].sectionId == rootId)
+        #expect(!afterTeardown.map(\.sectionId).contains(newSectionId))
+        #expect(store.sectionIdentityBindingCount == store.sectionCount)
+        #expect(unmappedCount(in: store) == 0)
+    }
+
+    // MARK: Inspect schema exposes section_id + pane_id
+
+    @Test func inspectSnapshotExposesSectionIdAndPaneId() throws {
+        let (store, before) = try threeSectionCollapsedMid()
+        let edge = store.inspectEdgeSnapshot()
+        #expect(edge.sections.count == 3)
+        for (index, section) in edge.sections.enumerated() {
+            #expect(section.sectionId == before[index].sectionId.uuidString)
+            #expect(section.paneId == before[index].paneId.uuidString)
+            #expect(!section.sectionId.isEmpty)
+            #expect(!section.paneId.isEmpty)
+        }
+        let dict = edge.asEdgeDictionary()
+        let sections = try #require(dict["sections"] as? [[String: Any]])
+        #expect(sections.count == 3)
+        for section in sections {
+            #expect(section["section_id"] is String)
+            #expect(section["pane_id"] is String)
+            let sid = try #require(section["section_id"] as? String)
+            let pid = try #require(section["pane_id"] as? String)
+            #expect(UUID(uuidString: sid) != nil)
+            #expect(UUID(uuidString: pid) != nil)
+        }
+    }
 }
