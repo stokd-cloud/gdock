@@ -1,0 +1,213 @@
+{
+  "slug": "stokd-rail-panels-first-slice",
+  "title": "Stokd Rail Panels \u2014 First Slice",
+  "status": "creating",
+  "created_at": "2026-08-01T22:02:59.132756+00:00",
+  "storage_mode": "database",
+  "error_message": null,
+  "progress_log": [
+    "[2026-08-01T22:08:17.512942+00:00] Planner extracted phases to phases-plan.json (terminus recovery)"
+  ],
+  "review_mode": "complete",
+  "workspace_root": "/opt/worktrees/stokd-cloud/ghostty-dock/main",
+  "phases": [
+    {
+      "phase_number": 1,
+      "title": "Panel kinds, placement matrix, and beta gate",
+      "work_items": [
+        {
+          "item_number": "1.1",
+          "title": "Register four stokd rail panel kinds and placement rules",
+          "dependencies": [],
+          "implementation_details": "Add rail-hosted panel kinds for Work, Worktrees, Global Config, and Usage using the existing left/right rail substrate (SidebarDock* / RightSidebarMode patterns). Extend placement matrix so Work defaults to right rail tool tab strip; Global Config, Worktrees, and Usage are allowed on left (and movable per rail rules) but default seed places them left. Do not introduce DockableKind canvas freeform docking. Prefer reusing sidebar.beta.dock.enabled or add sidebar.beta.stokdPanels.enabled default off; flag off leaves rails unchanged.",
+          "acceptance_criteria": "Four panel kinds exist and are addressable by rail commands; placement matrix allows Work on right and the three left sections on left; flag default off; no canvas dock path; unit tests for allow/refuse edges pass.",
+          "components": [
+            "Sources/Sidebar/SidebarDockPlacementMatrix.swift",
+            "Sources/Sidebar/SidebarDockCommand.swift",
+            "Sources/Sidebar/RightSidebarSelectionRouter.swift",
+            "Sources/App/WorkspaceRuntimeSettings.swift"
+          ]
+        },
+        {
+          "item_number": "1.2",
+          "title": "Actor wiring for open/focus of each stokd panel",
+          "dependencies": [
+            "1.1"
+          ],
+          "implementation_details": "Wire palette, context menu, header, and debug/socket entrypoints through the shared SidebarDockCommand / SidebarDockActionInvoker path used by Files/Find/Vault so open/focus is not store-only. No duplicated per-entrypoint mutation paths.",
+          "acceptance_criteria": "Each of Work, Worktrees, Global Config, Usage can be opened/focused via the same actor surface other rail tools use; actor/wiring tests fail without wiring and pass with it.",
+          "components": [
+            "Sources/Sidebar/SidebarDockActionInvoker.swift",
+            "Sources/Sidebar/SidebarDockCommand.swift"
+          ]
+        }
+      ]
+    },
+    {
+      "phase_number": 2,
+      "title": "Default layout seeding",
+      "work_items": [
+        {
+          "item_number": "2.1",
+          "title": "Idempotent seed for left stack + right Work tab",
+          "dependencies": [
+            "1.1"
+          ],
+          "implementation_details": "Extend SidebarDockSeeding (or sibling) so first enable with flag on produces: LEFT top Workspaces (existing); then Global Config, Worktrees, Usage bottom; RIGHT Tools section tabs Files | Find | Vault | Work. Use a seed generation / stokd-panels-seed-applied marker so reloads do not thrash user rearrangements. Additive snapshot fields only; no SessionSnapshotSchema.currentVersion bump.",
+          "acceptance_criteria": "Cold window with flag on seeds exactly the \u00a70 default layout; second launch does not re-shuffle user layout; flag off seeds nothing stokd-specific; unit test asserts seed diagram.",
+          "components": [
+            "Sources/Sidebar/SidebarDockSeeding.swift",
+            "Sources/Sidebar/SidebarDockStore.swift"
+          ]
+        }
+      ]
+    },
+    {
+      "phase_number": 3,
+      "title": "Data plane (CLI / API helpers)",
+      "work_items": [
+        {
+          "item_number": "3.1",
+          "title": "Shared stokd CLI invoke + API client helpers",
+          "dependencies": [],
+          "implementation_details": "Add minimal app-local helpers under Sources/Stokd/ (extract package only if needed) for CLI invoke and local API client. No direct mutation of ~/.stokd/config.yaml or workspace YAML; config writes only via stokd config set. Resolve workspace context from active window focused cwd.",
+          "acceptance_criteria": "Helpers invoke CLI/API without crashing when missing; clear error results; unit tests with fixtures/mocks; no direct config.yaml writes in Sources/Stokd.",
+          "components": [
+            "Sources/Stokd/"
+          ]
+        },
+        {
+          "item_number": "3.2",
+          "title": "Data mappers for Work, Worktrees, Global Config, Usage",
+          "dependencies": [
+            "3.1"
+          ],
+          "implementation_details": "Mappers/fixtures: Work from paged tasks/projects API; Worktrees from git/local worktree discovery (document source of truth); Global Config from stokd config schema --json + layered values; Usage per provider/model for supported timespans with reasoning tokens and restart-safe provider dedupe when already in model. Never invent fake zeros for unreported cache columns.",
+          "acceptance_criteria": "Unit tests for each mapper with fixtures; empty/error states modeled; no fabricated cache metrics.",
+          "components": [
+            "Sources/Stokd/"
+          ]
+        }
+      ]
+    },
+    {
+      "phase_number": 4,
+      "title": "Panel UIs",
+      "work_items": [
+        {
+          "item_number": "4.1",
+          "title": "Work right-rail tab host",
+          "dependencies": [
+            "1.1",
+            "1.2",
+            "3.2"
+          ],
+          "implementation_details": "SwiftUI host for Work mounted as a right-rail tool tab alongside Files/Find/Vault. List/filter/sort matching current stokd API shapes. Port open/mark-done/copy-hash only where native affordances are clear; no agents-window flows.",
+          "acceptance_criteria": "Right tab strip includes Work; panel loads real data or clear empty/error; never blank crash; snapshot-boundary rules respected.",
+          "components": [
+            "Sources/Sidebar/SidebarDockPanelView.swift",
+            "Sources/Stokd/"
+          ]
+        },
+        {
+          "item_number": "4.2",
+          "title": "Global Config left section host",
+          "dependencies": [
+            "1.1",
+            "1.2",
+            "3.2"
+          ],
+          "implementation_details": "Full rail section UI for schema-driven Global Config with scope from focused workspace cwd. Display layered provenance where cheap; writes only via CLI writer with explicit scope. Two separate sections (not tabs) with Worktrees per default D5/open-question default.",
+          "acceptance_criteria": "Section appears in left seed stack; schema fields render; writes go through stokd config set; empty/error when CLI missing.",
+          "components": [
+            "Sources/Stokd/",
+            "Sources/Sidebar/SidebarDockPanelView.swift"
+          ]
+        },
+        {
+          "item_number": "4.3",
+          "title": "Worktrees left section host",
+          "dependencies": [
+            "1.1",
+            "1.2",
+            "3.2"
+          ],
+          "implementation_details": "Left section listing worktrees: path, branch, dirty; open (and land only if safe commands exist). v1 is list+open first; no full review-chip surface required.",
+          "acceptance_criteria": "Section lists real worktrees or clear empty/error; open works for a normal local repo; list-row snapshot boundary holds.",
+          "components": [
+            "Sources/Stokd/",
+            "Sources/Sidebar/SidebarDockPanelView.swift"
+          ]
+        },
+        {
+          "item_number": "4.4",
+          "title": "Usage left bottom section host",
+          "dependencies": [
+            "1.1",
+            "1.2",
+            "3.2"
+          ],
+          "implementation_details": "Own bottom left section (not nested under Worktrees). Per provider \u2192 per model token/cost for supported timespans. Prefer file-watch/incremental ingest over dumb 60s full poll when practical.",
+          "acceptance_criteria": "Usage is bottom left section in seed; shows breakdown or clear empty/error; no fake cache zeros.",
+          "components": [
+            "Sources/Stokd/",
+            "Sources/Sidebar/SidebarDockPanelView.swift"
+          ]
+        }
+      ]
+    },
+    {
+      "phase_number": 5,
+      "title": "Persistence, localization, and dogfood gate",
+      "work_items": [
+        {
+          "item_number": "5.1",
+          "title": "Rail snapshot persistence for stokd sections/tabs",
+          "dependencies": [
+            "2.1",
+            "4.1",
+            "4.2",
+            "4.3",
+            "4.4"
+          ],
+          "implementation_details": "Section list, selected tab, collapse, and extents ride existing rail snapshot fields with additive optionals only. Flag off: no stokd sections/tabs appear.",
+          "acceptance_criteria": "Rearrangements survive relaunch; flag off restores prior non-stokd behavior; no schema version bump.",
+          "components": [
+            "Sources/Sidebar/SidebarDockStore.swift",
+            "Sources/Sidebar/SidebarDockSeeding.swift"
+          ]
+        },
+        {
+          "item_number": "5.2",
+          "title": "en+ja localization and pbx test wiring",
+          "dependencies": [
+            "4.1",
+            "4.2",
+            "4.3",
+            "4.4"
+          ],
+          "implementation_details": "All user-facing strings via String(localized:) with en+ja in Resources/Localizable.xcstrings. New cmuxTests files wired in cmux.xcodeproj. bonsplit submodule SHA unchanged.",
+          "acceptance_criteria": "Localization audit for new strings en+ja; lint-pbxproj-test-wiring clean; vendor/bonsplit pointer unchanged.",
+          "components": [
+            "Resources/Localizable.xcstrings",
+            "cmux.xcodeproj/project.pbxproj",
+            "cmuxTests/"
+          ]
+        },
+        {
+          "item_number": "5.3",
+          "title": "Tagged dogfood stokd-rail-panels",
+          "dependencies": [
+            "5.1",
+            "5.2"
+          ],
+          "implementation_details": "Build with ./scripts/reload.sh --tag stokd-rail-panels, flag on, confirm left stack + right Work tab visually and via debug/socket where available.",
+          "acceptance_criteria": "Tagged Debug app builds; default layout visible with flag on; each panel non-crashing with real or empty/error state; acceptance checklist in PRD \u00a74 satisfied.",
+          "components": [
+            "scripts/reload.sh"
+          ]
+        }
+      ]
+    }
+  ]
+}

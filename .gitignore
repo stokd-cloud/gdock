@@ -76,3 +76,4 @@ tmux-*.log
 
 # stokd governance runtime state (session-local; never tracked)
 .stokd/governance/
+node_modules
