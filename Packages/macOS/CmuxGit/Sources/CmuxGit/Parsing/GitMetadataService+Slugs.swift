@@ -1,6 +1,20 @@
 import Foundation
 
 extension GitMetadataService {
+    /// Primary GitHub `owner/name` slug for the repository enclosing `directory`.
+    ///
+    /// Reads remotes from on-disk git config (no `git` process). Prefers
+    /// `upstream`, then `origin`, then other remotes — same ordering as
+    /// ``githubRepositorySlugs(fromGitRemoteVOutput:)``. Returns `nil` when
+    /// `directory` is not inside a git repo or has no GitHub remote.
+    public nonisolated static func primaryGitHubRepositorySlug(for directory: String) -> String? {
+        guard let repository = resolveGitRepository(containing: directory),
+              let output = gitRemoteVOutput(repository: repository) else {
+            return nil
+        }
+        return githubRepositorySlugs(fromGitRemoteVOutput: output).first
+    }
+
     /// Extracts ordered, de-duplicated GitHub `owner/name` slugs from
     /// `git remote -v`-style output.
     ///

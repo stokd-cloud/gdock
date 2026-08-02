@@ -242904,6 +242904,38 @@
           }
         }
       }
+    },
+    "settings.gdock.autoWorkspaceGroupMode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto Workspace Group Mode"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自動ワークスペースグループモード"
+          }
+        }
+      }
+    },
+    "settings.section.gdock": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "gdock"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "gdock"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

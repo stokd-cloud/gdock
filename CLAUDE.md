@@ -1,5 +1,21 @@
 # cmux agent notes
 
+## ghostty-dock (gdock) fork conventions
+
+This checkout is the **ghostty-dock** fork (product short name **gdock**), based on upstream cmux.
+
+**All new settings and command-palette commands introduced for gdock MUST be prefixed with `gdock`:**
+
+| Surface | Required prefix | Example |
+|---------|-----------------|---------|
+| Setting catalog / `cmux.json` / UserDefaults ids | `gdock.` | `gdock.autoWorkspaceGroupMode` |
+| Palette one-shot command ids | `palette.gdock.` | `palette.gdock.someAction` |
+| Palette settings-toggle command ids | `palette.toggleSetting.gdock.` | `palette.toggleSetting.gdock.autoWorkspaceGroupMode` |
+
+- Put new settings under `GdockCatalogSection` (`Packages/macOS/CmuxSettings/.../GdockCatalogSection.swift`) or another `gdock.*` section — do **not** add fork-only keys under upstream prefixes (`app.*`, `sidebar.*`, `betaFeatures.*`, etc.).
+- Upstream cmux keys that already exist are grandfathered; do not rename them.
+- See also `docs/gdock-agent-conventions.md`.
+
 ## Initial setup
 
 Run the setup script to initialize submodules, build GhosttyKit, and install the pbxproj normalization pre-commit hook:
