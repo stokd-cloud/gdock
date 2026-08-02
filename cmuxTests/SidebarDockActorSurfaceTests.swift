@@ -237,8 +237,9 @@ struct SidebarDockActorSurfaceTests {
             #expect(names.contains(method), "Missing debug method \(method)")
             #expect(method.hasPrefix("debug.sidebar_dock."))
         }
-        #expect(TerminalController.sidebarDockDebugMethodNames.count == 8)
+        #expect(TerminalController.sidebarDockDebugMethodNames.count == 9)
         #expect(TerminalController.sidebarDockDebugMethodNames.contains("debug.sidebar_dock.reorder_tab"))
+        #expect(TerminalController.sidebarDockDebugMethodNames.contains("debug.sidebar_dock.transfer"))
 #else
         // Release builds omit the DEBUG catalog; registration is DEBUG-gated by design.
         #expect(Bool(true))

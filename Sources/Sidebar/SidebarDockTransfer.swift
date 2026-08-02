@@ -78,9 +78,6 @@ enum SidebarDockTransfer {
             return .refused(.sameEdgeNoop)
         }
 
-        // RED STUB: intentional refuse so CrossRail suite fails before green impl.
-        return .refused(.unknown)
-
         let source = registry.store(for: sourceEdge)
         let dest = registry.store(for: destEdge)
 
@@ -168,9 +165,6 @@ enum SidebarDockTransfer {
         guard sourceEdge != destEdge else {
             return .refused(.sameEdgeNoop)
         }
-
-        // RED STUB: intentional refuse so CrossRail suite fails before green impl.
-        return .refused(.unknown)
 
         let source = registry.store(for: sourceEdge)
         let dest = registry.store(for: destEdge)
