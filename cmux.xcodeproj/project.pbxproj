@@ -1307,6 +1307,7 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		626F0EFC5D1643E885CC776E /* QuadSplitAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01BAA63BCC864AB59E2E8A8D /* QuadSplitAction.swift */; };
 		34009E763A28478F80D0AFC5 /* QuadSplitActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91E934E3EB9C45478D1A3EDA /* QuadSplitActionTests.swift */; };
 		A34D01C0A34D01C0A34D0006 /* QuadSplitAdapterRoutingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A34D01C0A34D01C0A34D0005 /* QuadSplitAdapterRoutingTests.swift */; };
+		A34D01C0A34D01C0A34D0008 /* QuadSplitRunningFailureDebugTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A34D01C0A34D01C0A34D0007 /* QuadSplitRunningFailureDebugTests.swift */; };
 		A34D01C0A34D01C0A34D0002 /* QuadSplitAdapters.swift in Sources */ = {isa = PBXBuildFile; fileRef = A34D01C0A34D01C0A34D0001 /* QuadSplitAdapters.swift */; };
 		602ADBE12FA3407A8580CAEC /* QuadSplitButtonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F73FA96A248028EC8CDBD /* QuadSplitButtonTests.swift */; };
 		A64610010000000000000001 /* QuitConfirmationAlertPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64610010000000000000002 /* QuitConfirmationAlertPresenter.swift */; };
@@ -3589,6 +3590,7 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		01BAA63BCC864AB59E2E8A8D /* QuadSplitAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadSplitAction.swift; sourceTree = "<group>"; };
 		91E934E3EB9C45478D1A3EDA /* QuadSplitActionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadSplitActionTests.swift; sourceTree = "<group>"; };
 		A34D01C0A34D01C0A34D0005 /* QuadSplitAdapterRoutingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadSplitAdapterRoutingTests.swift; sourceTree = "<group>"; };
+		A34D01C0A34D01C0A34D0007 /* QuadSplitRunningFailureDebugTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadSplitRunningFailureDebugTests.swift; sourceTree = "<group>"; };
 		A34D01C0A34D01C0A34D0001 /* QuadSplitAdapters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadSplitAdapters.swift; sourceTree = "<group>"; };
 		682F73FA96A248028EC8CDBD /* QuadSplitButtonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadSplitButtonTests.swift; sourceTree = "<group>"; };
 		A64610010000000000000002 /* QuitConfirmationAlertPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuitConfirmationAlertPresenter.swift; sourceTree = "<group>"; };
@@ -6749,6 +6751,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 								91E934E3EB9C45478D1A3EDA /* QuadSplitActionTests.swift */,
 				682F73FA96A248028EC8CDBD /* QuadSplitButtonTests.swift */,
 				A34D01C0A34D01C0A34D0005 /* QuadSplitAdapterRoutingTests.swift */,
+				A34D01C0A34D01C0A34D0007 /* QuadSplitRunningFailureDebugTests.swift */,
 BE7A0010SIDEBARDOCKBEHAV01 /* SidebarDockBehaviorTests.swift */,
 				BE7A0010SIDEBARDOCKWIRE01 /* SidebarDockCommandWiringTests.swift */,
 				BE7A0010SIDEBARDOCKACT01 /* SidebarDockActorSurfaceTests.swift */,
@@ -9398,6 +9401,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				C47110010000000000000001 /* ProcessPipeReadCrashRegressionTests.swift in Sources */,
 								34009E763A28478F80D0AFC5 /* QuadSplitActionTests.swift in Sources */,
 				A34D01C0A34D01C0A34D0006 /* QuadSplitAdapterRoutingTests.swift in Sources */,
+				A34D01C0A34D01C0A34D0008 /* QuadSplitRunningFailureDebugTests.swift in Sources */,
 				602ADBE12FA3407A8580CAEC /* QuadSplitButtonTests.swift in Sources */,
 				A64610020000000000000001 /* QuitConfirmationAlertPresenterTests.swift in Sources */,
 				A6D1F0400000000000000002 /* ReleasingWindowControllerTests.swift in Sources */,
