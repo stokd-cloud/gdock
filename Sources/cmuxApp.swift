@@ -1184,21 +1184,12 @@ struct cmuxApp: App {
     }
 
     private func performQuadSplitFromMenu() {
+        // Shared production path with palette / shortcut (VAL-QUAD-002).
         let preferredWindow = NSApp.keyWindow ?? NSApp.mainWindow
-        guard let appDelegate = AppDelegate.shared else {
-            _ = tabManager.createQuadSplit(focus: true)
-            return
-        }
-        switch appDelegate.routeQuadToFocusedDock(preferredWindow: preferredWindow) {
-        case .handled:
-            return
-        case .notApplicable:
-            break
-        }
-        if appDelegate.performQuadSplitShortcut(preferredWindow: preferredWindow) {
-            return
-        }
-        _ = tabManager.createQuadSplit(focus: true)
+        _ = QuadSplitAdapters.performSharedFocusPath(
+            preferredWindow: preferredWindow,
+            tabManager: tabManager
+        )
     }
 
     private func performBrowserSplitFromMenu(direction: SplitDirection) {

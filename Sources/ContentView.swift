@@ -8832,22 +8832,16 @@ struct ContentView: View {
             }
         }
         registry.register(commandId: "palette.terminalSplitQuad") {
-            // Shared path with View menu / shortcut: Dock tri-state first, then main.
-            let preferredWindow = NSApp.keyWindow ?? NSApp.mainWindow
-            if let appDelegate = AppDelegate.shared {
-                switch appDelegate.routeQuadToFocusedDock(preferredWindow: preferredWindow) {
-                case .handled:
-                    return
-                case .notApplicable:
-                    break
-                }
-                if appDelegate.performQuadSplitShortcut(preferredWindow: preferredWindow) {
-                    return
-                }
-            }
-            if !executeConfiguredAction(id: CmuxSurfaceTabBarBuiltInAction.splitQuad.configID) {
-                _ = tabManager.createQuadSplit(focus: true)
-            }
+            // Shared production path with View menu / shortcut / Dock palette
+            // (VAL-QUAD-002). Does not bypass the adapter — this IS the palette
+            // adapter; it converges on the shared focus path.
+            let preferredWindow = NSApp.keyWindow
+                ?? AppDelegate.shared?.mainWindow(for: windowId)
+                ?? NSApp.mainWindow
+            _ = QuadSplitAdapters.performSharedFocusPath(
+                preferredWindow: preferredWindow,
+                tabManager: tabManager
+            )
         }
         registry.register(commandId: "palette.terminalSplitBrowserRight") {
             _ = tabManager.createBrowserSplit(direction: .right)

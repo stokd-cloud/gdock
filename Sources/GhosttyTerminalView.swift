@@ -7121,6 +7121,8 @@ class GhosttyNSView: NSView, NSUserInterfaceValidations {
     /// Context-menu / Dock-ownership-aware quad split. When the surface lives in
     /// a Dock controller, route there; otherwise use the shared workspace action.
     /// Remote-tmux never gets a local partial grid (known veto).
+    /// Converges on ``QuadSplitAdapters/ContextMenuHandler`` so DEBUG dogfood
+    /// re-enters the same production ownership logic (VAL-QUAD-002).
     @discardableResult
     private func splitCurrentSurfaceQuad() -> Bool {
         guard let surfaceId = terminalSurface?.id else { return false }
@@ -7134,14 +7136,18 @@ class GhosttyNSView: NSView, NSUserInterfaceValidations {
         // Dock ownership resolution: if this surface is a Dock panel, mutate Dock only.
         if let dock = app.windowDockContainingPanel(surfaceId),
            let paneId = dock.paneId(forPanelId: surfaceId) {
-            return QuadSplitAction.perform(inPane: paneId, dock: dock)
+            return QuadSplitAdapters.ContextMenuHandler.performDock(dock: dock, pane: paneId)
         }
 
         guard let tabId,
               let manager = app.tabManagerFor(tabId: tabId) ?? app.tabManager else {
             return false
         }
-        return manager.createQuadSplit(tabId: tabId, surfaceId: surfaceId, focus: true)
+        return QuadSplitAdapters.ContextMenuHandler.performMain(
+            tabManager: manager,
+            workspaceId: tabId,
+            surfaceId: surfaceId
+        )
     }
 
     @objc private func triggerFlash(_ sender: Any?) {

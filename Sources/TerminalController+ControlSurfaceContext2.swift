@@ -90,46 +90,18 @@ extension TerminalController {
             ))
         }
 
+        if isQuad {
+            // Earliest owner resolution: explicit Dock surface / focused Dock
+            // before main workspace fallthrough (VAL-QUAD-003 / D-34).
+            return controlSurfaceQuadSplit(
+                routing: routing,
+                inputs: inputs,
+                tabManager: tabManager
+            )
+        }
+
         guard let ws = resolveSurfaceWorkspace(routing: routing, tabManager: tabManager) else {
             return .workspaceNotFound
-        }
-        if isQuad {
-            // Known veto: remote-tmux never receives a local partial grid and the
-            // side-effecting remote split delegate is not called as a preflight.
-            if ws.isRemoteTmuxMirror {
-                return .mirrorUnsupportedOptions(["direction=quad"])
-            }
-            let targetSurfaceId: UUID?
-            if let requested = inputs.requestedSourceSurfaceID {
-                guard ws.panels[requested] != nil else {
-                    return .requestedSurfaceNotFound(requested)
-                }
-                targetSurfaceId = requested
-            } else {
-                targetSurfaceId = ws.focusedPanelId
-            }
-            guard let targetSurfaceId, ws.panels[targetSurfaceId] != nil else {
-                return .noFocusedSurface
-            }
-            // Non-focus CLI/socket invocation must not steal app focus.
-            let focus = v2FocusAllowed(requested: inputs.requestedFocus)
-            v2MaybeFocusWindow(for: tabManager)
-            v2MaybeSelectWorkspace(tabManager, workspace: ws)
-            guard tabManager.createQuadSplit(
-                tabId: ws.id,
-                surfaceId: targetSurfaceId,
-                focus: focus
-            ) else {
-                return .createFailed
-            }
-            let focused = ws.focusedPanelId ?? targetSurfaceId
-            return .created(
-                windowID: v2ResolveWindowId(tabManager: tabManager),
-                workspaceID: ws.id,
-                paneID: ws.paneId(forPanelId: focused)?.id,
-                surfaceID: focused,
-                typeRawValue: ws.panels[focused]?.panelType.rawValue
-            )
         }
 
         guard let direction else {
@@ -231,6 +203,56 @@ extension TerminalController {
             paneID: ws.paneId(forPanelId: newId)?.id,
             surfaceID: newId,
             typeRawValue: ws.panels[newId]?.panelType.rawValue
+        )
+    }
+
+    /// Shared v2/CLI quad owner resolution + mutation (VAL-QUAD-003 / D-34).
+    ///
+    /// Explicit Dock surface ids and focused Dock resolve the Dock controller
+    /// first and never fall through to the main canvas. Invalid targets stay
+    /// lossless with an explicit error.
+    func controlSurfaceQuadSplit(
+        routing: ControlRoutingSelectors,
+        inputs: ControlSurfaceSplitInputs,
+        tabManager: TabManager
+    ) -> ControlSurfaceSplitResolution {
+        // RED stub: intentionally keep pre-D-34 fallthrough (workspace-only).
+        // Green commit replaces this with earliest Dock owner resolution.
+        guard let ws = resolveSurfaceWorkspace(routing: routing, tabManager: tabManager) else {
+            return .workspaceNotFound
+        }
+        if ws.isRemoteTmuxMirror {
+            return .mirrorUnsupportedOptions(["direction=quad"])
+        }
+        let targetSurfaceId: UUID?
+        if let requested = inputs.requestedSourceSurfaceID {
+            guard ws.panels[requested] != nil else {
+                return .requestedSurfaceNotFound(requested)
+            }
+            targetSurfaceId = requested
+        } else {
+            targetSurfaceId = ws.focusedPanelId
+        }
+        guard let targetSurfaceId, ws.panels[targetSurfaceId] != nil else {
+            return .noFocusedSurface
+        }
+        let focus = v2FocusAllowed(requested: inputs.requestedFocus)
+        v2MaybeFocusWindow(for: tabManager)
+        v2MaybeSelectWorkspace(tabManager, workspace: ws)
+        guard tabManager.createQuadSplit(
+            tabId: ws.id,
+            surfaceId: targetSurfaceId,
+            focus: focus
+        ) else {
+            return .createFailed
+        }
+        let focused = ws.focusedPanelId ?? targetSurfaceId
+        return .created(
+            windowID: v2ResolveWindowId(tabManager: tabManager),
+            workspaceID: ws.id,
+            paneID: ws.paneId(forPanelId: focused)?.id,
+            surfaceID: focused,
+            typeRawValue: ws.panels[focused]?.panelType.rawValue
         )
     }
 

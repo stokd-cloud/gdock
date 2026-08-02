@@ -58,6 +58,10 @@ extension TerminalController {
         "debug.sidebar_dock.resize_rail",
         "debug.sidebar_dock.refuse_paths",
         "debug.sidebar_dock.transfer",
+        // Quad named-adapter dogfood (VAL-QUAD-002/003 / D-34). DEBUG-only;
+        // invokes production adapters — never QuadSplitAction.perform as substitute.
+        "debug.quad.adapter_perform",
+        "debug.quad.adapters",
         "mobile.dev_stack_auth.configure",
     ]
 }

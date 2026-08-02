@@ -14258,19 +14258,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 #if DEBUG
             cmuxDebugLog("shortcut.action name=splitQuad \(debugShortcutRouteSnapshot(event: event))")
 #endif
-            // Tri-state Dock routing: when the Dock owns focus, never fall through
-            // to the main area — even if the Dock quad fails (VAL-QUAD-003).
-            switch routeQuadToFocusedDock(preferredWindow: event.window) {
-            case .handled:
-                return true
-            case .notApplicable:
-                break
-            }
+            // Shared production path with View menu / both palettes (VAL-QUAD-002).
+            // Dock tri-state is inside performSharedFocusPath (VAL-QUAD-003).
             if shouldSuppressSplitShortcutForTransientTerminalFocusState(direction: .right) {
                 return true
             }
-            _ = performQuadSplitShortcut(
-                preferredWindow: event.window ?? shortcutRoutingActiveWindow
+            _ = QuadSplitAdapters.performSharedFocusPath(
+                preferredWindow: event.window ?? shortcutRoutingActiveWindow,
+                tabManager: tabManager
             )
             return true
         }
@@ -15866,22 +15861,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 return didSplit
             case .splitQuad:
                 let window = preferredWindow ?? shortcutRoutingActiveWindow
-                // Tri-state Dock routing: an applicable Dock failure must not fall
-                // through to the main area (VAL-QUAD-003).
-                switch routeQuadToFocusedDock(preferredWindow: window) {
-                case .handled(let success):
-                    if success { onExecuted?() }
-                    return true
-                case .notApplicable:
-                    break
-                }
+                // Shared production path with View menu / primary palette /
+                // shortcut (VAL-QUAD-002). Dock tri-state lives in
+                // performSharedFocusPath (VAL-QUAD-003).
                 if shouldSuppressSplitShortcutForTransientTerminalFocusState(
                     direction: .right,
                     tabManager: context.tabManager
                 ) {
                     return true
                 }
-                let didSplit = performQuadSplitShortcut(preferredWindow: window)
+                let didSplit = QuadSplitAdapters.performSharedFocusPath(
+                    preferredWindow: window,
+                    tabManager: context.tabManager
+                )
                 if didSplit { onExecuted?() }
                 return didSplit
             }

@@ -2310,6 +2310,11 @@ class TerminalController {
                 return v2Result(id: id, result)
             }
             return v2Error(id: id, code: "method_not_found", message: "Unknown method")
+        case let method where method.hasPrefix("debug.quad."):
+            if let result = self.v2DebugQuadSplit(method: method, params: params) {
+                return v2Result(id: id, result)
+            }
+            return v2Error(id: id, code: "method_not_found", message: "Unknown method")
 #endif
 
             default:
@@ -11997,6 +12002,16 @@ class TerminalController {
 
         var result = "ERROR: Failed to create split"
         v2MainSync {
+            // Quad: earliest Dock owner resolution (explicit surface / focused Dock)
+            // before main fallthrough (VAL-QUAD-003 / D-34).
+            if isQuad {
+                result = self.legacyQuadNewSplit(
+                    panelArg: panelArg,
+                    tabManager: tabManager
+                )
+                return
+            }
+
             guard let tabId = tabManager.selectedTabId,
                   let tab = tabManager.tabs.first(where: { $0.id == tabId }) else {
                 return
@@ -12016,13 +12031,6 @@ class TerminalController {
 
             guard let targetSurface = surfaceId else {
                 result = "ERROR: No surface to split"
-                return
-            }
-
-            if isQuad {
-                if tabManager.createQuadSplit(tabId: tabId, surfaceId: targetSurface, focus: true) {
-                    result = "OK \(tab.focusedPanelId?.uuidString ?? targetSurface.uuidString)"
-                }
                 return
             }
 
@@ -12052,6 +12060,85 @@ class TerminalController {
             }
         }
         return result
+    }
+
+    /// Legacy v1 `new_split quad` with earliest Dock owner resolution.
+    /// Explicit Dock surface ids and focused Dock mutate only Dock; invalid
+    /// targets stay lossless with an explicit error (VAL-QUAD-003).
+    @MainActor
+    private func legacyQuadNewSplit(panelArg: String, tabManager: TabManager) -> String {
+        let preferredWindow = AppDelegate.shared?.mainWindow(for: tabManager)
+            ?? NSApp.keyWindow
+            ?? NSApp.mainWindow
+
+        // Explicit panel / surface arg.
+        if !panelArg.isEmpty {
+            if let surfaceUUID = UUID(uuidString: panelArg),
+               let dock = windowDockContainingPanel(surfaceUUID)
+                ?? AppDelegate.shared?.windowDockContainingPanel(surfaceUUID),
+               let pane = dock.paneId(forPanelId: surfaceUUID) {
+                guard QuadSplitAction.perform(inPane: pane, dock: dock) else {
+                    return "ERROR: Failed to create split"
+                }
+                let focused = dock.focusedPanelId ?? surfaceUUID
+                return "OK \(focused.uuidString)"
+            }
+            // Main workspace explicit surface.
+            guard let tabId = tabManager.selectedTabId,
+                  let tab = tabManager.tabs.first(where: { $0.id == tabId }) else {
+                return "ERROR: Panel not found"
+            }
+            guard let surfaceId = resolveSurfaceId(from: panelArg, tab: tab) else {
+                // Also search other workspaces for the UUID before failing.
+                if let surfaceUUID = UUID(uuidString: panelArg) {
+                    for workspace in tabManager.tabs where workspace.panels[surfaceUUID] != nil {
+                        if tabManager.createQuadSplit(
+                            tabId: workspace.id,
+                            surfaceId: surfaceUUID,
+                            focus: true
+                        ) {
+                            return "OK \(workspace.focusedPanelId?.uuidString ?? surfaceUUID.uuidString)"
+                        }
+                        return "ERROR: Failed to create split"
+                    }
+                }
+                return "ERROR: Panel not found"
+            }
+            if tabManager.createQuadSplit(tabId: tabId, surfaceId: surfaceId, focus: true) {
+                return "OK \(tab.focusedPanelId?.uuidString ?? surfaceId.uuidString)"
+            }
+            return "ERROR: Failed to create split"
+        }
+
+        // Focused Dock — never fall through to main when Dock owns focus.
+        if let dock = AppDelegate.shared?.focusedDockStoreForShortcut(preferredWindow: preferredWindow) {
+            guard let pane = dock.resolvePane(requestedPaneID: nil) else {
+                return "ERROR: No surface to split"
+            }
+            guard QuadSplitAction.perform(inPane: pane, dock: dock) else {
+                return "ERROR: Failed to create split"
+            }
+            let focused = dock.focusedPanelId?.uuidString ?? "unknown"
+            return "OK \(focused)"
+        }
+
+        guard let tabId = tabManager.selectedTabId,
+              let tab = tabManager.tabs.first(where: { $0.id == tabId }) else {
+            return "ERROR: Failed to create split"
+        }
+        guard let targetSurface = tab.focusedPanelId else {
+            return "ERROR: No surface to split"
+        }
+        if tabManager.createQuadSplit(tabId: tabId, surfaceId: targetSurface, focus: true) {
+            return "OK \(tab.focusedPanelId?.uuidString ?? targetSurface.uuidString)"
+        }
+        return "ERROR: Failed to create split"
+    }
+
+    /// Test/DEBUG seam: invoke the production v1 `new_split` path without
+    /// going through the socket framing layer.
+    func debugInvokeLegacyNewSplitForTests(_ args: String) -> String {
+        newSplit(args)
     }
 
     /// The `list_surfaces` hop outcome: the (id, focused) value pairs, or the

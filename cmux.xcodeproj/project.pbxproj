@@ -1306,6 +1306,8 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		C0DEA771000000000000000F /* ProWelcomeChecklist.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DEA7710000000000000010 /* ProWelcomeChecklist.swift */; };
 		626F0EFC5D1643E885CC776E /* QuadSplitAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01BAA63BCC864AB59E2E8A8D /* QuadSplitAction.swift */; };
 		34009E763A28478F80D0AFC5 /* QuadSplitActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91E934E3EB9C45478D1A3EDA /* QuadSplitActionTests.swift */; };
+		A34D01C0A34D01C0A34D0006 /* QuadSplitAdapterRoutingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A34D01C0A34D01C0A34D0005 /* QuadSplitAdapterRoutingTests.swift */; };
+		A34D01C0A34D01C0A34D0002 /* QuadSplitAdapters.swift in Sources */ = {isa = PBXBuildFile; fileRef = A34D01C0A34D01C0A34D0001 /* QuadSplitAdapters.swift */; };
 		602ADBE12FA3407A8580CAEC /* QuadSplitButtonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F73FA96A248028EC8CDBD /* QuadSplitButtonTests.swift */; };
 		A64610010000000000000001 /* QuitConfirmationAlertPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64610010000000000000002 /* QuitConfirmationAlertPresenter.swift */; };
 		A64610020000000000000001 /* QuitConfirmationAlertPresenterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64610020000000000000002 /* QuitConfirmationAlertPresenterTests.swift */; };
@@ -1954,6 +1956,7 @@ BE7A0010SIDEBARDOCKLIVE02 /* SidebarDockLiveSectionSemanticsTests.swift in Sourc
 		C7AF20000000000000000001 /* TerminalController+MobileTerminalArtifacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7AF20000000000000000002 /* TerminalController+MobileTerminalArtifacts.swift */; };
 		C7A50B000000000000000012 /* TerminalController+MobileWorkspaceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A50B000000000000000011 /* TerminalController+MobileWorkspaceList.swift */; };
 		D7AB0000000000000000000B /* TerminalController+MoveTabToNewWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AB0000000000000000000C /* TerminalController+MoveTabToNewWorkspace.swift */; };
+		A34D01C0A34D01C0A34D0004 /* TerminalController+QuadSplitDebug.swift in Sources */ = {isa = PBXBuildFile; fileRef = A34D01C0A34D01C0A34D0003 /* TerminalController+QuadSplitDebug.swift */; };
 		812600000000000000000009 /* TerminalController+RemoteTerminalTransportErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81260000000000000000000A /* TerminalController+RemoteTerminalTransportErrors.swift */; };
 		A31B24551C6E01E86D76B07E /* TerminalController+RemoteTmux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B11974CF8937E165A3FAEE /* TerminalController+RemoteTmux.swift */; };
 		7738C0077738C0077738C007 /* TerminalController+RemoteTmuxControlMutations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7738D0077738D0077738D007 /* TerminalController+RemoteTmuxControlMutations.swift */; };
@@ -3585,6 +3588,8 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		C0DEA7710000000000000010 /* ProWelcomeChecklist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProWelcomeChecklist.swift; sourceTree = "<group>"; };
 		01BAA63BCC864AB59E2E8A8D /* QuadSplitAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadSplitAction.swift; sourceTree = "<group>"; };
 		91E934E3EB9C45478D1A3EDA /* QuadSplitActionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadSplitActionTests.swift; sourceTree = "<group>"; };
+		A34D01C0A34D01C0A34D0005 /* QuadSplitAdapterRoutingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadSplitAdapterRoutingTests.swift; sourceTree = "<group>"; };
+		A34D01C0A34D01C0A34D0001 /* QuadSplitAdapters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadSplitAdapters.swift; sourceTree = "<group>"; };
 		682F73FA96A248028EC8CDBD /* QuadSplitButtonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadSplitButtonTests.swift; sourceTree = "<group>"; };
 		A64610010000000000000002 /* QuitConfirmationAlertPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuitConfirmationAlertPresenter.swift; sourceTree = "<group>"; };
 		A64610020000000000000002 /* QuitConfirmationAlertPresenterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuitConfirmationAlertPresenterTests.swift; sourceTree = "<group>"; };
@@ -4218,6 +4223,7 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 		C7AF20000000000000000002 /* TerminalController+MobileTerminalArtifacts.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "TerminalController+MobileTerminalArtifacts.swift"; sourceTree = "<group>"; };
 		C7A50B000000000000000011 /* TerminalController+MobileWorkspaceList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TerminalController+MobileWorkspaceList.swift"; sourceTree = "<group>"; };
 		D7AB0000000000000000000C /* TerminalController+MoveTabToNewWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TerminalController+MoveTabToNewWorkspace.swift"; sourceTree = "<group>"; };
+		A34D01C0A34D01C0A34D0003 /* TerminalController+QuadSplitDebug.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TerminalController+QuadSplitDebug.swift"; sourceTree = "<group>"; };
 		81260000000000000000000A /* TerminalController+RemoteTerminalTransportErrors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TerminalController+RemoteTerminalTransportErrors.swift"; sourceTree = "<group>"; };
 		95B11974CF8937E165A3FAEE /* TerminalController+RemoteTmux.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TerminalController+RemoteTmux.swift"; sourceTree = "<group>"; };
 		7738D0077738D0077738D007 /* TerminalController+RemoteTmuxControlMutations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TerminalController+RemoteTmuxControlMutations.swift"; sourceTree = "<group>"; };
@@ -5655,6 +5661,8 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 				C3677004000000000000002 /* AppDelegate+CmuxSSHURL.swift */,
 				C65930010000000000000004 /* AppDelegate+CrashSessionSnapshotRemoval.swift */,
 								01BAA63BCC864AB59E2E8A8D /* QuadSplitAction.swift */,
+				A34D01C0A34D01C0A34D0001 /* QuadSplitAdapters.swift */,
+				A34D01C0A34D01C0A34D0003 /* TerminalController+QuadSplitDebug.swift */,
 E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				A74770010000000000000002 /* AppDelegate+MonitorMemory.swift */,
 				D7AB00000000000000000002 /* AppDelegate+MoveTabToNewWorkspace.swift */,
@@ -6740,6 +6748,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				0AA39C1B63CA20A58D275AD0 /* SidebarDockStoreTests.swift */,
 								91E934E3EB9C45478D1A3EDA /* QuadSplitActionTests.swift */,
 				682F73FA96A248028EC8CDBD /* QuadSplitButtonTests.swift */,
+				A34D01C0A34D01C0A34D0005 /* QuadSplitAdapterRoutingTests.swift */,
 BE7A0010SIDEBARDOCKBEHAV01 /* SidebarDockBehaviorTests.swift */,
 				BE7A0010SIDEBARDOCKWIRE01 /* SidebarDockCommandWiringTests.swift */,
 				BE7A0010SIDEBARDOCKACT01 /* SidebarDockActorSurfaceTests.swift */,
@@ -8194,6 +8203,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				0A110711000000000000001A /* PromptTurnNotificationHandler.swift in Sources */,
 				C0DEA771000000000000000F /* ProWelcomeChecklist.swift in Sources */,
 								626F0EFC5D1643E885CC776E /* QuadSplitAction.swift in Sources */,
+				A34D01C0A34D01C0A34D0002 /* QuadSplitAdapters.swift in Sources */,
 					A64610010000000000000001 /* QuitConfirmationAlertPresenter.swift in Sources */,
 				A500RG01 /* ReactGrab.swift in Sources */,
 				A6D1F0000000000000000002 /* ReleasingWindowController.swift in Sources */,
@@ -8628,6 +8638,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				C7AF20000000000000000001 /* TerminalController+MobileTerminalArtifacts.swift in Sources */,
 				C7A50B000000000000000012 /* TerminalController+MobileWorkspaceList.swift in Sources */,
 				D7AB0000000000000000000B /* TerminalController+MoveTabToNewWorkspace.swift in Sources */,
+				A34D01C0A34D01C0A34D0004 /* TerminalController+QuadSplitDebug.swift in Sources */,
 				812600000000000000000009 /* TerminalController+RemoteTerminalTransportErrors.swift in Sources */,
 				A31B24551C6E01E86D76B07E /* TerminalController+RemoteTmux.swift in Sources */,
 				7738C0077738C0077738C007 /* TerminalController+RemoteTmuxControlMutations.swift in Sources */,
@@ -9386,6 +9397,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				DE71CE00000000000000000A /* PresenceHeartbeatClientTests.swift in Sources */,
 				C47110010000000000000001 /* ProcessPipeReadCrashRegressionTests.swift in Sources */,
 								34009E763A28478F80D0AFC5 /* QuadSplitActionTests.swift in Sources */,
+				A34D01C0A34D01C0A34D0006 /* QuadSplitAdapterRoutingTests.swift in Sources */,
 				602ADBE12FA3407A8580CAEC /* QuadSplitButtonTests.swift in Sources */,
 				A64610020000000000000001 /* QuitConfirmationAlertPresenterTests.swift in Sources */,
 				A6D1F0400000000000000002 /* ReleasingWindowControllerTests.swift in Sources */,
