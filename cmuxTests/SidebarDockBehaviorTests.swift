@@ -299,7 +299,8 @@ struct SidebarDockBehaviorTests {
     }
 
     @Test func sharedCommandPathIsNarrowSurfaceForPlacement() throws {
-        let (store, tabs) = try seededStore(titles: ["A", "B"])
+        // Net section growth requires a live multi-tab source (VAL-RAIL-003/007).
+        let (store, tabs) = try seededStore(titles: ["A", "B", "C"])
         // Palette / context / drag all call SidebarDockCommand.perform → moveTabToNewSection.
         #expect(SidebarDockCommand.perform(
             commandId: SidebarDockCommand.moveTabToNewSectionBottom,
@@ -308,12 +309,14 @@ struct SidebarDockBehaviorTests {
             paneId: nil
         ))
         #expect(store.sectionCount == 2)
+        // Second create still uses a multi-tab source (A+C remain together after B split out).
         #expect(SidebarDockCommand.perform(
             commandId: SidebarDockCommand.moveTabToNewSectionTop,
             store: store,
             tabId: tabs[0],
             paneId: nil
         ))
-        #expect(store.sectionCount == 2 || store.sectionCount == 3)
+        #expect(store.sectionCount == 3)
+        #expect(store.bonsplitController.allTabIds.filter { store.surfaceIdToPanelId[$0] == nil }.isEmpty)
     }
 }

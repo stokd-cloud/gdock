@@ -15,6 +15,8 @@ struct SidebarDockInspectSnapshot: Equatable, Sendable {
         var sectionCount: Int
         var soleSectionCollapsed: Bool
         var railContentHeight: Double
+        /// Observed rail width for narrow-width dogfood (drag unreachable ≤160).
+        var railContentWidth: Double
         var isDividerDragActive: Bool
         /// Authoritative focused section (Bonsplit focused pane).
         var focusedPaneId: String?
@@ -63,6 +65,7 @@ extension SidebarDockInspectSnapshot.Edge {
             "section_count": sectionCount,
             "sole_section_collapsed": soleSectionCollapsed,
             "rail_content_height": railContentHeight,
+            "rail_content_width": railContentWidth,
             "is_divider_drag_active": isDividerDragActive,
             "sections": sections.map { section in
                 var sectionDict: [String: Any] = [
@@ -175,6 +178,7 @@ enum SidebarDockInspectBuilder {
             sectionCount: store.sectionCount,
             soleSectionCollapsed: store.isSoleSectionCollapsed,
             railContentHeight: Double(store.railContentHeight),
+            railContentWidth: Double(store.railContentWidth),
             isDividerDragActive: store.bonsplitController.isDividerDragActive,
             focusedPaneId: focusedPane?.id.uuidString,
             focusedSelectedTabId: focusedSelected?.uuid.uuidString,

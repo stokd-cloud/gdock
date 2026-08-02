@@ -111,6 +111,10 @@ enum SidebarDockCommand {
         let canMove: Bool = {
             guard let resolvedTab else { return false }
             guard store.surfaceIdToPanelId[resolvedTab] != nil else { return false }
+            // Net section growth needs a live multi-tab source (VAL-RAIL-003/007).
+            // Sole-tab create would leave Empty placeholders or only relocate.
+            guard let pane = store.paneId(forTabId: resolvedTab) else { return false }
+            guard store.bonsplitController.tabs(inPane: pane).count > 1 else { return false }
             // Moving a tab into a new section never empties the rail — it stays on this edge.
             return geometryAllows
         }()

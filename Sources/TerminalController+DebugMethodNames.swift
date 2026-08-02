@@ -53,6 +53,7 @@ extension TerminalController {
         "debug.sidebar_dock.perform_command",
         "debug.sidebar_dock.simulate_drop",
         "debug.sidebar_dock.reorder_section",
+        "debug.sidebar_dock.reorder_tab",
         "debug.sidebar_dock.divider_drag",
         "debug.sidebar_dock.resize_rail",
         "debug.sidebar_dock.refuse_paths",

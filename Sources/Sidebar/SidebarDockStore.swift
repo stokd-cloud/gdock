@@ -47,6 +47,10 @@ final class SidebarDockStore: BonsplitDelegate {
     /// Observed rail content height for trailing re-imposition and geometry checks.
     private(set) var railContentHeight: CGFloat = 0
 
+    /// Observed rail content width for narrow-width dogfood (drag unreachable ≤160).
+    /// Commands do not depend on width; hosts report it so DEBUG can audit ≤160.
+    private(set) var railContentWidth: CGFloat = 0
+
     /// Header / collapsed section height in points.
     let collapsedSectionHeight: CGFloat
 
@@ -333,6 +337,18 @@ final class SidebarDockStore: BonsplitDelegate {
             return false
         }
 
+        // Net section growth requires a live multi-tab source (VAL-RAIL-003/007).
+        // Sole-tab "create" would either leave a Bonsplit Empty placeholder when
+        // source == target, or only relocate when source != target.
+        guard let sourcePane = paneId(forTabId: tabId) else { return false }
+        let sourceTabCount = bonsplitController.tabs(inPane: sourcePane).count
+        guard sourceTabCount > 1 else {
+            Self.logger.info(
+                "sidebar-dock: moveTabToNewSection refused sole-tab source on \(self.edge.rawValue, privacy: .public)"
+            )
+            return false
+        }
+
         let insertFirst = position == .top
         // Right-leaning bottom chain: always split the current bottom-most pane
         // with insertFirst=false. Top inserts split the current top-most pane
@@ -349,6 +365,9 @@ final class SidebarDockStore: BonsplitDelegate {
         // Expand a collapsed target section before the drop lands.
         _ = expandCollapsedForDrop(paneId: targetPane)
 
+        let beforeCount = sectionCount
+        let beforeLive = surfaceIdToPanelId.count
+
         // Programmatic path uses the moving-tab split API so empty-pane
         // auto-close reaps the source when it was the last tab.
         let newPane = bonsplitController.splitPane(
@@ -358,9 +377,21 @@ final class SidebarDockStore: BonsplitDelegate {
             insertFirst: insertFirst
         )
         guard newPane != nil else { return false }
+        // Bonsplit inserts an "Empty" placeholder when source == target and the
+        // last tab is moved; reap unmapped placeholders and empty sections so
+        // final-tab teardown never leaves residual Empty panes (VAL-RAIL-007).
+        reapUnmappedPlaceholderTabsAndEmptySections()
         refreshTabBarVisibility()
         dropOrphanTabs()
-        return true
+        // Net growth succeeded only when section count increased and no live tab was lost.
+        let grew = sectionCount > beforeCount && surfaceIdToPanelId.count == beforeLive
+        let clean = unmappedPlaceholderTabCount() == 0
+        if !grew {
+            Self.logger.info(
+                "sidebar-dock: moveTabToNewSection produced no net growth on \(self.edge.rawValue, privacy: .public)"
+            )
+        }
+        return grew && clean
     }
 
     /// True when removing `tabId` from this rail would leave zero sections (D-18).
@@ -389,6 +420,14 @@ final class SidebarDockStore: BonsplitDelegate {
         railContentHeight = next
         reimposeTrailingCollapseIfNeeded()
         reimposeSoleSectionCollapseIfNeeded()
+    }
+
+    /// Host / DEBUG reports the current rail content width (from size observer, never body).
+    /// Drag creation is unreachable at supported widths ≤160; command paths ignore width.
+    func updateRailContentWidth(_ width: CGFloat) {
+        let next = max(0, width)
+        guard abs(next - railContentWidth) > 0.5 else { return }
+        railContentWidth = next
     }
 
     // MARK: - Collapse / expand
@@ -663,6 +702,7 @@ final class SidebarDockStore: BonsplitDelegate {
     func reorderTab(_ tabId: TabID, toIndex: Int) -> Bool {
         let ok = bonsplitController.reorderTab(tabId, toIndex: toIndex)
         dropOrphanTabs()
+        reapUnmappedPlaceholderTabsAndEmptySections()
         return ok
     }
 
@@ -694,6 +734,7 @@ final class SidebarDockStore: BonsplitDelegate {
         let ok = bonsplitController.moveTab(tabId, toPane: targetPaneId, atIndex: index)
         if ok {
             dropOrphanTabs()
+            reapUnmappedPlaceholderTabsAndEmptySections()
             refreshTabBarVisibility()
             if sectionCount < before {
                 // Empty section torn down; clear stale collapse state and
@@ -882,6 +923,7 @@ final class SidebarDockStore: BonsplitDelegate {
         }
         refreshTabBarVisibility()
         dropOrphanTabs()
+        reapUnmappedPlaceholderTabsAndEmptySections()
         return true
     }
 
@@ -1053,7 +1095,46 @@ final class SidebarDockStore: BonsplitDelegate {
         reimposeTrailingCollapseIfNeeded()
     }
 
-    // MARK: - Orphans
+    // MARK: - Orphans / Empty placeholder teardown
+
+    /// Count of Bonsplit tabs with no panel mapping (Empty placeholders / stale).
+    func unmappedPlaceholderTabCount() -> Int {
+        bonsplitController.allTabIds.filter { surfaceIdToPanelId[$0] == nil }.count
+    }
+
+    /// Close unmapped Bonsplit tabs (typically title `"Empty"` placeholders from
+    /// `splitPane(movingTab:)` when source == target) and prune empty sections so
+    /// extents redistribute without residual Empty panes (VAL-RAIL-007).
+    func reapUnmappedPlaceholderTabsAndEmptySections() {
+        let unmapped = bonsplitController.allTabIds.filter { surfaceIdToPanelId[$0] == nil }
+        guard !unmapped.isEmpty else {
+            // Still drop empty-panel-only sections if any pane lost all mapped tabs.
+            closeSectionsWithNoLiveTabs()
+            return
+        }
+        for tabId in unmapped {
+            Self.logger.info(
+                "sidebar-dock: reaping unmapped placeholder tab \(tabId.uuid.uuidString, privacy: .public) on \(self.edge.rawValue, privacy: .public)"
+            )
+            _ = bonsplitController.closeTab(tabId)
+        }
+        closeSectionsWithNoLiveTabs()
+        pruneCollapseState()
+        refreshTabBarVisibility()
+    }
+
+    /// Close any section pane that has zero mapped live tabs (Empty-only residue).
+    private func closeSectionsWithNoLiveTabs() {
+        // Iterate a snapshot of pane ids; closing mutates the tree.
+        let panes = orderedSectionPaneIds()
+        guard panes.count > 1 else { return }
+        for pane in panes {
+            let live = bonsplitController.tabs(inPane: pane).filter { surfaceIdToPanelId[$0.id] != nil }
+            if live.isEmpty, sectionCount > 1 {
+                _ = bonsplitController.closePane(pane)
+            }
+        }
+    }
 
     /// Drop tab→panel mappings with no live panel (log + remove tab).
     func dropOrphanTabs() {
@@ -1080,6 +1161,8 @@ final class SidebarDockStore: BonsplitDelegate {
                 _ = panelId
             }
         }
+        // After orphan close, reap any Empty placeholders left in the tree.
+        reapUnmappedPlaceholderTabsAndEmptySections()
         refreshTabBarVisibility()
     }
 

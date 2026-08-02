@@ -15,6 +15,7 @@ extension TerminalController {
         "debug.sidebar_dock.perform_command",
         "debug.sidebar_dock.simulate_drop",
         "debug.sidebar_dock.reorder_section",
+        "debug.sidebar_dock.reorder_tab",
         "debug.sidebar_dock.divider_drag",
         "debug.sidebar_dock.resize_rail",
         "debug.sidebar_dock.refuse_paths",
@@ -32,6 +33,8 @@ extension TerminalController {
             return v2SidebarDockSimulateDrop(params: params)
         case "debug.sidebar_dock.reorder_section":
             return v2SidebarDockReorderSection(params: params)
+        case "debug.sidebar_dock.reorder_tab":
+            return v2SidebarDockReorderTab(params: params)
         case "debug.sidebar_dock.divider_drag":
             return v2SidebarDockDividerDrag(params: params)
         case "debug.sidebar_dock.resize_rail":
@@ -122,14 +125,20 @@ extension TerminalController {
     /// params: {
     ///   window_id?: uuid,
     ///   edge: "left"|"right",
-    ///   tab_id: uuid,
+    ///   // Live tab selectors (any one). Stale Empty ids fall through to live resolve.
+    ///   tab_id?: uuid,
+    ///   panel_id?: uuid,
+    ///   tab_title?: string,
+    ///   section_index?: int, tab_index?: int,
+    ///   // Representative disallowed-panel refuse (no live tab required):
+    ///   panel_type?: string,  // e.g. "terminal", "browser"
     ///   zone: "top"|"bottom"|"left"|"right"|"center",
     ///   target_pane_id?: uuid,
     ///   // optional geometry probe instead of zone:
     ///   location_x?: number, location_y?: number,
     ///   size_width?: number, size_height?: number
     /// }
-    /// result: { outcome, reason, section_count, inspect }
+    /// result: { outcome, reason, section_count, inspect, resolved_tab_id? }
     /// ```
     private func v2SidebarDockSimulateDrop(params: [String: Any]) -> V2CallResult {
         guard let resolved = resolveSidebarDockRegistry(params: params) else {
@@ -138,10 +147,42 @@ extension TerminalController {
         guard let edge = v2SidebarDockEdge(params) else {
             return .err(code: "invalid_params", message: "Missing or invalid edge", data: nil)
         }
-        guard let tabUUID = v2UUID(params, "tab_id") else {
-            return .err(code: "invalid_params", message: "Missing or invalid tab_id", data: nil)
-        }
         let store = resolved.registry.store(for: edge)
+        let before = store.sectionSnapshots()
+        let beforePanels = store.panels.count
+        let beforeTabs = store.surfaceIdToPanelId.count
+
+        // Representative disallowed-panel refuse: lossless, no live tab required.
+        if let panelTypeRaw = v2String(params, "panel_type"),
+           let panelType = PanelType(rawValue: panelTypeRaw),
+           !SidebarDockPlacementMatrix.allows(panelType: panelType) {
+            let outcome = SidebarDockDropHandler.refuseDisallowedPanel(
+                store: store,
+                panelType: panelType
+            )
+            let after = store.sectionSnapshots()
+            return .ok([
+                "outcome": outcome.reasonCode,
+                "success": outcome.isSuccess,
+                "zone": v2String(params, "zone") ?? "center",
+                "edge": edge.rawValue,
+                "panel_type": panelTypeRaw,
+                "section_count": store.sectionCount,
+                "lossless_on_refuse": !outcome.isSuccess
+                    && before == after
+                    && store.panels.count == beforePanels
+                    && store.surfaceIdToPanelId.count == beforeTabs,
+                "inspect": SidebarDockInspectBuilder.buildEdge(store: store).asEdgeDictionary(),
+            ])
+        }
+
+        guard let tabId = resolveSidebarDockLiveTab(store: store, params: params) else {
+            return .err(
+                code: "invalid_params",
+                message: "Could not resolve a live mapped tab_id/panel_id/tab_title/section_index",
+                data: nil
+            )
+        }
         let zone: SidebarDockEdgeBand.Zone
         if let zoneRaw = v2String(params, "zone"),
            let parsed = SidebarDockEdgeBand.Zone(rawValue: zoneRaw) {
@@ -162,10 +203,18 @@ extension TerminalController {
                 data: nil
             )
         }
-        let targetPane = v2UUID(params, "target_pane_id").map { PaneID(id: $0) }
-        let before = store.sectionSnapshots()
+        // Center same-pane: default target to the live tab's pane when omitted.
+        let targetPane: PaneID? = {
+            if let explicit = v2UUID(params, "target_pane_id") {
+                return PaneID(id: explicit)
+            }
+            if zone == .center {
+                return store.paneId(forTabId: tabId)
+            }
+            return nil
+        }()
         let outcome = store.handleTabEdgeBandDrop(
-            tabId: TabID(uuid: tabUUID),
+            tabId: tabId,
             zone: zone,
             targetPaneId: targetPane
         )
@@ -175,8 +224,12 @@ extension TerminalController {
             "success": outcome.isSuccess,
             "zone": zone.rawValue,
             "edge": edge.rawValue,
+            "resolved_tab_id": tabId.uuid.uuidString,
             "section_count": store.sectionCount,
-            "lossless_on_refuse": !outcome.isSuccess && before == after,
+            "lossless_on_refuse": !outcome.isSuccess
+                && before == after
+                && store.panels.count == beforePanels
+                && store.surfaceIdToPanelId.count == beforeTabs,
             "inspect": SidebarDockInspectBuilder.buildEdge(store: store).asEdgeDictionary(),
         ])
     }
@@ -206,6 +259,48 @@ extension TerminalController {
             "handled": handled,
             "from_index": fromIndex,
             "to_index": toIndex,
+            "edge": edge.rawValue,
+            "section_count": store.sectionCount,
+            "inspect": SidebarDockInspectBuilder.buildEdge(store: store).asEdgeDictionary(),
+        ])
+    }
+
+    // MARK: - reorder_tab
+
+    /// Schema:
+    /// ```
+    /// debug.sidebar_dock.reorder_tab
+    /// params: {
+    ///   window_id?, edge,
+    ///   tab_id?: uuid, panel_id?: uuid, tab_title?: string, section_index?: int, tab_index?: int,
+    ///   to_index: int
+    /// }
+    /// result: { handled, to_index, resolved_tab_id, section_count, inspect }
+    /// ```
+    /// Routes through production `SidebarDockStore.reorderTab` → Bonsplit `reorderTab`.
+    private func v2SidebarDockReorderTab(params: [String: Any]) -> V2CallResult {
+        guard let resolved = resolveSidebarDockRegistry(params: params) else {
+            return .err(code: "not_found", message: "No sidebar dock registry for window", data: nil)
+        }
+        guard let edge = v2SidebarDockEdge(params) else {
+            return .err(code: "invalid_params", message: "Missing or invalid edge", data: nil)
+        }
+        guard let toIndex = v2Int(params, "to_index") else {
+            return .err(code: "invalid_params", message: "Missing to_index", data: nil)
+        }
+        let store = resolved.registry.store(for: edge)
+        guard let tabId = resolveSidebarDockLiveTab(store: store, params: params) else {
+            return .err(
+                code: "invalid_params",
+                message: "Could not resolve a live mapped tab for reorder_tab",
+                data: nil
+            )
+        }
+        let handled = store.reorderTab(tabId, toIndex: toIndex)
+        return .ok([
+            "handled": handled,
+            "to_index": toIndex,
+            "resolved_tab_id": tabId.uuid.uuidString,
             "edge": edge.rawValue,
             "section_count": store.sectionCount,
             "inspect": SidebarDockInspectBuilder.buildEdge(store: store).asEdgeDictionary(),
@@ -281,9 +376,11 @@ extension TerminalController {
     /// Schema:
     /// ```
     /// debug.sidebar_dock.resize_rail
-    /// params: { window_id?, edge, height: number }
-    /// result: { edge, height, inspect }
+    /// params: { window_id?, edge, height?: number, width?: number }
+    /// result: { edge, height?, width?, inspect }
     /// ```
+    /// Height drives geometry refusal / collapse reimpose. Width is audited for
+    /// narrow ≤160 dogfood; production commands ignore width (drag is unreachable).
     private func v2SidebarDockResizeRail(params: [String: Any]) -> V2CallResult {
         guard let resolved = resolveSidebarDockRegistry(params: params) else {
             return .err(code: "not_found", message: "No sidebar dock registry for window", data: nil)
@@ -291,16 +388,37 @@ extension TerminalController {
         guard let edge = v2SidebarDockEdge(params) else {
             return .err(code: "invalid_params", message: "Missing or invalid edge", data: nil)
         }
-        guard let height = v2Double(params, "height"), height >= 0 else {
+        let height = v2Double(params, "height")
+        let width = v2Double(params, "width")
+        guard height != nil || width != nil else {
+            return .err(
+                code: "invalid_params",
+                message: "Provide height and/or width as non-negative numbers",
+                data: nil
+            )
+        }
+        if let height, height < 0 {
             return .err(code: "invalid_params", message: "height must be a non-negative number", data: nil)
         }
+        if let width, width < 0 {
+            return .err(code: "invalid_params", message: "width must be a non-negative number", data: nil)
+        }
         let store = resolved.registry.store(for: edge)
-        store.updateRailContentHeight(CGFloat(height))
-        return .ok([
+        if let height {
+            store.updateRailContentHeight(CGFloat(height))
+        }
+        if let width {
+            store.updateRailContentWidth(CGFloat(width))
+        }
+        var result: [String: Any] = [
             "edge": edge.rawValue,
-            "height": height,
             "inspect": SidebarDockInspectBuilder.buildEdge(store: store).asEdgeDictionary(),
-        ])
+        ]
+        if let height { result["height"] = height }
+        if let width { result["width"] = width }
+        result["rail_content_width"] = store.railContentWidth
+        result["rail_content_height"] = store.railContentHeight
+        return .ok(result)
     }
 
     // MARK: - refuse_paths
@@ -308,8 +426,12 @@ extension TerminalController {
     /// Schema:
     /// ```
     /// debug.sidebar_dock.refuse_paths
-    /// params: { window_id?, edge, tab_id: uuid }
-    /// result: exercises horizontal + geometry refusal; reports lossless recovery
+    /// params: {
+    ///   window_id?, edge,
+    ///   tab_id?: uuid, panel_id?: uuid, tab_title?: string, section_index?: int,
+    ///   panel_type?: string  // optional extra disallowed refuse cell
+    /// }
+    /// result: exercises horizontal + geometry + disallowed refusal; reports lossless recovery
     /// ```
     private func v2SidebarDockRefusePaths(params: [String: Any]) -> V2CallResult {
         guard let resolved = resolveSidebarDockRegistry(params: params) else {
@@ -318,11 +440,14 @@ extension TerminalController {
         guard let edge = v2SidebarDockEdge(params) else {
             return .err(code: "invalid_params", message: "Missing or invalid edge", data: nil)
         }
-        guard let tabUUID = v2UUID(params, "tab_id") else {
-            return .err(code: "invalid_params", message: "Missing or invalid tab_id", data: nil)
-        }
         let store = resolved.registry.store(for: edge)
-        let tabId = TabID(uuid: tabUUID)
+        guard let tabId = resolveSidebarDockLiveTab(store: store, params: params) else {
+            return .err(
+                code: "invalid_params",
+                message: "Could not resolve a live mapped tab for refuse_paths",
+                data: nil
+            )
+        }
         let before = store.sectionSnapshots()
         let beforePanels = store.panels.count
         let beforeTabs = store.surfaceIdToPanelId.count
@@ -334,6 +459,7 @@ extension TerminalController {
             && store.surfaceIdToPanelId.count == beforeTabs
 
         // Geometry refuse: shrink height so another header cannot fit.
+        // Use a multi-tab source when possible so the refuse is geometry, not sole-tab.
         let originalHeight = store.railContentHeight
         store.updateRailContentHeight(store.collapsedSectionHeight)
         let geometry = store.handleTabEdgeBandDrop(tabId: tabId, zone: .bottom)
@@ -343,6 +469,17 @@ extension TerminalController {
             && store.surfaceIdToPanelId.count == beforeTabs
         store.updateRailContentHeight(originalHeight)
 
+        let disallowedTypeRaw = v2String(params, "panel_type") ?? PanelType.terminal.rawValue
+        let disallowedType = PanelType(rawValue: disallowedTypeRaw) ?? .terminal
+        let disallowed = SidebarDockDropHandler.refuseDisallowedPanel(
+            store: store,
+            panelType: disallowedType
+        )
+        let afterDisallowed = store.sectionSnapshots()
+        let disallowedLossless = afterDisallowed == before
+            && store.panels.count == beforePanels
+            && store.surfaceIdToPanelId.count == beforeTabs
+
         let pane = store.orderedSectionPaneIds().first
         let shouldHorizontal = pane.map {
             store.splitTabBar(store.bonsplitController, shouldSplitPane: $0, orientation: .horizontal)
@@ -350,6 +487,7 @@ extension TerminalController {
 
         return .ok([
             "edge": edge.rawValue,
+            "resolved_tab_id": tabId.uuid.uuidString,
             "horizontal": [
                 "outcome": horizontal.reasonCode,
                 "lossless": horizontalLossless,
@@ -357,6 +495,11 @@ extension TerminalController {
             "geometry": [
                 "outcome": geometry.reasonCode,
                 "lossless": geometryLossless,
+            ],
+            "disallowed": [
+                "outcome": disallowed.reasonCode,
+                "lossless": disallowedLossless,
+                "panel_type": disallowedType.rawValue,
             ],
             "should_split_horizontal": shouldHorizontal,
             "inspect": SidebarDockInspectBuilder.buildEdge(store: store).asEdgeDictionary(),
@@ -385,6 +528,65 @@ extension TerminalController {
     private func v2SidebarDockEdge(_ params: [String: Any]) -> SidebarDockEdge? {
         guard let raw = v2String(params, "edge") else { return nil }
         return SidebarDockEdge(rawValue: raw)
+    }
+
+    /// Resolve a live mapped tab for dogfood fixtures.
+    ///
+    /// Prefers explicit live `tab_id`, then `panel_id`, `tab_title`,
+    /// `section_index`+`tab_index`, then focused/selected, then first live tab.
+    /// Stale Empty placeholder ids are ignored so center same-pane is a true no-op.
+    private func resolveSidebarDockLiveTab(
+        store: SidebarDockStore,
+        params: [String: Any]
+    ) -> TabID? {
+        if let uuid = v2UUID(params, "tab_id") {
+            let tab = TabID(uuid: uuid)
+            if store.surfaceIdToPanelId[tab] != nil {
+                return tab
+            }
+            // Stale / Empty id — fall through to live selectors.
+        }
+        if let panelUUID = v2UUID(params, "panel_id"),
+           let tab = store.surfaceId(forPanelId: panelUUID) {
+            return tab
+        }
+        if let title = v2String(params, "tab_title"), !title.isEmpty {
+            for pane in store.orderedSectionPaneIds() {
+                for tab in store.bonsplitController.tabs(inPane: pane) {
+                    if tab.title == title, store.surfaceIdToPanelId[tab.id] != nil {
+                        return tab.id
+                    }
+                }
+            }
+        }
+        if let sectionIndex = v2Int(params, "section_index") {
+            let panes = store.orderedSectionPaneIds()
+            if panes.indices.contains(sectionIndex) {
+                let live = store.bonsplitController.tabs(inPane: panes[sectionIndex])
+                    .map(\.id)
+                    .filter { store.surfaceIdToPanelId[$0] != nil }
+                let tabIndex = v2Int(params, "tab_index") ?? 0
+                if live.indices.contains(tabIndex) {
+                    return live[tabIndex]
+                }
+            }
+        }
+        // Focused selected live tab.
+        if let focused = store.bonsplitController.focusedPaneId
+            ?? store.orderedSectionPaneIds().first,
+           let selected = store.bonsplitController.selectedTab(inPane: focused),
+           store.surfaceIdToPanelId[selected.id] != nil {
+            return selected.id
+        }
+        // First live mapped tab on the edge.
+        for pane in store.orderedSectionPaneIds() {
+            for tab in store.bonsplitController.tabs(inPane: pane) {
+                if store.surfaceIdToPanelId[tab.id] != nil {
+                    return tab.id
+                }
+            }
+        }
+        return nil
     }
 }
 

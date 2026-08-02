@@ -237,7 +237,8 @@ struct SidebarDockActorSurfaceTests {
             #expect(names.contains(method), "Missing debug method \(method)")
             #expect(method.hasPrefix("debug.sidebar_dock."))
         }
-        #expect(TerminalController.sidebarDockDebugMethodNames.count == 7)
+        #expect(TerminalController.sidebarDockDebugMethodNames.count == 8)
+        #expect(TerminalController.sidebarDockDebugMethodNames.contains("debug.sidebar_dock.reorder_tab"))
 #else
         // Release builds omit the DEBUG catalog; registration is DEBUG-gated by design.
         #expect(Bool(true))
@@ -257,6 +258,7 @@ struct SidebarDockActorSurfaceTests {
             "debug.sidebar_dock.perform_command",
             "debug.sidebar_dock.simulate_drop",
             "debug.sidebar_dock.reorder_section",
+            "debug.sidebar_dock.reorder_tab",
             "debug.sidebar_dock.divider_drag",
             "debug.sidebar_dock.resize_rail",
             "debug.sidebar_dock.refuse_paths",
@@ -268,6 +270,8 @@ struct SidebarDockActorSurfaceTests {
         #expect(source.contains("handleTabEdgeBandDrop"))
         #expect(source.contains("handleSectionHeaderReorder"))
         #expect(source.contains("updateRailContentHeight"))
+        #expect(source.contains("store.reorderTab") || source.contains(".reorderTab("))
+        #expect(source.contains("resolveSidebarDockLiveTab"))
     }
 
     // MARK: Inspect snapshot (no store below boundary)

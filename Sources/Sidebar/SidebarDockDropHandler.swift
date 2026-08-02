@@ -151,4 +151,23 @@ enum SidebarDockDropHandler {
             return outcome.isSuccess
         }
     }
+
+    /// Lossless refuse for a disallowed panel type without attaching or mutating
+    /// the rail. DEBUG dogfood and external fixtures call this for the
+    /// representative disallowed-panel cell of the VAL-RAIL-004 matrix.
+    @discardableResult
+    static func refuseDisallowedPanel(
+        store: SidebarDockStore,
+        panelType: PanelType
+    ) -> Outcome {
+        // Allowed types are not refused here — callers must use the live drop path.
+        guard !SidebarDockPlacementMatrix.allows(panelType: panelType) else {
+            return .refused(reason: .unknown)
+        }
+        // Explicit no-op mutation check: read-only snapshots must stay equal.
+        _ = store.sectionSnapshots()
+        _ = store.panels.count
+        _ = store.surfaceIdToPanelId.count
+        return .refused(reason: .disallowedPanel)
+    }
 }

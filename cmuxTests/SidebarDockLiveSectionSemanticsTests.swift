@@ -253,15 +253,10 @@ struct SidebarDockLiveSectionSemanticsTests {
     @Test func narrowWidthCommandsRemainUsableOnProductionPath() throws {
         let (store, tabs) = try seeded(titles: ["A", "B", "C"], height: 400)
         // Production command path must remain usable when drag is unreachable
-        // (rail width ≤160). Width channel + invoker path must exist and grow
-        // sections from a multi-tab source without Empty residuals.
-        let storeSource = try String(
-            contentsOf: repoRoot()
-                .appendingPathComponent("Sources/Sidebar/SidebarDockStore.swift"),
-            encoding: .utf8
-        )
-        #expect(storeSource.contains("updateRailContentWidth"))
-        #expect(storeSource.contains("railContentWidth"))
+        // (rail width ≤160). Width channel + invoker path grow sections from a
+        // multi-tab source without Empty residuals.
+        store.updateRailContentWidth(160)
+        #expect(store.railContentWidth <= 160 + 0.5)
 
         let topOK = SidebarDockCommand.perform(
             commandId: SidebarDockCommand.moveTabToNewSectionTop,
@@ -289,7 +284,23 @@ struct SidebarDockLiveSectionSemanticsTests {
                 .appendingPathComponent("Sources/TerminalController+SidebarDockDebug.swift"),
             encoding: .utf8
         )
-        #expect(debugSource.contains("width") || debugSource.contains("rail_content_width"))
+        #expect(debugSource.contains("updateRailContentWidth") || debugSource.contains("rail_content_width"))
+    }
+
+    @Test func dropHandlerRefusesDisallowedPanelTypeWithoutMutation() throws {
+        let (store, tabs) = try seeded(titles: ["A", "B"])
+        let beforeSnaps = store.sectionSnapshots()
+        let beforePanels = store.panels.count
+        let beforeTabs = store.surfaceIdToPanelId.count
+        let outcome = SidebarDockDropHandler.refuseDisallowedPanel(
+            store: store,
+            panelType: .terminal
+        )
+        #expect(outcome == .refused(reason: .disallowedPanel))
+        #expect(store.sectionSnapshots() == beforeSnaps)
+        #expect(store.panels.count == beforePanels)
+        #expect(store.surfaceIdToPanelId.count == beforeTabs)
+        #expect(store.surfaceIdToPanelId[tabs[0]] != nil)
     }
 
     // MARK: DEBUG dogfood surface (tab reorder + live resolve)
