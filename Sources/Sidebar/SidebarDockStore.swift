@@ -975,23 +975,50 @@ final class SidebarDockStore: BonsplitDelegate {
         SidebarDockInspectBuilder.buildEdge(store: self)
     }
 
-    /// Divider-drag lifecycle helpers for DEBUG dogfood (same store methods UI uses).
+    /// Divider-drag lifecycle helpers for DEBUG dogfood.
+    ///
+    /// Must drive the **same** production Bonsplit session used by pointer
+    /// dragging (`noteDividerDragSession` → `isDividerDragActive` +
+    /// `splitTabBarDividerDragDidBegin/End`). Do not fake the inspect boolean
+    /// or bypass the controller counter — collapse deferral and drag-end flush
+    /// depend on that authoritative state (VAL-RAIL-006 / D-32).
     @discardableResult
     func debugBeginDividerDrag(adjacentTo paneId: PaneID) -> Bool {
+        // Clear collapsed imposition on the first-child (and trailing second
+        // sibling if that parent is pinned) before the drag owns geometry —
+        // same preparation as `resizeBoundary` / real pointer drag.
         prepareDividerDrag(adjacentTo: paneId)
-        // prepareDividerDrag is a no-op when the section is not collapsed; still
-        // a successful begin for dogfood (drag owns geometry either way).
+        if let parent = parentSplitId(of: paneId),
+           trailingCollapsedParentSplitId == parent,
+           let second = secondChildPane(ofSplit: parent) {
+            prepareDividerDrag(adjacentTo: second)
+        }
+        // Arm the real controller session (balanced by debugEndDividerDrag).
+        // Idempotent: overlapping begin while already active must not re-bump
+        // the session counter and desync end.
+        if !bonsplitController.isDividerDragActive {
+            bonsplitController.noteDividerDragSession(true)
+        }
         return true
     }
 
     @discardableResult
     func debugSetDividerExtent(firstChildPane paneId: PaneID, firstChildExtent: CGFloat) -> Bool {
+        // Shared clamp + adjacent-clear path used by live boundary resize.
         resizeBoundary(firstChildPane: paneId, firstChildExtent: firstChildExtent)
     }
 
     func debugEndDividerDrag() {
-        flushPendingCollapses()
-        reimposeTrailingCollapseIfNeeded()
+        if bonsplitController.isDividerDragActive {
+            // Zero-crossing delivers force geometry notify +
+            // `splitTabBarDividerDragDidEnd` → single flush + trailing reimpose.
+            bonsplitController.noteDividerDragSession(false)
+        } else {
+            // Begin never armed (or already ended): still flush any pending
+            // collapses so dogfood end is safe to call twice.
+            flushPendingCollapses()
+            reimposeTrailingCollapseIfNeeded()
+        }
         reimposeSoleSectionCollapseIfNeeded()
     }
 

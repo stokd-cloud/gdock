@@ -307,8 +307,11 @@ struct SidebarDockActorSurfaceTests {
         let panes = store.orderedSectionPaneIds()
         #expect(store.collapseSection(paneId: panes[0]))
         #expect(store.debugBeginDividerDrag(adjacentTo: panes[0]))
+        // DEBUG begin must arm the production Bonsplit drag session.
+        #expect(store.bonsplitController.isDividerDragActive)
         // After begin adjacent to collapsed, imposition cleared / expanded.
         store.debugEndDividerDrag()
+        #expect(!store.bonsplitController.isDividerDragActive)
         store.updateRailContentHeight(600)
         #expect(abs(store.railContentHeight - 600) <= 0.5)
     }
