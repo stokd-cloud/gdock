@@ -207,23 +207,19 @@ final class SidebarDockStore: BonsplitDelegate {
 
     /// Pane-host → durable section id. Bonsplit pane hosts may be replaced; this
     /// map is the app-owned oracle for complete snapshots (VAL-RAIL-008 / D-33).
-    ///
-    /// RED (pre-fix): intentionally empty so `sectionId(forPane:)` falls back to
-    /// the current pane host UUID. Whole-section reorder that rebuilds pane hosts
-    /// therefore loses section identity until the green mapping lands.
     private var sectionIdByPaneHost: [UUID: SidebarDockSectionID] = [:]
 
     /// App-owned stable section id for a pane host.
     ///
-    /// Distinct from `pane.id`. When no durable binding exists yet, falls back to
-    /// a host-derived id so callers always get a value (red-state / recovery).
+    /// Distinct from `pane.id`. Ensures a durable binding exists (seed / recovery).
+    @discardableResult
     func sectionId(forPane pane: PaneID) -> SidebarDockSectionID {
         if let bound = sectionIdByPaneHost[pane.id] {
             return bound
         }
-        // Red-state fallback: mirror the replaceable host (fails identity across
-        // host-replacing reorder). Green path binds durable ids before read.
-        return SidebarDockSectionID(pane.id)
+        let minted = SidebarDockSectionID()
+        sectionIdByPaneHost[pane.id] = minted
+        return minted
     }
 
     /// Ordered durable section ids (top → bottom), one per live leaf pane.
@@ -234,6 +230,40 @@ final class SidebarDockStore: BonsplitDelegate {
     /// Number of durable pane-host → section-id bindings (tests / inspect).
     var sectionIdentityBindingCount: Int {
         sectionIdByPaneHost.count
+    }
+
+    /// Bind a known durable section id to a (possibly new) pane host.
+    /// Removes any prior host that held the same id so rebinds stay 1:1.
+    private func bindSectionId(_ sectionId: SidebarDockSectionID, to pane: PaneID) {
+        for (host, bound) in sectionIdByPaneHost where bound == sectionId && host != pane.id {
+            sectionIdByPaneHost.removeValue(forKey: host)
+        }
+        sectionIdByPaneHost[pane.id] = sectionId
+    }
+
+    /// After topology changes: prune dead hosts, mint missing ids, repair duplicates.
+    private func reconcileSectionIdentities() {
+        let liveHosts = orderedSectionPaneIds().map(\.id)
+        let liveSet = Set(liveHosts)
+        sectionIdByPaneHost = sectionIdByPaneHost.filter { liveSet.contains($0.key) }
+
+        var claimed = Set<UUID>()
+        for host in liveHosts {
+            if let existing = sectionIdByPaneHost[host] {
+                if claimed.contains(existing.rawValue) {
+                    // Two hosts claimed the same id — remint the later one.
+                    let fresh = SidebarDockSectionID()
+                    sectionIdByPaneHost[host] = fresh
+                    claimed.insert(fresh.rawValue)
+                } else {
+                    claimed.insert(existing.rawValue)
+                }
+            } else {
+                let fresh = SidebarDockSectionID()
+                sectionIdByPaneHost[host] = fresh
+                claimed.insert(fresh.rawValue)
+            }
+        }
     }
 
     // MARK: - Seed / attach
@@ -267,6 +297,12 @@ final class SidebarDockStore: BonsplitDelegate {
                 bonsplitController.focusPane(pane)
             }
         }
+        // Seed / first attach: ensure the hosting section has a durable id.
+        if let pane = self.paneId(forTabId: tabId) {
+            _ = sectionId(forPane: pane)
+        } else {
+            reconcileSectionIdentities()
+        }
         dropOrphanTabs()
         refreshTabBarVisibility()
         return tabId
@@ -275,12 +311,15 @@ final class SidebarDockStore: BonsplitDelegate {
     /// Seed the rail with panels in a single root section (flag-on first mount).
     func seedRootPanels(_ seedPanels: [any Panel]) {
         guard let root = bonsplitController.allPaneIds.first else { return }
+        // One durable section id for the seeded root before tabs attach.
+        _ = sectionId(forPane: root)
         for panel in seedPanels {
             _ = attachPanel(panel, inPane: root, select: false)
         }
         if let firstTab = bonsplitController.tabs(inPane: root).first {
             bonsplitController.selectTab(firstTab.id)
         }
+        reconcileSectionIdentities()
         refreshTabBarVisibility()
     }
 
@@ -401,6 +440,8 @@ final class SidebarDockStore: BonsplitDelegate {
 
         let beforeCount = sectionCount
         let beforeLive = surfaceIdToPanelId.count
+        // Preserve the target section's durable id before topology mutates.
+        let preservedTargetSectionId = sectionId(forPane: targetPane)
 
         // Programmatic path uses the moving-tab split API so empty-pane
         // auto-close reaps the source when it was the last tab.
@@ -410,11 +451,19 @@ final class SidebarDockStore: BonsplitDelegate {
             movingTab: tabId,
             insertFirst: insertFirst
         )
-        guard newPane != nil else { return false }
+        guard let newPane else { return false }
         // Bonsplit inserts an "Empty" placeholder when source == target and the
         // last tab is moved; reap unmapped placeholders and empty sections so
         // final-tab teardown never leaves residual Empty panes (VAL-RAIL-007).
         reapUnmappedPlaceholderTabsAndEmptySections()
+        // Original host keeps its durable id; the new leaf gets a fresh one.
+        // didSplitPane may already have minted for newPane — reassert 1:1.
+        bindSectionId(preservedTargetSectionId, to: targetPane)
+        if sectionIdByPaneHost[newPane.id] == nil
+            || sectionIdByPaneHost[newPane.id] == preservedTargetSectionId {
+            bindSectionId(SidebarDockSectionID(), to: newPane)
+        }
+        reconcileSectionIdentities()
         refreshTabBarVisibility()
         dropOrphanTabs()
         // Net growth succeeded only when section count increased and no live tab was lost.
@@ -778,6 +827,7 @@ final class SidebarDockStore: BonsplitDelegate {
                 // redistribute surviving extents via bonsplit auto-layout.
                 pruneCollapseState()
             }
+            reconcileSectionIdentities()
             // Selection remains authoritative for panes that still exist.
             _ = beforeSelection
         }
@@ -798,6 +848,8 @@ final class SidebarDockStore: BonsplitDelegate {
             if sectionCount < before {
                 pruneCollapseState()
             }
+            // Final-tab teardown (and any Empty reap) must drop dead host bindings.
+            reconcileSectionIdentities()
         }
         return ok
     }
@@ -940,6 +992,13 @@ final class SidebarDockStore: BonsplitDelegate {
             return false
         }
 
+        // Rebind durable section ids onto the (possibly new) pane hosts so
+        // complete snapshots keep identity when Bonsplit replaces hosts (D-33).
+        sectionIdByPaneHost.removeAll(keepingCapacity: true)
+        for (index, section) in sections.enumerated() {
+            bindSectionId(section.sectionId, to: panes[index])
+        }
+
         // Verify tab membership and re-apply collapse + desired remembered extent.
         for (index, section) in sections.enumerated() {
             let pane = panes[index]
@@ -972,16 +1031,32 @@ final class SidebarDockStore: BonsplitDelegate {
         refreshTabBarVisibility()
         dropOrphanTabs()
         reapUnmappedPlaceholderTabsAndEmptySections()
+        // Reap must not drop rebound ids for surviving hosts.
+        reconcileSectionIdentities()
+        // Re-assert capture order after any reap-driven host churn.
+        let reboundPanes = orderedSectionPaneIds()
+        guard reboundPanes.count == expectedCount else { return false }
+        sectionIdByPaneHost.removeAll(keepingCapacity: true)
+        for (index, section) in sections.enumerated() {
+            bindSectionId(section.sectionId, to: reboundPanes[index])
+        }
 
         guard sectionCount == expectedCount,
               unmappedPlaceholderTabCount() == 0,
-              surfaceIdToPanelId.count == allTabIds.count else {
+              surfaceIdToPanelId.count == allTabIds.count,
+              sectionIdentityBindingCount == expectedCount else {
             return false
         }
-        // Final complete-snapshot check: tab ids per live section.
+        // Final complete-snapshot check: durable section id + tab ids per live section.
         let final = captureLiveSectionsForReorder()
         guard final.count == expectedCount else { return false }
         for (index, section) in sections.enumerated() {
+            guard final[index].sectionId == section.sectionId else {
+                Self.logger.error(
+                    "sidebar-dock: reorder lost section id on \(self.edge.rawValue, privacy: .public) index=\(index)"
+                )
+                return false
+            }
             guard final[index].tabIds.map(\.uuid) == section.tabIds.map(\.uuid) else {
                 return false
             }
@@ -1123,6 +1198,14 @@ final class SidebarDockStore: BonsplitDelegate {
         newPane: PaneID,
         orientation: SplitOrientation
     ) {
+        // Programmatic moveTabToNewSection binds ids itself; drag-driven splits
+        // still need a durable id on the new host while preserving the original.
+        _ = orientation
+        _ = sectionId(forPane: originalPane)
+        if sectionIdByPaneHost[newPane.id] == nil {
+            bindSectionId(SidebarDockSectionID(), to: newPane)
+        }
+        reconcileSectionIdentities()
         // Seed a placeholder is unnecessary for programmatic moving-tab splits;
         // ensure tab bar visibility tracks section count.
         refreshTabBarVisibility()
@@ -1278,6 +1361,7 @@ final class SidebarDockStore: BonsplitDelegate {
         guard !unmapped.isEmpty else {
             // Still drop empty-panel-only sections if any pane lost all mapped tabs.
             closeSectionsWithNoLiveTabs()
+            reconcileSectionIdentities()
             return
         }
         for tabId in unmapped {
@@ -1288,6 +1372,7 @@ final class SidebarDockStore: BonsplitDelegate {
         }
         closeSectionsWithNoLiveTabs()
         pruneCollapseState()
+        reconcileSectionIdentities()
         refreshTabBarVisibility()
     }
 
