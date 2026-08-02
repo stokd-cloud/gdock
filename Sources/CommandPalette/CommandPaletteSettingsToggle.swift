@@ -132,6 +132,9 @@ enum CommandPaletteSettingsToggleCommands {
         let globalHotkey: @Sendable () -> String = {
             String(localized: "settings.section.globalHotkey", defaultValue: "Global Hotkey")
         }
+        let gdock: @Sendable () -> String = {
+            String(localized: "settings.section.gdock", defaultValue: "gdock")
+        }
         let sidebarDetailsAvailable: @Sendable (UserDefaults) -> Bool = { defaults in
             !UserDefaultsSettingsClient(defaults: defaults).value(for: SettingCatalog().sidebar.hideAllDetails)
         }
@@ -725,6 +728,36 @@ enum CommandPaletteSettingsToggleCommands {
                 defaultValue: SidebarWorkspaceDetailDefaults.showCustomMetadata,
                 defaultsKey: SidebarWorkspaceDetailDefaults.showCustomMetadataKey,
                 isAvailable: sidebarDetailsAvailable
+            ),
+            CommandPaletteSettingToggleDescriptor(
+                commandId: GdockAutoWorkspaceGroupModeSettings.commandId,
+                settingsKey: GdockAutoWorkspaceGroupModeSettings.settingsKey,
+                title: {
+                    String(
+                        localized: "settings.gdock.autoWorkspaceGroupMode",
+                        defaultValue: "Auto Workspace Group Mode"
+                    )
+                },
+                sectionTitle: gdock,
+                keywords: [
+                    "gdock.autoWorkspaceGroupMode",
+                    "gdock",
+                    "auto",
+                    "workspace",
+                    "group",
+                    "github",
+                    "owner",
+                    "repo",
+                    "cwd",
+                ],
+                defaultValue: GdockAutoWorkspaceGroupModeSettings.defaultEnabled,
+                defaultsKey: GdockAutoWorkspaceGroupModeSettings.userDefaultsKey,
+                didSet: { _, _, notificationCenter in
+                    notificationCenter.post(
+                        name: GdockAutoWorkspaceGroupModeSettings.didChangeNotification,
+                        object: nil
+                    )
+                }
             ),
             CommandPaletteSettingToggleDescriptor(
                 commandId: commandIdPrefix + "rightSidebarFeed",

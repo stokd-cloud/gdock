@@ -32,6 +32,8 @@ public struct SettingCatalog: SettingCatalogSection {
     public let workspaceColors = WorkspaceColorsCatalogSection()
     /// Settings for sidebar workspace groups (the `workspaceGroups.*` keys).
     public let workspaceGroups = WorkspaceGroupsCatalogSection()
+    /// ghostty-dock (gdock) fork-only settings (`gdock.*`). New fork settings go here.
+    public let gdock = GdockCatalogSection()
     public let automation = AutomationCatalogSection()
     public let browser = BrowserCatalogSection()
     /// Settings for the built-in markdown viewer (the `markdown.*` keys).

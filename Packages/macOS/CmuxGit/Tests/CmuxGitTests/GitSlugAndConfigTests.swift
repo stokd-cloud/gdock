@@ -45,6 +45,32 @@ import Testing
         #expect(GitMetadataService.githubRepositorySlugs(fromGitRemoteVOutput: output).isEmpty)
     }
 
+    @Test func primaryGitHubRepositorySlugReadsOriginFromFixtureRepo() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("cmux-git-slug-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let gitDir = root.appendingPathComponent(".git", isDirectory: true)
+        try FileManager.default.createDirectory(at: gitDir, withIntermediateDirectories: true)
+        let config = """
+        [core]
+        \trepositoryformatversion = 0
+        [remote "origin"]
+        \turl = https://github.com/manaflow-ai/cmux.git
+        \tfetch = +refs/heads/*:refs/remotes/origin/*
+        """
+        try config.write(to: gitDir.appendingPathComponent("config"), atomically: true, encoding: .utf8)
+
+        let nested = root.appendingPathComponent("src", isDirectory: true)
+        try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
+
+        #expect(
+            GitMetadataService.primaryGitHubRepositorySlug(for: nested.path) == "manaflow-ai/cmux"
+        )
+        #expect(GitMetadataService.primaryGitHubRepositorySlug(for: "/tmp") == nil)
+    }
+
     // MARK: config parsing
 
     @Test func remoteVLinesParseUrlFromConfig() {
