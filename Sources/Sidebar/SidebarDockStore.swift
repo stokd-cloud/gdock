@@ -576,14 +576,17 @@ final class SidebarDockStore: BonsplitDelegate {
         return true
     }
 
-    /// Imposed first-child extent currently remembered for tests / restore.
+    /// Pre-collapse extent remembered for restore, owned only by the collapsed section.
+    ///
+    /// Collapse pins are keyed by parent split id; without the collapsed-owner
+    /// guard a non-collapsed sibling would leak the same remembered value and
+    /// corrupt complete-snapshot identity during whole-section reorder.
     func rememberedExtent(forPane paneId: PaneID) -> CGFloat? {
         if sectionCount == 1 {
-            if isSoleSectionCollapsed {
-                return soleSectionRememberedExtent
-            }
             return soleSectionRememberedExtent
         }
+        // Only the collapsed child owns the remembered pre-collapse extent.
+        guard isSectionCollapsed(paneId: paneId) else { return nil }
         guard let parent = parentSplitId(of: paneId) else { return nil }
         return rememberedExtentBySplitId[parent]
     }
@@ -767,23 +770,189 @@ final class SidebarDockStore: BonsplitDelegate {
 
     // MARK: - Whole-section reorder
 
+    /// Live section capture for identity-preserving whole-section reorder.
+    /// Holds tab surface ids (not only panel ids) so reorder never recreates tabs.
+    private struct LiveSectionCapture: Equatable {
+        var tabIds: [TabID]
+        var selectedTabId: TabID?
+        var isCollapsed: Bool
+        var rememberedExtent: CGFloat?
+    }
+
     /// Deterministic whole-section reorder (header drag and command path share this).
+    ///
+    /// Identity-preserving: moves existing live tabs; does not close/recreate via
+    /// placeholder tabs or a lossy panel-only snapshot. Retains every live section,
+    /// tab ids, selection, collapse, and remembered extent (VAL-RAIL-008 / D-32).
     @discardableResult
     func reorderSection(from fromIndex: Int, to toIndex: Int) -> Bool {
-        var snaps = sectionSnapshots()
-        guard snaps.indices.contains(fromIndex),
-              snaps.indices.contains(toIndex),
+        // Drop Empty residue first so indices match live header/inspect sections.
+        reapUnmappedPlaceholderTabsAndEmptySections()
+
+        var captures = captureLiveSectionsForReorder()
+        guard captures.indices.contains(fromIndex),
+              captures.indices.contains(toIndex),
               fromIndex != toIndex else { return false }
 
-        let item = snaps.remove(at: fromIndex)
-        snaps.insert(item, at: toIndex)
-        return rebuildSections(from: snaps)
+        let item = captures.remove(at: fromIndex)
+        captures.insert(item, at: toIndex)
+        return applyLiveSectionOrder(captures)
     }
 
     /// Production header-drag entrypoint: same mutation as palette reorder commands.
+    /// DEBUG `debug.sidebar_dock.reorder_section` bridges here exclusively.
     @discardableResult
     func handleSectionHeaderReorder(from fromIndex: Int, to toIndex: Int) -> Bool {
         reorderSection(from: fromIndex, to: toIndex)
+    }
+
+    /// Capture only panes with mapped live tabs (skips Empty placeholders).
+    private func captureLiveSectionsForReorder() -> [LiveSectionCapture] {
+        orderedSectionPaneIds().compactMap { pane in
+            let liveTabs = bonsplitController.tabs(inPane: pane)
+                .filter { surfaceIdToPanelId[$0.id] != nil }
+            guard !liveTabs.isEmpty else { return nil }
+            let selected = bonsplitController.selectedTab(inPane: pane)
+            let selectedLive: TabID? = {
+                guard let selected, surfaceIdToPanelId[selected.id] != nil else {
+                    return liveTabs.first?.id
+                }
+                return selected.id
+            }()
+            return LiveSectionCapture(
+                tabIds: liveTabs.map(\.id),
+                selectedTabId: selectedLive,
+                isCollapsed: isSectionCollapsed(paneId: pane),
+                rememberedExtent: rememberedExtent(forPane: pane)
+            )
+        }
+    }
+
+    /// Rebuild leaf order by moving existing tabs — never close+reattach panels.
+    @discardableResult
+    private func applyLiveSectionOrder(_ sections: [LiveSectionCapture]) -> Bool {
+        guard !sections.isEmpty else { return false }
+        let expectedCount = sections.count
+        let allTabIds = sections.flatMap(\.tabIds)
+        guard Set(allTabIds.map(\.uuid)).count == allTabIds.count else { return false }
+        // Every captured tab must still be mapped.
+        guard allTabIds.allSatisfy({ surfaceIdToPanelId[$0] != nil }) else { return false }
+
+        // Expand collapsed sections so moves do not fight imposed geometry.
+        // Capture flags already hold collapse + remembered extent for re-apply.
+        for pane in orderedSectionPaneIds() where isSectionCollapsed(paneId: pane) {
+            _ = expandSection(paneId: pane)
+        }
+        collapsedSplitIds.removeAll()
+        trailingCollapsedParentSplitId = nil
+        rememberedExtentBySplitId.removeAll()
+        isSoleSectionCollapsed = false
+        soleSectionRememberedExtent = nil
+        pendingCollapsePaneIds.removeAll()
+
+        // Flatten all live tabs into a single residual pane (auto-close empties).
+        guard let initialAnchor = orderedSectionPaneIds().first else { return false }
+        for tabId in allTabIds {
+            if paneId(forTabId: tabId)?.id != initialAnchor.id {
+                _ = bonsplitController.moveTab(tabId, toPane: initialAnchor)
+            }
+        }
+        reapUnmappedPlaceholderTabsAndEmptySections()
+        guard let root = orderedSectionPaneIds().first else { return false }
+
+        // Desired flat order inside residual: section0 tabs, then section1, ...
+        for (index, tabId) in allTabIds.enumerated() {
+            _ = bonsplitController.reorderTab(tabId, toIndex: index)
+        }
+
+        // Peel subsequent sections from the end so leaf order becomes S0, S1, … Sn.
+        // Peeling last-first with insertFirst=false yields a right-leaning vertical chain.
+        for sectionIndex in stride(from: sections.count - 1, through: 1, by: -1) {
+            let section = sections[sectionIndex]
+            guard let firstTab = section.tabIds.first,
+                  let sourcePane = paneId(forTabId: firstTab) else {
+                return false
+            }
+            guard let newPane = bonsplitController.splitPane(
+                sourcePane,
+                orientation: .vertical,
+                movingTab: firstTab,
+                insertFirst: false
+            ) else {
+                return false
+            }
+            for tabId in section.tabIds.dropFirst() {
+                _ = bonsplitController.moveTab(tabId, toPane: newPane)
+            }
+            if let selected = section.selectedTabId {
+                bonsplitController.selectTab(selected)
+            }
+            // Residual still has earlier sections' tabs → no Empty placeholder.
+            reapUnmappedPlaceholderTabsAndEmptySections()
+        }
+
+        if let selected = sections[0].selectedTabId {
+            bonsplitController.selectTab(selected)
+        }
+
+        let panes = orderedSectionPaneIds()
+        guard panes.count == expectedCount else {
+            Self.logger.error(
+                "sidebar-dock: reorder lost sections on \(self.edge.rawValue, privacy: .public) expected=\(expectedCount) got=\(panes.count)"
+            )
+            return false
+        }
+
+        // Verify tab membership and re-apply collapse + desired remembered extent.
+        for (index, section) in sections.enumerated() {
+            let pane = panes[index]
+            let live = bonsplitController.tabs(inPane: pane)
+                .map(\.id)
+                .filter { surfaceIdToPanelId[$0] != nil }
+            guard live.map(\.uuid) == section.tabIds.map(\.uuid) else {
+                Self.logger.error(
+                    "sidebar-dock: reorder tab-order mismatch on \(self.edge.rawValue, privacy: .public) index=\(index)"
+                )
+                return false
+            }
+            if let selected = section.selectedTabId {
+                bonsplitController.selectTab(selected)
+            }
+            if section.isCollapsed {
+                _ = collapseSection(paneId: pane)
+                // collapseSection overwrites remembered from current geometry;
+                // restore the pre-move desired extent for expand fidelity.
+                if let remembered = section.rememberedExtent {
+                    if let parent = parentSplitId(of: pane) {
+                        rememberedExtentBySplitId[parent] = remembered
+                    } else if expectedCount == 1 {
+                        soleSectionRememberedExtent = remembered
+                    }
+                }
+            }
+        }
+
+        refreshTabBarVisibility()
+        dropOrphanTabs()
+        reapUnmappedPlaceholderTabsAndEmptySections()
+
+        guard sectionCount == expectedCount,
+              unmappedPlaceholderTabCount() == 0,
+              surfaceIdToPanelId.count == allTabIds.count else {
+            return false
+        }
+        // Final complete-snapshot check: tab ids per live section.
+        let final = captureLiveSectionsForReorder()
+        guard final.count == expectedCount else { return false }
+        for (index, section) in sections.enumerated() {
+            guard final[index].tabIds.map(\.uuid) == section.tabIds.map(\.uuid) else {
+                return false
+            }
+            if section.isCollapsed {
+                guard final[index].isCollapsed else { return false }
+            }
+        }
+        return true
     }
 
     /// Edge-band drop entrypoint used by DEBUG simulation and external transfer wiring.
@@ -826,105 +995,39 @@ final class SidebarDockStore: BonsplitDelegate {
         reimposeSoleSectionCollapseIfNeeded()
     }
 
-    /// Rebuild the vertical chain from complete section snapshots, preserving
-    /// tabs, selection, collapse, and remembered extents.
+    /// Legacy panel-snapshot rebuild entry — routes through identity-preserving
+    /// live tab capture so callers never recreate tabs via placeholders.
     @discardableResult
     func rebuildSections(from snapshots: [SidebarDockSectionSnapshot]) -> Bool {
         guard !snapshots.isEmpty else { return false }
-
-        // Capture live panels in snapshot order.
-        var orderedPanelGroups: [[any Panel]] = []
-        var selectedIds: [UUID?] = []
-        var collapsedFlags: [Bool] = []
-        var remembered: [CGFloat?] = []
+        // Map panel-id snapshots back to live TabIDs currently attached.
+        var captures: [LiveSectionCapture] = []
         for snap in snapshots {
-            let group: [any Panel] = snap.tabPanelIds.compactMap { panels[$0] }
-            guard !group.isEmpty else { continue }
-            orderedPanelGroups.append(group)
-            selectedIds.append(snap.selectedPanelId)
-            collapsedFlags.append(snap.isCollapsed)
-            remembered.append(snap.rememberedExtent)
-        }
-        guard !orderedPanelGroups.isEmpty else { return false }
-
-        // Clear bonsplit tabs without destroying panel instances.
-        for tabId in bonsplitController.allTabIds {
-            _ = bonsplitController.closeTab(tabId)
-        }
-        surfaceIdToPanelId.removeAll()
-        collapsedSplitIds.removeAll()
-        trailingCollapsedParentSplitId = nil
-        rememberedExtentBySplitId.removeAll()
-        isSoleSectionCollapsed = false
-        // Ensure panels map still holds every panel we will re-attach.
-        for group in orderedPanelGroups {
-            for panel in group {
-                panels[panel.id] = panel
+            var tabIds: [TabID] = []
+            for panelId in snap.tabPanelIds {
+                if let tab = surfaceId(forPanelId: panelId) {
+                    tabIds.append(tab)
+                }
             }
-        }
-
-        guard let root = bonsplitController.allPaneIds.first else { return false }
-        // Seed first section into root.
-        for panel in orderedPanelGroups[0] {
-            _ = attachPanel(panel, inPane: root, select: false)
-        }
-        if let sel = selectedIds[0], let tab = surfaceId(forPanelId: sel) {
-            bonsplitController.selectTab(tab)
-        } else if let first = bonsplitController.tabs(inPane: root).first {
-            bonsplitController.selectTab(first.id)
-        }
-
-        // Append remaining sections at the bottom (right-leaning vertical chain).
-        for groupIndex in 1..<orderedPanelGroups.count {
-            let group = orderedPanelGroups[groupIndex]
-            guard let firstPanel = group.first else { continue }
-            guard let bottom = orderedSectionPaneIds().last else { continue }
-
-            // Temporarily attach the first panel of this group into bottom, then
-            // split it out so it becomes its own section.
-            guard let tabToMove = {
-                if let existing = surfaceId(forPanelId: firstPanel.id) { return existing }
-                return attachPanel(firstPanel, inPane: bottom, select: false)
-            }() else { continue }
-
-            let newPane = bonsplitController.splitPane(
-                bottom,
-                orientation: .vertical,
-                movingTab: tabToMove,
-                insertFirst: false
+            guard !tabIds.isEmpty else { continue }
+            let selectedTab: TabID? = {
+                if let selectedPanel = snap.selectedPanelId,
+                   let tab = surfaceId(forPanelId: selectedPanel) {
+                    return tab
+                }
+                return tabIds.first
+            }()
+            captures.append(
+                LiveSectionCapture(
+                    tabIds: tabIds,
+                    selectedTabId: selectedTab,
+                    isCollapsed: snap.isCollapsed,
+                    rememberedExtent: snap.rememberedExtent
+                )
             )
-            guard let newPane else { continue }
-            for panel in group.dropFirst() {
-                if surfaceId(forPanelId: panel.id) == nil {
-                    _ = attachPanel(panel, inPane: newPane, select: false)
-                } else if let tab = surfaceId(forPanelId: panel.id) {
-                    _ = bonsplitController.moveTab(tab, toPane: newPane)
-                }
-            }
-            if let sel = selectedIds[groupIndex], let tab = surfaceId(forPanelId: sel) {
-                bonsplitController.selectTab(tab)
-            }
         }
-
-        // Re-apply collapse state by index.
-        let panes = orderedSectionPaneIds()
-        for (index, pane) in panes.enumerated() where index < collapsedFlags.count {
-            if collapsedFlags[index] {
-                if let ext = remembered[index] {
-                    // Seed remembered extent before collapse.
-                    if let parent = parentSplitId(of: pane) {
-                        rememberedExtentBySplitId[parent] = ext
-                    } else if panes.count == 1 {
-                        soleSectionRememberedExtent = ext
-                    }
-                }
-                _ = collapseSection(paneId: pane)
-            }
-        }
-        refreshTabBarVisibility()
-        dropOrphanTabs()
-        reapUnmappedPlaceholderTabsAndEmptySections()
-        return true
+        guard !captures.isEmpty else { return false }
+        return applyLiveSectionOrder(captures)
     }
 
     // MARK: - BonsplitDelegate
