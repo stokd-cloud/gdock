@@ -9,6 +9,16 @@ enum SidebarDockCommand {
     static let expandSection = "sidebarDock.section.expand"
     static let reorderSectionUp = "sidebarDock.section.reorderUp"
     static let reorderSectionDown = "sidebarDock.section.reorderDown"
+    /// Cross-rail tab: into the other rail's selected/focused section.
+    static let moveTabToOtherRailSelected = "sidebarDock.moveTabToOtherRail.selected"
+    /// Cross-rail tab: new vertical section at top of the other rail.
+    static let moveTabToOtherRailTop = "sidebarDock.moveTabToOtherRail.top"
+    /// Cross-rail tab: new vertical section at bottom of the other rail.
+    static let moveTabToOtherRailBottom = "sidebarDock.moveTabToOtherRail.bottom"
+    /// Cross-rail whole section → other rail top.
+    static let moveSectionToOtherRailTop = "sidebarDock.moveSectionToOtherRail.top"
+    /// Cross-rail whole section → other rail bottom.
+    static let moveSectionToOtherRailBottom = "sidebarDock.moveSectionToOtherRail.bottom"
 
     /// Every actor-facing rail command id (palette, context menu, header controls).
     static let allCommandIds: [String] = [
@@ -18,6 +28,11 @@ enum SidebarDockCommand {
         expandSection,
         reorderSectionUp,
         reorderSectionDown,
+        moveTabToOtherRailSelected,
+        moveTabToOtherRailTop,
+        moveTabToOtherRailBottom,
+        moveSectionToOtherRailTop,
+        moveSectionToOtherRailBottom,
     ]
 
     /// Localized titles for palette / context menu (en default; ja in catalog).
@@ -35,6 +50,16 @@ enum SidebarDockCommand {
             return String(localized: "sidebarDock.section.reorderUp", defaultValue: "Move Section Up")
         case reorderSectionDown:
             return String(localized: "sidebarDock.section.reorderDown", defaultValue: "Move Section Down")
+        case moveTabToOtherRailSelected:
+            return String(localized: "sidebarDock.moveTabToOtherRail.selected", defaultValue: "Move Tab to Other Rail")
+        case moveTabToOtherRailTop:
+            return String(localized: "sidebarDock.moveTabToOtherRail.top", defaultValue: "Move Tab to Other Rail (New Section Above)")
+        case moveTabToOtherRailBottom:
+            return String(localized: "sidebarDock.moveTabToOtherRail.bottom", defaultValue: "Move Tab to Other Rail (New Section Below)")
+        case moveSectionToOtherRailTop:
+            return String(localized: "sidebarDock.moveSectionToOtherRail.top", defaultValue: "Move Section to Other Rail (Top)")
+        case moveSectionToOtherRailBottom:
+            return String(localized: "sidebarDock.moveSectionToOtherRail.bottom", defaultValue: "Move Section to Other Rail (Bottom)")
         default:
             return commandId
         }
@@ -53,6 +78,8 @@ enum SidebarDockCommand {
         var canExpand: Bool
         var canReorderUp: Bool
         var canReorderDown: Bool
+        var canMoveTabToOtherRail: Bool
+        var canMoveSectionToOtherRail: Bool
 
         static let none = Eligibility(
             canMoveTabToNewSectionTop: false,
@@ -60,7 +87,9 @@ enum SidebarDockCommand {
             canCollapse: false,
             canExpand: false,
             canReorderUp: false,
-            canReorderDown: false
+            canReorderDown: false,
+            canMoveTabToOtherRail: false,
+            canMoveSectionToOtherRail: false
         )
 
         func isAvailable(_ commandId: String) -> Bool {
@@ -71,6 +100,13 @@ enum SidebarDockCommand {
             case SidebarDockCommand.expandSection: return canExpand
             case SidebarDockCommand.reorderSectionUp: return canReorderUp
             case SidebarDockCommand.reorderSectionDown: return canReorderDown
+            case SidebarDockCommand.moveTabToOtherRailSelected,
+                 SidebarDockCommand.moveTabToOtherRailTop,
+                 SidebarDockCommand.moveTabToOtherRailBottom:
+                return canMoveTabToOtherRail
+            case SidebarDockCommand.moveSectionToOtherRailTop,
+                 SidebarDockCommand.moveSectionToOtherRailBottom:
+                return canMoveSectionToOtherRail
             default: return false
             }
         }
@@ -128,6 +164,22 @@ enum SidebarDockCommand {
             return store.isSectionCollapsed(paneId: resolvedPane)
         }()
 
+        // Cross-rail: refuse final-rail-empty and disallowed panels.
+        let canCrossRailTab: Bool = {
+            guard let resolvedTab,
+                  let panelId = store.surfaceIdToPanelId[resolvedTab],
+                  let panel = store.panels[panelId],
+                  SidebarDockPlacementMatrix.allows(panel: panel) else {
+                return false
+            }
+            return !store.wouldEmptyRail(removing: resolvedTab)
+        }()
+        let canCrossRailSection: Bool = {
+            guard let resolvedPane else { return false }
+            let sid = store.sectionId(forPane: resolvedPane)
+            return !store.wouldEmptyRail(removingSection: sid)
+        }()
+
         return Eligibility(
             canMoveTabToNewSectionTop: canMove,
             canMoveTabToNewSectionBottom: canMove,
@@ -135,7 +187,9 @@ enum SidebarDockCommand {
             canExpand: resolvedPane != nil && isCollapsed,
             canReorderUp: store.sectionCount >= 2 && (paneIndex ?? 0) > 0,
             canReorderDown: store.sectionCount >= 2
-                && paneIndex.map { $0 + 1 < panes.count } == true
+                && paneIndex.map { $0 + 1 < panes.count } == true,
+            canMoveTabToOtherRail: canCrossRailTab,
+            canMoveSectionToOtherRail: canCrossRailSection
         )
     }
 
@@ -151,6 +205,8 @@ enum SidebarDockCommand {
             expandSection,
             reorderSectionUp,
             reorderSectionDown,
+            moveSectionToOtherRailTop,
+            moveSectionToOtherRailBottom,
         ]
         return sectionCommands.compactMap { commandId in
             let enabled = eligibility.isAvailable(commandId)
@@ -161,13 +217,18 @@ enum SidebarDockCommand {
                 return nil
             case collapseSection where !enabled && eligibility.canExpand:
                 return nil
+            case moveSectionToOtherRailTop, moveSectionToOtherRailBottom:
+                // Only show when a cross-rail move is safe (not final-rail-empty).
+                return enabled
+                    ? MenuItem(id: commandId, title: title(for: commandId), isEnabled: true)
+                    : nil
             default:
                 return MenuItem(id: commandId, title: title(for: commandId), isEnabled: enabled)
             }
         }
     }
 
-    /// Tab context-menu "Move Tab" destinations that create a new vertical section.
+    /// Tab context-menu "Move Tab" destinations (same-rail section create + cross-rail).
     @MainActor
     static func tabMoveDestinations(
         store: SidebarDockStore,
@@ -188,6 +249,19 @@ enum SidebarDockCommand {
                 title: title(for: moveTabToNewSectionBottom),
                 isEnabled: true
             ))
+        }
+        if eligibility.canMoveTabToOtherRail {
+            for commandId in [
+                moveTabToOtherRailSelected,
+                moveTabToOtherRailTop,
+                moveTabToOtherRailBottom,
+            ] {
+                destinations.append(TabContextMoveDestination(
+                    id: commandId,
+                    title: title(for: commandId),
+                    isEnabled: true
+                ))
+            }
         }
         return destinations
     }
@@ -234,6 +308,86 @@ enum SidebarDockCommand {
             guard let index = panes.firstIndex(where: { $0.id == paneId.id }),
                   index + 1 < panes.count else { return false }
             return store.reorderSection(from: index, to: index + 1)
+        case moveTabToOtherRailSelected,
+             moveTabToOtherRailTop,
+             moveTabToOtherRailBottom,
+             moveSectionToOtherRailTop,
+             moveSectionToOtherRailBottom:
+            return performCrossRail(
+                commandId: commandId,
+                store: store,
+                tabId: tabId,
+                paneId: paneId
+            )
+        default:
+            return false
+        }
+    }
+
+    /// Cross-rail tab/section commands share `SidebarDockTransfer` with drag.
+    @MainActor
+    private static func performCrossRail(
+        commandId: String,
+        store: SidebarDockStore,
+        tabId: TabID?,
+        paneId: PaneID?
+    ) -> Bool {
+        guard let registry = store.registry else { return false }
+        let destEdge: SidebarDockEdge = store.edge == .left ? .right : .left
+
+        switch commandId {
+        case moveTabToOtherRailSelected,
+             moveTabToOtherRailTop,
+             moveTabToOtherRailBottom:
+            let resolvedTab: TabID? = {
+                if let tabId { return tabId }
+                if let paneId {
+                    return store.bonsplitController.selectedTab(inPane: paneId)?.id
+                        ?? store.bonsplitController.tabs(inPane: paneId).first?.id
+                }
+                return store.bonsplitController.focusedPaneId.flatMap {
+                    store.bonsplitController.selectedTab(inPane: $0)?.id
+                }
+            }()
+            guard let resolvedTab,
+                  let panelId = store.surfaceIdToPanelId[resolvedTab] else {
+                return false
+            }
+            let destination: SidebarDockTransfer.TabDestination = {
+                switch commandId {
+                case moveTabToOtherRailTop:
+                    return .newVerticalSection(position: .top)
+                case moveTabToOtherRailBottom:
+                    return .newVerticalSection(position: .bottom)
+                default:
+                    return .intoSelectedSection()
+                }
+            }()
+            return SidebarDockTransfer.moveTab(
+                registry: registry,
+                panelId: panelId,
+                from: store.edge,
+                to: destEdge,
+                destination: destination
+            ).isSuccess
+        case moveSectionToOtherRailTop, moveSectionToOtherRailBottom:
+            let resolvedPane: PaneID? = {
+                if let paneId { return paneId }
+                if let tabId { return store.paneId(forTabId: tabId) }
+                return store.bonsplitController.focusedPaneId
+                    ?? store.orderedSectionPaneIds().first
+            }()
+            guard let resolvedPane else { return false }
+            let sectionId = store.sectionId(forPane: resolvedPane)
+            let destination: SidebarDockTransfer.SectionDestination =
+                commandId == moveSectionToOtherRailTop ? .top : .bottom
+            return SidebarDockTransfer.moveSection(
+                registry: registry,
+                sectionId: sectionId,
+                from: store.edge,
+                to: destEdge,
+                destination: destination
+            ).isSuccess
         default:
             return false
         }

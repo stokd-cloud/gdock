@@ -211,7 +211,7 @@ struct SidebarDockActorSurfaceTests {
         for commandId in SidebarDockCommand.allCommandIds {
             #expect(ids.contains(commandId), "Missing public palette contribution \(commandId)")
         }
-        #expect(SidebarDockCommand.allCommandIds.count == 6)
+        #expect(SidebarDockCommand.allCommandIds.count == 11)
     }
 
     @Test func dropHandlerSourceRoutesThroughMoveTabToNewSection() throws {

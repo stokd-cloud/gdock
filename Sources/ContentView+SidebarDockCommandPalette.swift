@@ -102,6 +102,66 @@ extension ContentView {
                     )
                 }
             ),
+            CommandPaletteCommandContribution(
+                commandId: SidebarDockCommand.moveTabToOtherRailSelected,
+                title: constant(SidebarDockCommand.title(for: SidebarDockCommand.moveTabToOtherRailSelected)),
+                subtitle: subtitle,
+                keywords: ["sidebar", "dock", "rail", "cross", "move", "tab", "other", "left", "right"],
+                when: { _ in
+                    Self.sidebarDockPaletteCommandIsAvailable(
+                        SidebarDockCommand.moveTabToOtherRailSelected,
+                        windowId: boundWindowId
+                    )
+                }
+            ),
+            CommandPaletteCommandContribution(
+                commandId: SidebarDockCommand.moveTabToOtherRailTop,
+                title: constant(SidebarDockCommand.title(for: SidebarDockCommand.moveTabToOtherRailTop)),
+                subtitle: subtitle,
+                keywords: ["sidebar", "dock", "rail", "cross", "move", "tab", "top", "other"],
+                when: { _ in
+                    Self.sidebarDockPaletteCommandIsAvailable(
+                        SidebarDockCommand.moveTabToOtherRailTop,
+                        windowId: boundWindowId
+                    )
+                }
+            ),
+            CommandPaletteCommandContribution(
+                commandId: SidebarDockCommand.moveTabToOtherRailBottom,
+                title: constant(SidebarDockCommand.title(for: SidebarDockCommand.moveTabToOtherRailBottom)),
+                subtitle: subtitle,
+                keywords: ["sidebar", "dock", "rail", "cross", "move", "tab", "bottom", "other"],
+                when: { _ in
+                    Self.sidebarDockPaletteCommandIsAvailable(
+                        SidebarDockCommand.moveTabToOtherRailBottom,
+                        windowId: boundWindowId
+                    )
+                }
+            ),
+            CommandPaletteCommandContribution(
+                commandId: SidebarDockCommand.moveSectionToOtherRailTop,
+                title: constant(SidebarDockCommand.title(for: SidebarDockCommand.moveSectionToOtherRailTop)),
+                subtitle: subtitle,
+                keywords: ["sidebar", "dock", "rail", "cross", "move", "section", "top", "other"],
+                when: { _ in
+                    Self.sidebarDockPaletteCommandIsAvailable(
+                        SidebarDockCommand.moveSectionToOtherRailTop,
+                        windowId: boundWindowId
+                    )
+                }
+            ),
+            CommandPaletteCommandContribution(
+                commandId: SidebarDockCommand.moveSectionToOtherRailBottom,
+                title: constant(SidebarDockCommand.title(for: SidebarDockCommand.moveSectionToOtherRailBottom)),
+                subtitle: subtitle,
+                keywords: ["sidebar", "dock", "rail", "cross", "move", "section", "bottom", "other"],
+                when: { _ in
+                    Self.sidebarDockPaletteCommandIsAvailable(
+                        SidebarDockCommand.moveSectionToOtherRailBottom,
+                        windowId: boundWindowId
+                    )
+                }
+            ),
         ]
     }
 

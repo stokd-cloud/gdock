@@ -63,6 +63,9 @@ final class SidebarDockStore: BonsplitDelegate {
     /// Soft focus signal for the per-window registry (not a second selection store).
     var onRailFocusChanged: (() -> Void)?
 
+    /// Back-reference for cross-rail transfers (weak — registry owns both stores).
+    weak var registry: SidebarDockStoreRegistry?
+
     /// Counts content mount generations for hidden-rail lifecycle tests (VAL-RAIL-010).
     private(set) var toolContentMountGeneration: Int = 0
     private(set) var toolContentUnmountGeneration: Int = 0
@@ -100,11 +103,19 @@ final class SidebarDockStore: BonsplitDelegate {
         }
     }
 
-    /// External Bonsplit tab transfers use the same edge-band drop handler as
-    /// DEBUG `simulate_drop` and the vertical create command path.
+    /// External Bonsplit tab transfers use the registry transfer path so
+    /// cross-rail drops move the live panel (not a same-store-only insert).
+    /// Same-rail external drops fall through to `SidebarDockDropHandler`.
     private func installSharedDropWiring() {
         bonsplitController.onExternalTabDrop = { [weak self] request in
             guard let self else { return false }
+            if let registry = self.registry {
+                return SidebarDockTransfer.handleExternalDrop(
+                    registry: registry,
+                    targetEdge: self.edge,
+                    request: request
+                )
+            }
             return SidebarDockDropHandler.handleExternal(store: self, request: request)
         }
     }
@@ -484,6 +495,174 @@ final class SidebarDockStore: BonsplitDelegate {
         guard let pane = paneId(forTabId: tabId) else { return false }
         let tabs = bonsplitController.tabs(inPane: pane)
         return tabs.count == 1 && tabs.first?.id == tabId
+    }
+
+    /// True when removing the whole section would empty the rail (VAL-MOVE-003).
+    func wouldEmptyRail(removingSection sectionId: SidebarDockSectionID) -> Bool {
+        let ids = orderedSectionIds()
+        return ids.count == 1 && ids.first == sectionId
+    }
+
+    // MARK: - Cross-rail detach / attach (identity-preserving)
+
+    /// Capture a live section for whole-section cross-rail transfer.
+    struct CrossRailSectionCapture {
+        var sectionId: SidebarDockSectionID
+        var panels: [any Panel]
+        var selectedPanelId: UUID?
+        var isCollapsed: Bool
+        var rememberedExtent: CGFloat?
+    }
+
+    /// Ordered live panels + metadata for a durable section id.
+    func captureSectionForCrossRailTransfer(
+        sectionId: SidebarDockSectionID
+    ) -> CrossRailSectionCapture? {
+        guard let pane = orderedSectionPaneIds().first(where: {
+            self.sectionId(forPane: $0) == sectionId
+        }) else {
+            return nil
+        }
+        let liveTabs = bonsplitController.tabs(inPane: pane)
+            .filter { surfaceIdToPanelId[$0.id] != nil }
+        let livePanels: [any Panel] = liveTabs.compactMap { tab in
+            surfaceIdToPanelId[tab.id].flatMap { panels[$0] }
+        }
+        guard !livePanels.isEmpty else { return nil }
+        let selected = bonsplitController.selectedTab(inPane: pane)
+            .flatMap { surfaceIdToPanelId[$0.id] }
+        return CrossRailSectionCapture(
+            sectionId: sectionId,
+            panels: livePanels,
+            selectedPanelId: selected,
+            isCollapsed: isSectionCollapsed(paneId: pane),
+            rememberedExtent: rememberedExtent(forPane: pane)
+        )
+    }
+
+    /// Remove a panel from this rail while keeping the live instance.
+    ///
+    /// Does not call `Panel.close()`. Bonsplit tab host is closed; panel id and
+    /// `stableSurfaceIdentity` remain on the returned instance for re-attach.
+    @discardableResult
+    func detachPanelKeepingInstance(panelId: UUID) -> (any Panel)? {
+        guard let panel = panels[panelId] else { return nil }
+        guard let tabId = surfaceId(forPanelId: panelId) else { return nil }
+        let before = sectionCount
+        // Drop mappings first so store.closeTab is not used (it would destroy
+        // the panel entry). Close only the Bonsplit tab host.
+        panels.removeValue(forKey: panelId)
+        surfaceIdToPanelId.removeValue(forKey: tabId)
+        _ = bonsplitController.closeTab(tabId)
+        reapUnmappedPlaceholderTabsAndEmptySections()
+        if sectionCount < before {
+            pruneCollapseState()
+        }
+        reconcileSectionIdentities()
+        refreshTabBarVisibility()
+        return panel
+    }
+
+    /// Attach a panel into a new vertical section at `position`.
+    ///
+    /// Seeds into the edge section then peels via `moveTabToNewSection` so the
+    /// destination keeps its existing tabs (VAL-MOVE-001).
+    @discardableResult
+    func attachPanelAsNewVerticalSection(
+        _ panel: any Panel,
+        position: SidebarDockSectionPosition
+    ) -> TabID? {
+        let seed: PaneID? = {
+            switch position {
+            case .top: return orderedSectionPaneIds().first
+            case .bottom: return orderedSectionPaneIds().last
+            }
+        }()
+        guard let tabId = attachPanel(panel, inPane: seed, select: true) else {
+            return nil
+        }
+        // Multi-tab peel creates the new section; sole-tab rails keep the attach
+        // as the only section (empty-rail seed / first panel of a section move).
+        if let pane = paneId(forTabId: tabId),
+           bonsplitController.tabs(inPane: pane).count > 1 {
+            let before = sectionCount
+            if moveTabToNewSection(tabId, position: position), sectionCount > before {
+                return tabId
+            }
+        }
+        return tabId
+    }
+
+    /// Attach ordered panels as one section with durable id + metadata.
+    @discardableResult
+    func attachSectionPanels(
+        _ sectionPanels: [any Panel],
+        selectedPanelId: UUID?,
+        sectionId: SidebarDockSectionID,
+        isCollapsed: Bool,
+        rememberedExtent: CGFloat?,
+        position: SidebarDockSectionPosition
+    ) -> Bool {
+        guard let first = sectionPanels.first else { return false }
+        guard let firstTab = attachPanelAsNewVerticalSection(first, position: position) else {
+            return false
+        }
+        guard let hostPane = paneId(forTabId: firstTab) else { return false }
+
+        for panel in sectionPanels.dropFirst() {
+            guard attachPanel(panel, inPane: hostPane, select: false) != nil else {
+                return false
+            }
+        }
+        for (index, panel) in sectionPanels.enumerated() {
+            if let tab = surfaceId(forPanelId: panel.id) {
+                _ = reorderTab(tab, toIndex: index)
+            }
+        }
+        if let selectedPanelId, let tab = surfaceId(forPanelId: selectedPanelId) {
+            _ = selectTab(tab)
+        } else if let firstTab = surfaceId(forPanelId: first.id) {
+            _ = selectTab(firstTab)
+        }
+
+        // Bind durable section id onto the (possibly new) host before collapse.
+        if let pane = paneId(forPanelId: first.id) {
+            bindSectionId(sectionId, to: pane)
+        } else {
+            bindSectionId(sectionId, to: hostPane)
+        }
+
+        if isCollapsed, let pane = paneId(forPanelId: first.id) ?? paneId(forTabId: firstTab) {
+            _ = collapseSection(paneId: pane)
+            if let rememberedExtent {
+                if let parent = parentSplitId(of: pane) {
+                    rememberedExtentBySplitId[parent] = rememberedExtent
+                } else if sectionCount == 1 {
+                    soleSectionRememberedExtent = rememberedExtent
+                }
+            }
+        }
+
+        // Reassert durable id after any topology/collapse host churn.
+        if let pane = paneId(forPanelId: first.id) {
+            bindSectionId(sectionId, to: pane)
+        }
+        reconcileSectionIdentities()
+        if let pane = paneId(forPanelId: first.id) {
+            bindSectionId(sectionId, to: pane)
+        }
+        refreshTabBarVisibility()
+        return sectionPanels.allSatisfy { panels[$0.id] != nil }
+    }
+
+    /// Post-transfer cleanup shared by registry move paths.
+    func reconcileAfterCrossRailMutation() {
+        dropOrphanTabs()
+        reapUnmappedPlaceholderTabsAndEmptySections()
+        pruneCollapseState()
+        reconcileSectionIdentities()
+        refreshTabBarVisibility()
+        publishFocusedToolModeMirror()
     }
 
     /// Geometry check: another header must fit without data loss.

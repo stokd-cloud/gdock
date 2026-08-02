@@ -22,12 +22,49 @@ final class SidebarDockStoreRegistry {
         self.windowId = windowId
         self.left = SidebarDockStore(edge: .left, windowId: windowId)
         self.right = SidebarDockStore(edge: .right, windowId: windowId)
+        // Wire registry back-refs so external Bonsplit drops and DEBUG transfer
+        // resolve the peer rail without a second selection store (VAL-MOVE-*).
+        self.left.registry = self
+        self.right.registry = self
         self.left.onRailFocusChanged = { [weak self] in
             self?.lastFocusedEdge = .left
         }
         self.right.onRailFocusChanged = { [weak self] in
             self?.lastFocusedEdge = .right
         }
+    }
+
+    /// Shared registry transfer path (tab or section) used by commands, drag, DEBUG.
+    @discardableResult
+    func transferTab(
+        panelId: UUID,
+        from sourceEdge: SidebarDockEdge,
+        to destEdge: SidebarDockEdge,
+        destination: SidebarDockTransfer.TabDestination
+    ) -> SidebarDockTransfer.Outcome {
+        SidebarDockTransfer.moveTab(
+            registry: self,
+            panelId: panelId,
+            from: sourceEdge,
+            to: destEdge,
+            destination: destination
+        )
+    }
+
+    @discardableResult
+    func transferSection(
+        sectionId: SidebarDockSectionID,
+        from sourceEdge: SidebarDockEdge,
+        to destEdge: SidebarDockEdge,
+        destination: SidebarDockTransfer.SectionDestination
+    ) -> SidebarDockTransfer.Outcome {
+        SidebarDockTransfer.moveSection(
+            registry: self,
+            sectionId: sectionId,
+            from: sourceEdge,
+            to: destEdge,
+            destination: destination
+        )
     }
 
     func store(for edge: SidebarDockEdge) -> SidebarDockStore {

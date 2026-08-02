@@ -19,6 +19,7 @@ extension TerminalController {
         "debug.sidebar_dock.divider_drag",
         "debug.sidebar_dock.resize_rail",
         "debug.sidebar_dock.refuse_paths",
+        "debug.sidebar_dock.transfer",
     ]
 
     /// Dispatch one `debug.sidebar_dock.*` method. Returns `nil` when the
@@ -41,6 +42,8 @@ extension TerminalController {
             return v2SidebarDockResizeRail(params: params)
         case "debug.sidebar_dock.refuse_paths":
             return v2SidebarDockRefusePaths(params: params)
+        case "debug.sidebar_dock.transfer":
+            return v2SidebarDockTransfer(params: params)
         default:
             return nil
         }
@@ -419,6 +422,122 @@ extension TerminalController {
         result["rail_content_width"] = store.railContentWidth
         result["rail_content_height"] = store.railContentHeight
         return .ok(result)
+    }
+
+    // MARK: - transfer (cross-rail)
+
+    /// Schema:
+    /// ```
+    /// debug.sidebar_dock.transfer
+    /// params: {
+    ///   window_id?: uuid,
+    ///   kind: "tab"|"section",
+    ///   from_edge: "left"|"right",
+    ///   to_edge: "left"|"right",
+    ///   // tab: panel_id | tab_id | tab_title | section_index+tab_index on from_edge
+    ///   // section: section_id | section_index on from_edge
+    ///   destination?: "selected"|"top"|"bottom"|"horizontal",
+    /// }
+    /// result: { outcome, reason, from_edge, to_edge, inspect }
+    ///
+    /// Bridges the production `SidebarDockTransfer` path only — never mutates
+    /// stores directly. Used by R5 dogfood to move a live right tool tab into
+    /// the left rail so left top/bottom multi-tab creation is reachable.
+    /// ```
+    private func v2SidebarDockTransfer(params: [String: Any]) -> V2CallResult {
+        guard let resolved = resolveSidebarDockRegistry(params: params) else {
+            return .err(code: "not_found", message: "No sidebar dock registry for window", data: nil)
+        }
+        guard let fromEdge = SidebarDockEdge(rawValue: v2String(params, "from_edge") ?? ""),
+              let toEdge = SidebarDockEdge(rawValue: v2String(params, "to_edge") ?? "") else {
+            return .err(code: "invalid_params", message: "from_edge and to_edge required", data: nil)
+        }
+        let kind = v2String(params, "kind") ?? "tab"
+        let destRaw = v2String(params, "destination") ?? "bottom"
+        let source = resolved.registry.store(for: fromEdge)
+        let beforeSource = SidebarDockTransfer.completeRailFingerprint(source)
+        let beforeDest = SidebarDockTransfer.completeRailFingerprint(resolved.registry.store(for: toEdge))
+
+        let outcome: SidebarDockTransfer.Outcome
+        switch kind {
+        case "section":
+            let sectionId: SidebarDockSectionID? = {
+                if let uuid = v2UUID(params, "section_id") {
+                    return SidebarDockSectionID(uuid)
+                }
+                if let index = v2Int(params, "section_index") {
+                    let ids = source.orderedSectionIds()
+                    if ids.indices.contains(index) { return ids[index] }
+                }
+                if let pane = source.bonsplitController.focusedPaneId
+                    ?? source.orderedSectionPaneIds().first {
+                    return source.sectionId(forPane: pane)
+                }
+                return nil
+            }()
+            guard let sectionId else {
+                return .err(code: "invalid_params", message: "Could not resolve section_id", data: nil)
+            }
+            let sectionDest: SidebarDockTransfer.SectionDestination = {
+                switch destRaw {
+                case "top": return .top
+                case "horizontal": return .horizontalSplit
+                default: return .bottom
+                }
+            }()
+            outcome = SidebarDockTransfer.moveSection(
+                registry: resolved.registry,
+                sectionId: sectionId,
+                from: fromEdge,
+                to: toEdge,
+                destination: sectionDest
+            )
+        default:
+            guard let tabId = resolveSidebarDockLiveTab(store: source, params: params),
+                  let panelId = source.surfaceIdToPanelId[tabId] else {
+                return .err(
+                    code: "invalid_params",
+                    message: "Could not resolve a live mapped tab on from_edge",
+                    data: nil
+                )
+            }
+            let tabDest: SidebarDockTransfer.TabDestination = {
+                switch destRaw {
+                case "selected": return .intoSelectedSection()
+                case "top": return .newVerticalSection(position: .top)
+                case "horizontal": return .horizontalSplit
+                default: return .newVerticalSection(position: .bottom)
+                }
+            }()
+            outcome = SidebarDockTransfer.moveTab(
+                registry: resolved.registry,
+                panelId: panelId,
+                from: fromEdge,
+                to: toEdge,
+                destination: tabDest
+            )
+        }
+
+        let afterSource = SidebarDockTransfer.completeRailFingerprint(source)
+        let afterDest = SidebarDockTransfer.completeRailFingerprint(resolved.registry.store(for: toEdge))
+        let losslessOnRefuse = !outcome.isSuccess
+            && afterSource == beforeSource
+            && afterDest == beforeDest
+
+        return .ok([
+            "outcome": outcome.reasonCode,
+            "success": outcome.isSuccess,
+            "kind": kind,
+            "from_edge": fromEdge.rawValue,
+            "to_edge": toEdge.rawValue,
+            "destination": destRaw,
+            "lossless_on_refuse": losslessOnRefuse,
+            "inspect": SidebarDockInspectBuilder.build(
+                registry: resolved.registry,
+                windowId: resolved.windowId,
+                dockEnabled: RightSidebarBetaFeatureSettings.isSidebarDockEnabled()
+            ).asDictionary(),
+        ])
     }
 
     // MARK: - refuse_paths

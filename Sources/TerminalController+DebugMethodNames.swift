@@ -57,6 +57,7 @@ extension TerminalController {
         "debug.sidebar_dock.divider_drag",
         "debug.sidebar_dock.resize_rail",
         "debug.sidebar_dock.refuse_paths",
+        "debug.sidebar_dock.transfer",
         "mobile.dev_stack_auth.configure",
     ]
 }

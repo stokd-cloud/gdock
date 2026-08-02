@@ -242819,6 +242819,91 @@
           }
         }
       }
+    },
+    "sidebarDock.moveTabToOtherRail.selected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Tab to Other Rail"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タブを反対側のレールへ移動"
+          }
+        }
+      }
+    },
+    "sidebarDock.moveTabToOtherRail.top": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Tab to Other Rail (New Section Above)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タブを反対側のレールへ（上に新しいセクション）"
+          }
+        }
+      }
+    },
+    "sidebarDock.moveTabToOtherRail.bottom": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Tab to Other Rail (New Section Below)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タブを反対側のレールへ（下に新しいセクション）"
+          }
+        }
+      }
+    },
+    "sidebarDock.moveSectionToOtherRail.top": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Section to Other Rail (Top)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "セクションを反対側のレールへ（上）"
+          }
+        }
+      }
+    },
+    "sidebarDock.moveSectionToOtherRail.bottom": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Section to Other Rail (Bottom)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "セクションを反対側のレールへ（下）"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
