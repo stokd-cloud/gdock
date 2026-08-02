@@ -18,7 +18,11 @@ struct CmuxWorkspaceLayoutCapture {
 }
 
 extension Workspace {
-    func captureLayoutDefinition() throws -> CmuxWorkspaceLayoutCapture {
+    func captureLayoutDefinition(
+        sidebarDockRegistry registryOverride: SidebarDockStoreRegistry? = nil
+    ) throws -> CmuxWorkspaceLayoutCapture {
+        _ = registryOverride
+
         var unsupportedSurfaceCount = 0
         let baseCwd = currentDirectory
         let root = try captureLayoutNode(

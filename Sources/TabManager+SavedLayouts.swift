@@ -20,4 +20,19 @@ extension TabManager {
         }
         return workspace
     }
+    /// RED stub: apply is a no-op until green wires the shared registry path.
+    func applySidebarDockLayout(
+        _ definition: CmuxSidebarDockDefinition,
+        to workspace: Workspace,
+        preferredLegacyMode: RightSidebarMode? = nil
+    ) {
+        _ = definition
+        _ = workspace
+        _ = preferredLegacyMode
+    }
+
+    /// RED stub: reattachment is a no-op.
+    func reattachSidebarDockAdapters(to workspace: Workspace) {
+        _ = workspace
+    }
 }

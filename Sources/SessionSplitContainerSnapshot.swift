@@ -5,6 +5,9 @@ import Foundation
 /// Workspaces embed their main split state directly in `SessionWorkspaceSnapshot` for
 /// historical compatibility. Docks use this envelope so their layout and their existing
 /// terminal/browser panel codecs travel together as one optional restore unit.
+///
+/// Rail-only fields (stable section ids, collapse markers, remembered extents) live on
+/// ``SessionSidebarDockSnapshot`` — never here (VAL-PERSIST-001 envelope isolation).
 struct SessionSplitContainerSnapshot: Codable, Sendable {
     var focusedPanelId: UUID?
     var layout: SessionWorkspaceLayoutSnapshot

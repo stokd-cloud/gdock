@@ -11,6 +11,8 @@ struct CmuxWorkspaceDefinition: Codable, Sendable, Hashable {
     /// terminal's own surface `command`. Other panes do not wait for it.
     var setup: String?
     var layout: CmuxLayoutNode?
+    /// Optional UUID-free rail arrangement for named layouts (VAL-LAYOUT-*).
+    var sidebarDock: CmuxSidebarDockDefinition?
 
     init(
         name: String? = nil,
@@ -18,7 +20,8 @@ struct CmuxWorkspaceDefinition: Codable, Sendable, Hashable {
         color: String? = nil,
         env: [String: String]? = nil,
         setup: String? = nil,
-        layout: CmuxLayoutNode? = nil
+        layout: CmuxLayoutNode? = nil,
+        sidebarDock: CmuxSidebarDockDefinition? = nil
     ) {
         self.name = name
         self.cwd = cwd
@@ -26,6 +29,7 @@ struct CmuxWorkspaceDefinition: Codable, Sendable, Hashable {
         self.env = env
         self.setup = setup
         self.layout = layout
+        self.sidebarDock = sidebarDock
     }
 
     init(from decoder: Decoder) throws {
@@ -40,6 +44,7 @@ struct CmuxWorkspaceDefinition: Codable, Sendable, Hashable {
             setup = nil
         }
         layout = try container.decodeIfPresent(CmuxLayoutNode.self, forKey: .layout)
+        sidebarDock = try container.decodeIfPresent(CmuxSidebarDockDefinition.self, forKey: .sidebarDock)
 
         if let rawColor = try container.decodeIfPresent(String.self, forKey: .color) {
             let defaults = decoder.userInfo[.cmuxWorkspaceColorDefaults] as? UserDefaults ?? .standard
