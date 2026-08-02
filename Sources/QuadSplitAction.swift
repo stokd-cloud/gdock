@@ -43,33 +43,157 @@ enum QuadSplitAction {
         case lateFailure(completedSplits: Int)
     }
 
-    // MARK: - Test / injection seams (production leaves these at defaults)
+    // MARK: - Test / injection seams (DEBUG-only; inert in Release)
 
     /// When set to `1` or `2`, the workspace/Dock recipe returns
     /// `.lateFailure(completedSplits:)` after that many successful splits and
-    /// does not attempt rollback. Used only by unit tests (VAL-QUAD-004).
-    static var testingFailAfterCompletedSplits: Int?
+    /// does not attempt rollback. DEBUG unit tests + `debug.quad.*` dogfood only
+    /// (VAL-QUAD-004). Absent/inert in Release builds.
+    static var testingFailAfterCompletedSplits: Int? {
+        get {
+            #if DEBUG
+            _testingFailAfterCompletedSplits
+            #else
+            nil
+            #endif
+        }
+        set {
+            #if DEBUG
+            _testingFailAfterCompletedSplits = newValue
+            #else
+            _ = newValue
+            #endif
+        }
+    }
+
+    #if DEBUG
+    private static var _testingFailAfterCompletedSplits: Int?
+    #endif
 
     /// Forces the transient-focus veto without needing a live key-window probe.
-    static var testingForceTransientFocusSuppressed = false
+    static var testingForceTransientFocusSuppressed: Bool {
+        get {
+            #if DEBUG
+            _testingForceTransientFocusSuppressed
+            #else
+            false
+            #endif
+        }
+        set {
+            #if DEBUG
+            _testingForceTransientFocusSuppressed = newValue
+            #else
+            _ = newValue
+            #endif
+        }
+    }
+
+    #if DEBUG
+    private static var _testingForceTransientFocusSuppressed = false
+    #endif
+
+    /// When true, skip the live geometry/key-window transient-focus probe.
+    /// DEBUG dogfood (`debug.quad.perform`) sets this so socket/explicit-surface
+    /// runs are not spuriously vetoed by zero-size harness hosting views. The
+    /// force flag above still injects the veto for catalog tests.
+    static var testingSkipLiveTransientFocusProbe: Bool {
+        get {
+            #if DEBUG
+            _testingSkipLiveTransientFocusProbe
+            #else
+            false
+            #endif
+        }
+        set {
+            #if DEBUG
+            _testingSkipLiveTransientFocusProbe = newValue
+            #else
+            _ = newValue
+            #endif
+        }
+    }
+
+    #if DEBUG
+    private static var _testingSkipLiveTransientFocusProbe = false
+    #endif
 
     /// Forces the pure delegate-restriction veto (in addition to live detection).
-    static var testingForceDelegateRestriction = false
+    static var testingForceDelegateRestriction: Bool {
+        get {
+            #if DEBUG
+            _testingForceDelegateRestriction
+            #else
+            false
+            #endif
+        }
+        set {
+            #if DEBUG
+            _testingForceDelegateRestriction = newValue
+            #else
+            _ = newValue
+            #endif
+        }
+    }
+
+    #if DEBUG
+    private static var _testingForceDelegateRestriction = false
+    #endif
 
     /// Append-only remote command log probe. Preflight/perform never write here;
     /// tests assert it stays unchanged across known vetoes (no side-effecting
-    /// remote split delegate).
-    static var testingRemoteCommandLog: [String] = []
+    /// remote split delegate). Always empty/inert outside DEBUG.
+    static var testingRemoteCommandLog: [String] {
+        get {
+            #if DEBUG
+            _testingRemoteCommandLog
+            #else
+            []
+            #endif
+        }
+        set {
+            #if DEBUG
+            _testingRemoteCommandLog = newValue
+            #else
+            _ = newValue
+            #endif
+        }
+    }
+
+    #if DEBUG
+    private static var _testingRemoteCommandLog: [String] = []
+    #endif
 
     /// Captured late-failure log events (`quad.lateFailure …`).
-    static var testingLateFailureEvents: [String] = []
+    static var testingLateFailureEvents: [String] {
+        get {
+            #if DEBUG
+            _testingLateFailureEvents
+            #else
+            []
+            #endif
+        }
+        set {
+            #if DEBUG
+            _testingLateFailureEvents = newValue
+            #else
+            _ = newValue
+            #endif
+        }
+    }
+
+    #if DEBUG
+    private static var _testingLateFailureEvents: [String] = []
+    #endif
 
     static func resetTestingHooks() {
-        testingFailAfterCompletedSplits = nil
-        testingForceTransientFocusSuppressed = false
-        testingForceDelegateRestriction = false
-        testingRemoteCommandLog = []
-        testingLateFailureEvents = []
+        #if DEBUG
+        _testingFailAfterCompletedSplits = nil
+        _testingForceTransientFocusSuppressed = false
+        _testingSkipLiveTransientFocusProbe = false
+        _testingForceDelegateRestriction = false
+        _testingRemoteCommandLog = []
+        _testingLateFailureEvents = []
+        #endif
     }
 
     // MARK: - Workspace
@@ -167,8 +291,11 @@ enum QuadSplitAction {
         if workspace.layoutMode == .canvas {
             return .canvasMode
         }
-        if testingForceTransientFocusSuppressed
-            || isTransientFocusSuppressed(workspace: workspace, paneId: paneId) {
+        if testingForceTransientFocusSuppressed {
+            return .transientFocusSuppressed
+        }
+        if !testingSkipLiveTransientFocusProbe,
+           isTransientFocusSuppressed(workspace: workspace, paneId: paneId) {
             return .transientFocusSuppressed
         }
         if testingForceDelegateRestriction
@@ -354,7 +481,11 @@ enum QuadSplitAction {
     }
 
     private static func shouldInjectLateFailure(afterCompletedSplits completed: Int) -> Bool {
+        #if DEBUG
         testingFailAfterCompletedSplits == completed
+        #else
+        false
+        #endif
     }
 
     /// Live transient-focus probe shared with shortcut routing semantics.
@@ -378,8 +509,8 @@ enum QuadSplitAction {
     private static func logLateFailure(surface: String, completedSplits: Int, detail: String) {
         let message =
             "quad.lateFailure surface=\(surface) completedSplits=\(completedSplits) detail=\(detail)"
-        testingLateFailureEvents.append(message)
         #if DEBUG
+        testingLateFailureEvents.append(message)
         cmuxDebugLog(message)
         print(message)
         #endif

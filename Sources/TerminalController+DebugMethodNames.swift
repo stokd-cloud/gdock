@@ -62,6 +62,13 @@ extension TerminalController {
         // invokes production adapters — never QuadSplitAction.perform as substitute.
         "debug.quad.adapter_perform",
         "debug.quad.adapters",
+        // Quad running-app late-failure / veto dogfood (VAL-QUAD-004 / D-34).
+        // Configures the existing testingFailAfterCompletedSplits seam and runs
+        // the real shared QuadSplitAction path with topology/veto/log snapshots.
+        "debug.quad.fail_after",
+        "debug.quad.reset_hooks",
+        "debug.quad.perform",
+        "debug.quad.stage_fixture",
         "mobile.dev_stack_auth.configure",
     ]
 }

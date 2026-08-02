@@ -64,7 +64,8 @@ struct QuadSplitRunningFailureDebugTests {
                         params: ["completed_splits": 1]
                     )
                 )
-                guard case .ok(let configured) = configure else {
+                guard case .ok(let configuredAny) = configure,
+                          let configured = configuredAny as? [String: Any] else {
                     Issue.record("expected ok configure, got \(configure)")
                     return
                 }
@@ -74,7 +75,8 @@ struct QuadSplitRunningFailureDebugTests {
                 let reset = try #require(
                     controller.v2DebugQuadSplit(method: "debug.quad.reset_hooks", params: [:])
                 )
-                guard case .ok(let resetPayload) = reset else {
+                guard case .ok(let resetPayloadAny) = reset,
+                          let resetPayload = resetPayloadAny as? [String: Any] else {
                     Issue.record("expected ok reset, got \(reset)")
                     return
                 }
@@ -107,7 +109,8 @@ struct QuadSplitRunningFailureDebugTests {
                         ]
                     )
                 )
-                guard case .ok(let payload) = result else {
+                guard case .ok(let payloadAny) = result,
+                          let payload = payloadAny as? [String: Any] else {
                     Issue.record("expected ok perform, got \(result)")
                     return
                 }
@@ -160,7 +163,8 @@ struct QuadSplitRunningFailureDebugTests {
                         ]
                     )
                 )
-                guard case .ok(let payload) = result else {
+                guard case .ok(let payloadAny) = result,
+                          let payload = payloadAny as? [String: Any] else {
                     Issue.record("expected ok perform, got \(result)")
                     return
                 }
@@ -203,7 +207,8 @@ struct QuadSplitRunningFailureDebugTests {
                         ]
                     )
                 )
-                guard case .ok(let payload) = result else {
+                guard case .ok(let payloadAny) = result,
+                          let payload = payloadAny as? [String: Any] else {
                     Issue.record("expected ok dock perform, got \(result)")
                     return
                 }
@@ -249,7 +254,8 @@ struct QuadSplitRunningFailureDebugTests {
                         ]
                     )
                 )
-                guard case .ok(let staged) = stage else {
+                guard case .ok(let stagedAny) = stage,
+                          let staged = stagedAny as? [String: Any] else {
                     Issue.record("stage_fixture \(fixture) failed: \(stage)")
                     return
                 }
@@ -276,7 +282,8 @@ struct QuadSplitRunningFailureDebugTests {
                 let result = try #require(
                     controller.v2DebugQuadSplit(method: "debug.quad.perform", params: params)
                 )
-                guard case .ok(let payload) = result else {
+                guard case .ok(let payloadAny) = result,
+                          let payload = payloadAny as? [String: Any] else {
                     Issue.record("perform \(fixture) failed: \(result)")
                     return
                 }
@@ -288,6 +295,19 @@ struct QuadSplitRunningFailureDebugTests {
                 if fixture == "local_success" {
                     #expect(payload["outcome"] as? String == "success")
                     #expect(harness.mainWorkspace.bonsplitController.allPaneIds.count == 4)
+                    return
+                }
+
+                if fixture == "missing_target" {
+                    // Explicit bogus surface → surface not found error (owner resolution),
+                    // not a preflight veto on a resolved pane.
+                    let outcome = payload["outcome"] as? String
+                    #expect(outcome == "error" || outcome == "vetoed", "fixture missing_target")
+                    #expect(
+                        harness.mainWorkspace.bonsplitController.treeSnapshot() == mainTreeBefore
+                    )
+                    #expect(harness.dock.bonsplitController.treeSnapshot() == dockTreeBefore)
+                    #expect(QuadSplitAction.testingRemoteCommandLog == remoteLogBefore)
                     return
                 }
 
@@ -318,11 +338,6 @@ struct QuadSplitRunningFailureDebugTests {
                 if fixture == "remote_unresolved" {
                     #expect(veto == "remoteUnresolved")
                 }
-                if fixture == "missing_target" {
-                    // Explicit bogus surface → surface not found / missing target style error.
-                    let outcome = payload["outcome"] as? String
-                    #expect(outcome == "vetoed" || outcome == "error")
-                }
 
                 // No side-effecting remote delegate: log probe unchanged.
                 #expect(QuadSplitAction.testingRemoteCommandLog == remoteLogBefore)
@@ -347,7 +362,8 @@ struct QuadSplitRunningFailureDebugTests {
                         ]
                     )
                 )
-                guard case .ok(let payload) = result else {
+                guard case .ok(let payloadAny) = result,
+                          let payload = payloadAny as? [String: Any] else {
                     Issue.record("expected ok, got \(result)")
                     return
                 }
