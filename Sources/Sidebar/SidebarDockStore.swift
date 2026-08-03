@@ -27,22 +27,22 @@ final class SidebarDockStore: BonsplitDelegate {
     var rememberedExtentBySplitId: [UUID: CGFloat] = [:]
 
     /// Split ids currently collapsed to header height (first-child pin).
-    private(set) var collapsedSplitIds: Set<UUID> = []
+    var collapsedSplitIds: Set<UUID> = []
 
     /// When the trailing (second-child) leaf is collapsed, the parent split id
     /// whose first-child extent is imposed to leave only header height for the
     /// second child.
-    private(set) var trailingCollapsedParentSplitId: UUID?
+    var trailingCollapsedParentSplitId: UUID?
 
     /// Sole-section collapse surrogate (left rail headerless chrome case).
-    private(set) var isSoleSectionCollapsed = false
-    private var soleSectionRememberedExtent: CGFloat?
+    var isSoleSectionCollapsed = false
+    var soleSectionRememberedExtent: CGFloat?
 
     /// Pane id of the section most recently expanded (divider/collapse lifecycle).
-    private(set) var lastExpandedPaneId: UUID?
+    var lastExpandedPaneId: UUID?
 
     /// Collapse requests deferred while a divider drag is active.
-    private var pendingCollapsePaneIds: [PaneID] = []
+    var pendingCollapsePaneIds: [PaneID] = []
 
     /// Observed rail content height for trailing re-imposition and geometry checks.
     private(set) var railContentHeight: CGFloat = 0
@@ -218,7 +218,7 @@ final class SidebarDockStore: BonsplitDelegate {
 
     /// Pane-host → durable section id. Bonsplit pane hosts may be replaced; this
     /// map is the app-owned oracle for complete snapshots (VAL-RAIL-008 / D-33).
-    private var sectionIdByPaneHost: [UUID: SidebarDockSectionID] = [:]
+    var sectionIdByPaneHost: [UUID: SidebarDockSectionID] = [:]
 
     /// App-owned stable section id for a pane host.
     ///
@@ -245,7 +245,7 @@ final class SidebarDockStore: BonsplitDelegate {
 
     /// Bind a known durable section id to a (possibly new) pane host.
     /// Removes any prior host that held the same id so rebinds stay 1:1.
-    private func bindSectionId(_ sectionId: SidebarDockSectionID, to pane: PaneID) {
+    func bindSectionId(_ sectionId: SidebarDockSectionID, to pane: PaneID) {
         for (host, bound) in sectionIdByPaneHost where bound == sectionId && host != pane.id {
             sectionIdByPaneHost.removeValue(forKey: host)
         }
@@ -253,7 +253,7 @@ final class SidebarDockStore: BonsplitDelegate {
     }
 
     /// After topology changes: prune dead hosts, mint missing ids, repair duplicates.
-    private func reconcileSectionIdentities() {
+    func reconcileSectionIdentities() {
         let liveHosts = orderedSectionPaneIds().map(\.id)
         let liveSet = Set(liveHosts)
         sectionIdByPaneHost = sectionIdByPaneHost.filter { liveSet.contains($0.key) }
@@ -1613,7 +1613,7 @@ final class SidebarDockStore: BonsplitDelegate {
         }
     }
 
-    private func parentSplitId(of paneId: PaneID) -> UUID? {
+    func parentSplitId(of paneId: PaneID) -> UUID? {
         guard let split = findParentSplit(of: paneId, in: bonsplitController.treeSnapshot()) else {
             return nil
         }

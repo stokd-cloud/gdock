@@ -18,11 +18,14 @@ struct CmuxWorkspaceLayoutCapture {
 }
 
 extension Workspace {
+    /// Capture the workspace layout plus optional UUID-free rail definitions.
+    ///
+    /// Pass `sidebarDockRegistry` to target a specific window's rails. When nil,
+    /// uses ``owningTabManager``'s explicit registry ownership. Never scans
+    /// AppDelegate global window maps (VAL-LAYOUT-001 / VAL-CROSS-001 / D-15).
     func captureLayoutDefinition(
         sidebarDockRegistry registryOverride: SidebarDockStoreRegistry? = nil
     ) throws -> CmuxWorkspaceLayoutCapture {
-        _ = registryOverride
-
         var unsupportedSurfaceCount = 0
         let baseCwd = currentDirectory
         let root = try captureLayoutNode(
@@ -30,17 +33,38 @@ extension Workspace {
             baseCwd: baseCwd,
             unsupportedSurfaceCount: &unsupportedSurfaceCount
         )
+        let sidebarDock = Self.captureSidebarDockDefinition(
+            for: self,
+            registry: registryOverride
+        )
         let workspaceDefinition = CmuxWorkspaceDefinition(
             name: nil,
             cwd: baseCwd,
             color: customColor,
             env: workspaceEnvironment.isEmpty ? nil : workspaceEnvironment,
-            layout: root
+            layout: root,
+            sidebarDock: sidebarDock
         )
         return CmuxWorkspaceLayoutCapture(
             workspace: workspaceDefinition,
             unsupportedSurfaceCount: unsupportedSurfaceCount
         )
+    }
+
+    /// Capture the window rails that host this workspace, if the dock flag is on.
+    private static func captureSidebarDockDefinition(
+        for workspace: Workspace,
+        registry: SidebarDockStoreRegistry?
+    ) -> CmuxSidebarDockDefinition? {
+        guard RightSidebarBetaFeatureSettings.isSidebarDockEnabled() else { return nil }
+        // Explicit ownership only: override, else TabManager.sidebarDockRegistry.
+        let resolved = registry ?? workspace.owningTabManager?.sidebarDockRegistry
+        guard let resolved else { return nil }
+        let definition = resolved.captureNamedLayoutDefinition()
+        if definition.left == nil, definition.right == nil {
+            return nil
+        }
+        return definition
     }
 
     private func captureLayoutNode(

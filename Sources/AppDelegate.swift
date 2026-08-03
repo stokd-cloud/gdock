@@ -3575,6 +3575,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         )
         context.sidebarSelectionState.selection = snapshot.sidebar.selection.sidebarSelection
 
+        // Restore dock rails after workspaces exist so panels reattach correctly.
+        restoreSidebarDockRails(from: snapshot, to: context)
+
         if let restoredFrame = resolvedWindowFrame(from: snapshot), let window {
             window.setFrame(restoredFrame, display: true)
 #if DEBUG
@@ -3584,6 +3587,42 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             )
 #endif
         }
+    }
+
+    /// Restore left/right rail arrangements for a window (VAL-PERSIST-001/002/005).
+    private func restoreSidebarDockRails(
+        from snapshot: SessionWindowSnapshot,
+        to context: MainWindowContext
+    ) {
+        guard RightSidebarBetaFeatureSettings.isSidebarDockEnabled() else { return }
+        let registry = context.sidebarDockRegistry ?? {
+            let created = SidebarDockStoreRegistry(windowId: context.windowId)
+            context.sidebarDockRegistry = created
+            context.tabManager.sidebarDockRegistry = created
+            return created
+        }()
+        // Explicit window ownership: keep TabManager and context in lockstep (VAL-CROSS-001).
+        context.tabManager.sidebarDockRegistry = registry
+        guard let workspace = context.tabManager.selectedWorkspace
+                ?? context.tabManager.tabs.first else {
+            return
+        }
+        let preferredMode = context.fileExplorerState?.mode
+        var recoveryEvents: [String] = []
+        let results = registry.restoreSessionRails(
+            leftSnapshot: snapshot.leftSidebarDock,
+            rightSnapshot: snapshot.rightSidebarDock,
+            workspace: workspace,
+            preferredLegacyMode: preferredMode,
+            recoveryLogSink: { recoveryEvents.append($0) }
+        )
+        // All-invalid reseed repairs must autosave so the repaired state sticks
+        // (VAL-PERSIST-002). One structured recovery path; do not double-log.
+        if results.left.didReseedCanonical || results.right.didReseedCanonical
+            || results.left.didLogRecovery || results.right.didLogRecovery {
+            _ = saveSessionSnapshot(includeScrollback: false)
+        }
+        _ = recoveryEvents
     }
 
     private func resolvedWindowFrame(from snapshot: SessionWindowSnapshot?) -> NSRect? {
@@ -4007,6 +4046,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 Self.hashFrame(window.frame, into: &hasher)
             } else {
                 hasher.combine(-1)
+            }
+
+            // Rail arrangement must dirty autosave (VAL-PERSIST-003). Flag-off
+            // contributes a stable empty hash so toggling still fingerprints.
+            if RightSidebarBetaFeatureSettings.isSidebarDockEnabled(),
+               let registry = context.sidebarDockRegistry {
+                hasher.combine(registry.sessionAutosaveFingerprint())
+            } else {
+                hasher.combine(0)
             }
         }
 
@@ -4536,6 +4584,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         if let window {
             captureWindowConfigFrame(window, reason: "sessionSnapshot")
         }
+        let railSnapshots: (left: SessionSidebarDockSnapshot?, right: SessionSidebarDockSnapshot?) = {
+            guard RightSidebarBetaFeatureSettings.isSidebarDockEnabled(),
+                  let registry = context.sidebarDockRegistry
+                    ?? context.tabManager.sidebarDockRegistry else {
+                // Flag off writes no rail fields (VAL-FLAG-004).
+                return (nil, nil)
+            }
+            return registry.sessionWindowRailSnapshots(flagEnabled: true)
+        }()
         return SessionWindowSnapshot(
             windowId: context.windowId,
             frame: window.map { SessionRectSnapshot($0.frame) },
@@ -4547,7 +4604,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 width: SessionPersistencePolicy.sanitizedSidebarWidth(Double(context.sidebarState.persistedWidth))
             ),
             configFrames: windowConfigFrames[context.windowId]?.entries,
-            dock: context.windowDockSessionSnapshot(includeScrollback: includeScrollback, restorableAgentIndex: restorableAgentIndex, surfaceResumeBindingIndex: surfaceResumeBindingIndex)
+            dock: context.windowDockSessionSnapshot(includeScrollback: includeScrollback, restorableAgentIndex: restorableAgentIndex, surfaceResumeBindingIndex: surfaceResumeBindingIndex),
+            leftSidebarDock: railSnapshots.left,
+            rightSidebarDock: railSnapshots.right
         )
     }
 

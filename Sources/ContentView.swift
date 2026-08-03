@@ -1739,6 +1739,8 @@ struct ContentView: View {
             sidebarDockRegistry = created
             registry = created
         }
+        // Explicit window ownership on TabManager (capture/apply/reattach path).
+        tabManager.sidebarDockRegistry = registry
         // Attach registry to window context for selection router / socket targeting.
         if let context = AppDelegate.shared?.mainWindowContexts.values.first(where: { $0.windowId == windowId }) {
             context.sidebarDockRegistry = registry

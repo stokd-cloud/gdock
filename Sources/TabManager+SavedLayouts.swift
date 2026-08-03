@@ -18,21 +18,36 @@ extension TabManager {
         if let layoutNode = layout.workspace.layout {
             workspace.applyCustomLayout(layoutNode, baseCwd: resolvedCwd)
         }
+        // Apply UUID-free rail definitions to the target window only (VAL-LAYOUT-001).
+        if let dock = layout.workspace.sidebarDock {
+            applySidebarDockLayout(dock, to: workspace)
+        }
         return workspace
     }
-    /// RED stub: apply is a no-op until green wires the shared registry path.
+
+    /// Apply a named-layout rail definition to this window's explicit registry ownership.
+    ///
+    /// Registry is window-scoped and injected on ``sidebarDockRegistry`` — never resolved
+    /// by scanning AppDelegate contexts (VAL-LAYOUT-001 / VAL-CROSS-001 / D-15).
     func applySidebarDockLayout(
         _ definition: CmuxSidebarDockDefinition,
         to workspace: Workspace,
         preferredLegacyMode: RightSidebarMode? = nil
     ) {
-        _ = definition
-        _ = workspace
-        _ = preferredLegacyMode
+        guard RightSidebarBetaFeatureSettings.isSidebarDockEnabled() else { return }
+        guard let registry = sidebarDockRegistry else { return }
+        _ = registry.applyNamedLayoutDefinition(
+            definition,
+            workspace: workspace,
+            preferredLegacyMode: preferredLegacyMode
+        )
     }
 
-    /// RED stub: reattachment is a no-op.
+    /// Reattach rail tool panels when the selected workspace changes (VAL-CROSS-001).
     func reattachSidebarDockAdapters(to workspace: Workspace) {
-        _ = workspace
+        guard RightSidebarBetaFeatureSettings.isSidebarDockEnabled() else { return }
+        guard let registry = sidebarDockRegistry else { return }
+        registry.left.reattachAllPanels(to: workspace)
+        registry.right.reattachAllPanels(to: workspace)
     }
 }

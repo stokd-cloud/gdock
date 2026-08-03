@@ -329,6 +329,12 @@ class TabManager: ObservableObject {
                 }
             }
             publishCmuxWorkspaceSelectedChange(from: previousTabId)
+            // Reattach rail adapters to the newly selected workspace without
+            // touching peer windows (VAL-CROSS-001).
+            if !isRestoringSessionSnapshot,
+               let selected = selectedWorkspace {
+                reattachSidebarDockAdapters(to: selected)
+            }
             let notificationDismissalContext = notificationDismissal.takePendingSelectionContext() ?? .activeFocus
 #if DEBUG
             let switchId = debugWorkspaceSwitchId

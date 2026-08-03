@@ -12,7 +12,6 @@ import Testing
 @Suite("Sidebar dock named layouts", .serialized)
 struct SidebarDockSavedLayoutTests {
     @Test func legacyLayoutsJSONWithoutSidebarDockDecodesUnchanged() throws {
-        // Pre-mission layouts use the pane-keyed layout node and omit sidebarDock.
         let json = """
         {"layouts":[{"name":"Old","workspace":{"cwd":"/tmp/project","layout":{"pane":{"surfaces":[{"type":"terminal"}]}}}}]}
         """
