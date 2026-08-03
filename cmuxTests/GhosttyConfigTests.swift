@@ -217,7 +217,7 @@ final class GhosttyConfigTests: XCTestCase {
 
         XCTAssertTrue(
             paths.contains(
-                "\(NSHomeDirectory())/Library/Application Support/com.cmuxterm.app/themes/Zag Light"
+                "\(NSHomeDirectory())/Library/Application Support/cloud.stokd.ghostty-dock/themes/Zag Light"
             )
         )
     }
@@ -232,7 +232,7 @@ final class GhosttyConfigTests: XCTestCase {
 
         XCTAssertTrue(
             paths.contains(
-                "\(fixedHome)/Library/Application Support/com.cmuxterm.app/themes/Zag Light"
+                "\(fixedHome)/Library/Application Support/cloud.stokd.ghostty-dock/themes/Zag Light"
             )
         )
     }
@@ -245,7 +245,7 @@ final class GhosttyConfigTests: XCTestCase {
         defer { try? fileManager.removeItem(at: root) }
 
         let themesDirectory = root
-            .appendingPathComponent("Library/Application Support/com.cmuxterm.app/themes", isDirectory: true)
+            .appendingPathComponent("Library/Application Support/cloud.stokd.ghostty-dock/themes", isDirectory: true)
         try fileManager.createDirectory(at: themesDirectory, withIntermediateDirectories: true)
         try "background = #ffffff\nforeground = #1f2328\n".write(
             to: themesDirectory.appendingPathComponent("Zag Light", isDirectory: false),
@@ -3200,7 +3200,7 @@ final class SocketControlSettingsTests: XCTestCase {
                 "CMUX_TAG": "stray-tag",
                 "CMUX_SOCKET_PATH": "/tmp/cmux-debug-issue-153-tmux-compat.sock",
             ],
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "cloud.stokd.ghostty-dock",
             isDebugBuild: false,
             probeStableDefaultPathEntry: { _ in .missing }
         )
@@ -3213,7 +3213,7 @@ final class SocketControlSettingsTests: XCTestCase {
             environment: [
                 "CMUX_TAG": "my-tag",
             ],
-            bundleIdentifier: "com.cmuxterm.app.debug",
+            bundleIdentifier: "cloud.stokd.ghostty-dock.debug",
             isDebugBuild: true
         )
 
@@ -3226,7 +3226,7 @@ final class SocketControlSettingsTests: XCTestCase {
                 "CMUX_TAG": "my-tag",
                 "CMUX_SOCKET_PATH": "/tmp/cmux-debug-forced.sock",
             ],
-            bundleIdentifier: "com.cmuxterm.app.debug",
+            bundleIdentifier: "cloud.stokd.ghostty-dock.debug",
             isDebugBuild: true
         )
 
@@ -3238,7 +3238,7 @@ final class SocketControlSettingsTests: XCTestCase {
             environment: [
                 "CMUX_SOCKET_PATH": "/tmp/cmux-debug-issue-153-tmux-compat.sock",
             ],
-            bundleIdentifier: "com.cmuxterm.app.nightly",
+            bundleIdentifier: "cloud.stokd.ghostty-dock.nightly",
             isDebugBuild: false,
             probeStableDefaultPathEntry: { _ in .missing }
         )
@@ -3251,7 +3251,7 @@ final class SocketControlSettingsTests: XCTestCase {
             environment: [
                 "CMUX_SOCKET_PATH": "/tmp/cmux-debug-my-tag.sock",
             ],
-            bundleIdentifier: "com.cmuxterm.app.debug.my-tag",
+            bundleIdentifier: "cloud.stokd.ghostty-dock.debug.my-tag",
             isDebugBuild: false
         )
 
@@ -3261,10 +3261,10 @@ final class SocketControlSettingsTests: XCTestCase {
     func testTaggedDebugBundleIgnoresSocketOverrideInheritedFromDifferentCmuxBundle() {
         let path = SocketControlSettings.socketPath(
             environment: [
-                "CMUX_BUNDLE_ID": "com.cmuxterm.app.nightly",
+                "CMUX_BUNDLE_ID": "cloud.stokd.ghostty-dock.nightly",
                 "CMUX_SOCKET_PATH": "/tmp/cmux-nightly.sock",
             ],
-            bundleIdentifier: "com.cmuxterm.app.debug.issue.4355.cmux.themes.set.state.dependent",
+            bundleIdentifier: "cloud.stokd.ghostty-dock.debug.issue.4355.cmux.themes.set.state.dependent",
             isDebugBuild: true
         )
 
@@ -3275,9 +3275,9 @@ final class SocketControlSettingsTests: XCTestCase {
         let path = SocketControlSettings.socketPath(
             environment: [
                 "CMUX_SOCKET_PATH": "/tmp/cmux-nightly.sock",
-                "CMUX_BUNDLE_ID": "com.cmuxterm.app.nightly",
+                "CMUX_BUNDLE_ID": "cloud.stokd.ghostty-dock.nightly",
             ],
-            bundleIdentifier: "com.cmuxterm.app.debug.fix-grok-notifications",
+            bundleIdentifier: "cloud.stokd.ghostty-dock.debug.fix-grok-notifications",
             isDebugBuild: false
         )
 
@@ -3288,10 +3288,10 @@ final class SocketControlSettingsTests: XCTestCase {
         let path = SocketControlSettings.socketPath(
             environment: [
                 "CMUX_SOCKET_PATH": "/tmp/cmux-nightly.sock",
-                "CMUX_BUNDLE_ID": "com.cmuxterm.app.nightly",
+                "CMUX_BUNDLE_ID": "cloud.stokd.ghostty-dock.nightly",
                 "CMUX_ALLOW_SOCKET_OVERRIDE": "1",
             ],
-            bundleIdentifier: "com.cmuxterm.app.debug.fix-grok-notifications",
+            bundleIdentifier: "cloud.stokd.ghostty-dock.debug.fix-grok-notifications",
             isDebugBuild: false
         )
 
@@ -3304,7 +3304,7 @@ final class SocketControlSettingsTests: XCTestCase {
                 "CMUX_SOCKET_PATH": SocketControlSettings.stableDefaultSocketPath,
                 "CMUX_ALLOW_SOCKET_OVERRIDE": "1",
             ],
-            bundleIdentifier: "com.cmuxterm.app.debug.sockguard",
+            bundleIdentifier: "cloud.stokd.ghostty-dock.debug.sockguard",
             isDebugBuild: false
         )
 
@@ -3324,7 +3324,7 @@ final class SocketControlSettingsTests: XCTestCase {
                     "CMUX_SOCKET_PATH": alias,
                     "CMUX_ALLOW_SOCKET_OVERRIDE": "1",
                 ],
-                bundleIdentifier: "com.cmuxterm.app.debug.sockguard",
+                bundleIdentifier: "cloud.stokd.ghostty-dock.debug.sockguard",
                 isDebugBuild: false,
                 currentUserID: 501
             )
@@ -3339,7 +3339,7 @@ final class SocketControlSettingsTests: XCTestCase {
                 "CMUX_SOCKET_PATH": "/private/tmp/cmux.sock",
                 "CMUX_ALLOW_SOCKET_OVERRIDE": "1",
             ],
-            bundleIdentifier: "com.cmuxterm.app.debug.sockguard",
+            bundleIdentifier: "cloud.stokd.ghostty-dock.debug.sockguard",
             isDebugBuild: false
         )
 
@@ -3371,7 +3371,7 @@ final class SocketControlSettingsTests: XCTestCase {
                     "CMUX_SOCKET_PATH": alias,
                     "CMUX_ALLOW_SOCKET_OVERRIDE": "1",
                 ],
-                bundleIdentifier: "com.cmuxterm.app.debug.sockguard",
+                bundleIdentifier: "cloud.stokd.ghostty-dock.debug.sockguard",
                 isDebugBuild: false,
                 currentUserID: 501
             )
@@ -3394,7 +3394,7 @@ final class SocketControlSettingsTests: XCTestCase {
                 "CMUX_SOCKET_PATH": alias,
                 "CMUX_ALLOW_SOCKET_OVERRIDE": "1",
             ],
-            bundleIdentifier: "com.cmuxterm.app.debug.sockguard",
+            bundleIdentifier: "cloud.stokd.ghostty-dock.debug.sockguard",
             isDebugBuild: false
         )
 
@@ -3429,7 +3429,7 @@ final class SocketControlSettingsTests: XCTestCase {
                 "CMUX_SOCKET_PATH": aliases[0],
                 "CMUX_ALLOW_SOCKET_OVERRIDE": "1",
             ],
-            bundleIdentifier: "com.cmuxterm.app.debug.sockguard",
+            bundleIdentifier: "cloud.stokd.ghostty-dock.debug.sockguard",
             isDebugBuild: false
         )
 
@@ -3441,7 +3441,7 @@ final class SocketControlSettingsTests: XCTestCase {
             environment: [
                 "CMUX_SOCKET_PATH": "/tmp/cmux-staging-my-tag.sock",
             ],
-            bundleIdentifier: "com.cmuxterm.app.staging.my-tag",
+            bundleIdentifier: "cloud.stokd.ghostty-dock.staging.my-tag",
             isDebugBuild: false
         )
 
@@ -3454,7 +3454,7 @@ final class SocketControlSettingsTests: XCTestCase {
                 "CMUX_SOCKET_PATH": "/tmp/cmux-debug-forced.sock",
                 "CMUX_ALLOW_SOCKET_OVERRIDE": "1",
             ],
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "cloud.stokd.ghostty-dock",
             isDebugBuild: false,
             probeStableDefaultPathEntry: { _ in .missing }
         )
@@ -3465,7 +3465,7 @@ final class SocketControlSettingsTests: XCTestCase {
     func testDefaultSocketPathByChannel() {
         XCTAssertEqual(
             SocketControlSettings.defaultSocketPath(
-                bundleIdentifier: "com.cmuxterm.app",
+                bundleIdentifier: "cloud.stokd.ghostty-dock",
                 isDebugBuild: false,
                 probeStableDefaultPathEntry: { _ in .missing }
             ),
@@ -3473,7 +3473,7 @@ final class SocketControlSettingsTests: XCTestCase {
         )
         XCTAssertEqual(
             SocketControlSettings.defaultSocketPath(
-                bundleIdentifier: "com.cmuxterm.app.nightly",
+                bundleIdentifier: "cloud.stokd.ghostty-dock.nightly",
                 isDebugBuild: false,
                 probeStableDefaultPathEntry: { _ in .missing }
             ),
@@ -3481,7 +3481,7 @@ final class SocketControlSettingsTests: XCTestCase {
         )
         XCTAssertEqual(
             SocketControlSettings.defaultSocketPath(
-                bundleIdentifier: "com.cmuxterm.app.nightly.tag",
+                bundleIdentifier: "cloud.stokd.ghostty-dock.nightly.tag",
                 isDebugBuild: false,
                 probeStableDefaultPathEntry: { _ in .missing }
             ),
@@ -3489,7 +3489,7 @@ final class SocketControlSettingsTests: XCTestCase {
         )
         XCTAssertEqual(
             SocketControlSettings.defaultSocketPath(
-                bundleIdentifier: "com.cmuxterm.app.debug.tag",
+                bundleIdentifier: "cloud.stokd.ghostty-dock.debug.tag",
                 isDebugBuild: false,
                 probeStableDefaultPathEntry: { _ in .missing }
             ),
@@ -3497,7 +3497,7 @@ final class SocketControlSettingsTests: XCTestCase {
         )
         XCTAssertEqual(
             SocketControlSettings.defaultSocketPath(
-                bundleIdentifier: "com.cmuxterm.app.staging.tag",
+                bundleIdentifier: "cloud.stokd.ghostty-dock.staging.tag",
                 isDebugBuild: false,
                 probeStableDefaultPathEntry: { _ in .missing }
             ),
@@ -3507,7 +3507,7 @@ final class SocketControlSettingsTests: XCTestCase {
 
     func testStableReleaseFallsBackToUserScopedSocketWhenStablePathOwnedByDifferentUser() {
         let path = SocketControlSettings.defaultSocketPath(
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "cloud.stokd.ghostty-dock",
             isDebugBuild: false,
             currentUserID: 501,
             probeStableDefaultPathEntry: { _ in .socket(ownerUserID: 0) }
@@ -3519,7 +3519,7 @@ final class SocketControlSettingsTests: XCTestCase {
     func testInitialStableLaunchFallsBackToUserScopedSocketWhenSameUserStablePathExists() {
         let path = SocketControlSettings.initialSocketPathBeforeListenerStart(
             preferredPath: SocketControlSettings.stableDefaultSocketPath,
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "cloud.stokd.ghostty-dock",
             isDebugBuild: false,
             currentUserID: 501,
             probeStableDefaultPathEntry: { _ in .socket(ownerUserID: 501) }
@@ -3531,7 +3531,7 @@ final class SocketControlSettingsTests: XCTestCase {
     func testInitialStableLaunchTreatsPrivateTmpLegacyStableAliasAsStablePath() {
         let path = SocketControlSettings.initialSocketPathBeforeListenerStart(
             preferredPath: "/private/tmp/cmux.sock",
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "cloud.stokd.ghostty-dock",
             isDebugBuild: false,
             currentUserID: 501,
             probeStableDefaultPathEntry: { socketPath in
@@ -3546,7 +3546,7 @@ final class SocketControlSettingsTests: XCTestCase {
     func testInitialStableLaunchDoesNotProbeSameUserStableSocketLiveness() {
         let path = SocketControlSettings.initialSocketPathBeforeListenerStart(
             preferredPath: SocketControlSettings.stableDefaultSocketPath,
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "cloud.stokd.ghostty-dock",
             isDebugBuild: false,
             currentUserID: 501,
             probeStableDefaultPathEntry: { _ in .socket(ownerUserID: 501) },
@@ -3562,7 +3562,7 @@ final class SocketControlSettingsTests: XCTestCase {
     func testInitialStableLaunchDoesNotProbeSameUserStableSocketReclaimability() {
         let path = SocketControlSettings.initialSocketPathBeforeListenerStart(
             preferredPath: SocketControlSettings.stableDefaultSocketPath,
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "cloud.stokd.ghostty-dock",
             isDebugBuild: false,
             currentUserID: 501,
             probeStableDefaultPathEntry: { _ in .socket(ownerUserID: 501) },
@@ -3579,7 +3579,7 @@ final class SocketControlSettingsTests: XCTestCase {
         let userScopedPath = SocketControlSettings.userScopedStableSocketPath(currentUserID: 501)
         let path = SocketControlSettings.initialSocketPathBeforeListenerStart(
             preferredPath: userScopedPath,
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "cloud.stokd.ghostty-dock",
             isDebugBuild: false,
             currentUserID: 501,
             probeStableDefaultPathEntry: { socketPath in
@@ -3598,7 +3598,7 @@ final class SocketControlSettingsTests: XCTestCase {
     func testInitialStableLaunchFallsBackToUserScopedSocketWhenMissingStablePathCannotBeReserved() {
         let path = SocketControlSettings.initialSocketPathBeforeListenerStart(
             preferredPath: SocketControlSettings.stableDefaultSocketPath,
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "cloud.stokd.ghostty-dock",
             isDebugBuild: false,
             currentUserID: 501,
             probeStableDefaultPathEntry: { _ in .missing },
@@ -3615,7 +3615,7 @@ final class SocketControlSettingsTests: XCTestCase {
         let debugPath = "/tmp/cmux-debug-tag.sock"
         let path = SocketControlSettings.initialSocketPathBeforeListenerStart(
             preferredPath: debugPath,
-            bundleIdentifier: "com.cmuxterm.app.debug.tag",
+            bundleIdentifier: "cloud.stokd.ghostty-dock.debug.tag",
             isDebugBuild: false,
             currentUserID: 501,
             probeStableDefaultPathEntry: { _ in
@@ -3629,7 +3629,7 @@ final class SocketControlSettingsTests: XCTestCase {
 
     func testStableReleaseFallsBackToUserScopedSocketWhenStablePathIsBlockedByNonSocketEntry() {
         let path = SocketControlSettings.defaultSocketPath(
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "cloud.stokd.ghostty-dock",
             isDebugBuild: false,
             currentUserID: 501,
             probeStableDefaultPathEntry: { _ in .other(ownerUserID: 501) }
@@ -3642,7 +3642,7 @@ final class SocketControlSettingsTests: XCTestCase {
         XCTAssertTrue(
             SocketControlSettings.shouldBlockUntaggedDebugLaunch(
                 environment: [:],
-                bundleIdentifier: "com.cmuxterm.app.debug",
+                bundleIdentifier: "cloud.stokd.ghostty-dock.debug",
                 isDebugBuild: true
             )
         )
@@ -3652,7 +3652,7 @@ final class SocketControlSettingsTests: XCTestCase {
         XCTAssertFalse(
             SocketControlSettings.shouldBlockUntaggedDebugLaunch(
                 environment: ["CMUX_TAG": "tests-v1"],
-                bundleIdentifier: "com.cmuxterm.app.debug",
+                bundleIdentifier: "cloud.stokd.ghostty-dock.debug",
                 isDebugBuild: true
             )
         )
@@ -3662,7 +3662,7 @@ final class SocketControlSettingsTests: XCTestCase {
         XCTAssertFalse(
             SocketControlSettings.shouldBlockUntaggedDebugLaunch(
                 environment: [:],
-                bundleIdentifier: "com.cmuxterm.app.debug.tests-v1",
+                bundleIdentifier: "cloud.stokd.ghostty-dock.debug.tests-v1",
                 isDebugBuild: true
             )
         )
@@ -3672,7 +3672,7 @@ final class SocketControlSettingsTests: XCTestCase {
         XCTAssertFalse(
             SocketControlSettings.shouldBlockUntaggedDebugLaunch(
                 environment: [:],
-                bundleIdentifier: "com.cmuxterm.app.debug",
+                bundleIdentifier: "cloud.stokd.ghostty-dock.debug",
                 isDebugBuild: false
             )
         )
@@ -3682,7 +3682,7 @@ final class SocketControlSettingsTests: XCTestCase {
         XCTAssertFalse(
             SocketControlSettings.shouldBlockUntaggedDebugLaunch(
                 environment: ["XCTestConfigurationFilePath": "/tmp/fake.xctestconfiguration"],
-                bundleIdentifier: "com.cmuxterm.app.debug",
+                bundleIdentifier: "cloud.stokd.ghostty-dock.debug",
                 isDebugBuild: true
             )
         )
@@ -3692,7 +3692,7 @@ final class SocketControlSettingsTests: XCTestCase {
         XCTAssertFalse(
             SocketControlSettings.shouldBlockUntaggedDebugLaunch(
                 environment: ["XCInjectBundle": "/tmp/fake.xctest"],
-                bundleIdentifier: "com.cmuxterm.app.debug",
+                bundleIdentifier: "cloud.stokd.ghostty-dock.debug",
                 isDebugBuild: true
             )
         )
@@ -3702,7 +3702,7 @@ final class SocketControlSettingsTests: XCTestCase {
         XCTAssertFalse(
             SocketControlSettings.shouldBlockUntaggedDebugLaunch(
                 environment: ["DYLD_INSERT_LIBRARIES": "/usr/lib/libXCTestBundleInject.dylib"],
-                bundleIdentifier: "com.cmuxterm.app.debug",
+                bundleIdentifier: "cloud.stokd.ghostty-dock.debug",
                 isDebugBuild: true
             )
         )
@@ -3714,7 +3714,7 @@ final class SocketControlSettingsTests: XCTestCase {
         XCTAssertFalse(
             SocketControlSettings.shouldBlockUntaggedDebugLaunch(
                 environment: ["CMUX_UI_TEST_MODE": "1"],
-                bundleIdentifier: "com.cmuxterm.app.debug",
+                bundleIdentifier: "cloud.stokd.ghostty-dock.debug",
                 isDebugBuild: true
             )
         )

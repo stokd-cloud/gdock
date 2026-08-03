@@ -3017,7 +3017,7 @@ struct CMUXCLI {
     }
 
     private static let browserDisabledDefaultsKey = "browserDisabledOverride"
-    private static let defaultBrowserSettingsDomain = "com.cmuxterm.app"
+    private static let defaultBrowserSettingsDomain = "cloud.stokd.ghostty-dock"
 
     private static func containingAppBundleIdentifier() -> String? {
         normalizedEnvValue(CLIExecutableLocator.enclosingAppBundle()?.bundleIdentifier)
@@ -3230,7 +3230,7 @@ struct CMUXCLI {
 
         guard index < args.count else {
             throw CLIError(
-                message: "Missing command. Usage: cmux <path>|<command> [options]. Run 'cmux --help' for the full command list.",
+                message: "Missing command. Usage: \(invokedToolName()) <path>|<command> [options]. Run '\(invokedToolName()) --help' for the full command list.",
                 exitCode: 2
             )
         }
@@ -34784,17 +34784,18 @@ export default CMUXSessionRestore;
 
 
     private func versionSummary() -> String {
+        let tool = invokedToolName()
         let info = resolvedVersionInfo()
         let commit = info["CMUXCommit"].flatMap { normalizedCommitHash($0) }
         let baseSummary: String
         if let version = info["CFBundleShortVersionString"], let build = info["CFBundleVersion"] {
-            baseSummary = "cmux \(version) (\(build))"
+            baseSummary = "\(tool) \(version) (\(build))"
         } else if let version = info["CFBundleShortVersionString"] {
-            baseSummary = "cmux \(version)"
+            baseSummary = "\(tool) \(version)"
         } else if let build = info["CFBundleVersion"] {
-            baseSummary = "cmux build \(build)"
+            baseSummary = "\(tool) build \(build)"
         } else {
-            baseSummary = "cmux version unknown"
+            baseSummary = "\(tool) version unknown"
         }
         guard let commit else { return baseSummary }
         return "\(baseSummary) [\(commit)]"
@@ -35140,13 +35141,22 @@ export default CMUXSessionRestore;
         return URL(fileURLWithPath: expanded).standardizedFileURL
     }
 
+    private func invokedToolName() -> String {
+        if let path = currentExecutablePath(), !path.isEmpty {
+            return URL(fileURLWithPath: path).lastPathComponent
+        }
+        let processName = ProcessInfo.processInfo.processName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return processName.isEmpty ? "gdock" : processName
+    }
+
     private func usage() -> String {
+        let tool = invokedToolName()
         return """
-        cmux - control cmux via Unix socket
+        \(tool) - control Ghostty Dock via Unix socket
 
         Usage:
-          cmux <path>                Open a directory in a new workspace (launches cmux if needed)
-          cmux [global-options] <command> [options]
+          \(tool) <path>                Open a directory in a new workspace (launches Ghostty Dock if needed)
+          \(tool) [global-options] <command> [options]
 
         Targets:
           Commands that accept a window, workspace, pane, or surface take a UUID, a short ref (window:1/workspace:2/pane:3/surface:4), or an index.

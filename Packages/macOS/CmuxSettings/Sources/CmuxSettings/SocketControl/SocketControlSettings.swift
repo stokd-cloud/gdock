@@ -19,7 +19,7 @@ public struct SocketControlSettings {
     /// Environment key carrying the dev build's launch tag.
     public static let launchTagEnvKey = "CMUX_TAG"
     /// Base bundle identifier shared by all debug builds.
-    public static let baseDebugBundleIdentifier = "com.cmuxterm.app.debug"
+    public static let baseDebugBundleIdentifier = "cloud.stokd.ghostty-dock.debug"
     private static let stableSocketFileName = "cmux.sock"
     /// Legacy stable socket path used before the Application Support location.
     public static let legacyStableDefaultSocketPath = "/tmp/cmux.sock"
@@ -212,7 +212,7 @@ public struct SocketControlSettings {
         stableDefaultSocketCanBeReclaimed: (String) -> Bool = { _ in true }
     ) -> String {
         guard !isDebugBuild,
-              normalizedBundleIdentifier(bundleIdentifier) == "com.cmuxterm.app",
+              normalizedBundleIdentifier(bundleIdentifier) == "cloud.stokd.ghostty-dock",
               isStableReleaseSocketPath(preferredPath, currentUserID: currentUserID) else {
             return preferredPath
         }
@@ -323,7 +323,7 @@ public struct SocketControlSettings {
 
     private static func shouldReserveStableSocketPath(bundleIdentifier: String?, isDebugBuild: Bool) -> Bool {
         if isDebugBuild { return true }
-        return normalizedBundleIdentifier(bundleIdentifier) != "com.cmuxterm.app"
+        return normalizedBundleIdentifier(bundleIdentifier) != "cloud.stokd.ghostty-dock"
     }
 
     private static func isStableReleaseSocketPath(_ path: String, currentUserID: uid_t) -> Bool {
@@ -407,11 +407,11 @@ public struct SocketControlSettings {
     /// Whether the bundle identifier is a debug build identifier.
     public static func isDebugLikeBundleIdentifier(_ bundleIdentifier: String?) -> Bool {
         guard let bundleIdentifier else { return false }
-        return bundleIdentifier == "com.cmuxterm.app.debug"
-            || bundleIdentifier.hasPrefix("com.cmuxterm.app.debug.")
+        return bundleIdentifier == "cloud.stokd.ghostty-dock.debug"
+            || bundleIdentifier.hasPrefix("cloud.stokd.ghostty-dock.debug.")
     }
 
-    /// Whether the bundle identifier is a tagged DEV build (`com.cmuxterm.app.debug.<tag>`).
+    /// Whether the bundle identifier is a tagged DEV build (`cloud.stokd.ghostty-dock.debug.<tag>`).
     public static func isTaggedDevBuild(bundleIdentifier: String? = Bundle.main.bundleIdentifier) -> Bool {
         guard let bundleIdentifier else { return false }
         return bundleIdentifier.hasPrefix("\(baseDebugBundleIdentifier).")
@@ -420,8 +420,8 @@ public struct SocketControlSettings {
     /// Whether the bundle identifier is a staging build identifier.
     public static func isStagingBundleIdentifier(_ bundleIdentifier: String?) -> Bool {
         guard let bundleIdentifier else { return false }
-        return bundleIdentifier == "com.cmuxterm.app.staging"
-            || bundleIdentifier.hasPrefix("com.cmuxterm.app.staging.")
+        return bundleIdentifier == "cloud.stokd.ghostty-dock.staging"
+            || bundleIdentifier.hasPrefix("cloud.stokd.ghostty-dock.staging.")
     }
 
     /// The directory holding the control socket and its marker files.

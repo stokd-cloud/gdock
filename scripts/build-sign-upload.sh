@@ -87,7 +87,7 @@ APP_PLIST="$APP_PATH/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Delete :SUPublicEDKey" "$APP_PLIST" 2>/dev/null || true
 /usr/libexec/PlistBuddy -c "Delete :SUFeedURL" "$APP_PLIST" 2>/dev/null || true
 /usr/libexec/PlistBuddy -c "Add :SUPublicEDKey string $SPARKLE_PUBLIC_KEY_DERIVED" "$APP_PLIST"
-/usr/libexec/PlistBuddy -c "Add :SUFeedURL string https://github.com/manaflow-ai/cmux/releases/latest/download/appcast.xml" "$APP_PLIST"
+/usr/libexec/PlistBuddy -c "Add :SUFeedURL string https://github.com/stokd-cloud/ghostty-dock/releases/latest/download/appcast.xml" "$APP_PLIST"
 echo "Sparkle keys injected"
 
 # cmux is a non-sandboxed app. Sparkle's sandbox-only XPC services make the
@@ -170,7 +170,7 @@ cask "cmux" do
   version "${VERSION}"
   sha256 "${DMG_SHA256}"
 
-  url "https://github.com/manaflow-ai/cmux/releases/download/v#{version}/cmux-macos.dmg"
+  url "https://github.com/stokd-cloud/ghostty-dock/releases/download/v#{version}/cmux-macos.dmg"
   name "cmux"
   desc "Lightweight native macOS terminal with vertical tabs for AI coding agents"
   homepage "https://github.com/manaflow-ai/cmux"

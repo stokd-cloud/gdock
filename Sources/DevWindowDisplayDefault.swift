@@ -22,8 +22,7 @@ enum DevWindowDisplayDefault {
     /// `cmux.json`. Read for migration and as a first-launch fallback, then
     /// ignored.
     static var legacyFileURL: URL {
-        FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".config/cmux/dev-window-display")
+        CmuxConfigLocation().legacyDevWindowDisplayFile
     }
 
     /// The trimmed display name in the legacy file, or `nil` when absent/empty.
