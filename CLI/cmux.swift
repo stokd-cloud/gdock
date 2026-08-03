@@ -34784,17 +34784,18 @@ export default CMUXSessionRestore;
 
 
     private func versionSummary() -> String {
+        let tool = invokedToolName()
         let info = resolvedVersionInfo()
         let commit = info["CMUXCommit"].flatMap { normalizedCommitHash($0) }
         let baseSummary: String
         if let version = info["CFBundleShortVersionString"], let build = info["CFBundleVersion"] {
-            baseSummary = "cmux \(version) (\(build))"
+            baseSummary = "\(tool) \(version) (\(build))"
         } else if let version = info["CFBundleShortVersionString"] {
-            baseSummary = "cmux \(version)"
+            baseSummary = "\(tool) \(version)"
         } else if let build = info["CFBundleVersion"] {
-            baseSummary = "cmux build \(build)"
+            baseSummary = "\(tool) build \(build)"
         } else {
-            baseSummary = "cmux version unknown"
+            baseSummary = "\(tool) version unknown"
         }
         guard let commit else { return baseSummary }
         return "\(baseSummary) [\(commit)]"
