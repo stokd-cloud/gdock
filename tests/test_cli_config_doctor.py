@@ -19,7 +19,7 @@ def resolve_cmux_cli() -> str:
 
     candidates = [
         path
-        for path in glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/*/Build/Products/Debug/cmux"))
+        for path in glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/*/Build/Products/*/cmux"))
         if os.path.isfile(path) and os.access(path, os.X_OK)
     ]
     if candidates:

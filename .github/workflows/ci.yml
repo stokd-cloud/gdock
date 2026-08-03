@@ -169,6 +169,9 @@ jobs:
       - name: Validate cmux scheme test configuration
         run: ./tests/test_ci_scheme_testaction_debug.sh
 
+      - name: Validate reload.sh default build configuration
+        run: ./tests/test_reload_configuration_default.sh
+
       - name: Validate cmuxTests sharding
         run: |
           python3 scripts/ci/cmux_unit_test_shard.py --validate

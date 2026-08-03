@@ -34,7 +34,7 @@ def resolve_cmux_cli() -> str:
     # No /tmp globbing: /tmp is world-writable, so auto-discovering and
     # executing binaries from it is unsafe. CI always passes CMUX_CLI_BIN.
     candidates: list[str] = []
-    candidates.extend(glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/*/Build/Products/Debug/cmux")))
+    candidates.extend(glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/*/Build/Products/*/cmux")))
     candidates = [path for path in candidates if os.path.exists(path) and os.access(path, os.X_OK)]
     if candidates:
         candidates.sort(key=os.path.getmtime, reverse=True)
