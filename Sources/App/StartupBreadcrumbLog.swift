@@ -4,7 +4,7 @@ import os
 
 enum StartupBreadcrumbLog {
     private static let maxFieldLength = 240
-    private nonisolated static let logger = Logger(subsystem: "com.cmuxterm.app", category: "StartupBreadcrumbLog")
+    private nonisolated static let logger = Logger(subsystem: "cloud.stokd.ghostty-dock", category: "StartupBreadcrumbLog")
     private static let reservedFieldKeys: Set<String> = [
         "timestamp",
         "event",
@@ -66,10 +66,10 @@ enum StartupBreadcrumbLog {
             return true
         }
         let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
-        return bundleIdentifier == "com.cmuxterm.app.nightly"
-            || bundleIdentifier.hasPrefix("com.cmuxterm.app.nightly.")
-            || bundleIdentifier == "com.cmuxterm.app.debug"
-            || bundleIdentifier.hasPrefix("com.cmuxterm.app.debug.")
+        return bundleIdentifier == "cloud.stokd.ghostty-dock.nightly"
+            || bundleIdentifier.hasPrefix("cloud.stokd.ghostty-dock.nightly.")
+            || bundleIdentifier == "cloud.stokd.ghostty-dock.debug"
+            || bundleIdentifier.hasPrefix("cloud.stokd.ghostty-dock.debug.")
     }
 
     private static var logURL: URL {

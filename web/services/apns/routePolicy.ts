@@ -70,7 +70,7 @@ const DEV_TAGGED_BUNDLE_ID = /^dev\.cmux\.ios\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9
 // .github/workflows/ios-testflight.yml (IOS_BETA_BUNDLE_ID).
 const PROD_BUNDLE_IDS = new Set([
   "com.cmux.app",
-  "com.cmuxterm.app",
+  "cloud.stokd.ghostty-dock",
   "dev.cmux.app.beta",
   "dev.cmux.app.internal",
 ]);
