@@ -106,7 +106,21 @@ fi
 
 TAG_ID="$(sanitize_bundle "$TAG")"
 TAG_SLUG="$(sanitize_path "$TAG")"
-APP="$HOME/Library/Developer/Xcode/DerivedData/cmux-${TAG_SLUG}/Build/Products/Debug/cmux DEV ${TAG}.app"
+# reload.sh builds Release by default and Debug under --debug; prefer the newest.
+APP=""
+APP_MTIME=-1
+for CONFIGURATION in Release Debug; do
+  CANDIDATE="$HOME/Library/Developer/Xcode/DerivedData/cmux-${TAG_SLUG}/Build/Products/${CONFIGURATION}/cmux DEV ${TAG}.app"
+  [[ -d "$CANDIDATE" ]] || continue
+  CANDIDATE_MTIME="$(stat -f '%m' "$CANDIDATE" 2>/dev/null || echo 0)"
+  if (( CANDIDATE_MTIME > APP_MTIME )); then
+    APP_MTIME="$CANDIDATE_MTIME"
+    APP="$CANDIDATE"
+  fi
+done
+if [[ -z "$APP" ]]; then
+  APP="$HOME/Library/Developer/Xcode/DerivedData/cmux-${TAG_SLUG}/Build/Products/Release/cmux DEV ${TAG}.app"
+fi
 BID="com.cmuxterm.app.debug.${TAG_ID}"
 SOCK="/tmp/cmux-debug-${TAG_SLUG}.sock"
 DSOCK="$HOME/Library/Application Support/cmux/cmuxd-dev-${TAG_SLUG}.sock"

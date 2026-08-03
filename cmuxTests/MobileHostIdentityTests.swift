@@ -14,29 +14,29 @@ struct MobileHostIdentityTests {
     @Test func appInstanceTagDistinguishesReleaseChannelsAndTaggedDevBuilds() {
         #expect(MobileHostIdentity.instanceTag(
             environment: [:],
-            bundleIdentifier: "com.cmuxterm.app"
+            bundleIdentifier: "cloud.stokd.ghostty-dock"
         ) == "default")
         #expect(MobileHostIdentity.instanceTag(
             environment: [:],
-            bundleIdentifier: "com.cmuxterm.app.nightly"
+            bundleIdentifier: "cloud.stokd.ghostty-dock.nightly"
         ) == "nightly")
         #expect(MobileHostIdentity.instanceTag(
             environment: [:],
-            bundleIdentifier: "com.cmuxterm.app.staging"
+            bundleIdentifier: "cloud.stokd.ghostty-dock.staging"
         ) == "staging")
         #expect(MobileHostIdentity.instanceTag(
             environment: ["CMUX_TAG": "future-one"],
-            bundleIdentifier: "com.cmuxterm.app.debug.future-one"
+            bundleIdentifier: "cloud.stokd.ghostty-dock.debug.future-one"
         ) == "future-one")
     }
 
     @Test func irohRegistrationUsesAuthoritativeAppInstanceTag() {
         let cases: [([String: String], String)] = [
-            ([:], "com.cmuxterm.app"),
-            ([:], "com.cmuxterm.app.nightly"),
-            ([:], "com.cmuxterm.app.staging"),
-            ([:], "com.cmuxterm.app.debug.future-one"),
-            (["CMUX_TAG": "future-two"], "com.cmuxterm.app.debug.future-two"),
+            ([:], "cloud.stokd.ghostty-dock"),
+            ([:], "cloud.stokd.ghostty-dock.nightly"),
+            ([:], "cloud.stokd.ghostty-dock.staging"),
+            ([:], "cloud.stokd.ghostty-dock.debug.future-one"),
+            (["CMUX_TAG": "future-two"], "cloud.stokd.ghostty-dock.debug.future-two"),
         ]
 
         for (environment, bundleIdentifier) in cases {
@@ -217,7 +217,7 @@ struct MobileHostIdentityTests {
             defaults: taggedDefaults,
             sharedIDURL: sharedIDURL,
             stableDefaults: stableDefaults,
-            bundleIdentifier: "com.cmuxterm.app.debug.mpick"
+            bundleIdentifier: "cloud.stokd.ghostty-dock.debug.mpick"
         ) == stableID.lowercased())
         #expect(taggedDefaults.string(forKey: "mobileHost.deviceID") == stableID.lowercased())
         #expect(try String(contentsOf: sharedIDURL, encoding: .utf8) == stableID.lowercased())

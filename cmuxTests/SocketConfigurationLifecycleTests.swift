@@ -366,7 +366,7 @@ extension SocketACLReloadRegressionTests {
             CmuxStateDirectory.legacyApplicationSupportURL(fileManager: fileManager)
         )
         let markerPaths = SocketControlSettings.lastSocketPathFiles(
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "cloud.stokd.ghostty-dock",
             environment: [:],
             fileManager: fileManager
         )

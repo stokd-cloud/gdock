@@ -116,15 +116,29 @@ cmux_attach_remove_stale_socket() {
   rm -f -- "$sock"
 }
 
-# The locally-built tagged macOS Debug .app bundle path (cloud/local reloads both
+# The locally-built tagged macOS .app bundle path (cloud/local reloads both
 # download/install here). Both the DerivedData dir AND the .app basename use the
 # sanitized slug, matching reload.sh (`APP_NAME="cmux DEV ${TAG_SLUG}"`); the raw
 # tag would miss for any tag whose slug differs (e.g. "Fix Foo" -> "fix-foo").
+# reload.sh builds Release by default and Debug under --debug, so the most
+# recently built configuration wins; a missing bundle falls back to the Release
+# path so error messages point at the default location.
 cmux_attach_mac_app_path() {
-  local slug
+  local slug products_dir configuration candidate candidate_mtime best best_mtime
   slug="$(cmux_attach__slug "$1")"
-  printf '%s/Library/Developer/Xcode/DerivedData/cmux-%s/Build/Products/Debug/cmux DEV %s.app' \
-    "$HOME" "$slug" "$slug"
+  products_dir="$HOME/Library/Developer/Xcode/DerivedData/cmux-${slug}/Build/Products"
+  best=""
+  best_mtime=-1
+  for configuration in Release Debug; do
+    candidate="${products_dir}/${configuration}/cmux DEV ${slug}.app"
+    [[ -d "$candidate" ]] || continue
+    candidate_mtime="$(stat -f '%m' "$candidate" 2>/dev/null || echo 0)"
+    if (( candidate_mtime > best_mtime )); then
+      best_mtime="$candidate_mtime"
+      best="$candidate"
+    fi
+  done
+  printf '%s' "${best:-${products_dir}/Release/cmux DEV ${slug}.app}"
 }
 
 # Enable the opt-in iOS pairing host on the tagged Mac bundle. Must be written

@@ -7,9 +7,21 @@ source "$SCRIPT_DIR/lib/mobile-attach.sh"
 # shellcheck source=scripts/lib/dev-secrets.sh
 source "$SCRIPT_DIR/lib/dev-secrets.sh"
 
-APP_NAME="cmux DEV"
-BUNDLE_ID="com.cmuxterm.app.debug"
-BASE_APP_NAME="cmux DEV"
+APP_NAME="Ghostty Dock DEV"
+BUNDLE_ID="cloud.stokd.ghostty-dock.debug"
+# The Xcode PRODUCT_NAME of the app target per configuration (Debug: "Ghostty Dock DEV",
+# Release: "Ghostty Dock"). BASE_APP_NAME is recomputed from CONFIGURATION after argument
+# parsing; it names the bundle xcodebuild writes into Build/Products/<config>.
+BASE_APP_NAME="Ghostty Dock DEV"
+# Every tagged dev bundle keeps this executable name regardless of configuration,
+# so tooling that greps "…/Contents/MacOS/Ghostty Dock DEV" works for Release dev builds
+# too. reload.sh renames the staged executable when the configuration differs.
+DEV_EXECUTABLE_NAME="Ghostty Dock DEV"
+# Dev builds default to Release: the Debug configuration is -Onone and is barely
+# usable on a loaded machine. --debug opts back into the Debug configuration
+# (unoptimized, but with every `#if DEBUG` affordance compiled in).
+CONFIGURATION="Release"
+PRINT_PLAN=0
 DERIVED_DATA=""
 NAME_SET=0
 BUNDLE_SET=0
@@ -88,9 +100,22 @@ if [[ -n "\$SOCKET_ARG" ]]; then
     TAG="\${SOCKET_NAME#cmux-debug-}"
     TAG="\${TAG%.sock}"
     if [[ "\$TAG" =~ ^[A-Za-z0-9_-]+$ ]]; then
-      TAG_CLI="\$HOME/Library/Developer/Xcode/DerivedData/cmux-\$TAG/Build/Products/Debug/cmux DEV \$TAG.app/Contents/Resources/bin/cmux"
-      if [[ -x "\$TAG_CLI" ]] && [[ "\$TAG_CLI" != "\$0" ]]; then
-        exec "\$TAG_CLI" "\$@"
+      # reload.sh defaults to the Release configuration; --debug still writes to
+      # Build/Products/Debug, so probe both and prefer the most recent build.
+      BEST_TAG_CLI=""
+      BEST_TAG_CLI_MTIME=-1
+      for TAG_CONFIG in Release Debug; do
+        TAG_CLI="\$HOME/Library/Developer/Xcode/DerivedData/cmux-\$TAG/Build/Products/\$TAG_CONFIG/Ghostty Dock DEV \$TAG.app/Contents/Resources/bin/gdock"
+        if [[ -x "\$TAG_CLI" ]] && [[ "\$TAG_CLI" != "\$0" ]]; then
+          TAG_CLI_MTIME="\$(stat -f '%m' "\$TAG_CLI" 2>/dev/null || echo 0)"
+          if (( TAG_CLI_MTIME > BEST_TAG_CLI_MTIME )); then
+            BEST_TAG_CLI_MTIME="\$TAG_CLI_MTIME"
+            BEST_TAG_CLI="\$TAG_CLI"
+          fi
+        fi
+      done
+      if [[ -n "\$BEST_TAG_CLI" ]]; then
+        exec "\$BEST_TAG_CLI" "\$@"
       fi
     fi
   fi
@@ -181,11 +206,11 @@ publish_reload_cli_path() {
 
   # Stable shim that always follows the last reload-selected dev CLI.
   DEV_CLI_SHIM="$HOME/.local/bin/cmux-dev"
-  write_dev_cli_shim "$DEV_CLI_SHIM" "/Applications/cmux.app/Contents/Resources/bin/cmux"
+  write_dev_cli_shim "$DEV_CLI_SHIM" "/Applications/cmux.app/Contents/Resources/bin/gdock"
 
   CMUX_SHIM_TARGET="$(select_cmux_shim_target || true)"
   if [[ -n "${CMUX_SHIM_TARGET:-}" ]]; then
-    write_dev_cli_shim "$CMUX_SHIM_TARGET" "/Applications/cmux.app/Contents/Resources/bin/cmux"
+    write_dev_cli_shim "$CMUX_SHIM_TARGET" "/Applications/cmux.app/Contents/Resources/bin/gdock"
   fi
 }
 
@@ -197,16 +222,16 @@ write_last_socket_path() {
   local slug=""
 
   case "$bundle_id" in
-    com.cmuxterm.app)
+    cloud.stokd.ghostty-dock)
       marker_name="last-socket-path"
       tmp_marker="/tmp/cmux-last-socket-path"
       ;;
-    com.cmuxterm.app.nightly)
+    cloud.stokd.ghostty-dock.nightly)
       marker_name="nightly-last-socket-path"
       tmp_marker="/tmp/cmux-nightly-last-socket-path"
       ;;
-    com.cmuxterm.app.nightly.*)
-      slug="$(sanitize_path "${bundle_id#com.cmuxterm.app.nightly.}")"
+    cloud.stokd.ghostty-dock.nightly.*)
+      slug="$(sanitize_path "${bundle_id#cloud.stokd.ghostty-dock.nightly.}")"
       if [[ -n "$slug" ]]; then
         marker_name="nightly-${slug}-last-socket-path"
         tmp_marker="/tmp/cmux-nightly-${slug}-last-socket-path"
@@ -215,12 +240,12 @@ write_last_socket_path() {
         tmp_marker="/tmp/cmux-nightly-last-socket-path"
       fi
       ;;
-    com.cmuxterm.app.staging)
+    cloud.stokd.ghostty-dock.staging)
       marker_name="staging-last-socket-path"
       tmp_marker="/tmp/cmux-staging-last-socket-path"
       ;;
-    com.cmuxterm.app.staging.*)
-      slug="$(sanitize_path "${bundle_id#com.cmuxterm.app.staging.}")"
+    cloud.stokd.ghostty-dock.staging.*)
+      slug="$(sanitize_path "${bundle_id#cloud.stokd.ghostty-dock.staging.}")"
       if [[ -n "$slug" ]]; then
         marker_name="staging-${slug}-last-socket-path"
         tmp_marker="/tmp/cmux-staging-${slug}-last-socket-path"
@@ -229,15 +254,15 @@ write_last_socket_path() {
         tmp_marker="/tmp/cmux-staging-last-socket-path"
       fi
       ;;
-    com.cmuxterm.app.debug)
+    cloud.stokd.ghostty-dock.debug)
       slug="${TAG_SLUG:-}"
       if [[ -n "$slug" ]]; then
         marker_name="dev-${slug}-last-socket-path"
         tmp_marker="/tmp/cmux-dev-${slug}-last-socket-path"
       fi
       ;;
-    com.cmuxterm.app.debug.*)
-      slug="$(sanitize_path "${bundle_id#com.cmuxterm.app.debug.}")"
+    cloud.stokd.ghostty-dock.debug.*)
+      slug="$(sanitize_path "${bundle_id#cloud.stokd.ghostty-dock.debug.}")"
       if [[ -n "$slug" ]]; then
         marker_name="dev-${slug}-last-socket-path"
         tmp_marker="/tmp/cmux-dev-${slug}-last-socket-path"
@@ -265,7 +290,15 @@ Options:
                          so macOS launches the freshly-built binary on cmd-click or --launch.
   --launch               Launch the app after building. Without this flag, the script
                          builds and prints the app path but does not open it.
-  --prod-auth            Point this tagged Debug build at production Stack auth,
+  --debug                Build the Debug configuration (unoptimized, -Onone) instead
+                         of the default Release configuration. Debug keeps every
+                         `#if DEBUG` affordance (Debug menu, dogfood auto sign-in,
+                         debug event log) but is barely usable on a loaded machine.
+  --release              Build the Release configuration (default). Optimized, and
+                         `#if DEBUG` code is compiled out.
+  --print-plan           Print the resolved configuration, bundle id, derived data,
+                         and app path, then exit without building.
+  --prod-auth            Point this tagged dev build at production Stack auth,
                          cmux APIs, and the production Iroh broker.
   --credentials-file <path>
                          Bake only the path to a current-user-owned 0600 auth file.
@@ -370,12 +403,12 @@ remove_app_bundle_output() {
   if [[ -z "$path" || ! -e "$path" ]]; then
     return 0
   fi
-  if [[ -z "${BUILD_PRODUCTS_DEBUG_DIR:-}" ]]; then
+  if [[ -z "${BUILD_PRODUCTS_DIR:-}" ]]; then
     echo "warning: refusing to remove app output without a build products directory: $path" >&2
     return 0
   fi
   case "$path" in
-    "$BUILD_PRODUCTS_DEBUG_DIR"/*.app)
+    "$BUILD_PRODUCTS_DIR"/*.app)
       rm -rf "$path"
       ;;
     *)
@@ -432,8 +465,8 @@ print_tag_cleanup_reminder() {
     if [[ "$tag" == "$current_slug" ]]; then
       continue
     fi
-    # Only surface stale debug tag builds.
-    if [[ ! -d "$path/Build/Products/Debug" ]]; then
+    # Only surface stale tagged dev builds (either configuration).
+    if [[ ! -d "$path/Build/Products/Release" && ! -d "$path/Build/Products/Debug" ]]; then
       continue
     fi
     if [[ "$seen" == *" $tag "* ]]; then
@@ -459,14 +492,14 @@ print_tag_cleanup_reminder() {
     done
     echo "Cleanup stale tags only:"
     for tag in "${stale_tags[@]}"; do
-      echo "  pkill -f \"cmux DEV ${tag}.app/Contents/MacOS/cmux DEV\""
+      echo "  pkill -f \"Ghostty Dock DEV ${tag}.app/Contents/MacOS/Ghostty Dock DEV\""
       echo "  rm -rf \"$(tagged_derived_data_path "$tag")\" \"/tmp/cmux-${tag}\" \"/tmp/cmux-debug-${tag}.sock\""
       echo "  rm -f \"/tmp/cmux-debug-${tag}.log\""
       echo "  rm -f \"$HOME/Library/Application Support/cmux/cmuxd-dev-${tag}.sock\""
     done
   fi
   echo "After you verify current tag, cleanup command:"
-  echo "  pkill -f \"cmux DEV ${current_slug}.app/Contents/MacOS/cmux DEV\""
+  echo "  pkill -f \"Ghostty Dock DEV ${current_slug}.app/Contents/MacOS/Ghostty Dock DEV\""
   echo "  rm -rf \"$(tagged_derived_data_path "$current_slug")\" \"/tmp/cmux-${current_slug}\" \"/tmp/cmux-debug-${current_slug}.sock\""
   echo "  rm -f \"/tmp/cmux-debug-${current_slug}.log\""
   echo "  rm -f \"$HOME/Library/Application Support/cmux/cmuxd-dev-${current_slug}.sock\""
@@ -502,6 +535,18 @@ while [[ $# -gt 0 ]]; do
       ;;
     --launch)
       LAUNCH=1
+      shift
+      ;;
+    --debug)
+      CONFIGURATION="Debug"
+      shift
+      ;;
+    --release)
+      CONFIGURATION="Release"
+      shift
+      ;;
+    --print-plan)
+      PRINT_PLAN=1
       shift
       ;;
     --prod-auth)
@@ -555,6 +600,22 @@ if [[ -z "$TAG" ]]; then
   exit 1
 fi
 
+case "$CONFIGURATION" in
+  Debug)
+    BASE_APP_NAME="Ghostty Dock DEV"
+    ;;
+  Release)
+    # The Release configuration's PRODUCT_NAME is "Ghostty Dock"; the staged tagged
+    # copy is renamed back to "Ghostty Dock DEV <tag>.app" with a
+    # "Ghostty Dock DEV" executable below.
+    BASE_APP_NAME="Ghostty Dock"
+    ;;
+  *)
+    echo "error: unsupported configuration: $CONFIGURATION" >&2
+    exit 1
+    ;;
+esac
+
 if [[ -n "$AUTH_CREDENTIALS_FILE" ]]; then
   cmux_dev_secrets_validate_file "$AUTH_CREDENTIALS_FILE"
   AUTH_CREDENTIALS_FILE="$(cd "$(dirname "$AUTH_CREDENTIALS_FILE")" && pwd -P)/$(basename "$AUTH_CREDENTIALS_FILE")"
@@ -567,10 +628,10 @@ if [[ -n "$TAG" ]]; then
   TAG_ID="$(sanitize_bundle "$TAG")"
   TAG_SLUG="$(sanitize_path "$TAG")"
   if [[ "$NAME_SET" -eq 0 ]]; then
-    APP_NAME="cmux DEV ${TAG_SLUG}"
+    APP_NAME="Ghostty Dock DEV ${TAG_SLUG}"
   fi
   if [[ "$BUNDLE_SET" -eq 0 ]]; then
-    BUNDLE_ID="com.cmuxterm.app.debug.${TAG_ID}"
+    BUNDLE_ID="cloud.stokd.ghostty-dock.debug.${TAG_ID}"
   fi
   if [[ "$DERIVED_SET" -eq 0 ]]; then
     DERIVED_DATA="$(tagged_derived_data_path "$TAG_SLUG")"
@@ -592,29 +653,43 @@ if [[ "$PROD_AUTH" -eq 1 ]]; then
   CMUX_WWW_ORIGIN_VALUE="https://cmux.com"
 fi
 
-# Quiet logging: capture all noisy build output (xcodebuild, zig, codesign,
-# plistbuddy, etc.) to a single log file. On success we print only a one-line
-# summary plus the App/CLI paths. On failure we dump the log.
-RELOAD_LOG="/tmp/cmux-reload-${TAG_SLUG}.log"
-RELOAD_START_TIME="$(date +%s)"
-: > "$RELOAD_LOG"
-
-BUILD_PRODUCTS_DEBUG_DIR=""
+BUILD_PRODUCTS_DIR=""
 XCODEBUILD_SOURCE_APP_NAME="$APP_NAME"
 XCODEBUILD_SOURCE_APP_PATH=""
 XCODEBUILD_TAG_APP_PATH=""
 TAG_APP_FINAL_PATH=""
 TAG_APP_STAGING_PATH=""
 if [[ -n "$DERIVED_DATA" ]]; then
-  BUILD_PRODUCTS_DEBUG_DIR="${DERIVED_DATA}/Build/Products/Debug"
+  BUILD_PRODUCTS_DIR="${DERIVED_DATA}/Build/Products/${CONFIGURATION}"
   if [[ -n "$TAG" ]]; then
     XCODEBUILD_SOURCE_APP_NAME="$BASE_APP_NAME"
   fi
-  XCODEBUILD_SOURCE_APP_PATH="${BUILD_PRODUCTS_DEBUG_DIR}/${XCODEBUILD_SOURCE_APP_NAME}.app"
+  XCODEBUILD_SOURCE_APP_PATH="${BUILD_PRODUCTS_DIR}/${XCODEBUILD_SOURCE_APP_NAME}.app"
   if [[ -n "$TAG" && "$APP_NAME" != "$XCODEBUILD_SOURCE_APP_NAME" ]]; then
-    XCODEBUILD_TAG_APP_PATH="${BUILD_PRODUCTS_DEBUG_DIR}/${APP_NAME}.app"
+    XCODEBUILD_TAG_APP_PATH="${BUILD_PRODUCTS_DIR}/${APP_NAME}.app"
   fi
 fi
+
+if [[ "$PRINT_PLAN" -eq 1 ]]; then
+  echo "configuration: ${CONFIGURATION}"
+  echo "tag: ${TAG_SLUG:-}"
+  echo "bundle id: ${BUNDLE_ID}"
+  echo "derived data: ${DERIVED_DATA}"
+  echo "build products dir: ${BUILD_PRODUCTS_DIR}"
+  echo "xcodebuild app path: ${XCODEBUILD_SOURCE_APP_PATH}"
+  if [[ -n "$BUILD_PRODUCTS_DIR" ]]; then
+    echo "app path: ${BUILD_PRODUCTS_DIR}/${APP_NAME}.app"
+  fi
+  echo "app executable: ${DEV_EXECUTABLE_NAME}"
+  exit 0
+fi
+
+# Quiet logging: capture all noisy build output (xcodebuild, zig, codesign,
+# plistbuddy, etc.) to a single log file. On success we print only a one-line
+# summary plus the App/CLI paths. On failure we dump the log.
+RELOAD_LOG="/tmp/cmux-reload-${TAG_SLUG}.log"
+RELOAD_START_TIME="$(date +%s)"
+: > "$RELOAD_LOG"
 
 # Save the original stdout/stderr so the EXIT trap can write the user-facing
 # summary after the body redirect, then redirect bulk output into the log.
@@ -642,7 +717,7 @@ reload_finalize() {
     echo "==> log: $RELOAD_LOG" >&2
     exit "$rc"
   fi
-  echo "==> reload succeeded in ${elapsed}s"
+  echo "==> reload succeeded in ${elapsed}s (${CONFIGURATION})"
   echo "==> log: $RELOAD_LOG"
   if [[ -n "${APP_PATH:-}" ]]; then
     echo
@@ -691,7 +766,7 @@ reload_finalize() {
 trap reload_finalize EXIT
 
 # Tell the user we're starting (visible even though body output is redirected).
-echo "==> reload starting (tag: ${TAG}, log: ${RELOAD_LOG})" >&3
+echo "==> reload starting (tag: ${TAG}, configuration: ${CONFIGURATION}, log: ${RELOAD_LOG})" >&3
 
 "$PWD/scripts/ensure-ghosttykit.sh"
 
@@ -702,9 +777,24 @@ fi
 XCODEBUILD_ARGS=(
   -project cmux.xcodeproj
   -scheme cmux
-  -configuration Debug
+  -configuration "$CONFIGURATION"
   -destination 'platform=macOS'
 )
+if [[ "$CONFIGURATION" == "Release" ]]; then
+  # A tagged dev build must stay a dev build even when compiled Release: keep the
+  # dev app icon, skip the production entitlements (the Debug configuration signs
+  # with none, and ad-hoc signing cannot satisfy keychain-access-groups), point the
+  # baked Iroh relay policy keys at staging to match the staging broker this script
+  # configures, and build only the host arch instead of Release's universal slice.
+  XCODEBUILD_ARGS+=(ONLY_ACTIVE_ARCH=YES)
+  XCODEBUILD_ARGS+=(CODE_SIGN_ENTITLEMENTS=)
+  XCODEBUILD_ARGS+=(ASSETCATALOG_COMPILER_APPICON_NAME=AppIcon-Debug)
+  XCODEBUILD_ARGS+=(CMUX_AUTH_CALLBACK_SCHEME=cmux-dev)
+  XCODEBUILD_ARGS+=(CMUX_IROH_RELAY_POLICY_KEY_ID=cmux-staging-relay-policy-2026-07)
+  XCODEBUILD_ARGS+=(CMUX_IROH_RELAY_POLICY_NEXT_KEY_ID=cmux-staging-relay-policy-2026-08)
+  XCODEBUILD_ARGS+=(CMUX_IROH_RELAY_POLICY_PUBLIC_KEY_BASE64=Otx9S0B4d/tlwIKYRf5evJaqhjCltFLPjMfXrLFd6lk=)
+  XCODEBUILD_ARGS+=(CMUX_IROH_RELAY_POLICY_NEXT_PUBLIC_KEY_BASE64=KnOZ6gKmH05Mrfan2tXgwRygBKxcSUue4bp34udiQFA=)
+fi
 if [[ -n "$DERIVED_DATA" ]]; then
   XCODEBUILD_ARGS+=(-derivedDataPath "$DERIVED_DATA")
 fi
@@ -744,8 +834,8 @@ else
 fi
 XCODEBUILD_ARGS+=(build)
 
-if [[ -n "$BUILD_PRODUCTS_DEBUG_DIR" ]]; then
-  mkdir -p "$BUILD_PRODUCTS_DEBUG_DIR"
+if [[ -n "$BUILD_PRODUCTS_DIR" ]]; then
+  mkdir -p "$BUILD_PRODUCTS_DIR"
   cleanup_incomplete_xcodebuild_outputs
   XCODEBUILD_CLEANED_OUTPUTS=0
 fi
@@ -918,14 +1008,14 @@ if [[ -n "$TAG" ]]; then
   APP_EXECUTABLE_NAME="$BASE_APP_NAME"
 fi
 if [[ -n "$DERIVED_DATA" ]]; then
-  APP_PATH="${DERIVED_DATA}/Build/Products/Debug/${SEARCH_APP_NAME}.app"
+  APP_PATH="${BUILD_PRODUCTS_DIR}/${SEARCH_APP_NAME}.app"
   if [[ ! -d "${APP_PATH}" && "$SEARCH_APP_NAME" != "$FALLBACK_APP_NAME" ]]; then
-    APP_PATH="${DERIVED_DATA}/Build/Products/Debug/${FALLBACK_APP_NAME}.app"
+    APP_PATH="${BUILD_PRODUCTS_DIR}/${FALLBACK_APP_NAME}.app"
     APP_EXECUTABLE_NAME="$FALLBACK_APP_NAME"
   fi
 else
   APP_BINARY="$(
-    find "$HOME/Library/Developer/Xcode/DerivedData" -path "*/Build/Products/Debug/${SEARCH_APP_NAME}.app/Contents/MacOS/${SEARCH_APP_NAME}" -print0 \
+    find "$HOME/Library/Developer/Xcode/DerivedData" -path "*/Build/Products/${CONFIGURATION}/${SEARCH_APP_NAME}.app/Contents/MacOS/${SEARCH_APP_NAME}" -print0 \
     | xargs -0 /usr/bin/stat -f "%m %N" 2>/dev/null \
     | sort -nr \
     | head -n 1 \
@@ -936,7 +1026,7 @@ else
   fi
   if [[ -z "${APP_PATH}" && "$SEARCH_APP_NAME" != "$FALLBACK_APP_NAME" ]]; then
     APP_BINARY="$(
-      find "$HOME/Library/Developer/Xcode/DerivedData" -path "*/Build/Products/Debug/${FALLBACK_APP_NAME}.app/Contents/MacOS/${FALLBACK_APP_NAME}" -print0 \
+      find "$HOME/Library/Developer/Xcode/DerivedData" -path "*/Build/Products/${CONFIGURATION}/${FALLBACK_APP_NAME}.app/Contents/MacOS/${FALLBACK_APP_NAME}" -print0 \
       | xargs -0 /usr/bin/stat -f "%m %N" 2>/dev/null \
       | sort -nr \
       | head -n 1 \
@@ -969,8 +1059,21 @@ if [[ -n "$TAG" && "$APP_NAME" != "$SEARCH_APP_NAME" ]]; then
   TAG_APP_STAGING_PATH="$(dirname "$APP_PATH")/.${APP_NAME}.reload-$$.app"
   rm -rf "$TAG_APP_STAGING_PATH"
   cp -R "$APP_PATH" "$TAG_APP_STAGING_PATH"
+  # The Release configuration names the executable "Ghostty Dock"; every tagged dev bundle
+  # exposes "Ghostty Dock DEV" so pkill/pgrep patterns and launch helpers stay identical
+  # across configurations.
+  if [[ "$APP_EXECUTABLE_NAME" != "$DEV_EXECUTABLE_NAME" ]]; then
+    if [[ ! -x "$TAG_APP_STAGING_PATH/Contents/MacOS/$APP_EXECUTABLE_NAME" ]]; then
+      echo "error: staged app is missing its executable: $APP_EXECUTABLE_NAME" >&2
+      exit 1
+    fi
+    mv "$TAG_APP_STAGING_PATH/Contents/MacOS/$APP_EXECUTABLE_NAME" \
+      "$TAG_APP_STAGING_PATH/Contents/MacOS/$DEV_EXECUTABLE_NAME"
+  fi
   INFO_PLIST="$TAG_APP_STAGING_PATH/Contents/Info.plist"
   if [[ -f "$INFO_PLIST" ]]; then
+    /usr/libexec/PlistBuddy -c "Set :CFBundleExecutable $DEV_EXECUTABLE_NAME" "$INFO_PLIST" 2>/dev/null \
+      || /usr/libexec/PlistBuddy -c "Add :CFBundleExecutable string $DEV_EXECUTABLE_NAME" "$INFO_PLIST"
     /usr/libexec/PlistBuddy -c "Set :CFBundleName $APP_NAME" "$INFO_PLIST" 2>/dev/null \
       || /usr/libexec/PlistBuddy -c "Add :CFBundleName string $APP_NAME" "$INFO_PLIST"
     /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName $APP_NAME" "$INFO_PLIST" 2>/dev/null \
@@ -997,7 +1100,7 @@ if [[ -n "$TAG" && "$APP_NAME" != "$SEARCH_APP_NAME" ]]; then
       set_plist_env "$INFO_PLIST" CMUX_SOCKET_MODE "allowAll"
       set_plist_env "$INFO_PLIST" CMUX_REMOTE_DAEMON_ALLOW_LOCAL_BUILD "1"
       set_plist_env "$INFO_PLIST" CMUXTERM_REPO_ROOT "$PWD"
-      set_plist_env "$INFO_PLIST" CMUX_BUNDLED_CLI_PATH "$TAG_APP_FINAL_PATH/Contents/Resources/bin/cmux"
+      set_plist_env "$INFO_PLIST" CMUX_BUNDLED_CLI_PATH "$TAG_APP_FINAL_PATH/Contents/Resources/bin/gdock"
       set_plist_env "$INFO_PLIST" CMUX_SHELL_INTEGRATION_DIR "$TAG_APP_FINAL_PATH/Contents/Resources/shell-integration"
       set_plist_env "$INFO_PLIST" CMUX_PORT "$CMUX_DEV_PORT"
       set_plist_env "$INFO_PLIST" CMUX_PORT_END "$CMUX_DEV_PORT_END"
@@ -1070,7 +1173,7 @@ if [[ -n "${TAG_APP_FINAL_PATH:-}" && -n "${TAG_APP_STAGING_PATH:-}" ]]; then
   mv "$TAG_APP_STAGING_PATH" "$TAG_APP_FINAL_PATH"
   APP_PATH="$TAG_APP_FINAL_PATH"
 fi
-CLI_PATH="$APP_PATH/Contents/Resources/bin/cmux"
+CLI_PATH="$APP_PATH/Contents/Resources/bin/gdock"
 publish_reload_cli_path "$CLI_PATH"
 
 # Tag mode: always terminate the existing same-tag instance after a successful build,
@@ -1080,7 +1183,7 @@ publish_reload_cli_path "$CLI_PATH"
 if [[ -n "$TAG" ]]; then
   /usr/bin/osascript -e "tell application id \"${BUNDLE_ID}\" to quit" >/dev/null 2>&1 || true
   sleep 0.3
-  pkill -f "${APP_NAME}.app/Contents/MacOS/${BASE_APP_NAME}" || true
+  pkill -f "${APP_NAME}.app/Contents/MacOS/${DEV_EXECUTABLE_NAME}" || true
   sleep 0.3
 fi
 
@@ -1169,7 +1272,7 @@ if [[ "$LAUNCH" -eq 1 ]]; then
   if [[ -n "${TAG_SLUG:-}" ]]; then
     # Launch tagged apps directly so LaunchServices cannot reuse a stale
     # LSEnvironment for the tag's bundle id.
-    APP_EXECUTABLE="$APP_PATH/Contents/MacOS/${BASE_APP_NAME}"
+    APP_EXECUTABLE="$APP_PATH/Contents/MacOS/${DEV_EXECUTABLE_NAME}"
     if [[ ! -x "$APP_EXECUTABLE" ]]; then
       echo "error: tagged app executable not found: $APP_EXECUTABLE" >&2
       exit 1

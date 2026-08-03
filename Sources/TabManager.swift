@@ -404,6 +404,10 @@ class TabManager: ObservableObject {
     private let settings: any SettingsWriting
     private let settingsCatalog = SettingCatalog()
     private var lastFocusHistoryIncludesPanesAndTabs: Bool
+    /// Debounce token for gdock Auto Workspace Group Mode reconcile.
+    var gdockAutoWorkspaceGroupReconcileWorkItem: DispatchWorkItem?
+    /// Last observed `gdock.autoWorkspaceGroupMode` enablement (gates edge work).
+    var lastGdockAutoWorkspaceGroupModeEnabled: Bool?
     let nativeSSHConnectionBroker: NativeSSHConnectionBroker
 
     @Published private(set) var focusHistoryRevision: UInt64 = 0 {
@@ -609,6 +613,7 @@ class TabManager: ObservableObject {
                     ?? (notification.object as? Workspace)?.id
                 guard let workspaceId else { return }
                 workspaceCurrentDirectoryDidChange(workspaceId: workspaceId)
+                scheduleGdockAutoWorkspaceGroupReconcile()
             }
         })
 
@@ -623,6 +628,16 @@ class TabManager: ObservableObject {
                 self?.focusHistoryScopeSettingsDidChange()
                 self?.refreshTabCloseButtonVisibility()
                 self?.refreshWindowTitle()
+                self?.gdockAutoWorkspaceGroupModeSettingsDidChange()
+            }
+        })
+        observers.append(NotificationCenter.default.addObserver(
+            forName: GdockAutoWorkspaceGroupModeSettings.didChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { [weak self] in
+                self?.gdockAutoWorkspaceGroupModeSettingsDidChange()
             }
         })
 #if DEBUG
@@ -638,6 +653,8 @@ class TabManager: ObservableObject {
             NotificationCenter.default.removeObserver(observer)
         }
         observers.removeAll()
+        gdockAutoWorkspaceGroupReconcileWorkItem?.cancel()
+        gdockAutoWorkspaceGroupReconcileWorkItem = nil
         workspaceCycleCooldownTask?.cancel()
         agentPIDSweepTimer?.cancel()
         // The sidebar git/PR services cancel their own poll, probe, snapshot,
@@ -1242,6 +1259,7 @@ class TabManager: ObservableObject {
                     sendWelcomeWhenReady(to: newWorkspace)
                 }
             }
+            scheduleGdockAutoWorkspaceGroupReconcile()
             return newWorkspace
         }
     }

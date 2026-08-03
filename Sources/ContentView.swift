@@ -10301,8 +10301,7 @@ enum CmuxExtensionSidebarSelection {
         #if DEBUG
         if let override = customSidebarsDirectoryOverrideForTesting { return override }
         #endif
-        return FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".config/cmux/sidebars", isDirectory: true)
+        return CmuxConfigLocation().sidebarsDirectory
     }
 
     /// One provider descriptor per `<name>.swift`/`<name>.json` file in the

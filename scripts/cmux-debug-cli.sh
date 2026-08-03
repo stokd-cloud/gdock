@@ -59,11 +59,25 @@ EOF
   exit 1
 fi
 
-cli_path="${HOME}/Library/Developer/Xcode/DerivedData/cmux-${tag_slug}/Build/Products/Debug/cmux DEV ${tag_slug}.app/Contents/Resources/bin/cmux"
-if [[ ! -x "$cli_path" ]]; then
+# reload.sh builds the Release configuration by default and Debug under --debug,
+# so probe both product dirs and prefer the most recently built CLI.
+tagged_products_dir="${HOME}/Library/Developer/Xcode/DerivedData/cmux-${tag_slug}/Build/Products"
+cli_path=""
+cli_path_mtime=-1
+for config in Release Debug; do
+  candidate="${tagged_products_dir}/${config}/Ghostty Dock DEV ${tag_slug}.app/Contents/Resources/bin/gdock"
+  if [[ -x "$candidate" ]]; then
+    candidate_mtime="$(stat -f '%m' "$candidate" 2>/dev/null || echo 0)"
+    if (( candidate_mtime > cli_path_mtime )); then
+      cli_path_mtime="$candidate_mtime"
+      cli_path="$candidate"
+    fi
+  fi
+done
+if [[ -z "$cli_path" ]]; then
   cat >&2 <<EOF
-Tagged cmux CLI not found:
-  $cli_path
+Tagged gdock CLI not found in either configuration:
+  ${tagged_products_dir}/{Release,Debug}/Ghostty Dock DEV ${tag_slug}.app/Contents/Resources/bin/gdock
 
 Build the tagged app first:
   ./scripts/reload.sh --tag $CMUX_TAG
@@ -81,6 +95,6 @@ unset CMUXD_UNIX_PATH
 unset CMUX_DEBUG_LOG
 export CMUX_SOCKET_PATH="$socket_path"
 export CMUX_TAG="$tag_slug"
-export CMUX_BUNDLE_ID="com.cmuxterm.app.debug.${tag_bundle_id}"
+export CMUX_BUNDLE_ID="cloud.stokd.ghostty-dock.debug.${tag_bundle_id}"
 export CMUX_BUNDLED_CLI_PATH="$cli_path"
 exec "$cli_path" "$@"

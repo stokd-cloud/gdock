@@ -1317,6 +1317,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Thin-skin rebrand: copy legacy cmux config/defaults into Ghostty Dock
+        // locations without destroying the upstream paths (see GhosttyDockConfigMigration).
+        GhosttyDockConfigMigration.migrateAllIfNeeded()
+
         let env = ProcessInfo.processInfo.environment
         let isRunningUnderXCTest = isRunningUnderXCTest(env)
         let telemetryEnabled = TelemetrySettings.enabledForCurrentLaunch

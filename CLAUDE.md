@@ -1,5 +1,21 @@
 # cmux agent notes
 
+## ghostty-dock (gdock) fork conventions
+
+This checkout is the **ghostty-dock** fork (product short name **gdock**), based on upstream cmux.
+
+**All new settings and command-palette commands introduced for gdock MUST be prefixed with `gdock`:**
+
+| Surface | Required prefix | Example |
+|---------|-----------------|---------|
+| Setting catalog / `cmux.json` / UserDefaults ids | `gdock.` | `gdock.autoWorkspaceGroupMode` |
+| Palette one-shot command ids | `palette.gdock.` | `palette.gdock.someAction` |
+| Palette settings-toggle command ids | `palette.toggleSetting.gdock.` | `palette.toggleSetting.gdock.autoWorkspaceGroupMode` |
+
+- Put new settings under `GdockCatalogSection` (`Packages/macOS/CmuxSettings/.../GdockCatalogSection.swift`) or another `gdock.*` section — do **not** add fork-only keys under upstream prefixes (`app.*`, `sidebar.*`, `betaFeatures.*`, etc.).
+- Upstream cmux keys that already exist are grandfathered; do not rename them.
+- See also `docs/gdock-agent-conventions.md`.
+
 ## Initial setup
 
 Run the setup script to initialize submodules, build GhosttyKit, and install the pbxproj normalization pre-commit hook:
@@ -10,11 +26,13 @@ Run the setup script to initialize submodules, build GhosttyKit, and install the
 
 ## Local dev
 
-After making code changes, always run the reload script with a tag to build the Debug app:
+After making code changes, always run the reload script with a tag to build the tagged dev app:
 
 ```bash
 ./scripts/reload.sh --tag fix-zsh-autosuggestions
 ```
+
+`reload.sh` builds the **Release** configuration by default (the Debug configuration is `-Onone` and is barely usable on a loaded machine), so tagged apps land in `Build/Products/Release/`. Pass `--debug` when you need `#if DEBUG` affordances (Debug menu, dogfood auto sign-in, debug event log); that build lands in `Build/Products/Debug/`. Either way the bundle is named `cmux DEV <tag>.app` with a `Contents/MacOS/cmux DEV` executable, so dogfood tooling is identical. `--print-plan` prints the resolved configuration and app path without building.
 
 By default, `reload.sh` builds but does **not** launch the app. The script prints the `.app` path so the user can cmd-click to open it. After a successful build, it always terminates any running app with the same tag (so cmd-clicking launches the freshly-built binary instead of foregrounding the stale instance). Pass `--launch` to open the app automatically after the build:
 
@@ -32,14 +50,14 @@ Example. If `reload.sh` output contains:
 
 ```text
 App path:
-  /Users/someone/Library/Developer/Xcode/DerivedData/cmux-my-tag/Build/Products/Debug/cmux DEV my-tag.app
+  /Users/someone/Library/Developer/Xcode/DerivedData/cmux-my-tag/Build/Products/Release/cmux DEV my-tag.app
 ```
 
 **Claude Code** outputs:
 
 ```markdown
 -------------------------------------------------------
-[cmux DEV my-tag.app](file:///Users/someone/Library/Developer/Xcode/DerivedData/cmux-my-tag/Build/Products/Debug/cmux%20DEV%20my-tag.app)
+[cmux DEV my-tag.app](file:///Users/someone/Library/Developer/Xcode/DerivedData/cmux-my-tag/Build/Products/Release/cmux%20DEV%20my-tag.app)
 -------------------------------------------------------
 ```
 
@@ -47,13 +65,13 @@ App path:
 
 ```markdown
 -------------------------------------------------------
-[my-tag: file:///Users/someone/Library/Developer/Xcode/DerivedData/cmux-my-tag/Build/Products/Debug/cmux%20DEV%20my-tag.app](file:///Users/someone/Library/Developer/Xcode/DerivedData/cmux-my-tag/Build/Products/Debug/cmux%20DEV%20my-tag.app)
+[my-tag: file:///Users/someone/Library/Developer/Xcode/DerivedData/cmux-my-tag/Build/Products/Release/cmux%20DEV%20my-tag.app](file:///Users/someone/Library/Developer/Xcode/DerivedData/cmux-my-tag/Build/Products/Release/cmux%20DEV%20my-tag.app)
 -------------------------------------------------------
 ```
 
 Never use `/tmp/cmux-<tag>/...` app links in chat output.
 
-For CLI or socket dogfood against a tagged Debug app, use the tag-bound helper and set `CMUX_TAG`.
+For CLI or socket dogfood against a tagged dev app, use the tag-bound helper and set `CMUX_TAG`.
 Do not use `/tmp/cmux-cli` for tagged dogfood, since that symlink points at the most recently reloaded build and can target the user's main app socket.
 
 ```bash

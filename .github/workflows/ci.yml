@@ -169,6 +169,9 @@ jobs:
       - name: Validate cmux scheme test configuration
         run: ./tests/test_ci_scheme_testaction_debug.sh
 
+      - name: Validate reload.sh default build configuration
+        run: ./tests/test_reload_configuration_default.sh
+
       - name: Validate cmuxTests sharding
         run: |
           python3 scripts/ci/cmux_unit_test_shard.py --validate
@@ -239,6 +242,9 @@ jobs:
 
       - name: Validate SwiftPM lockfile policy
         run: python3 scripts/check-package-resolved-policy.py
+
+      - name: Ghostty Dock brand guard
+        run: python3 scripts/check-brand.py
 
       - name: Validate bash shell integration job control
         run: python3 tests/test_bash_integration_no_done_notifications.py

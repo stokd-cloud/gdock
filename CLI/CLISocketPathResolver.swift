@@ -482,9 +482,9 @@ enum CLISocketPathResolver {
         }
 
 #if DEBUG
-        return "com.cmuxterm.app.debug"
+        return "cloud.stokd.ghostty-dock.debug"
 #else
-        return "com.cmuxterm.app"
+        return "cloud.stokd.ghostty-dock"
 #endif
     }
 

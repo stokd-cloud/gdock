@@ -38,7 +38,7 @@ struct AboutLicensesResourceTests {
             repositoryURL: repositoryURL
         ).correspondingSourceURL(
             version: "0.64.19",
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "cloud.stokd.ghostty-dock",
             commit: "abcdef123"
         )
 
@@ -47,7 +47,7 @@ struct AboutLicensesResourceTests {
 
     @Test(
         "Non-stable builds link corresponding source to their commit",
-        arguments: ["com.cmuxterm.app.debug.licpkg", "com.cmuxterm.app.nightly"]
+        arguments: ["cloud.stokd.ghostty-dock.debug.licpkg", "cloud.stokd.ghostty-dock.nightly"]
     )
     func nonStableBuildUsesCommit(bundleIdentifier: String) {
         let url = AboutLicenseContent(bundle: .main).correspondingSourceURL(

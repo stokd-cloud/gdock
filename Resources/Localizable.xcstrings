@@ -7,115 +7,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         }
       }
@@ -976,13 +976,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux Project License"
+            "value": "Ghostty Dock Project License"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux プロジェクトライセンス"
+            "value": "Ghostty Dock プロジェクトライセンス"
           }
         }
       }
@@ -15339,49 +15339,49 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لم يتمكن cmux من نقل علامة التبويب هذه إلى الوجهة المحددة."
+            "value": "لم يتمكن Ghostty Dock من نقل علامة التبويب هذه إلى الوجهة المحددة."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux nije mogao premjestiti ovu karticu na odabrano odredište."
+            "value": "Ghostty Dock nije mogao premjestiti ovu karticu na odabrano odredište."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kunne ikke flytte dette faneblad til den valgte destination."
+            "value": "Ghostty Dock kunne ikke flytte dette faneblad til den valgte destination."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux konnte diesen Tab nicht zum ausgewählten Ziel verschieben."
+            "value": "Ghostty Dock konnte diesen Tab nicht zum ausgewählten Ziel verschieben."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not move this tab to the selected destination."
+            "value": "Ghostty Dock could not move this tab to the selected destination."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux no pudo mover esta pestaña al destino seleccionado."
+            "value": "Ghostty Dock no pudo mover esta pestaña al destino seleccionado."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux n'a pas pu déplacer cet onglet vers la destination sélectionnée."
+            "value": "Ghostty Dock n'a pas pu déplacer cet onglet vers la destination sélectionnée."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux non è riuscito a spostare questa scheda nella destinazione selezionata."
+            "value": "Ghostty Dock non è riuscito a spostare questa scheda nella destinazione selezionata."
           }
         },
         "ja": {
@@ -15399,49 +15399,49 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kunne ikke flytte denne fanen til det valgte målet."
+            "value": "Ghostty Dock kunne ikke flytte denne fanen til det valgte målet."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux nie mógł przenieść tej karty do wybranego miejsca docelowego."
+            "value": "Ghostty Dock nie mógł przenieść tej karty do wybranego miejsca docelowego."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O cmux não conseguiu mover esta aba para o destino selecionado."
+            "value": "O Ghostty Dock não conseguiu mover esta aba para o destino selecionado."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux не смог переместить эту вкладку в выбранное место назначения."
+            "value": "Ghostty Dock не смог переместить эту вкладку в выбранное место назначения."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux ไม่สามารถย้ายแท็บนี้ไปยังปลายทางที่เลือกได้"
+            "value": "Ghostty Dock ไม่สามารถย้ายแท็บนี้ไปยังปลายทางที่เลือกได้"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux bu sekmeyi seçilen hedefe taşıyamadı."
+            "value": "Ghostty Dock bu sekmeyi seçilen hedefe taşıyamadı."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 无法将此标签页移动到所选位置。"
+            "value": "Ghostty Dock 无法将此标签页移动到所选位置。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 無法將此標籤頁移動到所選位置。"
+            "value": "Ghostty Dock 無法將此標籤頁移動到所選位置。"
           }
         }
       }
@@ -24860,13 +24860,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not open this link. You can copy it and open it in another app."
+            "value": "Ghostty Dock could not open this link. You can copy it and open it in another app."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux はこのリンクを開けませんでした。リンクをコピーして別のアプリで開けます。"
+            "value": "Ghostty Dock はこのリンクを開けませんでした。リンクをコピーして別のアプリで開けます。"
           }
         }
       }
@@ -27456,13 +27456,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not create the destination profile \"%@\"."
+            "value": "Ghostty Dock could not create the destination profile \"%@\"."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux は保存先プロファイル「%@」を作成できませんでした。"
+            "value": "Ghostty Dock は保存先プロファイル「%@」を作成できませんでした。"
           }
         },
         "ko": {
@@ -27474,7 +27474,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux не зміг створити профіль призначення \"%@\"."
+            "value": "Ghostty Dock не зміг створити профіль призначення \"%@\"."
           }
         }
       }
@@ -27821,7 +27821,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not find browser profiles to import from on this Mac."
+            "value": "Ghostty Dock could not find browser profiles to import from on this Mac."
           }
         },
         "ja": {
@@ -27839,7 +27839,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux не знайшов профілів браузерів для імпорту на цьому Mac."
+            "value": "Ghostty Dock не знайшов профілів браузерів для імпорту на цьому Mac."
           }
         }
       }
@@ -33085,115 +33085,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start this command. Try again, or reinstall cmux if the problem continues."
+            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start this command. Try again, or reinstall cmux if the problem continues."
+            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start this command. Try again, or reinstall cmux if the problem continues."
+            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start this command. Try again, or reinstall cmux if the problem continues."
+            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start this command. Try again, or reinstall cmux if the problem continues."
+            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start this command. Try again, or reinstall cmux if the problem continues."
+            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start this command. Try again, or reinstall cmux if the problem continues."
+            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start this command. Try again, or reinstall cmux if the problem continues."
+            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux はこのコマンドを開始できませんでした。もう一度試すか、問題が続く場合は cmux を再インストールしてください。"
+            "value": "Ghostty Dock はこのコマンドを開始できませんでした。もう一度試すか、問題が続く場合は Ghostty Dock を再インストールしてください。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start this command. Try again, or reinstall cmux if the problem continues."
+            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start this command. Try again, or reinstall cmux if the problem continues."
+            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start this command. Try again, or reinstall cmux if the problem continues."
+            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start this command. Try again, or reinstall cmux if the problem continues."
+            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start this command. Try again, or reinstall cmux if the problem continues."
+            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start this command. Try again, or reinstall cmux if the problem continues."
+            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start this command. Try again, or reinstall cmux if the problem continues."
+            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start this command. Try again, or reinstall cmux if the problem continues."
+            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start this command. Try again, or reinstall cmux if the problem continues."
+            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start this command. Try again, or reinstall cmux if the problem continues."
+            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
           }
         }
       }
@@ -33204,115 +33204,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start the command-line tool from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start the command-line tool from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start the command-line tool from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start the command-line tool from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start the command-line tool from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start the command-line tool from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start the command-line tool from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start the command-line tool from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux はアプリバンドルからコマンドラインツールを開始できませんでした。cmux を再インストールするか、通常の cmux CLI インストールからコマンドを実行してください。"
+            "value": "Ghostty Dock はアプリバンドルからコマンドラインツールを開始できませんでした。Ghostty Dock を再インストールするか、通常の Ghostty Dock CLI インストールからコマンドを実行してください。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start the command-line tool from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start the command-line tool from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start the command-line tool from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start the command-line tool from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start the command-line tool from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start the command-line tool from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start the command-line tool from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start the command-line tool from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start the command-line tool from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not start the command-line tool from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         }
       }
@@ -33323,115 +33323,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not run this command from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not run this command from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not run this command from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not run this command from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not run this command from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not run this command from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not run this command from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not run this command from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux はアプリバンドルからこのコマンドを実行できませんでした。cmux を再インストールするか、通常の cmux CLI インストールからコマンドを実行してください。"
+            "value": "Ghostty Dock はアプリバンドルからこのコマンドを実行できませんでした。Ghostty Dock を再インストールするか、通常の Ghostty Dock CLI インストールからコマンドを実行してください。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not run this command from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not run this command from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not run this command from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not run this command from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not run this command from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not run this command from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not run this command from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not run this command from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not run this command from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not run this command from the app bundle. Reinstall cmux or run the command from a standard cmux CLI installation."
+            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
           }
         }
       }
@@ -36967,13 +36967,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not create the hooks directory: a file exists at %@; remove or rename the conflicting file and re-run `cmux hooks setup`"
+            "value": "Ghostty Dock could not create the hooks directory: a file exists at %@; remove or rename the conflicting file and re-run `Ghostty Dock hooks setup`"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux は hooks ディレクトリを作成できませんでした: %@ にファイルがあります。競合するファイルを削除または名前変更してから `cmux hooks setup` を再実行してください"
+            "value": "Ghostty Dock は hooks ディレクトリを作成できませんでした: %@ にファイルがあります。競合するファイルを削除または名前変更してから `Ghostty Dock hooks setup` を再実行してください"
           }
         }
       }
@@ -40480,115 +40480,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تم تثبيت واجهة أوامر cmux"
+            "value": "تم تثبيت واجهة أوامر Ghostty Dock"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI instaliran"
+            "value": "Ghostty Dock CLI instaliran"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI installeret"
+            "value": "Ghostty Dock CLI installeret"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI installiert"
+            "value": "Ghostty Dock CLI installiert"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI Installed"
+            "value": "Ghostty Dock CLI Installed"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI de cmux instalada"
+            "value": "CLI de Ghostty Dock instalada"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI cmux installée"
+            "value": "CLI Ghostty Dock installée"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI di cmux installata"
+            "value": "CLI di Ghostty Dock installata"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI がインストールされました"
+            "value": "Ghostty Dock CLI がインストールされました"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI 설치 완료"
+            "value": "Ghostty Dock CLI 설치 완료"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI installert"
+            "value": "Ghostty Dock CLI installert"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI cmux zainstalowane"
+            "value": "CLI Ghostty Dock zainstalowane"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI do cmux Instalado"
+            "value": "CLI do Ghostty Dock Instalado"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI установлен"
+            "value": "Ghostty Dock CLI установлен"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ติดตั้ง cmux CLI แล้ว"
+            "value": "ติดตั้ง Ghostty Dock CLI แล้ว"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI Yüklendi"
+            "value": "Ghostty Dock CLI Yüklendi"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI встановлено"
+            "value": "Ghostty Dock CLI встановлено"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI 已安装"
+            "value": "Ghostty Dock CLI 已安装"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI 已安裝"
+            "value": "Ghostty Dock CLI 已安裝"
           }
         }
       }
@@ -40599,115 +40599,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يتطلب cmux memory إصدار cmux قيد التشغيل يدعم تشخيص الذاكرة"
+            "value": "يتطلب Ghostty Dock memory إصدار Ghostty Dock قيد التشغيل يدعم تشخيص الذاكرة"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux memory zahtijeva pokrenutu cmux verziju koja podržava dijagnostiku memorije"
+            "value": "Ghostty Dock memory zahtijeva pokrenutu Ghostty Dock verziju koja podržava dijagnostiku memorije"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux memory kræver en kørende cmux-build med hukommelsesdiagnostik"
+            "value": "Ghostty Dock memory kræver en kørende Ghostty Dock-build med hukommelsesdiagnostik"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux memory erfordert einen laufenden cmux-Build mit Speicherdiagnose"
+            "value": "Ghostty Dock memory erfordert einen laufenden Ghostty Dock-Build mit Speicherdiagnose"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux memory requires a running cmux build that supports memory diagnostics"
+            "value": "Ghostty Dock memory requires a running Ghostty Dock build that supports memory diagnostics"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux memory requiere una compilación de cmux en ejecución que admita diagnósticos de memoria"
+            "value": "Ghostty Dock memory requiere una compilación de Ghostty Dock en ejecución que admita diagnósticos de memoria"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux memory nécessite une version cmux en cours d’exécution prenant en charge le diagnostic mémoire"
+            "value": "Ghostty Dock memory nécessite une version Ghostty Dock en cours d’exécution prenant en charge le diagnostic mémoire"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux memory richiede una build cmux in esecuzione che supporti la diagnostica della memoria"
+            "value": "Ghostty Dock memory richiede una build Ghostty Dock in esecuzione che supporti la diagnostica della memoria"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux memory にはメモリ診断に対応した実行中の cmux ビルドが必要です"
+            "value": "Ghostty Dock memory にはメモリ診断に対応した実行中の Ghostty Dock ビルドが必要です"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux memory에는 메모리 진단을 지원하는 실행 중인 cmux 빌드가 필요합니다"
+            "value": "Ghostty Dock memory에는 메모리 진단을 지원하는 실행 중인 Ghostty Dock 빌드가 필요합니다"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux memory krever en kjørende cmux-build som støtter minnediagnostikk"
+            "value": "Ghostty Dock memory krever en kjørende Ghostty Dock-build som støtter minnediagnostikk"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux memory wymaga uruchomionej kompilacji cmux z obsługą diagnostyki pamięci"
+            "value": "Ghostty Dock memory wymaga uruchomionej kompilacji Ghostty Dock z obsługą diagnostyki pamięci"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux memory requer uma build cmux em execução com suporte a diagnósticos de memória"
+            "value": "Ghostty Dock memory requer uma build Ghostty Dock em execução com suporte a diagnósticos de memória"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux memory требует запущенную сборку cmux с поддержкой диагностики памяти"
+            "value": "Ghostty Dock memory требует запущенную сборку Ghostty Dock с поддержкой диагностики памяти"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux memory ต้องใช้บิลด์ cmux ที่กำลังทำงานและรองรับการวินิจฉัยหน่วยความจำ"
+            "value": "Ghostty Dock memory ต้องใช้บิลด์ Ghostty Dock ที่กำลังทำงานและรองรับการวินิจฉัยหน่วยความจำ"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux memory, bellek tanılamasını destekleyen çalışan bir cmux derlemesi gerektirir"
+            "value": "Ghostty Dock memory, bellek tanılamasını destekleyen çalışan bir Ghostty Dock derlemesi gerektirir"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux memory потребує запущеної збірки cmux із підтримкою діагностики пам’яті"
+            "value": "Ghostty Dock memory потребує запущеної збірки Ghostty Dock із підтримкою діагностики пам’яті"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux memory 需要正在运行且支持内存诊断的 cmux 构建"
+            "value": "Ghostty Dock memory 需要正在运行且支持内存诊断的 Ghostty Dock 构建"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux memory 需要正在執行且支援記憶體診斷的 cmux 建置"
+            "value": "Ghostty Dock memory 需要正在執行且支援記憶體診斷的 Ghostty Dock 建置"
           }
         }
       }
@@ -46236,115 +46236,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يتطلب cmux top إصدار cmux قيد التشغيل يدعم تشخيص العمليات"
+            "value": "يتطلب Ghostty Dock top إصدار Ghostty Dock قيد التشغيل يدعم تشخيص العمليات"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux top zahtijeva pokrenutu cmux verziju koja podržava dijagnostiku procesa"
+            "value": "Ghostty Dock top zahtijeva pokrenutu Ghostty Dock verziju koja podržava dijagnostiku procesa"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux top kræver en kørende cmux-build med procesdiagnostik"
+            "value": "Ghostty Dock top kræver en kørende Ghostty Dock-build med procesdiagnostik"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux top erfordert einen laufenden cmux-Build mit Prozessdiagnose"
+            "value": "Ghostty Dock top erfordert einen laufenden Ghostty Dock-Build mit Prozessdiagnose"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux top requires a running cmux build that supports process diagnostics"
+            "value": "Ghostty Dock top requires a running Ghostty Dock build that supports process diagnostics"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux top requiere una compilación de cmux en ejecución que admita diagnósticos de procesos"
+            "value": "Ghostty Dock top requiere una compilación de Ghostty Dock en ejecución que admita diagnósticos de procesos"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux top nécessite une version cmux en cours d’exécution prenant en charge le diagnostic des processus"
+            "value": "Ghostty Dock top nécessite une version Ghostty Dock en cours d’exécution prenant en charge le diagnostic des processus"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux top richiede una build cmux in esecuzione che supporti la diagnostica dei processi"
+            "value": "Ghostty Dock top richiede una build Ghostty Dock in esecuzione che supporti la diagnostica dei processi"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux top にはプロセス診断に対応した実行中の cmux ビルドが必要です"
+            "value": "Ghostty Dock top にはプロセス診断に対応した実行中の Ghostty Dock ビルドが必要です"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux top에는 프로세스 진단을 지원하는 실행 중인 cmux 빌드가 필요합니다"
+            "value": "Ghostty Dock top에는 프로세스 진단을 지원하는 실행 중인 Ghostty Dock 빌드가 필요합니다"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux top krever en kjørende cmux-build som støtter prosessdiagnostikk"
+            "value": "Ghostty Dock top krever en kjørende Ghostty Dock-build som støtter prosessdiagnostikk"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux top wymaga uruchomionej kompilacji cmux z obsługą diagnostyki procesów"
+            "value": "Ghostty Dock top wymaga uruchomionej kompilacji Ghostty Dock z obsługą diagnostyki procesów"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux top requer uma build cmux em execução com suporte a diagnósticos de processos"
+            "value": "Ghostty Dock top requer uma build Ghostty Dock em execução com suporte a diagnósticos de processos"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux top требует запущенную сборку cmux с поддержкой диагностики процессов"
+            "value": "Ghostty Dock top требует запущенную сборку Ghostty Dock с поддержкой диагностики процессов"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux top ต้องใช้บิลด์ cmux ที่กำลังทำงานและรองรับการวินิจฉัยโปรเซส"
+            "value": "Ghostty Dock top ต้องใช้บิลด์ Ghostty Dock ที่กำลังทำงานและรองรับการวินิจฉัยโปรเซส"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux top, süreç tanılamasını destekleyen çalışan bir cmux derlemesi gerektirir"
+            "value": "Ghostty Dock top, süreç tanılamasını destekleyen çalışan bir Ghostty Dock derlemesi gerektirir"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux top потребує запущеної збірки cmux із підтримкою діагностики процесів"
+            "value": "Ghostty Dock top потребує запущеної збірки Ghostty Dock із підтримкою діагностики процесів"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux top 需要正在运行且支持进程诊断的 cmux 构建"
+            "value": "Ghostty Dock top 需要正在运行且支持进程诊断的 Ghostty Dock 构建"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux top 需要正在執行且支援行程診斷的 cmux 建置"
+            "value": "Ghostty Dock top 需要正在執行且支援行程診斷的 Ghostty Dock 建置"
           }
         }
       }
@@ -46831,115 +46831,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تم إلغاء تثبيت واجهة أوامر cmux"
+            "value": "تم إلغاء تثبيت واجهة أوامر Ghostty Dock"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI deinstaliran"
+            "value": "Ghostty Dock CLI deinstaliran"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI afinstalleret"
+            "value": "Ghostty Dock CLI afinstalleret"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI deinstalliert"
+            "value": "Ghostty Dock CLI deinstalliert"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI Uninstalled"
+            "value": "Ghostty Dock CLI Uninstalled"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI de cmux desinstalada"
+            "value": "CLI de Ghostty Dock desinstalada"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI cmux désinstallée"
+            "value": "CLI Ghostty Dock désinstallée"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI di cmux disinstallata"
+            "value": "CLI di Ghostty Dock disinstallata"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI がアンインストールされました"
+            "value": "Ghostty Dock CLI がアンインストールされました"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI 제거 완료"
+            "value": "Ghostty Dock CLI 제거 완료"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI avinstallert"
+            "value": "Ghostty Dock CLI avinstallert"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI cmux odinstalowane"
+            "value": "CLI Ghostty Dock odinstalowane"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI do cmux Desinstalado"
+            "value": "CLI do Ghostty Dock Desinstalado"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI удален"
+            "value": "Ghostty Dock CLI удален"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ถอนการติดตั้ง cmux CLI แล้ว"
+            "value": "ถอนการติดตั้ง Ghostty Dock CLI แล้ว"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI Kaldırıldı"
+            "value": "Ghostty Dock CLI Kaldırıldı"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI видалено"
+            "value": "Ghostty Dock CLI видалено"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI 已卸载"
+            "value": "Ghostty Dock CLI 已卸载"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux CLI 已解除安裝"
+            "value": "Ghostty Dock CLI 已解除安裝"
           }
         }
       }
@@ -52287,13 +52287,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux vm new exited with status %d."
+            "value": "Ghostty Dock vm new exited with status %d."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux vm new がステータス %d で終了しました。"
+            "value": "Ghostty Dock vm new がステータス %d で終了しました。"
           }
         }
       }
@@ -52304,13 +52304,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux vm new could not be launched."
+            "value": "Ghostty Dock vm new could not be launched."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux vm new を起動できませんでした。"
+            "value": "Ghostty Dock vm new を起動できませんでした。"
           }
         }
       }
@@ -52763,13 +52763,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         }
       }
@@ -72985,13 +72985,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux crashed during your last session"
+            "value": "Ghostty Dock crashed during your last session"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "前回のセッション中に cmux がクラッシュしました"
+            "value": "前回のセッション中に Ghostty Dock がクラッシュしました"
           }
         }
       }
@@ -75793,13 +75793,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux terminal transparency"
+            "value": "Ghostty Dock terminal transparency"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux ターミナル透明度"
+            "value": "Ghostty Dock ターミナル透明度"
           }
         }
       }
@@ -82823,49 +82823,49 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لم يتمكن cmux من نقل هذا اللسان إلى الوجهة المحددة."
+            "value": "لم يتمكن Ghostty Dock من نقل هذا اللسان إلى الوجهة المحددة."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux nije mogao premjestiti ovaj tab na odabrano odredište."
+            "value": "Ghostty Dock nije mogao premjestiti ovaj tab na odabrano odredište."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kunne ikke flytte denne fane til den valgte destination."
+            "value": "Ghostty Dock kunne ikke flytte denne fane til den valgte destination."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux konnte diesen Tab nicht zum ausgewählten Ziel verschieben."
+            "value": "Ghostty Dock konnte diesen Tab nicht zum ausgewählten Ziel verschieben."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not move this tab to the selected destination."
+            "value": "Ghostty Dock could not move this tab to the selected destination."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux no pudo mover esta pestaña al destino seleccionado."
+            "value": "Ghostty Dock no pudo mover esta pestaña al destino seleccionado."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux n'a pas pu déplacer cet onglet vers la destination sélectionnée."
+            "value": "Ghostty Dock n'a pas pu déplacer cet onglet vers la destination sélectionnée."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux non è riuscito a spostare questa scheda nella destinazione selezionata."
+            "value": "Ghostty Dock non è riuscito a spostare questa scheda nella destinazione selezionata."
           }
         },
         "ja": {
@@ -82883,55 +82883,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kunne ikke flytte denne fanen til den valgte destinasjonen."
+            "value": "Ghostty Dock kunne ikke flytte denne fanen til den valgte destinasjonen."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux nie mógł przenieść tej karty do wybranego miejsca docelowego."
+            "value": "Ghostty Dock nie mógł przenieść tej karty do wybranego miejsca docelowego."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O cmux não conseguiu mover esta aba para o destino selecionado."
+            "value": "O Ghostty Dock não conseguiu mover esta aba para o destino selecionado."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux не удалось переместить эту вкладку в выбранное место назначения."
+            "value": "Ghostty Dock не удалось переместить эту вкладку в выбранное место назначения."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux ไม่สามารถย้ายแท็บนี้ไปยังปลายทางที่เลือกได้"
+            "value": "Ghostty Dock ไม่สามารถย้ายแท็บนี้ไปยังปลายทางที่เลือกได้"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux bu sekmeyi seçilen hedefe taşıyamadı."
+            "value": "Ghostty Dock bu sekmeyi seçilen hedefe taşıyamadı."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux не зміг перемістити цю вкладку до вибраного місця призначення."
+            "value": "Ghostty Dock не зміг перемістити цю вкладку до вибраного місця призначення."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 无法将此标签页移动到所选目标。"
+            "value": "Ghostty Dock 无法将此标签页移动到所选目标。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 無法將此標籤頁移至所選的目的地。"
+            "value": "Ghostty Dock 無法將此標籤頁移至所選的目的地。"
           }
         }
       }
@@ -83911,55 +83911,55 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "إنهاء cmux؟"
+            "value": "إنهاء Ghostty Dock؟"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zatvoriti cmux?"
+            "value": "Zatvoriti Ghostty Dock?"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Afslut cmux?"
+            "value": "Afslut Ghostty Dock?"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux beenden?"
+            "value": "Ghostty Dock beenden?"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quit cmux?"
+            "value": "Quit Ghostty Dock?"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "¿Salir de cmux?"
+            "value": "¿Salir de Ghostty Dock?"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quitter cmux ?"
+            "value": "Quitter Ghostty Dock ?"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uscire da cmux?"
+            "value": "Uscire da Ghostty Dock?"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux を終了しますか？"
+            "value": "Ghostty Dock を終了しますか？"
           }
         },
         "ko": {
@@ -83971,55 +83971,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Avslutte cmux?"
+            "value": "Avslutte Ghostty Dock?"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zakończyć cmux?"
+            "value": "Zakończyć Ghostty Dock?"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Encerrar o cmux?"
+            "value": "Encerrar o Ghostty Dock?"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Завершить cmux?"
+            "value": "Завершить Ghostty Dock?"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ออกจาก cmux หรือไม่?"
+            "value": "ออกจาก Ghostty Dock หรือไม่?"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux'tan çıkılsın mı?"
+            "value": "Ghostty Dock'tan çıkılsın mı?"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Завершити cmux?"
+            "value": "Завершити Ghostty Dock?"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "退出 cmux？"
+            "value": "退出 Ghostty Dock？"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "要結束 cmux 嗎？"
+            "value": "要結束 Ghostty Dock 嗎？"
           }
         }
       }
@@ -85453,13 +85453,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux SSH Link Blocked"
+            "value": "Ghostty Dock SSH Link Blocked"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux SSH リンクをブロックしました"
+            "value": "Ghostty Dock SSH リンクをブロックしました"
           }
         }
       }
@@ -85776,13 +85776,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux ssh exited with status %d."
+            "value": "Ghostty Dock ssh exited with status %d."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux ssh はステータス %d で終了しました。"
+            "value": "Ghostty Dock ssh はステータス %d で終了しました。"
           }
         }
       }
@@ -85793,13 +85793,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux ssh could not be launched."
+            "value": "Ghostty Dock ssh could not be launched."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux ssh を起動できませんでした。"
+            "value": "Ghostty Dock ssh を起動できませんでした。"
           }
         }
       }
@@ -86037,121 +86037,121 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تم حظر رابط cmux"
+            "value": "تم حظر رابط Ghostty Dock"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux Link blokiran"
+            "value": "Ghostty Dock Link blokiran"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux Link blokeret"
+            "value": "Ghostty Dock Link blokeret"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux Link blockiert"
+            "value": "Ghostty Dock Link blockiert"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux Link Blocked"
+            "value": "Ghostty Dock Link Blocked"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enlace cmux bloqueado"
+            "value": "Enlace Ghostty Dock bloqueado"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lien cmux bloqué"
+            "value": "Lien Ghostty Dock bloqué"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux Collegamento bloccato"
+            "value": "Ghostty Dock Collegamento bloccato"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux リンクがブロックされました"
+            "value": "Ghostty Dock リンクがブロックされました"
           }
         },
         "km": {
           "stringUnit": {
             "state": "translated",
-            "value": "តំណភ្ជាប់ cmux ត្រូវបានរារាំង"
+            "value": "តំណភ្ជាប់ Ghostty Dock ត្រូវបានរារាំង"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 링크가 차단됨"
+            "value": "Ghostty Dock 링크가 차단됨"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux Link blokkert"
+            "value": "Ghostty Dock Link blokkert"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zablokowane łącze cmux"
+            "value": "Zablokowane łącze Ghostty Dock"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Link cmux bloqueado"
+            "value": "Link Ghostty Dock bloqueado"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ссылка cmux заблокирована"
+            "value": "Ссылка Ghostty Dock заблокирована"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ลิงก์ cmux ถูกบล็อก"
+            "value": "ลิงก์ Ghostty Dock ถูกบล็อก"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux Bağlantısı Engellendi"
+            "value": "Ghostty Dock Bağlantısı Engellendi"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Посилання cmux заблоковано"
+            "value": "Посилання Ghostty Dock заблоковано"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 链接被阻止"
+            "value": "Ghostty Dock 链接被阻止"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 連結被阻止"
+            "value": "Ghostty Dock 連結被阻止"
           }
         }
       }
@@ -88162,61 +88162,61 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تعذر على cmux إرسال نص الرابط إلى طرفية."
+            "value": "تعذر على Ghostty Dock إرسال نص الرابط إلى طرفية."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux nije mogao poslati tekst veze na terminal."
+            "value": "Ghostty Dock nije mogao poslati tekst veze na terminal."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kunne ikke sende linkteksten til en terminal."
+            "value": "Ghostty Dock kunne ikke sende linkteksten til en terminal."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux konnte den Linktext nicht an ein Terminal senden."
+            "value": "Ghostty Dock konnte den Linktext nicht an ein Terminal senden."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not send the link text to a terminal."
+            "value": "Ghostty Dock could not send the link text to a terminal."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux no pudo enviar el texto del enlace a un terminal."
+            "value": "Ghostty Dock no pudo enviar el texto del enlace a un terminal."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux n'a pas pu envoyer le texte du lien à un terminal."
+            "value": "Ghostty Dock n'a pas pu envoyer le texte du lien à un terminal."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux non è riuscito a inviare il testo del collegamento a un terminale."
+            "value": "Ghostty Dock non è riuscito a inviare il testo del collegamento a un terminale."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux はリンクのテキストをターミナルに送信できませんでした。"
+            "value": "Ghostty Dock はリンクのテキストをターミナルに送信できませんでした。"
           }
         },
         "km": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux មិនអាចផ្ញើអត្ថបទតំណទៅស្ថានីយបានទេ។"
+            "value": "Ghostty Dock មិនអាចផ្ញើអត្ថបទតំណទៅស្ថានីយបានទេ។"
           }
         },
         "ko": {
@@ -88228,55 +88228,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kunne ikke sende koblingsteksten til en terminal."
+            "value": "Ghostty Dock kunne ikke sende koblingsteksten til en terminal."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux nie mógł wysłać tekstu linku do terminala."
+            "value": "Ghostty Dock nie mógł wysłać tekstu linku do terminala."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux não conseguiu enviar o texto do link para um terminal."
+            "value": "Ghostty Dock não conseguiu enviar o texto do link para um terminal."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux не удалось отправить текст ссылки в терминал."
+            "value": "Ghostty Dock не удалось отправить текст ссылки в терминал."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux ไม่สามารถส่งข้อความลิงก์ไปยังเทอร์มินัลได้"
+            "value": "Ghostty Dock ไม่สามารถส่งข้อความลิงก์ไปยังเทอร์มินัลได้"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux bağlantı metnini bir terminale gönderemedi."
+            "value": "Ghostty Dock bağlantı metnini bir terminale gönderemedi."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux не вдалося надіслати текст посилання до терміналу."
+            "value": "Ghostty Dock не вдалося надіслати текст посилання до терміналу."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 无法将链接文本发送到终端。"
+            "value": "Ghostty Dock 无法将链接文本发送到终端。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 無法將連結文字傳送到終端機。"
+            "value": "Ghostty Dock 無法將連結文字傳送到終端機。"
           }
         }
       }
@@ -102444,13 +102444,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not register as the default terminal app."
+            "value": "Ghostty Dock could not register as the default terminal app."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux をデフォルトターミナルアプリとして登録できませんでした。"
+            "value": "Ghostty Dock をデフォルトターミナルアプリとして登録できませんでした。"
           }
         }
       }
@@ -110809,13 +110809,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux will not contact this image URL until you load this image."
+            "value": "Ghostty Dock will not contact this image URL until you load this image."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "この画像を読み込むまで、cmux はこの画像 URL に接続しません。"
+            "value": "この画像を読み込むまで、Ghostty Dock はこの画像 URL に接続しません。"
           }
         }
       }
@@ -111557,55 +111557,55 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux تحت ضغط ذاكرة حرج"
+            "value": "Ghostty Dock تحت ضغط ذاكرة حرج"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux je pod kritičnim memorijskim pritiskom"
+            "value": "Ghostty Dock je pod kritičnim memorijskim pritiskom"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux er under kritisk hukommelsespres"
+            "value": "Ghostty Dock er under kritisk hukommelsespres"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux steht unter kritischem Speicherdruck"
+            "value": "Ghostty Dock steht unter kritischem Speicherdruck"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux is under critical memory pressure"
+            "value": "Ghostty Dock is under critical memory pressure"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux está bajo presión crítica de memoria"
+            "value": "Ghostty Dock está bajo presión crítica de memoria"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux subit une pression mémoire critique"
+            "value": "Ghostty Dock subit une pression mémoire critique"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux è sotto pressione di memoria critica"
+            "value": "Ghostty Dock è sotto pressione di memoria critica"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux に重大なメモリプレッシャーがかかっています"
+            "value": "Ghostty Dock に重大なメモリプレッシャーがかかっています"
           }
         },
         "ko": {
@@ -111617,55 +111617,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux er under kritisk minnepress"
+            "value": "Ghostty Dock er under kritisk minnepress"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux jest pod krytyczną presją pamięci"
+            "value": "Ghostty Dock jest pod krytyczną presją pamięci"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux está sob pressão crítica de memória"
+            "value": "Ghostty Dock está sob pressão crítica de memória"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux испытывает критическую нехватку памяти"
+            "value": "Ghostty Dock испытывает критическую нехватку памяти"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux อยู่ภายใต้แรงกดดันหน่วยความจำระดับวิกฤต"
+            "value": "Ghostty Dock อยู่ภายใต้แรงกดดันหน่วยความจำระดับวิกฤต"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kritik bellek baskısı altında"
+            "value": "Ghostty Dock kritik bellek baskısı altında"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux перебуває під критичним тиском пам’яті"
+            "value": "Ghostty Dock перебуває під критичним тиском пам’яті"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 正处于严重内存压力下"
+            "value": "Ghostty Dock 正处于严重内存压力下"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 正處於嚴重記憶體壓力下"
+            "value": "Ghostty Dock 正處於嚴重記憶體壓力下"
           }
         }
       }
@@ -122406,115 +122406,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "إنهاء cmux"
+            "value": "إنهاء Ghostty Dock"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zatvori cmux"
+            "value": "Zatvori Ghostty Dock"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Afslut cmux"
+            "value": "Afslut Ghostty Dock"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux beenden"
+            "value": "Ghostty Dock beenden"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quit cmux"
+            "value": "Quit Ghostty Dock"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Salir de cmux"
+            "value": "Salir de Ghostty Dock"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quitter cmux"
+            "value": "Quitter Ghostty Dock"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esci da cmux"
+            "value": "Esci da Ghostty Dock"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux を終了"
+            "value": "Ghostty Dock を終了"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 종료"
+            "value": "Ghostty Dock 종료"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Avslutt cmux"
+            "value": "Avslutt Ghostty Dock"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zakończ cmux"
+            "value": "Zakończ Ghostty Dock"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Encerrar o cmux"
+            "value": "Encerrar o Ghostty Dock"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Завершить cmux"
+            "value": "Завершить Ghostty Dock"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ออกจาก cmux"
+            "value": "ออกจาก Ghostty Dock"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux'tan Çık"
+            "value": "Ghostty Dock'tan Çık"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Завершити cmux"
+            "value": "Завершити Ghostty Dock"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "退出 cmux"
+            "value": "退出 Ghostty Dock"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "結束 cmux"
+            "value": "結束 Ghostty Dock"
           }
         }
       }
@@ -126674,7 +126674,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux couldn't tell which session this gallery belongs to."
+            "value": "Ghostty Dock couldn't tell which session this gallery belongs to."
           }
         },
         "ja": {
@@ -126691,7 +126691,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux couldn't tell which session or file was requested."
+            "value": "Ghostty Dock couldn't tell which session or file was requested."
           }
         },
         "ja": {
@@ -126810,7 +126810,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux couldn't tell which terminal or file was requested."
+            "value": "Ghostty Dock couldn't tell which terminal or file was requested."
           }
         },
         "ja": {
@@ -127930,13 +127930,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux couldn't reach %@. Start it with: %@"
+            "value": "Ghostty Dock couldn't reach %@. Start it with: %@"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux は %@ に接続できませんでした。次のコマンドで起動してください: %@"
+            "value": "Ghostty Dock は %@ に接続できませんでした。次のコマンドで起動してください: %@"
           }
         }
       }
@@ -127998,13 +127998,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux used default notification behavior because '%@' failed."
+            "value": "Ghostty Dock used default notification behavior because '%@' failed."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "'%@' が失敗したため、cmux は既定の通知動作を使用しました。"
+            "value": "'%@' が失敗したため、Ghostty Dock は既定の通知動作を使用しました。"
           }
         }
       }
@@ -129217,7 +129217,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not open a passwordless terminal session. Try opening the Cloud VM again."
+            "value": "Ghostty Dock could not open a passwordless terminal session. Try opening the Cloud VM again."
           }
         },
         "ja": {
@@ -130679,13 +130679,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux Pro"
+            "value": "Ghostty Dock Pro"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux Pro"
+            "value": "Ghostty Dock Pro"
           }
         }
       }
@@ -131036,13 +131036,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux iOS app and email support"
+            "value": "Ghostty Dock iOS app and email support"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux iOS アプリとメールサポート"
+            "value": "Ghostty Dock iOS アプリとメールサポート"
           }
         }
       }
@@ -131546,13 +131546,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux Upgrade"
+            "value": "Ghostty Dock Upgrade"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux アップグレード"
+            "value": "Ghostty Dock アップグレード"
           }
         }
       }
@@ -131682,13 +131682,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux AI early access + priority support"
+            "value": "Ghostty Dock AI early access + priority support"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux AI早期アクセス + 優先サポート"
+            "value": "Ghostty Dock AI早期アクセス + 優先サポート"
           }
         }
       }
@@ -131699,13 +131699,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux Pro"
+            "value": "Ghostty Dock Pro"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux Pro"
+            "value": "Ghostty Dock Pro"
           }
         }
       }
@@ -131733,13 +131733,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux Pro"
+            "value": "Ghostty Dock Pro"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux Pro"
+            "value": "Ghostty Dock Pro"
           }
         }
       }
@@ -131750,7 +131750,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux is free and open source, and always will be. Pro adds the cloud."
+            "value": "Ghostty Dock is free and open source, and always will be. Pro adds the cloud."
           }
         },
         "ja": {
@@ -131886,13 +131886,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux Pro"
+            "value": "Ghostty Dock Pro"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux Pro"
+            "value": "Ghostty Dock Pro"
           }
         }
       }
@@ -135466,61 +135466,61 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تعذر على cmux إنشاء نافذة جديدة"
+            "value": "تعذر على Ghostty Dock إنشاء نافذة جديدة"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux nije mogao kreirati novi prozor"
+            "value": "Ghostty Dock nije mogao kreirati novi prozor"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kunne ikke oprette et nyt vindue"
+            "value": "Ghostty Dock kunne ikke oprette et nyt vindue"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux konnte kein neues Fenster erstellen"
+            "value": "Ghostty Dock konnte kein neues Fenster erstellen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux could not create a new window"
+            "value": "Ghostty Dock could not create a new window"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux no pudo crear una ventana nueva"
+            "value": "Ghostty Dock no pudo crear una ventana nueva"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux n’a pas pu créer une nouvelle fenêtre"
+            "value": "Ghostty Dock n’a pas pu créer une nouvelle fenêtre"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux non è riuscito a creare una nuova finestra"
+            "value": "Ghostty Dock non è riuscito a creare una nuova finestra"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux は新しいウインドウを作成できませんでした"
+            "value": "Ghostty Dock は新しいウインドウを作成できませんでした"
           }
         },
         "km": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux មិនអាចបង្កើតបង្អួចថ្មីបានទេ"
+            "value": "Ghostty Dock មិនអាចបង្កើតបង្អួចថ្មីបានទេ"
           }
         },
         "ko": {
@@ -135532,55 +135532,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kunne ikke opprette et nytt vindu"
+            "value": "Ghostty Dock kunne ikke opprette et nytt vindu"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux nie mógł utworzyć nowego okna"
+            "value": "Ghostty Dock nie mógł utworzyć nowego okna"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O cmux não conseguiu criar uma nova janela"
+            "value": "O Ghostty Dock não conseguiu criar uma nova janela"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux не удалось создать новое окно"
+            "value": "Ghostty Dock не удалось создать новое окно"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux ไม่สามารถสร้างหน้าต่างใหม่ได้"
+            "value": "Ghostty Dock ไม่สามารถสร้างหน้าต่างใหม่ได้"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux yeni bir pencere oluşturamadı"
+            "value": "Ghostty Dock yeni bir pencere oluşturamadı"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux не вдалося створити нове вікно"
+            "value": "Ghostty Dock не вдалося створити нове вікно"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 无法创建新窗口"
+            "value": "Ghostty Dock 无法创建新窗口"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 無法建立新視窗"
+            "value": "Ghostty Dock 無法建立新視窗"
           }
         }
       }
@@ -138528,13 +138528,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux Pro"
+            "value": "Ghostty Dock Pro"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux Pro"
+            "value": "Ghostty Dock Pro"
           }
         }
       }
@@ -140431,13 +140431,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux will ask macOS to use this app for SSH links, .command/.tool files, and UNIX executables. macOS may show a confirmation prompt."
+            "value": "Ghostty Dock will ask macOS to use this app for SSH links, .command/.tool files, and UNIX executables. macOS may show a confirmation prompt."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux は、このアプリを SSH リンク、.command/.tool ファイル、UNIX 実行ファイルに使うよう macOS に要求します。macOS が確認を表示する場合があります。"
+            "value": "Ghostty Dock は、このアプリを SSH リンク、.command/.tool ファイル、UNIX 実行ファイルに使うよう macOS に要求します。macOS が確認を表示する場合があります。"
           }
         }
       }
@@ -140465,13 +140465,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux handles SSH links, .command/.tool files, and UNIX executables."
+            "value": "Ghostty Dock handles SSH links, .command/.tool files, and UNIX executables."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux は SSH リンク、.command/.tool ファイル、UNIX 実行ファイルを処理します。"
+            "value": "Ghostty Dock は SSH リンク、.command/.tool ファイル、UNIX 実行ファイルを処理します。"
           }
         }
       }
@@ -164055,13 +164055,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         }
       }
@@ -186038,61 +186038,61 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لا يضيف cmux نسخًا إلى حافظة النظام عند التحديد. لا تزال إعدادات Ghostty تتحكم في «لصق التحديد»."
+            "value": "لا يضيف Ghostty Dock نسخًا إلى حافظة النظام عند التحديد. لا تزال إعدادات Ghostty تتحكم في «لصق التحديد»."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux ne dodaje kopiranje u sistemski međuspremnik pri odabiru. Ghostty konfiguracija i dalje kontroliše Lijepljenje odabira."
+            "value": "Ghostty Dock ne dodaje kopiranje u sistemski međuspremnik pri odabiru. Ghostty konfiguracija i dalje kontroliše Lijepljenje odabira."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux tilføjer ikke kopiering til systemets udklipsholder ved markering. Ghostty-konfiguration styrer stadig Indsæt markering."
+            "value": "Ghostty Dock tilføjer ikke kopiering til systemets udklipsholder ved markering. Ghostty-konfiguration styrer stadig Indsæt markering."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux fügt beim Auswählen kein Kopieren in die Systemzwischenablage hinzu. Die Ghostty-Konfiguration steuert weiterhin „Auswahl einfügen“."
+            "value": "Ghostty Dock fügt beim Auswählen kein Kopieren in die Systemzwischenablage hinzu. Die Ghostty-Konfiguration steuert weiterhin „Auswahl einfügen“."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux does not add system-clipboard copy on selection. Ghostty config still controls Paste Selection."
+            "value": "Ghostty Dock does not add system-clipboard copy on selection. Ghostty config still controls Paste Selection."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux no añade copia al portapapeles del sistema al seleccionar. La configuración de Ghostty sigue controlando Pegar selección."
+            "value": "Ghostty Dock no añade copia al portapapeles del sistema al seleccionar. La configuración de Ghostty sigue controlando Pegar selección."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux n’ajoute pas de copie vers le presse-papiers système lors de la sélection. La configuration Ghostty contrôle toujours Coller la sélection."
+            "value": "Ghostty Dock n’ajoute pas de copie vers le presse-papiers système lors de la sélection. La configuration Ghostty contrôle toujours Coller la sélection."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux non aggiunge la copia negli appunti di sistema alla selezione. La configurazione di Ghostty controlla ancora Incolla selezione."
+            "value": "Ghostty Dock non aggiunge la copia negli appunti di sistema alla selezione. La configurazione di Ghostty controlla ancora Incolla selezione."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux は選択時のシステムクリップボードへのコピーを追加しません。Ghostty 設定が引き続き「選択をペースト」を制御します。"
+            "value": "Ghostty Dock は選択時のシステムクリップボードへのコピーを追加しません。Ghostty 設定が引き続き「選択をペースト」を制御します。"
           }
         },
         "km": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux មិនបន្ថែមការចម្លងទៅ clipboard របស់ប្រព័ន្ធពេលជ្រើសទេ។ ការកំណត់ Ghostty នៅតែគ្រប់គ្រង Paste Selection។"
+            "value": "Ghostty Dock មិនបន្ថែមការចម្លងទៅ clipboard របស់ប្រព័ន្ធពេលជ្រើសទេ។ ការកំណត់ Ghostty នៅតែគ្រប់គ្រង Paste Selection។"
           }
         },
         "ko": {
@@ -186104,55 +186104,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux legger ikke til kopiering til systemutklippstavlen ved markering. Ghostty-konfigurasjonen styrer fortsatt Lim inn markering."
+            "value": "Ghostty Dock legger ikke til kopiering til systemutklippstavlen ved markering. Ghostty-konfigurasjonen styrer fortsatt Lim inn markering."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux nie dodaje kopiowania do schowka systemowego przy zaznaczaniu. Konfiguracja Ghostty nadal steruje funkcją Wklej zaznaczenie."
+            "value": "Ghostty Dock nie dodaje kopiowania do schowka systemowego przy zaznaczaniu. Konfiguracja Ghostty nadal steruje funkcją Wklej zaznaczenie."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O cmux não adiciona cópia para a área de transferência do sistema ao selecionar. A configuração do Ghostty ainda controla Colar seleção."
+            "value": "O Ghostty Dock não adiciona cópia para a área de transferência do sistema ao selecionar. A configuração do Ghostty ainda controla Colar seleção."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux не добавляет копирование в системный буфер обмена при выделении. Конфигурация Ghostty по-прежнему управляет «Вставить выделение»."
+            "value": "Ghostty Dock не добавляет копирование в системный буфер обмена при выделении. Конфигурация Ghostty по-прежнему управляет «Вставить выделение»."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux จะไม่เพิ่มการคัดลอกไปยังคลิปบอร์ดของระบบเมื่อเลือก การกำหนดค่า Ghostty ยังคงควบคุม Paste Selection"
+            "value": "Ghostty Dock จะไม่เพิ่มการคัดลอกไปยังคลิปบอร์ดของระบบเมื่อเลือก การกำหนดค่า Ghostty ยังคงควบคุม Paste Selection"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux seçim sırasında sistem panosuna kopyalamayı eklemez. Ghostty yapılandırması Paste Selection denetimini sürdürür."
+            "value": "Ghostty Dock seçim sırasında sistem panosuna kopyalamayı eklemez. Ghostty yapılandırması Paste Selection denetimini sürdürür."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux не додає копіювання до системного буфера обміну під час виділення. Конфігурація Ghostty й надалі керує «Вставити виділення»."
+            "value": "Ghostty Dock не додає копіювання до системного буфера обміну під час виділення. Конфігурація Ghostty й надалі керує «Вставити виділення»."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 不会在选择时额外复制到系统剪贴板。Ghostty 配置仍控制“粘贴选择”。"
+            "value": "Ghostty Dock 不会在选择时额外复制到系统剪贴板。Ghostty 配置仍控制“粘贴选择”。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 不會在選取時額外複製到系統剪貼簿。Ghostty 設定仍控制「貼上選取」。"
+            "value": "Ghostty Dock 不會在選取時額外複製到系統剪貼簿。Ghostty 設定仍控制「貼上選取」。"
           }
         }
       }
@@ -186322,7 +186322,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux warns you with a badge and a banner when one pane's process tree uses too much memory, so a single leak can't crash the whole app."
+            "value": "Ghostty Dock warns you with a badge and a banner when one pane's process tree uses too much memory, so a single leak can't crash the whole app."
           }
         },
         "ja": {
@@ -207085,13 +207085,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         }
       }
@@ -210157,13 +210157,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         }
       }
@@ -210293,13 +210293,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux mascot"
+            "value": "Ghostty Dock mascot"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux マスコット"
+            "value": "Ghostty Dock マスコット"
           }
         }
       }
@@ -210786,13 +210786,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux"
+            "value": "Ghostty Dock"
           }
         }
       }
@@ -212930,115 +212930,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "عمليات cmux فقط"
+            "value": "عمليات Ghostty Dock فقط"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Samo cmux procesi"
+            "value": "Samo Ghostty Dock procesi"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kun cmux-processer"
+            "value": "Kun Ghostty Dock-processer"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nur cmux-Prozesse"
+            "value": "Nur Ghostty Dock-Prozesse"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux processes only"
+            "value": "Ghostty Dock processes only"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Solo procesos de cmux"
+            "value": "Solo procesos de Ghostty Dock"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Processus cmux uniquement"
+            "value": "Processus Ghostty Dock uniquement"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Solo processi cmux"
+            "value": "Solo processi Ghostty Dock"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux プロセスのみ"
+            "value": "Ghostty Dock プロセスのみ"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 프로세스만"
+            "value": "Ghostty Dock 프로세스만"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kun cmux-prosesser"
+            "value": "Kun Ghostty Dock-prosesser"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tylko procesy cmux"
+            "value": "Tylko procesy Ghostty Dock"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apenas processos do cmux"
+            "value": "Apenas processos do Ghostty Dock"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Только процессы cmux"
+            "value": "Только процессы Ghostty Dock"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "กระบวนการ cmux เท่านั้น"
+            "value": "กระบวนการ Ghostty Dock เท่านั้น"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Yalnızca cmux işlemleri"
+            "value": "Yalnızca Ghostty Dock işlemleri"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Тільки процеси cmux"
+            "value": "Тільки процеси Ghostty Dock"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅限 cmux 进程"
+            "value": "仅限 Ghostty Dock 进程"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "僅限 cmux 程序"
+            "value": "僅限 Ghostty Dock 程序"
           }
         }
       }
@@ -215089,115 +215089,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "عرض cmux"
+            "value": "عرض Ghostty Dock"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prikaži cmux"
+            "value": "Prikaži Ghostty Dock"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vis cmux"
+            "value": "Vis Ghostty Dock"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux anzeigen"
+            "value": "Ghostty Dock anzeigen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show cmux"
+            "value": "Show Ghostty Dock"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mostrar cmux"
+            "value": "Mostrar Ghostty Dock"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Afficher cmux"
+            "value": "Afficher Ghostty Dock"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mostra cmux"
+            "value": "Mostra Ghostty Dock"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmuxを表示"
+            "value": "Ghostty Dockを表示"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 표시"
+            "value": "Ghostty Dock 표시"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vis cmux"
+            "value": "Vis Ghostty Dock"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pokaż cmux"
+            "value": "Pokaż Ghostty Dock"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mostrar cmux"
+            "value": "Mostrar Ghostty Dock"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Показать cmux"
+            "value": "Показать Ghostty Dock"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "แสดง cmux"
+            "value": "แสดง Ghostty Dock"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux'u Göster"
+            "value": "Ghostty Dock'u Göster"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Показати cmux"
+            "value": "Показати Ghostty Dock"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "显示 cmux"
+            "value": "显示 Ghostty Dock"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "顯示 cmux"
+            "value": "顯示 Ghostty Dock"
           }
         }
       }
@@ -215973,13 +215973,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux is restoring a terminal with this resume command:\n\nWorking directory: %@\n\n%@"
+            "value": "Ghostty Dock is restoring a terminal with this resume command:\n\nWorking directory: %@\n\n%@"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux はこの復元コマンドでターミナルを復元しようとしています:\n\n作業ディレクトリ: %@\n\n%@"
+            "value": "Ghostty Dock はこの復元コマンドでターミナルを復元しようとしています:\n\n作業ディレクトリ: %@\n\n%@"
           }
         }
       }
@@ -225980,49 +225980,49 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تعذّر على cmux بدء التحديث. تحقق من اتصالك بالإنترنت وحاول مرة أخرى."
+            "value": "تعذّر على Ghostty Dock بدء التحديث. تحقق من اتصالك بالإنترنت وحاول مرة أخرى."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux nije mogao pokrenuti ažuriranje. Provjerite internetsku vezu i pokušajte ponovo."
+            "value": "Ghostty Dock nije mogao pokrenuti ažuriranje. Provjerite internetsku vezu i pokušajte ponovo."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kunne ikke starte opdateringen. Kontrollér din internetforbindelse, og prøv igen."
+            "value": "Ghostty Dock kunne ikke starte opdateringen. Kontrollér din internetforbindelse, og prøv igen."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux konnte das Update nicht starten. Prüfe deine Internetverbindung und versuche es erneut."
+            "value": "Ghostty Dock konnte das Update nicht starten. Prüfe deine Internetverbindung und versuche es erneut."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux couldn’t start the update. Check your internet connection and try again."
+            "value": "Ghostty Dock couldn’t start the update. Check your internet connection and try again."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux no pudo iniciar la actualización. Comprueba tu conexión a internet e inténtalo de nuevo."
+            "value": "Ghostty Dock no pudo iniciar la actualización. Comprueba tu conexión a internet e inténtalo de nuevo."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux n’a pas pu lancer la mise à jour. Vérifiez votre connexion Internet, puis réessayez."
+            "value": "Ghostty Dock n’a pas pu lancer la mise à jour. Vérifiez votre connexion Internet, puis réessayez."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux non è riuscito ad avviare l’aggiornamento. Controlla la connessione a Internet e riprova."
+            "value": "Ghostty Dock non è riuscito ad avviare l’aggiornamento. Controlla la connessione a Internet e riprova."
           }
         },
         "ja": {
@@ -226040,55 +226040,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kunne ikke starte oppdateringen. Kontroller internettforbindelsen og prøv igjen."
+            "value": "Ghostty Dock kunne ikke starte oppdateringen. Kontroller internettforbindelsen og prøv igjen."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux nie mógł rozpocząć aktualizacji. Sprawdź połączenie z internetem i spróbuj ponownie."
+            "value": "Ghostty Dock nie mógł rozpocząć aktualizacji. Sprawdź połączenie z internetem i spróbuj ponownie."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O cmux não conseguiu iniciar a atualização. Verifique sua conexão com a internet e tente novamente."
+            "value": "O Ghostty Dock não conseguiu iniciar a atualização. Verifique sua conexão com a internet e tente novamente."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux не удалось запустить обновление. Проверьте подключение к интернету и повторите попытку."
+            "value": "Ghostty Dock не удалось запустить обновление. Проверьте подключение к интернету и повторите попытку."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux ไม่สามารถเริ่มการอัปเดตได้ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองอีกครั้ง"
+            "value": "Ghostty Dock ไม่สามารถเริ่มการอัปเดตได้ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองอีกครั้ง"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux güncellemeyi başlatamadı. İnternet bağlantınızı kontrol edip tekrar deneyin."
+            "value": "Ghostty Dock güncellemeyi başlatamadı. İnternet bağlantınızı kontrol edip tekrar deneyin."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux не вдалося запустити оновлення. Перевірте підключення до інтернету й повторіть спробу."
+            "value": "Ghostty Dock не вдалося запустити оновлення. Перевірте підключення до інтернету й повторіть спробу."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 无法开始更新。请检查互联网连接，然后重试。"
+            "value": "Ghostty Dock 无法开始更新。请检查互联网连接，然后重试。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 無法開始更新。請檢查網際網路連線，然後再試一次。"
+            "value": "Ghostty Dock 無法開始更新。請檢查網際網路連線，然後再試一次。"
           }
         }
       }
@@ -226609,55 +226609,55 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تعذر على cmux تنزيل موجز التحديثات. تحقق من اتصالك وحاول مجددًا."
+            "value": "تعذر على Ghostty Dock تنزيل موجز التحديثات. تحقق من اتصالك وحاول مجددًا."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux nije mogao preuzeti feed ažuriranja. Provjerite vezu i pokušajte ponovo."
+            "value": "Ghostty Dock nije mogao preuzeti feed ažuriranja. Provjerite vezu i pokušajte ponovo."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kunne ikke downloade opdateringsfeedet. Kontroller din forbindelse, og prøv igen."
+            "value": "Ghostty Dock kunne ikke downloade opdateringsfeedet. Kontroller din forbindelse, og prøv igen."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux konnte den Update-Feed nicht herunterladen. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+            "value": "Ghostty Dock konnte den Update-Feed nicht herunterladen. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux couldn't download the update feed. Check your connection and try again."
+            "value": "Ghostty Dock couldn't download the update feed. Check your connection and try again."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux no pudo descargar la fuente de actualizaciones. Comprueba tu conexión e inténtalo de nuevo."
+            "value": "Ghostty Dock no pudo descargar la fuente de actualizaciones. Comprueba tu conexión e inténtalo de nuevo."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux n'a pas pu télécharger le flux de mises à jour. Vérifiez votre connexion et réessayez."
+            "value": "Ghostty Dock n'a pas pu télécharger le flux de mises à jour. Vérifiez votre connexion et réessayez."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux non è riuscito a scaricare il feed degli aggiornamenti. Controlla la connessione e riprova."
+            "value": "Ghostty Dock non è riuscito a scaricare il feed degli aggiornamenti. Controlla la connessione e riprova."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux はアップデートフィードをダウンロードできませんでした。接続を確認してもう一度お試しください。"
+            "value": "Ghostty Dock はアップデートフィードをダウンロードできませんでした。接続を確認してもう一度お試しください。"
           }
         },
         "ko": {
@@ -226669,55 +226669,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kunne ikke laste ned oppdateringsfeeden. Kontroller tilkoblingen og prøv igjen."
+            "value": "Ghostty Dock kunne ikke laste ned oppdateringsfeeden. Kontroller tilkoblingen og prøv igjen."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux nie mógł pobrać kanału aktualizacji. Sprawdź połączenie i spróbuj ponownie."
+            "value": "Ghostty Dock nie mógł pobrać kanału aktualizacji. Sprawdź połączenie i spróbuj ponownie."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O cmux não conseguiu baixar o feed de atualização. Verifique sua conexão e tente novamente."
+            "value": "O Ghostty Dock não conseguiu baixar o feed de atualização. Verifique sua conexão e tente novamente."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux не удалось загрузить канал обновлений. Проверьте подключение и повторите попытку."
+            "value": "Ghostty Dock не удалось загрузить канал обновлений. Проверьте подключение и повторите попытку."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux ไม่สามารถดาวน์โหลดฟีดอัปเดตได้ ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง"
+            "value": "Ghostty Dock ไม่สามารถดาวน์โหลดฟีดอัปเดตได้ ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux güncelleme akışını indiremedi. Bağlantınızı kontrol edip tekrar deneyin."
+            "value": "Ghostty Dock güncelleme akışını indiremedi. Bağlantınızı kontrol edip tekrar deneyin."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux не зміг завантажити стрічку оновлень. Перевірте підключення та спробуйте ще раз."
+            "value": "Ghostty Dock не зміг завантажити стрічку оновлень. Перевірте підключення та спробуйте ще раз."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 无法下载更新源。请检查网络连接后重试。"
+            "value": "Ghostty Dock 无法下载更新源。请检查网络连接后重试。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 無法下載更新來源。請檢查您的連線後再試一次。"
+            "value": "Ghostty Dock 無法下載更新來源。請檢查您的連線後再試一次。"
           }
         }
       }
@@ -227476,55 +227476,55 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لا يمكن لـ cmux الوصول إلى خادم التحديثات. تحقق من اتصال الإنترنت وحاول مجددًا."
+            "value": "لا يمكن لـ Ghostty Dock الوصول إلى خادم التحديثات. تحقق من اتصال الإنترنت وحاول مجددًا."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux ne može dosegnuti server za ažuriranje. Provjerite internetsku vezu i pokušajte ponovo."
+            "value": "Ghostty Dock ne može dosegnuti server za ažuriranje. Provjerite internetsku vezu i pokušajte ponovo."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kan ikke nå opdateringsserveren. Kontroller din internetforbindelse, og prøv igen."
+            "value": "Ghostty Dock kan ikke nå opdateringsserveren. Kontroller din internetforbindelse, og prøv igen."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kann den Update-Server nicht erreichen. Überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
+            "value": "Ghostty Dock kann den Update-Server nicht erreichen. Überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux can't reach the update server. Check your internet connection and try again."
+            "value": "Ghostty Dock can't reach the update server. Check your internet connection and try again."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux no puede acceder al servidor de actualizaciones. Comprueba tu conexión a internet e inténtalo de nuevo."
+            "value": "Ghostty Dock no puede acceder al servidor de actualizaciones. Comprueba tu conexión a internet e inténtalo de nuevo."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux ne peut pas atteindre le serveur de mises à jour. Vérifiez votre connexion Internet et réessayez."
+            "value": "Ghostty Dock ne peut pas atteindre le serveur de mises à jour. Vérifiez votre connexion Internet et réessayez."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux non riesce a raggiungere il server degli aggiornamenti. Controlla la connessione a internet e riprova."
+            "value": "Ghostty Dock non riesce a raggiungere il server degli aggiornamenti. Controlla la connessione a internet e riprova."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux はアップデートサーバーに接続できません。インターネット接続を確認してもう一度お試しください。"
+            "value": "Ghostty Dock はアップデートサーバーに接続できません。インターネット接続を確認してもう一度お試しください。"
           }
         },
         "ko": {
@@ -227536,55 +227536,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kan ikke nå oppdateringsserveren. Kontroller internettforbindelsen og prøv igjen."
+            "value": "Ghostty Dock kan ikke nå oppdateringsserveren. Kontroller internettforbindelsen og prøv igjen."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux nie może połączyć się z serwerem aktualizacji. Sprawdź połączenie z internetem i spróbuj ponownie."
+            "value": "Ghostty Dock nie może połączyć się z serwerem aktualizacji. Sprawdź połączenie z internetem i spróbuj ponownie."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O cmux não consegue acessar o servidor de atualização. Verifique sua conexão com a internet e tente novamente."
+            "value": "O Ghostty Dock não consegue acessar o servidor de atualização. Verifique sua conexão com a internet e tente novamente."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux не может связаться с сервером обновлений. Проверьте подключение к интернету и повторите попытку."
+            "value": "Ghostty Dock не может связаться с сервером обновлений. Проверьте подключение к интернету и повторите попытку."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux ไม่สามารถเข้าถึงเซิร์ฟเวอร์อัปเดตได้ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองอีกครั้ง"
+            "value": "Ghostty Dock ไม่สามารถเข้าถึงเซิร์ฟเวอร์อัปเดตได้ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองอีกครั้ง"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux güncelleme sunucusuna ulaşamıyor. İnternet bağlantınızı kontrol edip tekrar deneyin."
+            "value": "Ghostty Dock güncelleme sunucusuna ulaşamıyor. İnternet bağlantınızı kontrol edip tekrar deneyin."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux не може зв'язатися з сервером оновлень. Перевірте підключення до інтернету та спробуйте ще раз."
+            "value": "Ghostty Dock не може зв'язатися з сервером оновлень. Перевірте підключення до інтернету та спробуйте ще раз."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 无法连接到更新服务器。请检查互联网连接后重试。"
+            "value": "Ghostty Dock 无法连接到更新服务器。请检查互联网连接后重试。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 無法連線至更新伺服器。請檢查您的網際網路連線後再試一次。"
+            "value": "Ghostty Dock 無法連線至更新伺服器。請檢查您的網際網路連線後再試一次。"
           }
         }
       }
@@ -228445,55 +228445,55 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تعذر على cmux الاتصال بخادم التحديثات. تحقق من اتصالك أو حاول لاحقًا."
+            "value": "تعذر على Ghostty Dock الاتصال بخادم التحديثات. تحقق من اتصالك أو حاول لاحقًا."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux se nije mogao povezati na server za ažuriranje. Provjerite vezu ili pokušajte ponovo kasnije."
+            "value": "Ghostty Dock se nije mogao povezati na server za ažuriranje. Provjerite vezu ili pokušajte ponovo kasnije."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kunne ikke oprette forbindelse til opdateringsserveren. Kontroller din forbindelse, eller prøv igen senere."
+            "value": "Ghostty Dock kunne ikke oprette forbindelse til opdateringsserveren. Kontroller din forbindelse, eller prøv igen senere."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux konnte keine Verbindung zum Update-Server herstellen. Überprüfen Sie Ihre Verbindung oder versuchen Sie es später erneut."
+            "value": "Ghostty Dock konnte keine Verbindung zum Update-Server herstellen. Überprüfen Sie Ihre Verbindung oder versuchen Sie es später erneut."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux couldn't connect to the update server. Check your connection or try again later."
+            "value": "Ghostty Dock couldn't connect to the update server. Check your connection or try again later."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux no pudo conectar con el servidor de actualizaciones. Comprueba tu conexión o inténtalo de nuevo más tarde."
+            "value": "Ghostty Dock no pudo conectar con el servidor de actualizaciones. Comprueba tu conexión o inténtalo de nuevo más tarde."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux n'a pas pu se connecter au serveur de mises à jour. Vérifiez votre connexion ou réessayez plus tard."
+            "value": "Ghostty Dock n'a pas pu se connecter au serveur de mises à jour. Vérifiez votre connexion ou réessayez plus tard."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux non è riuscito a connettersi al server degli aggiornamenti. Controlla la connessione o riprova più tardi."
+            "value": "Ghostty Dock non è riuscito a connettersi al server degli aggiornamenti. Controlla la connessione o riprova più tardi."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux はアップデートサーバーに接続できませんでした。接続を確認するか、後でもう一度お試しください。"
+            "value": "Ghostty Dock はアップデートサーバーに接続できませんでした。接続を確認するか、後でもう一度お試しください。"
           }
         },
         "ko": {
@@ -228505,55 +228505,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kunne ikke koble til oppdateringsserveren. Kontroller tilkoblingen eller prøv igjen senere."
+            "value": "Ghostty Dock kunne ikke koble til oppdateringsserveren. Kontroller tilkoblingen eller prøv igjen senere."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux nie mógł połączyć się z serwerem aktualizacji. Sprawdź połączenie lub spróbuj ponownie później."
+            "value": "Ghostty Dock nie mógł połączyć się z serwerem aktualizacji. Sprawdź połączenie lub spróbuj ponownie później."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O cmux não conseguiu se conectar ao servidor de atualização. Verifique sua conexão ou tente novamente mais tarde."
+            "value": "O Ghostty Dock não conseguiu se conectar ao servidor de atualização. Verifique sua conexão ou tente novamente mais tarde."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux не удалось подключиться к серверу обновлений. Проверьте подключение или повторите попытку позже."
+            "value": "Ghostty Dock не удалось подключиться к серверу обновлений. Проверьте подключение или повторите попытку позже."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์อัปเดตได้ ตรวจสอบการเชื่อมต่อหรือลองอีกครั้งในภายหลัง"
+            "value": "Ghostty Dock ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์อัปเดตได้ ตรวจสอบการเชื่อมต่อหรือลองอีกครั้งในภายหลัง"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux güncelleme sunucusuna bağlanamadı. Bağlantınızı kontrol edin veya daha sonra tekrar deneyin."
+            "value": "Ghostty Dock güncelleme sunucusuna bağlanamadı. Bağlantınızı kontrol edin veya daha sonra tekrar deneyin."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux не зміг підключитися до сервера оновлень. Перевірте підключення або спробуйте пізніше."
+            "value": "Ghostty Dock не зміг підключитися до сервера оновлень. Перевірте підключення або спробуйте пізніше."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 无法连接到更新服务器。请检查网络连接或稍后重试。"
+            "value": "Ghostty Dock 无法连接到更新服务器。请检查网络连接或稍后重试。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 無法連線至更新伺服器。請檢查您的連線或稍後再試。"
+            "value": "Ghostty Dock 無法連線至更新伺服器。請檢查您的連線或稍後再試。"
           }
         }
       }
@@ -230230,55 +230230,55 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يمكن لـ cmux التحقق تلقائيًا من التحديثات في الخلفية."
+            "value": "يمكن لـ Ghostty Dock التحقق تلقائيًا من التحديثات في الخلفية."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux može automatski provjeravati ažuriranja u pozadini."
+            "value": "Ghostty Dock može automatski provjeravati ažuriranja u pozadini."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kan automatisk søge efter opdateringer i baggrunden."
+            "value": "Ghostty Dock kan automatisk søge efter opdateringer i baggrunden."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kann automatisch im Hintergrund nach Updates suchen."
+            "value": "Ghostty Dock kann automatisch im Hintergrund nach Updates suchen."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux can automatically check for updates in the background."
+            "value": "Ghostty Dock can automatically check for updates in the background."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux puede buscar actualizaciones automáticamente en segundo plano."
+            "value": "Ghostty Dock puede buscar actualizaciones automáticamente en segundo plano."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux peut rechercher automatiquement les mises à jour en arrière-plan."
+            "value": "Ghostty Dock peut rechercher automatiquement les mises à jour en arrière-plan."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux può verificare automaticamente la disponibilità di aggiornamenti in background."
+            "value": "Ghostty Dock può verificare automaticamente la disponibilità di aggiornamenti in background."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux はバックグラウンドで自動的にアップデートを確認できます。"
+            "value": "Ghostty Dock はバックグラウンドで自動的にアップデートを確認できます。"
           }
         },
         "ko": {
@@ -230290,55 +230290,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux kan automatisk se etter oppdateringer i bakgrunnen."
+            "value": "Ghostty Dock kan automatisk se etter oppdateringer i bakgrunnen."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux może automatycznie sprawdzać aktualizacje w tle."
+            "value": "Ghostty Dock może automatycznie sprawdzać aktualizacje w tle."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O cmux pode verificar automaticamente se há atualizações em segundo plano."
+            "value": "O Ghostty Dock pode verificar automaticamente se há atualizações em segundo plano."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux может автоматически проверять наличие обновлений в фоновом режиме."
+            "value": "Ghostty Dock может автоматически проверять наличие обновлений в фоновом режиме."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux สามารถตรวจหาอัปเดตอัตโนมัติในเบื้องหลังได้"
+            "value": "Ghostty Dock สามารถตรวจหาอัปเดตอัตโนมัติในเบื้องหลังได้"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux arka planda otomatik olarak güncellemeleri denetleyebilir."
+            "value": "Ghostty Dock arka planda otomatik olarak güncellemeleri denetleyebilir."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux може автоматично перевіряти оновлення у фоновому режимі."
+            "value": "Ghostty Dock може автоматично перевіряти оновлення у фоновому режимі."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 可以在后台自动检查更新。"
+            "value": "Ghostty Dock 可以在后台自动检查更新。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux 可以在背景自動檢查更新。"
+            "value": "Ghostty Dock 可以在背景自動檢查更新。"
           }
         }
       }
@@ -242120,13 +242120,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux downloads a signed relay catalog. Fleet additions, removals, and regional changes do not require an app update."
+            "value": "Ghostty Dock downloads a signed relay catalog. Fleet additions, removals, and regional changes do not require an app update."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "cmux は署名済みリレーカタログを取得します。フリートの追加、削除、リージョン変更にアプリ更新は不要です。"
+            "value": "Ghostty Dock は署名済みリレーカタログを取得します。フリートの追加、削除、リージョン変更にアプリ更新は不要です。"
           }
         }
       }
@@ -242901,6 +242901,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "セクションを反対側のレールへ（下）"
+          }
+        }
+      }
+    },
+    "settings.gdock.autoWorkspaceGroupMode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto Workspace Group Mode"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自動ワークスペースグループモード"
+          }
+        }
+      }
+    },
+    "settings.section.gdock": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "gdock"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "gdock"
           }
         }
       }

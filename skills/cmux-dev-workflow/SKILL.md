@@ -7,17 +7,19 @@ description: "Contributor workflow rules for cmux setup, Xcode project normaliza
 
 ## Tagged local dev
 
-After making code changes, always run the reload script with a tag to build the Debug app:
+After making code changes, always run the reload script with a tag to build the tagged dev app:
 
 ```bash
 ./scripts/reload.sh --tag <short-tag>
 ```
 
+`reload.sh` builds the **Release** configuration by default; the app lands in `Build/Products/Release/cmux DEV <tag>.app`. Add `--debug` when you need `#if DEBUG` behavior — the Debug menu, dogfood auto sign-in, and the `CMUXDebugLog` event log are all compiled out of Release builds. `--print-plan` prints the resolved configuration and app path without building.
+
 By default, `reload.sh` builds but does not launch the app. Pass `--launch` only when you need to open it automatically.
 
 Never run bare `xcodebuild` or open an untagged `cmux DEV.app`. Untagged builds share the default debug socket and bundle ID with other agents, causing conflicts and stealing focus.
 
-For CLI or socket dogfood against a tagged Debug app, use the tag-bound helper and set `CMUX_TAG`:
+For CLI or socket dogfood against a tagged dev app, use the tag-bound helper and set `CMUX_TAG`:
 
 ```bash
 CMUX_TAG=<tag> scripts/cmux-debug-cli.sh list-workspaces

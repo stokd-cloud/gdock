@@ -1094,16 +1094,20 @@ extension CMUXCLI {
         let homePath = ProcessInfo.processInfo.environment["HOME"]
             .flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
             ?? NSHomeDirectory()
-        let candidate = URL(fileURLWithPath: homePath, isDirectory: true)
+        // reload.sh builds the Release configuration by default and Debug under
+        // --debug, so probe both product directories.
+        let derivedData = URL(fileURLWithPath: homePath, isDirectory: true)
             .appendingPathComponent("Library/Developer/Xcode/DerivedData/cmux-\(tag)", isDirectory: true)
-            .appendingPathComponent("Build/Products/Debug/cmux DEV \(tag).app", isDirectory: true)
-            .appendingPathComponent("Contents/Resources/bin/cmux", isDirectory: false)
-            .standardizedFileURL
-
-        guard FileManager.default.isExecutableFile(atPath: candidate.path) else {
-            return nil
+        for configuration in ["Release", "Debug"] {
+            let candidate = derivedData
+                .appendingPathComponent("Build/Products/\(configuration)/cmux DEV \(tag).app", isDirectory: true)
+                .appendingPathComponent("Contents/Resources/bin/cmux", isDirectory: false)
+                .standardizedFileURL
+            if FileManager.default.isExecutableFile(atPath: candidate.path) {
+                return canonicalFileURL(candidate)
+            }
         }
-        return canonicalFileURL(candidate)
+        return nil
     }
 
     private func canonicalFileURL(_ url: URL) -> URL {
