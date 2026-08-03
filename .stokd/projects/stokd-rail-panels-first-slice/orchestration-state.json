@@ -2,14 +2,16 @@
   "slug": "stokd-rail-panels-first-slice",
   "title": "Stokd Rail Panels — First Slice",
   "status": "active",
-  "created_at": "2026-08-03T20:44:58.923064+00:00",
+  "created_at": "2026-08-03T03:16:51.266752+00:00",
   "storage_mode": "database",
   "error_message": null,
   "progress_log": [
-    "[2026-08-03T20:45:00.109099+00:00] Project created; PRD written to prd.md; phases extracted; review files written to phases/"
+    "[2026-08-03T03:16:52.077154+00:00] Project created; PRD written to prd.md; phases extracted; review files written to phases/",
+    "[2026-08-03T20:45:00.109099+00:00] Project created; PRD written to prd.md; phases extracted; review files written to phases/",
+    "[2026-08-03] /project-start: sanctioned (APPROVE after 1 REJECT: new Stokd component required a new axiom -> AX-GDOCK-STOKD-DATA-PLANE-IS-A-HEADLESS-CLI-AND-API-BOUNDARY). Worktree cut from origin/main (NOT configured origin/upstream-main). Toolchain + build_config recorded."
   ],
   "review_mode": "complete",
-  "workspace_root": "/opt/worktrees/stokd-cloud/ghostty-dock/project-941a2df-stokd-rail-panels-first-slice",
+  "workspace_root": "/opt/worktrees/stokd-cloud/ghostty-dock/main",
   "phases": [
     {
       "phase_number": 1,
@@ -133,5 +135,60 @@
     }
   ],
   "project_id": "b0ad1d22-5439-4530-8c5f-b7358ba80a1d",
-  "hash_short": "941a2df"
+  "hash_short": "941a2df",
+  "toolchain_validated": {
+    "verified_at": "2026-08-03T00:00:00+00:00",
+    "tools": {
+      "macOS": {
+        "version": "26.2",
+        "status": "ok"
+      },
+      "Xcode": {
+        "version": "26.1",
+        "status": "ok"
+      },
+      "Swift": {
+        "version": "6.2.1",
+        "status": "ok"
+      },
+      "stokd": {
+        "version": "0.2.89",
+        "status": "ok"
+      },
+      "python3": {
+        "version": "3.14.6",
+        "status": "ok"
+      }
+    }
+  },
+  "build_config": {
+    "build_commands": {
+      "primary": "CMUX_SKIP_ZIG_BUILD=1 ./scripts/test-unit.sh build-for-testing",
+      "additional": []
+    },
+    "test_commands": {
+      "unit": "CMUX_SKIP_ZIG_BUILD=1 ./scripts/test-unit.sh test",
+      "integration": "CMUX_SKIP_ZIG_BUILD=1 ./scripts/reload.sh --tag stokd-rail-panels",
+      "additional": [
+        "./scripts/lint-pbxproj-test-wiring.sh"
+      ]
+    },
+    "expected_artifacts": [],
+    "toolchain_requirements": [
+      {
+        "tool": "Xcode",
+        "check": "xcodebuild -version"
+      },
+      {
+        "tool": "Swift",
+        "check": "swift --version"
+      },
+      {
+        "tool": "stokd",
+        "check": "stokd --version"
+      }
+    ]
+  },
+  "worktree_root": "/opt/worktrees/stokd-cloud/ghostty-dock/project-941a2df-stokd-rail-panels-first-slice",
+  "branch": "project/941a2df-stokd-rail-panels-first-slice"
 }
