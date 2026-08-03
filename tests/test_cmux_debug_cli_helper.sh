@@ -119,3 +119,26 @@ reject_prefix "CMUXD_UNIX_PATH"
 reject_prefix "CMUX_DEBUG_LOG"
 
 echo "PASS: cmux-debug-cli.sh routes through the tagged CLI/socket and scrubs ambient cmux env"
+
+# reload.sh builds the Release configuration by default, so the helper must also
+# resolve a tagged app that only exists under Build/Products/Release.
+RELEASE_HOME="$TMP_DIR/home-release"
+RELEASE_CLI_DIR="$RELEASE_HOME/Library/Developer/Xcode/DerivedData/cmux-${TAG_SLUG}/Build/Products/Release/cmux DEV ${TAG_SLUG}.app/Contents/Resources/bin"
+RELEASE_CLI="$RELEASE_CLI_DIR/cmux"
+mkdir -p "$RELEASE_CLI_DIR"
+cp "$FAKE_CLI" "$RELEASE_CLI"
+chmod +x "$RELEASE_CLI"
+
+RELEASE_OUTPUT="$(
+  HOME="$RELEASE_HOME" \
+  CMUX_TAG="$TAG" \
+  "$ROOT_DIR/scripts/cmux-debug-cli.sh" env
+)"
+
+if ! grep -Fxq "CMUX_BUNDLED_CLI_PATH=$RELEASE_CLI" <<<"$RELEASE_OUTPUT"; then
+  echo "FAIL: expected the helper to resolve the Release-configuration tagged CLI: $RELEASE_CLI"
+  echo "$RELEASE_OUTPUT"
+  exit 1
+fi
+
+echo "PASS: cmux-debug-cli.sh resolves the Release-configuration tagged CLI"

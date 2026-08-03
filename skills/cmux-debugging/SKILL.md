@@ -14,7 +14,8 @@ tail -f "$(cat /tmp/cmux-last-debug-log-path 2>/dev/null || echo /tmp/cmux-debug
 ```
 
 - Untagged Debug app: `/tmp/cmux-debug.log`
-- Tagged Debug app (`./scripts/reload.sh --tag <tag>`): `/tmp/cmux-debug-<tag>.log`
+- Tagged Debug app (`./scripts/reload.sh --tag <tag> --debug`): `/tmp/cmux-debug-<tag>.log`
+- `reload.sh` defaults to the Release configuration, where `CMUXDebugLog` is compiled out entirely; pass `--debug` whenever you need the event log
 - `reload.sh` writes the current path to `/tmp/cmux-last-debug-log-path`
 - `reload.sh` writes the selected dev CLI path to `/tmp/cmux-last-cli-path`
 - `reload.sh` updates `/tmp/cmux-cli` and `$HOME/.local/bin/cmux-dev` to that CLI

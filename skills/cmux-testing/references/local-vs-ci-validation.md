@@ -2,7 +2,7 @@
 
 ## `reload.sh`
 
-`reload.sh` builds the Debug app for a tag. It does not compile the test target.
+`reload.sh` builds the tagged dev app (Release by default, Debug with `--debug`). It does not compile the test target.
 
 A successful reload proves the app target built. It does not prove:
 

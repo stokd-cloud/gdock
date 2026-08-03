@@ -162,7 +162,20 @@ cleanup_tagged_soak_processes
 sleep 1
 cleanup_tagged_soak_processes
 
-app="$HOME/Library/Developer/Xcode/DerivedData/cmux-${tag}/Build/Products/Debug/cmux DEV ${tag}.app"
+app=""
+app_mtime=-1
+for configuration in Release Debug; do
+  candidate="$HOME/Library/Developer/Xcode/DerivedData/cmux-${tag}/Build/Products/${configuration}/cmux DEV ${tag}.app"
+  [[ -d "$candidate" ]] || continue
+  candidate_mtime="$(stat -f '%m' "$candidate" 2>/dev/null || echo 0)"
+  if (( candidate_mtime > app_mtime )); then
+    app_mtime="$candidate_mtime"
+    app="$candidate"
+  fi
+done
+if [[ -z "$app" ]]; then
+  app="$HOME/Library/Developer/Xcode/DerivedData/cmux-${tag}/Build/Products/Release/cmux DEV ${tag}.app"
+fi
 if [[ ! -x "$app/Contents/MacOS/cmux DEV" ]]; then
   cat >&2 <<EOF
 Tagged macOS app is missing:
@@ -174,7 +187,7 @@ EOF
   exit 1
 fi
 
-for pid in $(pgrep -f "cmux-${tag}/Build/Products/Debug/cmux DEV ${tag}.app/Contents/MacOS/cmux DEV" || true); do
+for pid in $(pgrep -f "cmux-${tag}/Build/Products/(Release|Debug)/cmux DEV ${tag}.app/Contents/MacOS/cmux DEV" || true); do
   kill "$pid" >/dev/null 2>&1 || true
 done
 

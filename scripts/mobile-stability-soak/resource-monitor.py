@@ -82,9 +82,13 @@ def all_processes() -> list[tuple[int, str]]:
 
 def find_pid(label: str, processes: list[tuple[int, str]]) -> int | None:
     if label == "mac":
-        needle = f"cmux-{TAG}/Build/Products/Debug/cmux DEV {TAG}.app/Contents/MacOS/cmux DEV"
+        # reload.sh builds Release by default and Debug under --debug.
+        needles = [
+            f"cmux-{TAG}/Build/Products/{configuration}/cmux DEV {TAG}.app/Contents/MacOS/cmux DEV"
+            for configuration in ("Release", "Debug")
+        ]
         for pid, command in processes:
-            if needle in command:
+            if any(needle in command for needle in needles):
                 return pid
     elif label == "iphone":
         candidates: list[int] = []

@@ -59,11 +59,24 @@ EOF
   exit 1
 fi
 
-cli_path="${HOME}/Library/Developer/Xcode/DerivedData/cmux-${tag_slug}/Build/Products/Debug/cmux DEV ${tag_slug}.app/Contents/Resources/bin/cmux"
-if [[ ! -x "$cli_path" ]]; then
+# reload.sh builds the Release configuration by default and Debug under --debug,
+# so probe both product dirs and prefer the most recently built CLI.
+tagged_products_dir="${HOME}/Library/Developer/Xcode/DerivedData/cmux-${tag_slug}/Build/Products"
+cli_path=""
+cli_path_mtime=-1
+for configuration in Release Debug; do
+  candidate="${tagged_products_dir}/${configuration}/cmux DEV ${tag_slug}.app/Contents/Resources/bin/cmux"
+  [[ -x "$candidate" ]] || continue
+  candidate_mtime="$(stat -f '%m' "$candidate" 2>/dev/null || echo 0)"
+  if (( candidate_mtime > cli_path_mtime )); then
+    cli_path_mtime="$candidate_mtime"
+    cli_path="$candidate"
+  fi
+done
+if [[ -z "$cli_path" ]]; then
   cat >&2 <<EOF
-Tagged cmux CLI not found:
-  $cli_path
+Tagged cmux CLI not found in either configuration:
+  ${tagged_products_dir}/{Release,Debug}/cmux DEV ${tag_slug}.app/Contents/Resources/bin/cmux
 
 Build the tagged app first:
   ./scripts/reload.sh --tag $CMUX_TAG
