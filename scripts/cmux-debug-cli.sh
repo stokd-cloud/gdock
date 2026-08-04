@@ -65,19 +65,21 @@ tagged_products_dir="${HOME}/Library/Developer/Xcode/DerivedData/cmux-${tag_slug
 cli_path=""
 cli_path_mtime=-1
 for config in Release Debug; do
-  candidate="${tagged_products_dir}/${config}/gdock DEV ${tag_slug}.app/Contents/Resources/bin/gdock"
-  if [[ -x "$candidate" ]]; then
-    candidate_mtime="$(stat -f '%m' "$candidate" 2>/dev/null || echo 0)"
-    if (( candidate_mtime > cli_path_mtime )); then
-      cli_path_mtime="$candidate_mtime"
-      cli_path="$candidate"
+  for app_prefix in "gdock ${tag_slug}" "gdock DBG ${tag_slug}" "gdock DEV ${tag_slug}"; do
+    candidate="${tagged_products_dir}/${config}/${app_prefix}.app/Contents/Resources/bin/gdock"
+    if [[ -x "$candidate" ]]; then
+      candidate_mtime="$(stat -f '%m' "$candidate" 2>/dev/null || echo 0)"
+      if (( candidate_mtime > cli_path_mtime )); then
+        cli_path_mtime="$candidate_mtime"
+        cli_path="$candidate"
+      fi
     fi
-  fi
+  done
 done
 if [[ -z "$cli_path" ]]; then
   cat >&2 <<EOF
 Tagged gdock CLI not found in either configuration:
-  ${tagged_products_dir}/{Release,Debug}/gdock DEV ${tag_slug}.app/Contents/Resources/bin/gdock
+  ${tagged_products_dir}/{Release,Debug}/gdock[ DBG] ${tag_slug}.app/Contents/Resources/bin/gdock
 
 Build the tagged app first:
   ./scripts/reload.sh --tag $CMUX_TAG
