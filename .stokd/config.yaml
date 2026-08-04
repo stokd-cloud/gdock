@@ -3,3 +3,5 @@ providers:
 git: 
   worktree:
     baseBranch: upstream-main
+  land:
+    target: rc1
