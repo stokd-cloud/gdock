@@ -9883,7 +9883,7 @@ BE7A0010SIDEBARDOCKBEHAV02 /* SidebarDockBehaviorTests.swift in Sources */,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = cloud.stokd.ghostty-dock.debug;
 				PRODUCT_NAME = "gdock DEV";
-				PRODUCT_MODULE_NAME = cmux_DEV;
+				PRODUCT_MODULE_NAME = cmux;
 				OTHER_SWIFT_FLAGS = (
 					"-Xllvm",
 					"-global-isel=0",
