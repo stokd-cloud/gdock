@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic thin-skin brand rewrite for Ghostty Dock.
+"""Deterministic thin-skin brand rewrite for gdock.
 
 Rewrites user-visible values only. Never touches:
 - web/**
@@ -23,16 +23,16 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 VALUE_REPLACEMENTS = [
     # longer first
     (re.compile(r"~/.config/cmux"), "~/.config/ghostty-dock"),
-    (re.compile(r"\bcmux DEV\b"), "Ghostty Dock DEV"),
-    (re.compile(r"\bcmux STAGING\b"), "Ghostty Dock STAGING"),
-    (re.compile(r"\bcmux NIGHTLY\b"), "Ghostty Dock NIGHTLY"),
-    (re.compile(r"\bQuit cmux\b"), "Quit Ghostty Dock"),
-    (re.compile(r"\bShow cmux\b"), "Show Ghostty Dock"),
-    (re.compile(r"\bcmux would like\b"), "Ghostty Dock would like"),
-    (re.compile(r"\bwithin cmux\b"), "within Ghostty Dock"),
-    (re.compile(r"\bthe cmux\b"), "the Ghostty Dock"),
-    (re.compile(r"\bA cmux\b"), "A Ghostty Dock"),
-    (re.compile(r"\bcmux\b"), "Ghostty Dock"),  # last-resort prose token
+    (re.compile(r"\bcmux DEV\b"), "gdock DEV"),
+    (re.compile(r"\bcmux STAGING\b"), "gdock STAGING"),
+    (re.compile(r"\bcmux NIGHTLY\b"), "gdock NIGHTLY"),
+    (re.compile(r"\bQuit cmux\b"), "Quit gdock"),
+    (re.compile(r"\bShow cmux\b"), "Show gdock"),
+    (re.compile(r"\bcmux would like\b"), "gdock would like"),
+    (re.compile(r"\bwithin cmux\b"), "within gdock"),
+    (re.compile(r"\bthe cmux\b"), "the gdock"),
+    (re.compile(r"\bA cmux\b"), "A gdock"),
+    (re.compile(r"\bcmux\b"), "gdock"),  # last-resort prose token
 ]
 
 # Do not rewrite these token contexts even inside values.
@@ -71,7 +71,7 @@ def transform_text(text: str) -> str:
     for pat, repl in VALUE_REPLACEMENTS:
         protected = pat.sub(repl, protected)
     # Fix double brand from re-runs
-    protected = protected.replace("Ghostty Ghostty Dock", "Ghostty Dock")
+    protected = protected.replace("Ghostty gdock", "gdock")
     return unprotect(protected, placeholders)
 
 

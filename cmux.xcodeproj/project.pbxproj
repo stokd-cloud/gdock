@@ -9882,7 +9882,8 @@ BE7A0010SIDEBARDOCKBEHAV02 /* SidebarDockBehaviorTests.swift in Sources */,
 					Carbon,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = cloud.stokd.ghostty-dock.debug;
-				PRODUCT_NAME = "Ghostty Dock DEV";
+				PRODUCT_NAME = "gdock DEV";
+				PRODUCT_MODULE_NAME = cmux_DEV;
 				OTHER_SWIFT_FLAGS = (
 					"-Xllvm",
 					"-global-isel=0",
@@ -9933,7 +9934,8 @@ BE7A0010SIDEBARDOCKBEHAV02 /* SidebarDockBehaviorTests.swift in Sources */,
 					Carbon,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = cloud.stokd.ghostty-dock;
-				PRODUCT_NAME = "Ghostty Dock";
+				PRODUCT_NAME = gdock;
+				PRODUCT_MODULE_NAME = cmux;
 				SPARKLE_PUBLIC_KEY = "fRfJvbg89NF0T2P3Ai4C9UFxmhVaNrKTFNXLYEK+Muc=";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "cmux-Bridging-Header.h";
@@ -10060,7 +10062,7 @@ BE7A0010SIDEBARDOCKBEHAV02 /* SidebarDockBehaviorTests.swift in Sources */,
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Ghostty Dock DEV.app/Contents/MacOS/Ghostty Dock DEV";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/gdock DEV.app/Contents/MacOS/gdock DEV";
 				TEST_TARGET_NAME = cmux;
 			};
 			name = Debug;
@@ -10078,7 +10080,7 @@ BE7A0010SIDEBARDOCKBEHAV02 /* SidebarDockBehaviorTests.swift in Sources */,
 				PRODUCT_BUNDLE_IDENTIFIER = cloud.stokd.ghostty-dock.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Ghostty Dock.app/Contents/MacOS/Ghostty Dock";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/gdock.app/Contents/MacOS/gdock";
 				TEST_TARGET_NAME = cmux;
 			};
 			name = Release;

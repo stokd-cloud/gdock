@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# gdock — build or launch the current ghostty-dock branch's tagged DEV app.
+# gdock-run — build or launch the current ghostty-dock branch's tagged DEV app.
 set -euo pipefail
 
 SKIP_ZIG="${GDOCK_SKIP_ZIG:-1}"
@@ -21,16 +21,16 @@ SHOW_LAST_RUN=0
 
 usage() {
   cat <<'USAGE'
-gdock — build or launch a branch-specific ghostty-dock DEV app
+gdock-run — build or launch a branch-specific ghostty-dock DEV app
 
 Usage:
-  gdock              Build when the current branch changed; then launch.
-  gdock --build      Force a rebuild of the current branch; then launch.
-  gdock --build-only Force a rebuild; do not launch.
-  gdock --no-launch  Build only when needed; do not launch.
-  gdock --path       Print the selected branch app (or last launched app).
-  gdock --last-run   Print the path and contents of the last saved run transcript.
-  gdock --help
+  gdock-run              Build when the current branch changed; then launch.
+  gdock-run --build      Force a rebuild of the current branch; then launch.
+  gdock-run --build-only Force a rebuild; do not launch.
+  gdock-run --no-launch  Build only when needed; do not launch.
+  gdock-run --path       Print the selected branch app (or last launched app).
+  gdock-run --last-run   Print the path and contents of the last saved run transcript.
+  gdock-run --help
 
 Every run (except --help / --last-run) is saved to:
   $GDOCK_STATE_DIR/last-run.log   full stdout+stderr transcript
@@ -345,10 +345,12 @@ write_atomic_line() {
 
 expected_app_path() {
   local tag="$1"
+  # reload.sh defaults to Release; tagged bundles are always named "gdock DEV <tag>.app"
+  # regardless of configuration (Release product is renamed during staging).
   if [[ -n "$DERIVED_DATA_OVERRIDE" ]]; then
-    printf '%s/Build/Products/Debug/cmux DEV %s.app\n' "$DERIVED_DATA_OVERRIDE" "$tag"
+    printf '%s/Build/Products/Release/gdock DEV %s.app\n' "$DERIVED_DATA_OVERRIDE" "$tag"
   else
-    printf '%s/Library/Developer/Xcode/DerivedData/cmux-%s/Build/Products/Debug/cmux DEV %s.app\n' "$HOME" "$tag" "$tag"
+    printf '%s/Library/Developer/Xcode/DerivedData/cmux-%s/Build/Products/Release/gdock DEV %s.app\n' "$HOME" "$tag" "$tag"
   fi
 }
 
@@ -383,7 +385,11 @@ build_branch() {
 
   output_file="$(mktemp "${TMPDIR:-/tmp}/gdock-reload.XXXXXX")"
   trap 'rm -f "$output_file"' RETURN
-  reload_args=(--tag "$tag")
+  # Always build Release explicitly rather than inheriting reload.sh's default.
+  # The Debug configuration is -Onone and is unusably slow on a loaded machine,
+  # and relying on a default means a change to reload.sh could silently flip
+  # every gdock-run build to Debug.
+  reload_args=(--tag "$tag" --release)
   if [[ -n "$DERIVED_DATA_OVERRIDE" ]]; then
     reload_args+=(--derived-data "$DERIVED_DATA_OVERRIDE")
   fi

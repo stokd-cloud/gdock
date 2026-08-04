@@ -2,7 +2,7 @@ import CmuxSettings
 import Foundation
 
 /// Non-destructive one-time migration from upstream cmux config/defaults into
-/// Ghostty Dock locations. Never deletes or moves legacy data.
+/// gdock locations. Never deletes or moves legacy data.
 enum GhosttyDockConfigMigration {
     static let configMigrationVersionKey = "ghosttyDockConfigMigrationVersion"
     static let defaultsMigrationVersionKey = "ghosttyDockDefaultsMigrationVersion"

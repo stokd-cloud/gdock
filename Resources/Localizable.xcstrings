@@ -7,115 +7,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         }
       }
@@ -976,13 +976,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock Project License"
+            "value": "gdock Project License"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock プロジェクトライセンス"
+            "value": "gdock プロジェクトライセンス"
           }
         }
       }
@@ -15339,49 +15339,49 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لم يتمكن Ghostty Dock من نقل علامة التبويب هذه إلى الوجهة المحددة."
+            "value": "لم يتمكن gdock من نقل علامة التبويب هذه إلى الوجهة المحددة."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock nije mogao premjestiti ovu karticu na odabrano odredište."
+            "value": "gdock nije mogao premjestiti ovu karticu na odabrano odredište."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kunne ikke flytte dette faneblad til den valgte destination."
+            "value": "gdock kunne ikke flytte dette faneblad til den valgte destination."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock konnte diesen Tab nicht zum ausgewählten Ziel verschieben."
+            "value": "gdock konnte diesen Tab nicht zum ausgewählten Ziel verschieben."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not move this tab to the selected destination."
+            "value": "gdock could not move this tab to the selected destination."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock no pudo mover esta pestaña al destino seleccionado."
+            "value": "gdock no pudo mover esta pestaña al destino seleccionado."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock n'a pas pu déplacer cet onglet vers la destination sélectionnée."
+            "value": "gdock n'a pas pu déplacer cet onglet vers la destination sélectionnée."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock non è riuscito a spostare questa scheda nella destinazione selezionata."
+            "value": "gdock non è riuscito a spostare questa scheda nella destinazione selezionata."
           }
         },
         "ja": {
@@ -15399,49 +15399,49 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kunne ikke flytte denne fanen til det valgte målet."
+            "value": "gdock kunne ikke flytte denne fanen til det valgte målet."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock nie mógł przenieść tej karty do wybranego miejsca docelowego."
+            "value": "gdock nie mógł przenieść tej karty do wybranego miejsca docelowego."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Ghostty Dock não conseguiu mover esta aba para o destino selecionado."
+            "value": "O gdock não conseguiu mover esta aba para o destino selecionado."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock не смог переместить эту вкладку в выбранное место назначения."
+            "value": "gdock не смог переместить эту вкладку в выбранное место назначения."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock ไม่สามารถย้ายแท็บนี้ไปยังปลายทางที่เลือกได้"
+            "value": "gdock ไม่สามารถย้ายแท็บนี้ไปยังปลายทางที่เลือกได้"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock bu sekmeyi seçilen hedefe taşıyamadı."
+            "value": "gdock bu sekmeyi seçilen hedefe taşıyamadı."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 无法将此标签页移动到所选位置。"
+            "value": "gdock 无法将此标签页移动到所选位置。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 無法將此標籤頁移動到所選位置。"
+            "value": "gdock 無法將此標籤頁移動到所選位置。"
           }
         }
       }
@@ -24860,13 +24860,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not open this link. You can copy it and open it in another app."
+            "value": "gdock could not open this link. You can copy it and open it in another app."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock はこのリンクを開けませんでした。リンクをコピーして別のアプリで開けます。"
+            "value": "gdock はこのリンクを開けませんでした。リンクをコピーして別のアプリで開けます。"
           }
         }
       }
@@ -27456,13 +27456,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not create the destination profile \"%@\"."
+            "value": "gdock could not create the destination profile \"%@\"."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock は保存先プロファイル「%@」を作成できませんでした。"
+            "value": "gdock は保存先プロファイル「%@」を作成できませんでした。"
           }
         },
         "ko": {
@@ -27474,7 +27474,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock не зміг створити профіль призначення \"%@\"."
+            "value": "gdock не зміг створити профіль призначення \"%@\"."
           }
         }
       }
@@ -27821,7 +27821,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not find browser profiles to import from on this Mac."
+            "value": "gdock could not find browser profiles to import from on this Mac."
           }
         },
         "ja": {
@@ -27839,7 +27839,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock не знайшов профілів браузерів для імпорту на цьому Mac."
+            "value": "gdock не знайшов профілів браузерів для імпорту на цьому Mac."
           }
         }
       }
@@ -33085,115 +33085,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
+            "value": "gdock could not start this command. Try again, or reinstall gdock if the problem continues."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
+            "value": "gdock could not start this command. Try again, or reinstall gdock if the problem continues."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
+            "value": "gdock could not start this command. Try again, or reinstall gdock if the problem continues."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
+            "value": "gdock could not start this command. Try again, or reinstall gdock if the problem continues."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
+            "value": "gdock could not start this command. Try again, or reinstall gdock if the problem continues."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
+            "value": "gdock could not start this command. Try again, or reinstall gdock if the problem continues."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
+            "value": "gdock could not start this command. Try again, or reinstall gdock if the problem continues."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
+            "value": "gdock could not start this command. Try again, or reinstall gdock if the problem continues."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock はこのコマンドを開始できませんでした。もう一度試すか、問題が続く場合は Ghostty Dock を再インストールしてください。"
+            "value": "gdock はこのコマンドを開始できませんでした。もう一度試すか、問題が続く場合は gdock を再インストールしてください。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
+            "value": "gdock could not start this command. Try again, or reinstall gdock if the problem continues."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
+            "value": "gdock could not start this command. Try again, or reinstall gdock if the problem continues."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
+            "value": "gdock could not start this command. Try again, or reinstall gdock if the problem continues."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
+            "value": "gdock could not start this command. Try again, or reinstall gdock if the problem continues."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
+            "value": "gdock could not start this command. Try again, or reinstall gdock if the problem continues."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
+            "value": "gdock could not start this command. Try again, or reinstall gdock if the problem continues."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
+            "value": "gdock could not start this command. Try again, or reinstall gdock if the problem continues."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
+            "value": "gdock could not start this command. Try again, or reinstall gdock if the problem continues."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
+            "value": "gdock could not start this command. Try again, or reinstall gdock if the problem continues."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start this command. Try again, or reinstall Ghostty Dock if the problem continues."
+            "value": "gdock could not start this command. Try again, or reinstall gdock if the problem continues."
           }
         }
       }
@@ -33204,115 +33204,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not start the command-line tool from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not start the command-line tool from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not start the command-line tool from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not start the command-line tool from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not start the command-line tool from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not start the command-line tool from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not start the command-line tool from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not start the command-line tool from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock はアプリバンドルからコマンドラインツールを開始できませんでした。Ghostty Dock を再インストールするか、通常の Ghostty Dock CLI インストールからコマンドを実行してください。"
+            "value": "gdock はアプリバンドルからコマンドラインツールを開始できませんでした。gdock を再インストールするか、通常の gdock CLI インストールからコマンドを実行してください。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not start the command-line tool from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not start the command-line tool from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not start the command-line tool from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not start the command-line tool from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not start the command-line tool from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not start the command-line tool from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not start the command-line tool from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not start the command-line tool from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not start the command-line tool from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not start the command-line tool from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not start the command-line tool from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         }
       }
@@ -33323,115 +33323,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not run this command from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not run this command from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not run this command from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not run this command from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not run this command from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not run this command from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not run this command from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not run this command from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock はアプリバンドルからこのコマンドを実行できませんでした。Ghostty Dock を再インストールするか、通常の Ghostty Dock CLI インストールからコマンドを実行してください。"
+            "value": "gdock はアプリバンドルからこのコマンドを実行できませんでした。gdock を再インストールするか、通常の gdock CLI インストールからコマンドを実行してください。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not run this command from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not run this command from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not run this command from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not run this command from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not run this command from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not run this command from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not run this command from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not run this command from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not run this command from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not run this command from the app bundle. Reinstall Ghostty Dock or run the command from a standard Ghostty Dock CLI installation."
+            "value": "gdock could not run this command from the app bundle. Reinstall gdock or run the command from a standard gdock CLI installation."
           }
         }
       }
@@ -36967,13 +36967,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not create the hooks directory: a file exists at %@; remove or rename the conflicting file and re-run `Ghostty Dock hooks setup`"
+            "value": "gdock could not create the hooks directory: a file exists at %@; remove or rename the conflicting file and re-run `gdock hooks setup`"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock は hooks ディレクトリを作成できませんでした: %@ にファイルがあります。競合するファイルを削除または名前変更してから `Ghostty Dock hooks setup` を再実行してください"
+            "value": "gdock は hooks ディレクトリを作成できませんでした: %@ にファイルがあります。競合するファイルを削除または名前変更してから `gdock hooks setup` を再実行してください"
           }
         }
       }
@@ -40480,115 +40480,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تم تثبيت واجهة أوامر Ghostty Dock"
+            "value": "تم تثبيت واجهة أوامر gdock"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI instaliran"
+            "value": "gdock CLI instaliran"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI installeret"
+            "value": "gdock CLI installeret"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI installiert"
+            "value": "gdock CLI installiert"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI Installed"
+            "value": "gdock CLI Installed"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI de Ghostty Dock instalada"
+            "value": "CLI de gdock instalada"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI Ghostty Dock installée"
+            "value": "CLI gdock installée"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI di Ghostty Dock installata"
+            "value": "CLI di gdock installata"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI がインストールされました"
+            "value": "gdock CLI がインストールされました"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI 설치 완료"
+            "value": "gdock CLI 설치 완료"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI installert"
+            "value": "gdock CLI installert"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI Ghostty Dock zainstalowane"
+            "value": "CLI gdock zainstalowane"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI do Ghostty Dock Instalado"
+            "value": "CLI do gdock Instalado"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI установлен"
+            "value": "gdock CLI установлен"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ติดตั้ง Ghostty Dock CLI แล้ว"
+            "value": "ติดตั้ง gdock CLI แล้ว"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI Yüklendi"
+            "value": "gdock CLI Yüklendi"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI встановлено"
+            "value": "gdock CLI встановлено"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI 已安装"
+            "value": "gdock CLI 已安装"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI 已安裝"
+            "value": "gdock CLI 已安裝"
           }
         }
       }
@@ -40599,115 +40599,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يتطلب Ghostty Dock memory إصدار Ghostty Dock قيد التشغيل يدعم تشخيص الذاكرة"
+            "value": "يتطلب gdock memory إصدار gdock قيد التشغيل يدعم تشخيص الذاكرة"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock memory zahtijeva pokrenutu Ghostty Dock verziju koja podržava dijagnostiku memorije"
+            "value": "gdock memory zahtijeva pokrenutu gdock verziju koja podržava dijagnostiku memorije"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock memory kræver en kørende Ghostty Dock-build med hukommelsesdiagnostik"
+            "value": "gdock memory kræver en kørende gdock-build med hukommelsesdiagnostik"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock memory erfordert einen laufenden Ghostty Dock-Build mit Speicherdiagnose"
+            "value": "gdock memory erfordert einen laufenden gdock-Build mit Speicherdiagnose"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock memory requires a running Ghostty Dock build that supports memory diagnostics"
+            "value": "gdock memory requires a running gdock build that supports memory diagnostics"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock memory requiere una compilación de Ghostty Dock en ejecución que admita diagnósticos de memoria"
+            "value": "gdock memory requiere una compilación de gdock en ejecución que admita diagnósticos de memoria"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock memory nécessite une version Ghostty Dock en cours d’exécution prenant en charge le diagnostic mémoire"
+            "value": "gdock memory nécessite une version gdock en cours d’exécution prenant en charge le diagnostic mémoire"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock memory richiede una build Ghostty Dock in esecuzione che supporti la diagnostica della memoria"
+            "value": "gdock memory richiede una build gdock in esecuzione che supporti la diagnostica della memoria"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock memory にはメモリ診断に対応した実行中の Ghostty Dock ビルドが必要です"
+            "value": "gdock memory にはメモリ診断に対応した実行中の gdock ビルドが必要です"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock memory에는 메모리 진단을 지원하는 실행 중인 Ghostty Dock 빌드가 필요합니다"
+            "value": "gdock memory에는 메모리 진단을 지원하는 실행 중인 gdock 빌드가 필요합니다"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock memory krever en kjørende Ghostty Dock-build som støtter minnediagnostikk"
+            "value": "gdock memory krever en kjørende gdock-build som støtter minnediagnostikk"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock memory wymaga uruchomionej kompilacji Ghostty Dock z obsługą diagnostyki pamięci"
+            "value": "gdock memory wymaga uruchomionej kompilacji gdock z obsługą diagnostyki pamięci"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock memory requer uma build Ghostty Dock em execução com suporte a diagnósticos de memória"
+            "value": "gdock memory requer uma build gdock em execução com suporte a diagnósticos de memória"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock memory требует запущенную сборку Ghostty Dock с поддержкой диагностики памяти"
+            "value": "gdock memory требует запущенную сборку gdock с поддержкой диагностики памяти"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock memory ต้องใช้บิลด์ Ghostty Dock ที่กำลังทำงานและรองรับการวินิจฉัยหน่วยความจำ"
+            "value": "gdock memory ต้องใช้บิลด์ gdock ที่กำลังทำงานและรองรับการวินิจฉัยหน่วยความจำ"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock memory, bellek tanılamasını destekleyen çalışan bir Ghostty Dock derlemesi gerektirir"
+            "value": "gdock memory, bellek tanılamasını destekleyen çalışan bir gdock derlemesi gerektirir"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock memory потребує запущеної збірки Ghostty Dock із підтримкою діагностики пам’яті"
+            "value": "gdock memory потребує запущеної збірки gdock із підтримкою діагностики пам’яті"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock memory 需要正在运行且支持内存诊断的 Ghostty Dock 构建"
+            "value": "gdock memory 需要正在运行且支持内存诊断的 gdock 构建"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock memory 需要正在執行且支援記憶體診斷的 Ghostty Dock 建置"
+            "value": "gdock memory 需要正在執行且支援記憶體診斷的 gdock 建置"
           }
         }
       }
@@ -46236,115 +46236,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يتطلب Ghostty Dock top إصدار Ghostty Dock قيد التشغيل يدعم تشخيص العمليات"
+            "value": "يتطلب gdock top إصدار gdock قيد التشغيل يدعم تشخيص العمليات"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock top zahtijeva pokrenutu Ghostty Dock verziju koja podržava dijagnostiku procesa"
+            "value": "gdock top zahtijeva pokrenutu gdock verziju koja podržava dijagnostiku procesa"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock top kræver en kørende Ghostty Dock-build med procesdiagnostik"
+            "value": "gdock top kræver en kørende gdock-build med procesdiagnostik"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock top erfordert einen laufenden Ghostty Dock-Build mit Prozessdiagnose"
+            "value": "gdock top erfordert einen laufenden gdock-Build mit Prozessdiagnose"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock top requires a running Ghostty Dock build that supports process diagnostics"
+            "value": "gdock top requires a running gdock build that supports process diagnostics"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock top requiere una compilación de Ghostty Dock en ejecución que admita diagnósticos de procesos"
+            "value": "gdock top requiere una compilación de gdock en ejecución que admita diagnósticos de procesos"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock top nécessite une version Ghostty Dock en cours d’exécution prenant en charge le diagnostic des processus"
+            "value": "gdock top nécessite une version gdock en cours d’exécution prenant en charge le diagnostic des processus"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock top richiede una build Ghostty Dock in esecuzione che supporti la diagnostica dei processi"
+            "value": "gdock top richiede una build gdock in esecuzione che supporti la diagnostica dei processi"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock top にはプロセス診断に対応した実行中の Ghostty Dock ビルドが必要です"
+            "value": "gdock top にはプロセス診断に対応した実行中の gdock ビルドが必要です"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock top에는 프로세스 진단을 지원하는 실행 중인 Ghostty Dock 빌드가 필요합니다"
+            "value": "gdock top에는 프로세스 진단을 지원하는 실행 중인 gdock 빌드가 필요합니다"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock top krever en kjørende Ghostty Dock-build som støtter prosessdiagnostikk"
+            "value": "gdock top krever en kjørende gdock-build som støtter prosessdiagnostikk"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock top wymaga uruchomionej kompilacji Ghostty Dock z obsługą diagnostyki procesów"
+            "value": "gdock top wymaga uruchomionej kompilacji gdock z obsługą diagnostyki procesów"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock top requer uma build Ghostty Dock em execução com suporte a diagnósticos de processos"
+            "value": "gdock top requer uma build gdock em execução com suporte a diagnósticos de processos"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock top требует запущенную сборку Ghostty Dock с поддержкой диагностики процессов"
+            "value": "gdock top требует запущенную сборку gdock с поддержкой диагностики процессов"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock top ต้องใช้บิลด์ Ghostty Dock ที่กำลังทำงานและรองรับการวินิจฉัยโปรเซส"
+            "value": "gdock top ต้องใช้บิลด์ gdock ที่กำลังทำงานและรองรับการวินิจฉัยโปรเซส"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock top, süreç tanılamasını destekleyen çalışan bir Ghostty Dock derlemesi gerektirir"
+            "value": "gdock top, süreç tanılamasını destekleyen çalışan bir gdock derlemesi gerektirir"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock top потребує запущеної збірки Ghostty Dock із підтримкою діагностики процесів"
+            "value": "gdock top потребує запущеної збірки gdock із підтримкою діагностики процесів"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock top 需要正在运行且支持进程诊断的 Ghostty Dock 构建"
+            "value": "gdock top 需要正在运行且支持进程诊断的 gdock 构建"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock top 需要正在執行且支援行程診斷的 Ghostty Dock 建置"
+            "value": "gdock top 需要正在執行且支援行程診斷的 gdock 建置"
           }
         }
       }
@@ -46831,115 +46831,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تم إلغاء تثبيت واجهة أوامر Ghostty Dock"
+            "value": "تم إلغاء تثبيت واجهة أوامر gdock"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI deinstaliran"
+            "value": "gdock CLI deinstaliran"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI afinstalleret"
+            "value": "gdock CLI afinstalleret"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI deinstalliert"
+            "value": "gdock CLI deinstalliert"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI Uninstalled"
+            "value": "gdock CLI Uninstalled"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI de Ghostty Dock desinstalada"
+            "value": "CLI de gdock desinstalada"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI Ghostty Dock désinstallée"
+            "value": "CLI gdock désinstallée"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI di Ghostty Dock disinstallata"
+            "value": "CLI di gdock disinstallata"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI がアンインストールされました"
+            "value": "gdock CLI がアンインストールされました"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI 제거 완료"
+            "value": "gdock CLI 제거 완료"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI avinstallert"
+            "value": "gdock CLI avinstallert"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI Ghostty Dock odinstalowane"
+            "value": "CLI gdock odinstalowane"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "CLI do Ghostty Dock Desinstalado"
+            "value": "CLI do gdock Desinstalado"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI удален"
+            "value": "gdock CLI удален"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ถอนการติดตั้ง Ghostty Dock CLI แล้ว"
+            "value": "ถอนการติดตั้ง gdock CLI แล้ว"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI Kaldırıldı"
+            "value": "gdock CLI Kaldırıldı"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI видалено"
+            "value": "gdock CLI видалено"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI 已卸载"
+            "value": "gdock CLI 已卸载"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock CLI 已解除安裝"
+            "value": "gdock CLI 已解除安裝"
           }
         }
       }
@@ -52287,13 +52287,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock vm new exited with status %d."
+            "value": "gdock vm new exited with status %d."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock vm new がステータス %d で終了しました。"
+            "value": "gdock vm new がステータス %d で終了しました。"
           }
         }
       }
@@ -52304,13 +52304,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock vm new could not be launched."
+            "value": "gdock vm new could not be launched."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock vm new を起動できませんでした。"
+            "value": "gdock vm new を起動できませんでした。"
           }
         }
       }
@@ -52763,13 +52763,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         }
       }
@@ -72985,13 +72985,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock crashed during your last session"
+            "value": "gdock crashed during your last session"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "前回のセッション中に Ghostty Dock がクラッシュしました"
+            "value": "前回のセッション中に gdock がクラッシュしました"
           }
         }
       }
@@ -75793,13 +75793,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock terminal transparency"
+            "value": "gdock terminal transparency"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock ターミナル透明度"
+            "value": "gdock ターミナル透明度"
           }
         }
       }
@@ -82823,49 +82823,49 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لم يتمكن Ghostty Dock من نقل هذا اللسان إلى الوجهة المحددة."
+            "value": "لم يتمكن gdock من نقل هذا اللسان إلى الوجهة المحددة."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock nije mogao premjestiti ovaj tab na odabrano odredište."
+            "value": "gdock nije mogao premjestiti ovaj tab na odabrano odredište."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kunne ikke flytte denne fane til den valgte destination."
+            "value": "gdock kunne ikke flytte denne fane til den valgte destination."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock konnte diesen Tab nicht zum ausgewählten Ziel verschieben."
+            "value": "gdock konnte diesen Tab nicht zum ausgewählten Ziel verschieben."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not move this tab to the selected destination."
+            "value": "gdock could not move this tab to the selected destination."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock no pudo mover esta pestaña al destino seleccionado."
+            "value": "gdock no pudo mover esta pestaña al destino seleccionado."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock n'a pas pu déplacer cet onglet vers la destination sélectionnée."
+            "value": "gdock n'a pas pu déplacer cet onglet vers la destination sélectionnée."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock non è riuscito a spostare questa scheda nella destinazione selezionata."
+            "value": "gdock non è riuscito a spostare questa scheda nella destinazione selezionata."
           }
         },
         "ja": {
@@ -82883,55 +82883,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kunne ikke flytte denne fanen til den valgte destinasjonen."
+            "value": "gdock kunne ikke flytte denne fanen til den valgte destinasjonen."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock nie mógł przenieść tej karty do wybranego miejsca docelowego."
+            "value": "gdock nie mógł przenieść tej karty do wybranego miejsca docelowego."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Ghostty Dock não conseguiu mover esta aba para o destino selecionado."
+            "value": "O gdock não conseguiu mover esta aba para o destino selecionado."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock не удалось переместить эту вкладку в выбранное место назначения."
+            "value": "gdock не удалось переместить эту вкладку в выбранное место назначения."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock ไม่สามารถย้ายแท็บนี้ไปยังปลายทางที่เลือกได้"
+            "value": "gdock ไม่สามารถย้ายแท็บนี้ไปยังปลายทางที่เลือกได้"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock bu sekmeyi seçilen hedefe taşıyamadı."
+            "value": "gdock bu sekmeyi seçilen hedefe taşıyamadı."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock не зміг перемістити цю вкладку до вибраного місця призначення."
+            "value": "gdock не зміг перемістити цю вкладку до вибраного місця призначення."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 无法将此标签页移动到所选目标。"
+            "value": "gdock 无法将此标签页移动到所选目标。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 無法將此標籤頁移至所選的目的地。"
+            "value": "gdock 無法將此標籤頁移至所選的目的地。"
           }
         }
       }
@@ -83911,55 +83911,55 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "إنهاء Ghostty Dock؟"
+            "value": "إنهاء gdock؟"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zatvoriti Ghostty Dock?"
+            "value": "Zatvoriti gdock?"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Afslut Ghostty Dock?"
+            "value": "Afslut gdock?"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock beenden?"
+            "value": "gdock beenden?"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quit Ghostty Dock?"
+            "value": "Quit gdock?"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "¿Salir de Ghostty Dock?"
+            "value": "¿Salir de gdock?"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quitter Ghostty Dock ?"
+            "value": "Quitter gdock ?"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uscire da Ghostty Dock?"
+            "value": "Uscire da gdock?"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock を終了しますか？"
+            "value": "gdock を終了しますか？"
           }
         },
         "ko": {
@@ -83971,55 +83971,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Avslutte Ghostty Dock?"
+            "value": "Avslutte gdock?"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zakończyć Ghostty Dock?"
+            "value": "Zakończyć gdock?"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Encerrar o Ghostty Dock?"
+            "value": "Encerrar o gdock?"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Завершить Ghostty Dock?"
+            "value": "Завершить gdock?"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ออกจาก Ghostty Dock หรือไม่?"
+            "value": "ออกจาก gdock หรือไม่?"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock'tan çıkılsın mı?"
+            "value": "gdock'tan çıkılsın mı?"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Завершити Ghostty Dock?"
+            "value": "Завершити gdock?"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "退出 Ghostty Dock？"
+            "value": "退出 gdock？"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "要結束 Ghostty Dock 嗎？"
+            "value": "要結束 gdock 嗎？"
           }
         }
       }
@@ -85453,13 +85453,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock SSH Link Blocked"
+            "value": "gdock SSH Link Blocked"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock SSH リンクをブロックしました"
+            "value": "gdock SSH リンクをブロックしました"
           }
         }
       }
@@ -85776,13 +85776,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock ssh exited with status %d."
+            "value": "gdock ssh exited with status %d."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock ssh はステータス %d で終了しました。"
+            "value": "gdock ssh はステータス %d で終了しました。"
           }
         }
       }
@@ -85793,13 +85793,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock ssh could not be launched."
+            "value": "gdock ssh could not be launched."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock ssh を起動できませんでした。"
+            "value": "gdock ssh を起動できませんでした。"
           }
         }
       }
@@ -86037,121 +86037,121 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تم حظر رابط Ghostty Dock"
+            "value": "تم حظر رابط gdock"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock Link blokiran"
+            "value": "gdock Link blokiran"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock Link blokeret"
+            "value": "gdock Link blokeret"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock Link blockiert"
+            "value": "gdock Link blockiert"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock Link Blocked"
+            "value": "gdock Link Blocked"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enlace Ghostty Dock bloqueado"
+            "value": "Enlace gdock bloqueado"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lien Ghostty Dock bloqué"
+            "value": "Lien gdock bloqué"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock Collegamento bloccato"
+            "value": "gdock Collegamento bloccato"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock リンクがブロックされました"
+            "value": "gdock リンクがブロックされました"
           }
         },
         "km": {
           "stringUnit": {
             "state": "translated",
-            "value": "តំណភ្ជាប់ Ghostty Dock ត្រូវបានរារាំង"
+            "value": "តំណភ្ជាប់ gdock ត្រូវបានរារាំង"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 링크가 차단됨"
+            "value": "gdock 링크가 차단됨"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock Link blokkert"
+            "value": "gdock Link blokkert"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zablokowane łącze Ghostty Dock"
+            "value": "Zablokowane łącze gdock"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Link Ghostty Dock bloqueado"
+            "value": "Link gdock bloqueado"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ссылка Ghostty Dock заблокирована"
+            "value": "Ссылка gdock заблокирована"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ลิงก์ Ghostty Dock ถูกบล็อก"
+            "value": "ลิงก์ gdock ถูกบล็อก"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock Bağlantısı Engellendi"
+            "value": "gdock Bağlantısı Engellendi"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Посилання Ghostty Dock заблоковано"
+            "value": "Посилання gdock заблоковано"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 链接被阻止"
+            "value": "gdock 链接被阻止"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 連結被阻止"
+            "value": "gdock 連結被阻止"
           }
         }
       }
@@ -88162,61 +88162,61 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تعذر على Ghostty Dock إرسال نص الرابط إلى طرفية."
+            "value": "تعذر على gdock إرسال نص الرابط إلى طرفية."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock nije mogao poslati tekst veze na terminal."
+            "value": "gdock nije mogao poslati tekst veze na terminal."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kunne ikke sende linkteksten til en terminal."
+            "value": "gdock kunne ikke sende linkteksten til en terminal."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock konnte den Linktext nicht an ein Terminal senden."
+            "value": "gdock konnte den Linktext nicht an ein Terminal senden."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not send the link text to a terminal."
+            "value": "gdock could not send the link text to a terminal."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock no pudo enviar el texto del enlace a un terminal."
+            "value": "gdock no pudo enviar el texto del enlace a un terminal."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock n'a pas pu envoyer le texte du lien à un terminal."
+            "value": "gdock n'a pas pu envoyer le texte du lien à un terminal."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock non è riuscito a inviare il testo del collegamento a un terminale."
+            "value": "gdock non è riuscito a inviare il testo del collegamento a un terminale."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock はリンクのテキストをターミナルに送信できませんでした。"
+            "value": "gdock はリンクのテキストをターミナルに送信できませんでした。"
           }
         },
         "km": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock មិនអាចផ្ញើអត្ថបទតំណទៅស្ថានីយបានទេ។"
+            "value": "gdock មិនអាចផ្ញើអត្ថបទតំណទៅស្ថានីយបានទេ។"
           }
         },
         "ko": {
@@ -88228,55 +88228,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kunne ikke sende koblingsteksten til en terminal."
+            "value": "gdock kunne ikke sende koblingsteksten til en terminal."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock nie mógł wysłać tekstu linku do terminala."
+            "value": "gdock nie mógł wysłać tekstu linku do terminala."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock não conseguiu enviar o texto do link para um terminal."
+            "value": "gdock não conseguiu enviar o texto do link para um terminal."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock не удалось отправить текст ссылки в терминал."
+            "value": "gdock не удалось отправить текст ссылки в терминал."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock ไม่สามารถส่งข้อความลิงก์ไปยังเทอร์มินัลได้"
+            "value": "gdock ไม่สามารถส่งข้อความลิงก์ไปยังเทอร์มินัลได้"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock bağlantı metnini bir terminale gönderemedi."
+            "value": "gdock bağlantı metnini bir terminale gönderemedi."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock не вдалося надіслати текст посилання до терміналу."
+            "value": "gdock не вдалося надіслати текст посилання до терміналу."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 无法将链接文本发送到终端。"
+            "value": "gdock 无法将链接文本发送到终端。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 無法將連結文字傳送到終端機。"
+            "value": "gdock 無法將連結文字傳送到終端機。"
           }
         }
       }
@@ -102444,13 +102444,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not register as the default terminal app."
+            "value": "gdock could not register as the default terminal app."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock をデフォルトターミナルアプリとして登録できませんでした。"
+            "value": "gdock をデフォルトターミナルアプリとして登録できませんでした。"
           }
         }
       }
@@ -110809,13 +110809,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock will not contact this image URL until you load this image."
+            "value": "gdock will not contact this image URL until you load this image."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "この画像を読み込むまで、Ghostty Dock はこの画像 URL に接続しません。"
+            "value": "この画像を読み込むまで、gdock はこの画像 URL に接続しません。"
           }
         }
       }
@@ -111557,55 +111557,55 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock تحت ضغط ذاكرة حرج"
+            "value": "gdock تحت ضغط ذاكرة حرج"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock je pod kritičnim memorijskim pritiskom"
+            "value": "gdock je pod kritičnim memorijskim pritiskom"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock er under kritisk hukommelsespres"
+            "value": "gdock er under kritisk hukommelsespres"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock steht unter kritischem Speicherdruck"
+            "value": "gdock steht unter kritischem Speicherdruck"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock is under critical memory pressure"
+            "value": "gdock is under critical memory pressure"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock está bajo presión crítica de memoria"
+            "value": "gdock está bajo presión crítica de memoria"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock subit une pression mémoire critique"
+            "value": "gdock subit une pression mémoire critique"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock è sotto pressione di memoria critica"
+            "value": "gdock è sotto pressione di memoria critica"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock に重大なメモリプレッシャーがかかっています"
+            "value": "gdock に重大なメモリプレッシャーがかかっています"
           }
         },
         "ko": {
@@ -111617,55 +111617,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock er under kritisk minnepress"
+            "value": "gdock er under kritisk minnepress"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock jest pod krytyczną presją pamięci"
+            "value": "gdock jest pod krytyczną presją pamięci"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock está sob pressão crítica de memória"
+            "value": "gdock está sob pressão crítica de memória"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock испытывает критическую нехватку памяти"
+            "value": "gdock испытывает критическую нехватку памяти"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock อยู่ภายใต้แรงกดดันหน่วยความจำระดับวิกฤต"
+            "value": "gdock อยู่ภายใต้แรงกดดันหน่วยความจำระดับวิกฤต"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kritik bellek baskısı altında"
+            "value": "gdock kritik bellek baskısı altında"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock перебуває під критичним тиском пам’яті"
+            "value": "gdock перебуває під критичним тиском пам’яті"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 正处于严重内存压力下"
+            "value": "gdock 正处于严重内存压力下"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 正處於嚴重記憶體壓力下"
+            "value": "gdock 正處於嚴重記憶體壓力下"
           }
         }
       }
@@ -122406,115 +122406,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "إنهاء Ghostty Dock"
+            "value": "إنهاء gdock"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zatvori Ghostty Dock"
+            "value": "Zatvori gdock"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Afslut Ghostty Dock"
+            "value": "Afslut gdock"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock beenden"
+            "value": "gdock beenden"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quit Ghostty Dock"
+            "value": "Quit gdock"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Salir de Ghostty Dock"
+            "value": "Salir de gdock"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quitter Ghostty Dock"
+            "value": "Quitter gdock"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esci da Ghostty Dock"
+            "value": "Esci da gdock"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock を終了"
+            "value": "gdock を終了"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 종료"
+            "value": "gdock 종료"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Avslutt Ghostty Dock"
+            "value": "Avslutt gdock"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zakończ Ghostty Dock"
+            "value": "Zakończ gdock"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Encerrar o Ghostty Dock"
+            "value": "Encerrar o gdock"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Завершить Ghostty Dock"
+            "value": "Завершить gdock"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ออกจาก Ghostty Dock"
+            "value": "ออกจาก gdock"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock'tan Çık"
+            "value": "gdock'tan Çık"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Завершити Ghostty Dock"
+            "value": "Завершити gdock"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "退出 Ghostty Dock"
+            "value": "退出 gdock"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "結束 Ghostty Dock"
+            "value": "結束 gdock"
           }
         }
       }
@@ -126674,7 +126674,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock couldn't tell which session this gallery belongs to."
+            "value": "gdock couldn't tell which session this gallery belongs to."
           }
         },
         "ja": {
@@ -126691,7 +126691,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock couldn't tell which session or file was requested."
+            "value": "gdock couldn't tell which session or file was requested."
           }
         },
         "ja": {
@@ -126810,7 +126810,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock couldn't tell which terminal or file was requested."
+            "value": "gdock couldn't tell which terminal or file was requested."
           }
         },
         "ja": {
@@ -127930,13 +127930,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock couldn't reach %@. Start it with: %@"
+            "value": "gdock couldn't reach %@. Start it with: %@"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock は %@ に接続できませんでした。次のコマンドで起動してください: %@"
+            "value": "gdock は %@ に接続できませんでした。次のコマンドで起動してください: %@"
           }
         }
       }
@@ -127998,13 +127998,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock used default notification behavior because '%@' failed."
+            "value": "gdock used default notification behavior because '%@' failed."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "'%@' が失敗したため、Ghostty Dock は既定の通知動作を使用しました。"
+            "value": "'%@' が失敗したため、gdock は既定の通知動作を使用しました。"
           }
         }
       }
@@ -129217,7 +129217,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not open a passwordless terminal session. Try opening the Cloud VM again."
+            "value": "gdock could not open a passwordless terminal session. Try opening the Cloud VM again."
           }
         },
         "ja": {
@@ -130679,13 +130679,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock Pro"
+            "value": "gdock Pro"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock Pro"
+            "value": "gdock Pro"
           }
         }
       }
@@ -131036,13 +131036,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock iOS app and email support"
+            "value": "gdock iOS app and email support"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock iOS アプリとメールサポート"
+            "value": "gdock iOS アプリとメールサポート"
           }
         }
       }
@@ -131546,13 +131546,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock Upgrade"
+            "value": "gdock Upgrade"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock アップグレード"
+            "value": "gdock アップグレード"
           }
         }
       }
@@ -131682,13 +131682,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock AI early access + priority support"
+            "value": "gdock AI early access + priority support"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock AI早期アクセス + 優先サポート"
+            "value": "gdock AI早期アクセス + 優先サポート"
           }
         }
       }
@@ -131699,13 +131699,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock Pro"
+            "value": "gdock Pro"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock Pro"
+            "value": "gdock Pro"
           }
         }
       }
@@ -131733,13 +131733,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock Pro"
+            "value": "gdock Pro"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock Pro"
+            "value": "gdock Pro"
           }
         }
       }
@@ -131750,7 +131750,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock is free and open source, and always will be. Pro adds the cloud."
+            "value": "gdock is free and open source, and always will be. Pro adds the cloud."
           }
         },
         "ja": {
@@ -131886,13 +131886,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock Pro"
+            "value": "gdock Pro"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock Pro"
+            "value": "gdock Pro"
           }
         }
       }
@@ -135466,61 +135466,61 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تعذر على Ghostty Dock إنشاء نافذة جديدة"
+            "value": "تعذر على gdock إنشاء نافذة جديدة"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock nije mogao kreirati novi prozor"
+            "value": "gdock nije mogao kreirati novi prozor"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kunne ikke oprette et nyt vindue"
+            "value": "gdock kunne ikke oprette et nyt vindue"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock konnte kein neues Fenster erstellen"
+            "value": "gdock konnte kein neues Fenster erstellen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock could not create a new window"
+            "value": "gdock could not create a new window"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock no pudo crear una ventana nueva"
+            "value": "gdock no pudo crear una ventana nueva"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock n’a pas pu créer une nouvelle fenêtre"
+            "value": "gdock n’a pas pu créer une nouvelle fenêtre"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock non è riuscito a creare una nuova finestra"
+            "value": "gdock non è riuscito a creare una nuova finestra"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock は新しいウインドウを作成できませんでした"
+            "value": "gdock は新しいウインドウを作成できませんでした"
           }
         },
         "km": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock មិនអាចបង្កើតបង្អួចថ្មីបានទេ"
+            "value": "gdock មិនអាចបង្កើតបង្អួចថ្មីបានទេ"
           }
         },
         "ko": {
@@ -135532,55 +135532,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kunne ikke opprette et nytt vindu"
+            "value": "gdock kunne ikke opprette et nytt vindu"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock nie mógł utworzyć nowego okna"
+            "value": "gdock nie mógł utworzyć nowego okna"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Ghostty Dock não conseguiu criar uma nova janela"
+            "value": "O gdock não conseguiu criar uma nova janela"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock не удалось создать новое окно"
+            "value": "gdock не удалось создать новое окно"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock ไม่สามารถสร้างหน้าต่างใหม่ได้"
+            "value": "gdock ไม่สามารถสร้างหน้าต่างใหม่ได้"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock yeni bir pencere oluşturamadı"
+            "value": "gdock yeni bir pencere oluşturamadı"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock не вдалося створити нове вікно"
+            "value": "gdock не вдалося створити нове вікно"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 无法创建新窗口"
+            "value": "gdock 无法创建新窗口"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 無法建立新視窗"
+            "value": "gdock 無法建立新視窗"
           }
         }
       }
@@ -138528,13 +138528,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock Pro"
+            "value": "gdock Pro"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock Pro"
+            "value": "gdock Pro"
           }
         }
       }
@@ -140431,13 +140431,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock will ask macOS to use this app for SSH links, .command/.tool files, and UNIX executables. macOS may show a confirmation prompt."
+            "value": "gdock will ask macOS to use this app for SSH links, .command/.tool files, and UNIX executables. macOS may show a confirmation prompt."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock は、このアプリを SSH リンク、.command/.tool ファイル、UNIX 実行ファイルに使うよう macOS に要求します。macOS が確認を表示する場合があります。"
+            "value": "gdock は、このアプリを SSH リンク、.command/.tool ファイル、UNIX 実行ファイルに使うよう macOS に要求します。macOS が確認を表示する場合があります。"
           }
         }
       }
@@ -140465,13 +140465,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock handles SSH links, .command/.tool files, and UNIX executables."
+            "value": "gdock handles SSH links, .command/.tool files, and UNIX executables."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock は SSH リンク、.command/.tool ファイル、UNIX 実行ファイルを処理します。"
+            "value": "gdock は SSH リンク、.command/.tool ファイル、UNIX 実行ファイルを処理します。"
           }
         }
       }
@@ -164055,13 +164055,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         }
       }
@@ -186038,61 +186038,61 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لا يضيف Ghostty Dock نسخًا إلى حافظة النظام عند التحديد. لا تزال إعدادات Ghostty تتحكم في «لصق التحديد»."
+            "value": "لا يضيف gdock نسخًا إلى حافظة النظام عند التحديد. لا تزال إعدادات Ghostty تتحكم في «لصق التحديد»."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock ne dodaje kopiranje u sistemski međuspremnik pri odabiru. Ghostty konfiguracija i dalje kontroliše Lijepljenje odabira."
+            "value": "gdock ne dodaje kopiranje u sistemski međuspremnik pri odabiru. Ghostty konfiguracija i dalje kontroliše Lijepljenje odabira."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock tilføjer ikke kopiering til systemets udklipsholder ved markering. Ghostty-konfiguration styrer stadig Indsæt markering."
+            "value": "gdock tilføjer ikke kopiering til systemets udklipsholder ved markering. Ghostty-konfiguration styrer stadig Indsæt markering."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock fügt beim Auswählen kein Kopieren in die Systemzwischenablage hinzu. Die Ghostty-Konfiguration steuert weiterhin „Auswahl einfügen“."
+            "value": "gdock fügt beim Auswählen kein Kopieren in die Systemzwischenablage hinzu. Die Ghostty-Konfiguration steuert weiterhin „Auswahl einfügen“."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock does not add system-clipboard copy on selection. Ghostty config still controls Paste Selection."
+            "value": "gdock does not add system-clipboard copy on selection. Ghostty config still controls Paste Selection."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock no añade copia al portapapeles del sistema al seleccionar. La configuración de Ghostty sigue controlando Pegar selección."
+            "value": "gdock no añade copia al portapapeles del sistema al seleccionar. La configuración de Ghostty sigue controlando Pegar selección."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock n’ajoute pas de copie vers le presse-papiers système lors de la sélection. La configuration Ghostty contrôle toujours Coller la sélection."
+            "value": "gdock n’ajoute pas de copie vers le presse-papiers système lors de la sélection. La configuration Ghostty contrôle toujours Coller la sélection."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock non aggiunge la copia negli appunti di sistema alla selezione. La configurazione di Ghostty controlla ancora Incolla selezione."
+            "value": "gdock non aggiunge la copia negli appunti di sistema alla selezione. La configurazione di Ghostty controlla ancora Incolla selezione."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock は選択時のシステムクリップボードへのコピーを追加しません。Ghostty 設定が引き続き「選択をペースト」を制御します。"
+            "value": "gdock は選択時のシステムクリップボードへのコピーを追加しません。Ghostty 設定が引き続き「選択をペースト」を制御します。"
           }
         },
         "km": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock មិនបន្ថែមការចម្លងទៅ clipboard របស់ប្រព័ន្ធពេលជ្រើសទេ។ ការកំណត់ Ghostty នៅតែគ្រប់គ្រង Paste Selection។"
+            "value": "gdock មិនបន្ថែមការចម្លងទៅ clipboard របស់ប្រព័ន្ធពេលជ្រើសទេ។ ការកំណត់ Ghostty នៅតែគ្រប់គ្រង Paste Selection។"
           }
         },
         "ko": {
@@ -186104,55 +186104,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock legger ikke til kopiering til systemutklippstavlen ved markering. Ghostty-konfigurasjonen styrer fortsatt Lim inn markering."
+            "value": "gdock legger ikke til kopiering til systemutklippstavlen ved markering. Ghostty-konfigurasjonen styrer fortsatt Lim inn markering."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock nie dodaje kopiowania do schowka systemowego przy zaznaczaniu. Konfiguracja Ghostty nadal steruje funkcją Wklej zaznaczenie."
+            "value": "gdock nie dodaje kopiowania do schowka systemowego przy zaznaczaniu. Konfiguracja Ghostty nadal steruje funkcją Wklej zaznaczenie."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Ghostty Dock não adiciona cópia para a área de transferência do sistema ao selecionar. A configuração do Ghostty ainda controla Colar seleção."
+            "value": "O gdock não adiciona cópia para a área de transferência do sistema ao selecionar. A configuração do Ghostty ainda controla Colar seleção."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock не добавляет копирование в системный буфер обмена при выделении. Конфигурация Ghostty по-прежнему управляет «Вставить выделение»."
+            "value": "gdock не добавляет копирование в системный буфер обмена при выделении. Конфигурация Ghostty по-прежнему управляет «Вставить выделение»."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock จะไม่เพิ่มการคัดลอกไปยังคลิปบอร์ดของระบบเมื่อเลือก การกำหนดค่า Ghostty ยังคงควบคุม Paste Selection"
+            "value": "gdock จะไม่เพิ่มการคัดลอกไปยังคลิปบอร์ดของระบบเมื่อเลือก การกำหนดค่า Ghostty ยังคงควบคุม Paste Selection"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock seçim sırasında sistem panosuna kopyalamayı eklemez. Ghostty yapılandırması Paste Selection denetimini sürdürür."
+            "value": "gdock seçim sırasında sistem panosuna kopyalamayı eklemez. Ghostty yapılandırması Paste Selection denetimini sürdürür."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock не додає копіювання до системного буфера обміну під час виділення. Конфігурація Ghostty й надалі керує «Вставити виділення»."
+            "value": "gdock не додає копіювання до системного буфера обміну під час виділення. Конфігурація Ghostty й надалі керує «Вставити виділення»."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 不会在选择时额外复制到系统剪贴板。Ghostty 配置仍控制“粘贴选择”。"
+            "value": "gdock 不会在选择时额外复制到系统剪贴板。Ghostty 配置仍控制“粘贴选择”。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 不會在選取時額外複製到系統剪貼簿。Ghostty 設定仍控制「貼上選取」。"
+            "value": "gdock 不會在選取時額外複製到系統剪貼簿。Ghostty 設定仍控制「貼上選取」。"
           }
         }
       }
@@ -186322,7 +186322,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock warns you with a badge and a banner when one pane's process tree uses too much memory, so a single leak can't crash the whole app."
+            "value": "gdock warns you with a badge and a banner when one pane's process tree uses too much memory, so a single leak can't crash the whole app."
           }
         },
         "ja": {
@@ -207085,13 +207085,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         }
       }
@@ -210157,13 +210157,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         }
       }
@@ -210293,13 +210293,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock mascot"
+            "value": "gdock mascot"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock マスコット"
+            "value": "gdock マスコット"
           }
         }
       }
@@ -210786,13 +210786,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock"
+            "value": "gdock"
           }
         }
       }
@@ -212930,115 +212930,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "عمليات Ghostty Dock فقط"
+            "value": "عمليات gdock فقط"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Samo Ghostty Dock procesi"
+            "value": "Samo gdock procesi"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kun Ghostty Dock-processer"
+            "value": "Kun gdock-processer"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nur Ghostty Dock-Prozesse"
+            "value": "Nur gdock-Prozesse"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock processes only"
+            "value": "gdock processes only"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Solo procesos de Ghostty Dock"
+            "value": "Solo procesos de gdock"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Processus Ghostty Dock uniquement"
+            "value": "Processus gdock uniquement"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Solo processi Ghostty Dock"
+            "value": "Solo processi gdock"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock プロセスのみ"
+            "value": "gdock プロセスのみ"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 프로세스만"
+            "value": "gdock 프로세스만"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kun Ghostty Dock-prosesser"
+            "value": "Kun gdock-prosesser"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tylko procesy Ghostty Dock"
+            "value": "Tylko procesy gdock"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apenas processos do Ghostty Dock"
+            "value": "Apenas processos do gdock"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Только процессы Ghostty Dock"
+            "value": "Только процессы gdock"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "กระบวนการ Ghostty Dock เท่านั้น"
+            "value": "กระบวนการ gdock เท่านั้น"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Yalnızca Ghostty Dock işlemleri"
+            "value": "Yalnızca gdock işlemleri"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Тільки процеси Ghostty Dock"
+            "value": "Тільки процеси gdock"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅限 Ghostty Dock 进程"
+            "value": "仅限 gdock 进程"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "僅限 Ghostty Dock 程序"
+            "value": "僅限 gdock 程序"
           }
         }
       }
@@ -215089,115 +215089,115 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "عرض Ghostty Dock"
+            "value": "عرض gdock"
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prikaži Ghostty Dock"
+            "value": "Prikaži gdock"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vis Ghostty Dock"
+            "value": "Vis gdock"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock anzeigen"
+            "value": "gdock anzeigen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show Ghostty Dock"
+            "value": "Show gdock"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mostrar Ghostty Dock"
+            "value": "Mostrar gdock"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Afficher Ghostty Dock"
+            "value": "Afficher gdock"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mostra Ghostty Dock"
+            "value": "Mostra gdock"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dockを表示"
+            "value": "gdockを表示"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 표시"
+            "value": "gdock 표시"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vis Ghostty Dock"
+            "value": "Vis gdock"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pokaż Ghostty Dock"
+            "value": "Pokaż gdock"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mostrar Ghostty Dock"
+            "value": "Mostrar gdock"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Показать Ghostty Dock"
+            "value": "Показать gdock"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "แสดง Ghostty Dock"
+            "value": "แสดง gdock"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock'u Göster"
+            "value": "gdock'u Göster"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Показати Ghostty Dock"
+            "value": "Показати gdock"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "显示 Ghostty Dock"
+            "value": "显示 gdock"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "顯示 Ghostty Dock"
+            "value": "顯示 gdock"
           }
         }
       }
@@ -215973,13 +215973,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock is restoring a terminal with this resume command:\n\nWorking directory: %@\n\n%@"
+            "value": "gdock is restoring a terminal with this resume command:\n\nWorking directory: %@\n\n%@"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock はこの復元コマンドでターミナルを復元しようとしています:\n\n作業ディレクトリ: %@\n\n%@"
+            "value": "gdock はこの復元コマンドでターミナルを復元しようとしています:\n\n作業ディレクトリ: %@\n\n%@"
           }
         }
       }
@@ -225980,49 +225980,49 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تعذّر على Ghostty Dock بدء التحديث. تحقق من اتصالك بالإنترنت وحاول مرة أخرى."
+            "value": "تعذّر على gdock بدء التحديث. تحقق من اتصالك بالإنترنت وحاول مرة أخرى."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock nije mogao pokrenuti ažuriranje. Provjerite internetsku vezu i pokušajte ponovo."
+            "value": "gdock nije mogao pokrenuti ažuriranje. Provjerite internetsku vezu i pokušajte ponovo."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kunne ikke starte opdateringen. Kontrollér din internetforbindelse, og prøv igen."
+            "value": "gdock kunne ikke starte opdateringen. Kontrollér din internetforbindelse, og prøv igen."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock konnte das Update nicht starten. Prüfe deine Internetverbindung und versuche es erneut."
+            "value": "gdock konnte das Update nicht starten. Prüfe deine Internetverbindung und versuche es erneut."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock couldn’t start the update. Check your internet connection and try again."
+            "value": "gdock couldn’t start the update. Check your internet connection and try again."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock no pudo iniciar la actualización. Comprueba tu conexión a internet e inténtalo de nuevo."
+            "value": "gdock no pudo iniciar la actualización. Comprueba tu conexión a internet e inténtalo de nuevo."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock n’a pas pu lancer la mise à jour. Vérifiez votre connexion Internet, puis réessayez."
+            "value": "gdock n’a pas pu lancer la mise à jour. Vérifiez votre connexion Internet, puis réessayez."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock non è riuscito ad avviare l’aggiornamento. Controlla la connessione a Internet e riprova."
+            "value": "gdock non è riuscito ad avviare l’aggiornamento. Controlla la connessione a Internet e riprova."
           }
         },
         "ja": {
@@ -226040,55 +226040,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kunne ikke starte oppdateringen. Kontroller internettforbindelsen og prøv igjen."
+            "value": "gdock kunne ikke starte oppdateringen. Kontroller internettforbindelsen og prøv igjen."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock nie mógł rozpocząć aktualizacji. Sprawdź połączenie z internetem i spróbuj ponownie."
+            "value": "gdock nie mógł rozpocząć aktualizacji. Sprawdź połączenie z internetem i spróbuj ponownie."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Ghostty Dock não conseguiu iniciar a atualização. Verifique sua conexão com a internet e tente novamente."
+            "value": "O gdock não conseguiu iniciar a atualização. Verifique sua conexão com a internet e tente novamente."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock не удалось запустить обновление. Проверьте подключение к интернету и повторите попытку."
+            "value": "gdock не удалось запустить обновление. Проверьте подключение к интернету и повторите попытку."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock ไม่สามารถเริ่มการอัปเดตได้ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองอีกครั้ง"
+            "value": "gdock ไม่สามารถเริ่มการอัปเดตได้ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองอีกครั้ง"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock güncellemeyi başlatamadı. İnternet bağlantınızı kontrol edip tekrar deneyin."
+            "value": "gdock güncellemeyi başlatamadı. İnternet bağlantınızı kontrol edip tekrar deneyin."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock не вдалося запустити оновлення. Перевірте підключення до інтернету й повторіть спробу."
+            "value": "gdock не вдалося запустити оновлення. Перевірте підключення до інтернету й повторіть спробу."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 无法开始更新。请检查互联网连接，然后重试。"
+            "value": "gdock 无法开始更新。请检查互联网连接，然后重试。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 無法開始更新。請檢查網際網路連線，然後再試一次。"
+            "value": "gdock 無法開始更新。請檢查網際網路連線，然後再試一次。"
           }
         }
       }
@@ -226609,55 +226609,55 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تعذر على Ghostty Dock تنزيل موجز التحديثات. تحقق من اتصالك وحاول مجددًا."
+            "value": "تعذر على gdock تنزيل موجز التحديثات. تحقق من اتصالك وحاول مجددًا."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock nije mogao preuzeti feed ažuriranja. Provjerite vezu i pokušajte ponovo."
+            "value": "gdock nije mogao preuzeti feed ažuriranja. Provjerite vezu i pokušajte ponovo."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kunne ikke downloade opdateringsfeedet. Kontroller din forbindelse, og prøv igen."
+            "value": "gdock kunne ikke downloade opdateringsfeedet. Kontroller din forbindelse, og prøv igen."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock konnte den Update-Feed nicht herunterladen. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+            "value": "gdock konnte den Update-Feed nicht herunterladen. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock couldn't download the update feed. Check your connection and try again."
+            "value": "gdock couldn't download the update feed. Check your connection and try again."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock no pudo descargar la fuente de actualizaciones. Comprueba tu conexión e inténtalo de nuevo."
+            "value": "gdock no pudo descargar la fuente de actualizaciones. Comprueba tu conexión e inténtalo de nuevo."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock n'a pas pu télécharger le flux de mises à jour. Vérifiez votre connexion et réessayez."
+            "value": "gdock n'a pas pu télécharger le flux de mises à jour. Vérifiez votre connexion et réessayez."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock non è riuscito a scaricare il feed degli aggiornamenti. Controlla la connessione e riprova."
+            "value": "gdock non è riuscito a scaricare il feed degli aggiornamenti. Controlla la connessione e riprova."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock はアップデートフィードをダウンロードできませんでした。接続を確認してもう一度お試しください。"
+            "value": "gdock はアップデートフィードをダウンロードできませんでした。接続を確認してもう一度お試しください。"
           }
         },
         "ko": {
@@ -226669,55 +226669,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kunne ikke laste ned oppdateringsfeeden. Kontroller tilkoblingen og prøv igjen."
+            "value": "gdock kunne ikke laste ned oppdateringsfeeden. Kontroller tilkoblingen og prøv igjen."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock nie mógł pobrać kanału aktualizacji. Sprawdź połączenie i spróbuj ponownie."
+            "value": "gdock nie mógł pobrać kanału aktualizacji. Sprawdź połączenie i spróbuj ponownie."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Ghostty Dock não conseguiu baixar o feed de atualização. Verifique sua conexão e tente novamente."
+            "value": "O gdock não conseguiu baixar o feed de atualização. Verifique sua conexão e tente novamente."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock не удалось загрузить канал обновлений. Проверьте подключение и повторите попытку."
+            "value": "gdock не удалось загрузить канал обновлений. Проверьте подключение и повторите попытку."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock ไม่สามารถดาวน์โหลดฟีดอัปเดตได้ ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง"
+            "value": "gdock ไม่สามารถดาวน์โหลดฟีดอัปเดตได้ ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock güncelleme akışını indiremedi. Bağlantınızı kontrol edip tekrar deneyin."
+            "value": "gdock güncelleme akışını indiremedi. Bağlantınızı kontrol edip tekrar deneyin."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock не зміг завантажити стрічку оновлень. Перевірте підключення та спробуйте ще раз."
+            "value": "gdock не зміг завантажити стрічку оновлень. Перевірте підключення та спробуйте ще раз."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 无法下载更新源。请检查网络连接后重试。"
+            "value": "gdock 无法下载更新源。请检查网络连接后重试。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 無法下載更新來源。請檢查您的連線後再試一次。"
+            "value": "gdock 無法下載更新來源。請檢查您的連線後再試一次。"
           }
         }
       }
@@ -227476,55 +227476,55 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لا يمكن لـ Ghostty Dock الوصول إلى خادم التحديثات. تحقق من اتصال الإنترنت وحاول مجددًا."
+            "value": "لا يمكن لـ gdock الوصول إلى خادم التحديثات. تحقق من اتصال الإنترنت وحاول مجددًا."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock ne može dosegnuti server za ažuriranje. Provjerite internetsku vezu i pokušajte ponovo."
+            "value": "gdock ne može dosegnuti server za ažuriranje. Provjerite internetsku vezu i pokušajte ponovo."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kan ikke nå opdateringsserveren. Kontroller din internetforbindelse, og prøv igen."
+            "value": "gdock kan ikke nå opdateringsserveren. Kontroller din internetforbindelse, og prøv igen."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kann den Update-Server nicht erreichen. Überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
+            "value": "gdock kann den Update-Server nicht erreichen. Überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock can't reach the update server. Check your internet connection and try again."
+            "value": "gdock can't reach the update server. Check your internet connection and try again."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock no puede acceder al servidor de actualizaciones. Comprueba tu conexión a internet e inténtalo de nuevo."
+            "value": "gdock no puede acceder al servidor de actualizaciones. Comprueba tu conexión a internet e inténtalo de nuevo."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock ne peut pas atteindre le serveur de mises à jour. Vérifiez votre connexion Internet et réessayez."
+            "value": "gdock ne peut pas atteindre le serveur de mises à jour. Vérifiez votre connexion Internet et réessayez."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock non riesce a raggiungere il server degli aggiornamenti. Controlla la connessione a internet e riprova."
+            "value": "gdock non riesce a raggiungere il server degli aggiornamenti. Controlla la connessione a internet e riprova."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock はアップデートサーバーに接続できません。インターネット接続を確認してもう一度お試しください。"
+            "value": "gdock はアップデートサーバーに接続できません。インターネット接続を確認してもう一度お試しください。"
           }
         },
         "ko": {
@@ -227536,55 +227536,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kan ikke nå oppdateringsserveren. Kontroller internettforbindelsen og prøv igjen."
+            "value": "gdock kan ikke nå oppdateringsserveren. Kontroller internettforbindelsen og prøv igjen."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock nie może połączyć się z serwerem aktualizacji. Sprawdź połączenie z internetem i spróbuj ponownie."
+            "value": "gdock nie może połączyć się z serwerem aktualizacji. Sprawdź połączenie z internetem i spróbuj ponownie."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Ghostty Dock não consegue acessar o servidor de atualização. Verifique sua conexão com a internet e tente novamente."
+            "value": "O gdock não consegue acessar o servidor de atualização. Verifique sua conexão com a internet e tente novamente."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock не может связаться с сервером обновлений. Проверьте подключение к интернету и повторите попытку."
+            "value": "gdock не может связаться с сервером обновлений. Проверьте подключение к интернету и повторите попытку."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock ไม่สามารถเข้าถึงเซิร์ฟเวอร์อัปเดตได้ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองอีกครั้ง"
+            "value": "gdock ไม่สามารถเข้าถึงเซิร์ฟเวอร์อัปเดตได้ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองอีกครั้ง"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock güncelleme sunucusuna ulaşamıyor. İnternet bağlantınızı kontrol edip tekrar deneyin."
+            "value": "gdock güncelleme sunucusuna ulaşamıyor. İnternet bağlantınızı kontrol edip tekrar deneyin."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock не може зв'язатися з сервером оновлень. Перевірте підключення до інтернету та спробуйте ще раз."
+            "value": "gdock не може зв'язатися з сервером оновлень. Перевірте підключення до інтернету та спробуйте ще раз."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 无法连接到更新服务器。请检查互联网连接后重试。"
+            "value": "gdock 无法连接到更新服务器。请检查互联网连接后重试。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 無法連線至更新伺服器。請檢查您的網際網路連線後再試一次。"
+            "value": "gdock 無法連線至更新伺服器。請檢查您的網際網路連線後再試一次。"
           }
         }
       }
@@ -228445,55 +228445,55 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تعذر على Ghostty Dock الاتصال بخادم التحديثات. تحقق من اتصالك أو حاول لاحقًا."
+            "value": "تعذر على gdock الاتصال بخادم التحديثات. تحقق من اتصالك أو حاول لاحقًا."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock se nije mogao povezati na server za ažuriranje. Provjerite vezu ili pokušajte ponovo kasnije."
+            "value": "gdock se nije mogao povezati na server za ažuriranje. Provjerite vezu ili pokušajte ponovo kasnije."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kunne ikke oprette forbindelse til opdateringsserveren. Kontroller din forbindelse, eller prøv igen senere."
+            "value": "gdock kunne ikke oprette forbindelse til opdateringsserveren. Kontroller din forbindelse, eller prøv igen senere."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock konnte keine Verbindung zum Update-Server herstellen. Überprüfen Sie Ihre Verbindung oder versuchen Sie es später erneut."
+            "value": "gdock konnte keine Verbindung zum Update-Server herstellen. Überprüfen Sie Ihre Verbindung oder versuchen Sie es später erneut."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock couldn't connect to the update server. Check your connection or try again later."
+            "value": "gdock couldn't connect to the update server. Check your connection or try again later."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock no pudo conectar con el servidor de actualizaciones. Comprueba tu conexión o inténtalo de nuevo más tarde."
+            "value": "gdock no pudo conectar con el servidor de actualizaciones. Comprueba tu conexión o inténtalo de nuevo más tarde."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock n'a pas pu se connecter au serveur de mises à jour. Vérifiez votre connexion ou réessayez plus tard."
+            "value": "gdock n'a pas pu se connecter au serveur de mises à jour. Vérifiez votre connexion ou réessayez plus tard."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock non è riuscito a connettersi al server degli aggiornamenti. Controlla la connessione o riprova più tardi."
+            "value": "gdock non è riuscito a connettersi al server degli aggiornamenti. Controlla la connessione o riprova più tardi."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock はアップデートサーバーに接続できませんでした。接続を確認するか、後でもう一度お試しください。"
+            "value": "gdock はアップデートサーバーに接続できませんでした。接続を確認するか、後でもう一度お試しください。"
           }
         },
         "ko": {
@@ -228505,55 +228505,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kunne ikke koble til oppdateringsserveren. Kontroller tilkoblingen eller prøv igjen senere."
+            "value": "gdock kunne ikke koble til oppdateringsserveren. Kontroller tilkoblingen eller prøv igjen senere."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock nie mógł połączyć się z serwerem aktualizacji. Sprawdź połączenie lub spróbuj ponownie później."
+            "value": "gdock nie mógł połączyć się z serwerem aktualizacji. Sprawdź połączenie lub spróbuj ponownie później."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Ghostty Dock não conseguiu se conectar ao servidor de atualização. Verifique sua conexão ou tente novamente mais tarde."
+            "value": "O gdock não conseguiu se conectar ao servidor de atualização. Verifique sua conexão ou tente novamente mais tarde."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock не удалось подключиться к серверу обновлений. Проверьте подключение или повторите попытку позже."
+            "value": "gdock не удалось подключиться к серверу обновлений. Проверьте подключение или повторите попытку позже."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์อัปเดตได้ ตรวจสอบการเชื่อมต่อหรือลองอีกครั้งในภายหลัง"
+            "value": "gdock ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์อัปเดตได้ ตรวจสอบการเชื่อมต่อหรือลองอีกครั้งในภายหลัง"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock güncelleme sunucusuna bağlanamadı. Bağlantınızı kontrol edin veya daha sonra tekrar deneyin."
+            "value": "gdock güncelleme sunucusuna bağlanamadı. Bağlantınızı kontrol edin veya daha sonra tekrar deneyin."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock не зміг підключитися до сервера оновлень. Перевірте підключення або спробуйте пізніше."
+            "value": "gdock не зміг підключитися до сервера оновлень. Перевірте підключення або спробуйте пізніше."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 无法连接到更新服务器。请检查网络连接或稍后重试。"
+            "value": "gdock 无法连接到更新服务器。请检查网络连接或稍后重试。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 無法連線至更新伺服器。請檢查您的連線或稍後再試。"
+            "value": "gdock 無法連線至更新伺服器。請檢查您的連線或稍後再試。"
           }
         }
       }
@@ -230230,55 +230230,55 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يمكن لـ Ghostty Dock التحقق تلقائيًا من التحديثات في الخلفية."
+            "value": "يمكن لـ gdock التحقق تلقائيًا من التحديثات في الخلفية."
           }
         },
         "bs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock može automatski provjeravati ažuriranja u pozadini."
+            "value": "gdock može automatski provjeravati ažuriranja u pozadini."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kan automatisk søge efter opdateringer i baggrunden."
+            "value": "gdock kan automatisk søge efter opdateringer i baggrunden."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kann automatisch im Hintergrund nach Updates suchen."
+            "value": "gdock kann automatisch im Hintergrund nach Updates suchen."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock can automatically check for updates in the background."
+            "value": "gdock can automatically check for updates in the background."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock puede buscar actualizaciones automáticamente en segundo plano."
+            "value": "gdock puede buscar actualizaciones automáticamente en segundo plano."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock peut rechercher automatiquement les mises à jour en arrière-plan."
+            "value": "gdock peut rechercher automatiquement les mises à jour en arrière-plan."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock può verificare automaticamente la disponibilità di aggiornamenti in background."
+            "value": "gdock può verificare automaticamente la disponibilità di aggiornamenti in background."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock はバックグラウンドで自動的にアップデートを確認できます。"
+            "value": "gdock はバックグラウンドで自動的にアップデートを確認できます。"
           }
         },
         "ko": {
@@ -230290,55 +230290,55 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock kan automatisk se etter oppdateringer i bakgrunnen."
+            "value": "gdock kan automatisk se etter oppdateringer i bakgrunnen."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock może automatycznie sprawdzać aktualizacje w tle."
+            "value": "gdock może automatycznie sprawdzać aktualizacje w tle."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Ghostty Dock pode verificar automaticamente se há atualizações em segundo plano."
+            "value": "O gdock pode verificar automaticamente se há atualizações em segundo plano."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock может автоматически проверять наличие обновлений в фоновом режиме."
+            "value": "gdock может автоматически проверять наличие обновлений в фоновом режиме."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock สามารถตรวจหาอัปเดตอัตโนมัติในเบื้องหลังได้"
+            "value": "gdock สามารถตรวจหาอัปเดตอัตโนมัติในเบื้องหลังได้"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock arka planda otomatik olarak güncellemeleri denetleyebilir."
+            "value": "gdock arka planda otomatik olarak güncellemeleri denetleyebilir."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock може автоматично перевіряти оновлення у фоновому режимі."
+            "value": "gdock може автоматично перевіряти оновлення у фоновому режимі."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 可以在后台自动检查更新。"
+            "value": "gdock 可以在后台自动检查更新。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock 可以在背景自動檢查更新。"
+            "value": "gdock 可以在背景自動檢查更新。"
           }
         }
       }
@@ -242120,13 +242120,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock downloads a signed relay catalog. Fleet additions, removals, and regional changes do not require an app update."
+            "value": "gdock downloads a signed relay catalog. Fleet additions, removals, and regional changes do not require an app update."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghostty Dock は署名済みリレーカタログを取得します。フリートの追加、削除、リージョン変更にアプリ更新は不要です。"
+            "value": "gdock は署名済みリレーカタログを取得します。フリートの追加、削除、リージョン変更にアプリ更新は不要です。"
           }
         }
       }

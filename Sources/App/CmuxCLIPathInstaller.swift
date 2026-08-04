@@ -2,7 +2,7 @@ import CmuxFoundation
 import Foundation
 
 struct CmuxCLIPathInstaller {
-    /// User-facing CLI install destination for Ghostty Dock.
+    /// User-facing CLI install destination for gdock.
     static let defaultCLIDestinationPath = "/usr/local/bin/gdock"
     /// Compatibility symlink path so existing `cmux` scripts keep working.
     static let compatibilityCLIDestinationPath = "/usr/local/bin/cmux"

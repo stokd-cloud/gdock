@@ -32,12 +32,12 @@ fi
 
 case "$CHANNEL" in
   stable)
-    EXPECTED_NAME="Ghostty Dock"
+    EXPECTED_NAME="gdock"
     EXPECTED_BUNDLE_ID="cloud.stokd.ghostty-dock"
     EXPECTED_ICON_NAME="AppIcon"
     ;;
   nightly)
-    EXPECTED_NAME="Ghostty Dock NIGHTLY"
+    EXPECTED_NAME="gdock NIGHTLY"
     EXPECTED_BUNDLE_ID="cloud.stokd.ghostty-dock.nightly"
     EXPECTED_ICON_NAME="AppIcon-Nightly"
     ;;

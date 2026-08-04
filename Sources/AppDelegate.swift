@@ -1317,7 +1317,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Thin-skin rebrand: copy legacy cmux config/defaults into Ghostty Dock
+        // Thin-skin rebrand: copy legacy cmux config/defaults into gdock
         // locations without destroying the upstream paths (see GhosttyDockConfigMigration).
         GhosttyDockConfigMigration.migrateAllIfNeeded()
 

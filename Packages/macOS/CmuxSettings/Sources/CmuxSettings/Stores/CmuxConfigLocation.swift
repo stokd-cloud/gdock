@@ -1,6 +1,6 @@
 import Foundation
 
-/// Conventional on-disk locations for the Ghostty Dock JSON config.
+/// Conventional on-disk locations for the gdock JSON config.
 ///
 /// A small value-typed bundle of URLs. Construct one with an explicit `home`
 /// directory and inject it into the parts of the app that need to know where

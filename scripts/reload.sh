@@ -7,16 +7,16 @@ source "$SCRIPT_DIR/lib/mobile-attach.sh"
 # shellcheck source=scripts/lib/dev-secrets.sh
 source "$SCRIPT_DIR/lib/dev-secrets.sh"
 
-APP_NAME="Ghostty Dock DEV"
+APP_NAME="gdock DEV"
 BUNDLE_ID="cloud.stokd.ghostty-dock.debug"
-# The Xcode PRODUCT_NAME of the app target per configuration (Debug: "Ghostty Dock DEV",
-# Release: "Ghostty Dock"). BASE_APP_NAME is recomputed from CONFIGURATION after argument
+# The Xcode PRODUCT_NAME of the app target per configuration (Debug: "gdock DEV",
+# Release: "gdock"). BASE_APP_NAME is recomputed from CONFIGURATION after argument
 # parsing; it names the bundle xcodebuild writes into Build/Products/<config>.
-BASE_APP_NAME="Ghostty Dock DEV"
+BASE_APP_NAME="gdock DEV"
 # Every tagged dev bundle keeps this executable name regardless of configuration,
-# so tooling that greps "…/Contents/MacOS/Ghostty Dock DEV" works for Release dev builds
+# so tooling that greps "…/Contents/MacOS/gdock DEV" works for Release dev builds
 # too. reload.sh renames the staged executable when the configuration differs.
-DEV_EXECUTABLE_NAME="Ghostty Dock DEV"
+DEV_EXECUTABLE_NAME="gdock DEV"
 # Dev builds default to Release: the Debug configuration is -Onone and is barely
 # usable on a loaded machine. --debug opts back into the Debug configuration
 # (unoptimized, but with every `#if DEBUG` affordance compiled in).
@@ -105,7 +105,7 @@ if [[ -n "\$SOCKET_ARG" ]]; then
       BEST_TAG_CLI=""
       BEST_TAG_CLI_MTIME=-1
       for TAG_CONFIG in Release Debug; do
-        TAG_CLI="\$HOME/Library/Developer/Xcode/DerivedData/cmux-\$TAG/Build/Products/\$TAG_CONFIG/Ghostty Dock DEV \$TAG.app/Contents/Resources/bin/gdock"
+        TAG_CLI="\$HOME/Library/Developer/Xcode/DerivedData/cmux-\$TAG/Build/Products/\$TAG_CONFIG/gdock DEV \$TAG.app/Contents/Resources/bin/gdock"
         if [[ -x "\$TAG_CLI" ]] && [[ "\$TAG_CLI" != "\$0" ]]; then
           TAG_CLI_MTIME="\$(stat -f '%m' "\$TAG_CLI" 2>/dev/null || echo 0)"
           if (( TAG_CLI_MTIME > BEST_TAG_CLI_MTIME )); then
@@ -492,14 +492,14 @@ print_tag_cleanup_reminder() {
     done
     echo "Cleanup stale tags only:"
     for tag in "${stale_tags[@]}"; do
-      echo "  pkill -f \"Ghostty Dock DEV ${tag}.app/Contents/MacOS/Ghostty Dock DEV\""
+      echo "  pkill -f \"gdock DEV ${tag}.app/Contents/MacOS/gdock DEV\""
       echo "  rm -rf \"$(tagged_derived_data_path "$tag")\" \"/tmp/cmux-${tag}\" \"/tmp/cmux-debug-${tag}.sock\""
       echo "  rm -f \"/tmp/cmux-debug-${tag}.log\""
       echo "  rm -f \"$HOME/Library/Application Support/cmux/cmuxd-dev-${tag}.sock\""
     done
   fi
   echo "After you verify current tag, cleanup command:"
-  echo "  pkill -f \"Ghostty Dock DEV ${current_slug}.app/Contents/MacOS/Ghostty Dock DEV\""
+  echo "  pkill -f \"gdock DEV ${current_slug}.app/Contents/MacOS/gdock DEV\""
   echo "  rm -rf \"$(tagged_derived_data_path "$current_slug")\" \"/tmp/cmux-${current_slug}\" \"/tmp/cmux-debug-${current_slug}.sock\""
   echo "  rm -f \"/tmp/cmux-debug-${current_slug}.log\""
   echo "  rm -f \"$HOME/Library/Application Support/cmux/cmuxd-dev-${current_slug}.sock\""
@@ -602,13 +602,13 @@ fi
 
 case "$CONFIGURATION" in
   Debug)
-    BASE_APP_NAME="Ghostty Dock DEV"
+    BASE_APP_NAME="gdock DEV"
     ;;
   Release)
-    # The Release configuration's PRODUCT_NAME is "Ghostty Dock"; the staged tagged
-    # copy is renamed back to "Ghostty Dock DEV <tag>.app" with a
-    # "Ghostty Dock DEV" executable below.
-    BASE_APP_NAME="Ghostty Dock"
+    # The Release configuration's PRODUCT_NAME is "gdock"; the staged tagged
+    # copy is renamed back to "gdock DEV <tag>.app" with a
+    # "gdock DEV" executable below.
+    BASE_APP_NAME="gdock"
     ;;
   *)
     echo "error: unsupported configuration: $CONFIGURATION" >&2
@@ -628,7 +628,7 @@ if [[ -n "$TAG" ]]; then
   TAG_ID="$(sanitize_bundle "$TAG")"
   TAG_SLUG="$(sanitize_path "$TAG")"
   if [[ "$NAME_SET" -eq 0 ]]; then
-    APP_NAME="Ghostty Dock DEV ${TAG_SLUG}"
+    APP_NAME="gdock DEV ${TAG_SLUG}"
   fi
   if [[ "$BUNDLE_SET" -eq 0 ]]; then
     BUNDLE_ID="cloud.stokd.ghostty-dock.debug.${TAG_ID}"
@@ -1059,8 +1059,8 @@ if [[ -n "$TAG" && "$APP_NAME" != "$SEARCH_APP_NAME" ]]; then
   TAG_APP_STAGING_PATH="$(dirname "$APP_PATH")/.${APP_NAME}.reload-$$.app"
   rm -rf "$TAG_APP_STAGING_PATH"
   cp -R "$APP_PATH" "$TAG_APP_STAGING_PATH"
-  # The Release configuration names the executable "Ghostty Dock"; every tagged dev bundle
-  # exposes "Ghostty Dock DEV" so pkill/pgrep patterns and launch helpers stay identical
+  # The Release configuration names the executable "gdock"; every tagged dev bundle
+  # exposes "gdock DEV" so pkill/pgrep patterns and launch helpers stay identical
   # across configurations.
   if [[ "$APP_EXECUTABLE_NAME" != "$DEV_EXECUTABLE_NAME" ]]; then
     if [[ ! -x "$TAG_APP_STAGING_PATH/Contents/MacOS/$APP_EXECUTABLE_NAME" ]]; then

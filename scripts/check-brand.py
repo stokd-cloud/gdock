@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Brand consistency guard for Ghostty Dock thin-skin rebrand."""
+"""Brand consistency guard for gdock thin-skin rebrand."""
 from __future__ import annotations
 
 import pathlib
@@ -22,8 +22,8 @@ def main() -> int:
         errors.append("com.cmuxterm PRODUCT_BUNDLE_IDENTIFIER still present")
     if 'PRODUCT_NAME = gdock;' not in pbx:
         errors.append("CLI PRODUCT_NAME gdock missing")
-    if "Ghostty Dock" not in pbx:
-        errors.append("Ghostty Dock PRODUCT_NAME missing")
+    if "gdock" not in pbx:
+        errors.append("gdock PRODUCT_NAME missing")
     # CMUX_ env names must still exist in Sources (smoke: do not require zero renames)
     sources = (ROOT / "Sources").rglob("*.swift")
     cmux_env = 0

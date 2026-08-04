@@ -35152,10 +35152,10 @@ export default CMUXSessionRestore;
     private func usage() -> String {
         let tool = invokedToolName()
         return """
-        \(tool) - control Ghostty Dock via Unix socket
+        \(tool) - control gdock via Unix socket
 
         Usage:
-          \(tool) <path>                Open a directory in a new workspace (launches Ghostty Dock if needed)
+          \(tool) <path>                Open a directory in a new workspace (launches gdock if needed)
           \(tool) [global-options] <command> [options]
 
         Targets:
