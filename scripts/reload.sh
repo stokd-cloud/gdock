@@ -7,16 +7,16 @@ source "$SCRIPT_DIR/lib/mobile-attach.sh"
 # shellcheck source=scripts/lib/dev-secrets.sh
 source "$SCRIPT_DIR/lib/dev-secrets.sh"
 
-APP_NAME="gdock DEV"
-BUNDLE_ID="cloud.stokd.ghostty-dock.debug"
+# Default: main Release app. --tag / --debug rewrite APP_NAME after arg parsing.
+APP_NAME="gdock"
+BUNDLE_ID="cloud.stokd.ghostty-dock"
 # The Xcode PRODUCT_NAME of the app target per configuration (Debug: "gdock DEV",
 # Release: "gdock"). BASE_APP_NAME is recomputed from CONFIGURATION after argument
 # parsing; it names the bundle xcodebuild writes into Build/Products/<config>.
-BASE_APP_NAME="gdock DEV"
-# Every tagged dev bundle keeps this executable name regardless of configuration,
-# so tooling that greps "…/Contents/MacOS/gdock DEV" works for Release dev builds
-# too. reload.sh renames the staged executable when the configuration differs.
-DEV_EXECUTABLE_NAME="gdock DEV"
+BASE_APP_NAME="gdock"
+# Staged display/executable name after rename (may differ from BASE_APP_NAME when
+# --tag or --debug stages a user-facing name over the Xcode product name).
+STAGED_EXECUTABLE_NAME="gdock"
 # Dev builds default to Release: the Debug configuration is -Onone and is barely
 # usable on a loaded machine. --debug opts back into the Debug configuration
 # (unoptimized, but with every `#if DEBUG` affordance compiled in).
@@ -105,14 +105,16 @@ if [[ -n "\$SOCKET_ARG" ]]; then
       BEST_TAG_CLI=""
       BEST_TAG_CLI_MTIME=-1
       for TAG_CONFIG in Release Debug; do
-        TAG_CLI="\$HOME/Library/Developer/Xcode/DerivedData/cmux-\$TAG/Build/Products/\$TAG_CONFIG/gdock DEV \$TAG.app/Contents/Resources/bin/gdock"
-        if [[ -x "\$TAG_CLI" ]] && [[ "\$TAG_CLI" != "\$0" ]]; then
-          TAG_CLI_MTIME="\$(stat -f '%m' "\$TAG_CLI" 2>/dev/null || echo 0)"
-          if (( TAG_CLI_MTIME > BEST_TAG_CLI_MTIME )); then
-            BEST_TAG_CLI_MTIME="\$TAG_CLI_MTIME"
-            BEST_TAG_CLI="\$TAG_CLI"
+        for TAG_APP in "gdock \$TAG" "gdock DBG \$TAG" "gdock DEV \$TAG"; do
+          TAG_CLI="\$HOME/Library/Developer/Xcode/DerivedData/cmux-\$TAG/Build/Products/\$TAG_CONFIG/\${TAG_APP}.app/Contents/Resources/bin/gdock"
+          if [[ -x "\$TAG_CLI" ]] && [[ "\$TAG_CLI" != "\$0" ]]; then
+            TAG_CLI_MTIME="\$(stat -f '%m' "\$TAG_CLI" 2>/dev/null || echo 0)"
+            if (( TAG_CLI_MTIME > BEST_TAG_CLI_MTIME )); then
+              BEST_TAG_CLI_MTIME="\$TAG_CLI_MTIME"
+              BEST_TAG_CLI="\$TAG_CLI"
+            fi
           fi
-        fi
+        done
       done
       if [[ -n "\$BEST_TAG_CLI" ]]; then
         exec "\$BEST_TAG_CLI" "\$@"
@@ -281,19 +283,26 @@ write_last_socket_path() {
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/reload.sh --tag <name> [options]
+Usage: ./scripts/reload.sh [options]
+
+App naming:
+  (default)              Release → gdock.app              (main app)
+  --tag <name>           Release → gdock <name>.app
+  --debug                Debug   → gdock DBG.app
+  --debug --tag <name>   Debug   → gdock DBG <name>.app
 
 Options:
-  --tag <name>           Required. Short tag for parallel builds (e.g., feature-xyz-lol).
-                         Sets app name, bundle id, and derived data path unless overridden.
-                         After a successful build, terminates any running app with this tag
-                         so macOS launches the freshly-built binary on cmd-click or --launch.
+  --tag <name>           Optional. Short tag for parallel builds (e.g., feature-xyz-lol).
+                         Appends the tag to the app name and isolates bundle id / derived
+                         data. After a successful tagged build, terminates any running
+                         app with this tag so macOS launches the freshly-built binary.
   --launch               Launch the app after building. Without this flag, the script
                          builds and prints the app path but does not open it.
   --debug                Build the Debug configuration (unoptimized, -Onone) instead
                          of the default Release configuration. Debug keeps every
                          `#if DEBUG` affordance (Debug menu, dogfood auto sign-in,
                          debug event log) but is barely usable on a loaded machine.
+                         Debug builds use "DBG" in the app name (not "DEV").
   --release              Build the Release configuration (default). Optimized, and
                          `#if DEBUG` code is compiled out.
   --print-plan           Print the resolved configuration, bundle id, derived data,
@@ -492,14 +501,16 @@ print_tag_cleanup_reminder() {
     done
     echo "Cleanup stale tags only:"
     for tag in "${stale_tags[@]}"; do
-      echo "  pkill -f \"gdock DEV ${tag}.app/Contents/MacOS/gdock DEV\""
+      echo "  pkill -f \"gdock ${tag}.app/Contents/MacOS/gdock ${tag}\""
+      echo "  pkill -f \"gdock DBG ${tag}.app/Contents/MacOS/gdock DBG ${tag}\""
       echo "  rm -rf \"$(tagged_derived_data_path "$tag")\" \"/tmp/cmux-${tag}\" \"/tmp/cmux-debug-${tag}.sock\""
       echo "  rm -f \"/tmp/cmux-debug-${tag}.log\""
       echo "  rm -f \"$HOME/Library/Application Support/cmux/cmuxd-dev-${tag}.sock\""
     done
   fi
   echo "After you verify current tag, cleanup command:"
-  echo "  pkill -f \"gdock DEV ${current_slug}.app/Contents/MacOS/gdock DEV\""
+  echo "  pkill -f \"gdock ${current_slug}.app/Contents/MacOS/gdock ${current_slug}\""
+  echo "  pkill -f \"gdock DBG ${current_slug}.app/Contents/MacOS/gdock DBG ${current_slug}\""
   echo "  rm -rf \"$(tagged_derived_data_path "$current_slug")\" \"/tmp/cmux-${current_slug}\" \"/tmp/cmux-debug-${current_slug}.sock\""
   echo "  rm -f \"/tmp/cmux-debug-${current_slug}.log\""
   echo "  rm -f \"$HOME/Library/Application Support/cmux/cmuxd-dev-${current_slug}.sock\""
@@ -594,20 +605,13 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ -z "$TAG" ]]; then
-  echo "error: --tag is required (example: ./scripts/reload.sh --tag fix-sidebar-theme)" >&2
-  usage
-  exit 1
-fi
-
 case "$CONFIGURATION" in
   Debug)
+    # Xcode Debug PRODUCT_NAME is still "gdock DEV"; we stage to "gdock DBG…".
     BASE_APP_NAME="gdock DEV"
     ;;
   Release)
-    # The Release configuration's PRODUCT_NAME is "gdock"; the staged tagged
-    # copy is renamed back to "gdock DEV <tag>.app" with a
-    # "gdock DEV" executable below.
+    # Xcode Release PRODUCT_NAME is "gdock".
     BASE_APP_NAME="gdock"
     ;;
   *)
@@ -621,6 +625,8 @@ if [[ -n "$AUTH_CREDENTIALS_FILE" ]]; then
   AUTH_CREDENTIALS_FILE="$(cd "$(dirname "$AUTH_CREDENTIALS_FILE")" && pwd -P)/$(basename "$AUTH_CREDENTIALS_FILE")"
 fi
 
+TAG_ID=""
+TAG_SLUG=""
 if [[ -n "$TAG" ]]; then
   if ! cmux_attach_validate_dev_tag "$TAG"; then
     exit 1
@@ -628,7 +634,11 @@ if [[ -n "$TAG" ]]; then
   TAG_ID="$(sanitize_bundle "$TAG")"
   TAG_SLUG="$(sanitize_path "$TAG")"
   if [[ "$NAME_SET" -eq 0 ]]; then
-    APP_NAME="gdock DEV ${TAG_SLUG}"
+    if [[ "$CONFIGURATION" == "Debug" ]]; then
+      APP_NAME="gdock DBG ${TAG_SLUG}"
+    else
+      APP_NAME="gdock ${TAG_SLUG}"
+    fi
   fi
   if [[ "$BUNDLE_SET" -eq 0 ]]; then
     BUNDLE_ID="cloud.stokd.ghostty-dock.debug.${TAG_ID}"
@@ -636,7 +646,32 @@ if [[ -n "$TAG" ]]; then
   if [[ "$DERIVED_SET" -eq 0 ]]; then
     DERIVED_DATA="$(tagged_derived_data_path "$TAG_SLUG")"
   fi
+else
+  # Main / untagged dogfood: plain gdock (Release) or gdock DBG (Debug).
+  if [[ "$NAME_SET" -eq 0 ]]; then
+    if [[ "$CONFIGURATION" == "Debug" ]]; then
+      APP_NAME="gdock DBG"
+    else
+      APP_NAME="gdock"
+    fi
+  fi
+  if [[ "$BUNDLE_SET" -eq 0 ]]; then
+    if [[ "$CONFIGURATION" == "Debug" ]]; then
+      BUNDLE_ID="cloud.stokd.ghostty-dock.debug"
+    else
+      BUNDLE_ID="cloud.stokd.ghostty-dock"
+    fi
+  fi
+  if [[ "$DERIVED_SET" -eq 0 ]]; then
+    # Stable derived-data root so untagged builds don't fight random Xcode paths.
+    if [[ "$CONFIGURATION" == "Debug" ]]; then
+      DERIVED_DATA="$(tagged_derived_data_path "gdock-dbg")"
+    else
+      DERIVED_DATA="$(tagged_derived_data_path "gdock")"
+    fi
+  fi
 fi
+STAGED_EXECUTABLE_NAME="$APP_NAME"
 
 CMUX_DEV_PORT="$(choose_cmux_dev_port)"
 CMUX_DEV_PORT_RANGE="$(choose_cmux_dev_port_range)"
@@ -661,11 +696,14 @@ TAG_APP_FINAL_PATH=""
 TAG_APP_STAGING_PATH=""
 if [[ -n "$DERIVED_DATA" ]]; then
   BUILD_PRODUCTS_DIR="${DERIVED_DATA}/Build/Products/${CONFIGURATION}"
-  if [[ -n "$TAG" ]]; then
+  # When the staged name differs from the Xcode product (Debug "gdock DEV" →
+  # "gdock DBG…", or Release "gdock" → "gdock <tag>"), build the product name
+  # and rename into the staged app path below.
+  if [[ "$APP_NAME" != "$BASE_APP_NAME" ]]; then
     XCODEBUILD_SOURCE_APP_NAME="$BASE_APP_NAME"
   fi
   XCODEBUILD_SOURCE_APP_PATH="${BUILD_PRODUCTS_DIR}/${XCODEBUILD_SOURCE_APP_NAME}.app"
-  if [[ -n "$TAG" && "$APP_NAME" != "$XCODEBUILD_SOURCE_APP_NAME" ]]; then
+  if [[ "$APP_NAME" != "$XCODEBUILD_SOURCE_APP_NAME" ]]; then
     XCODEBUILD_TAG_APP_PATH="${BUILD_PRODUCTS_DIR}/${APP_NAME}.app"
   fi
 fi
@@ -680,14 +718,14 @@ if [[ "$PRINT_PLAN" -eq 1 ]]; then
   if [[ -n "$BUILD_PRODUCTS_DIR" ]]; then
     echo "app path: ${BUILD_PRODUCTS_DIR}/${APP_NAME}.app"
   fi
-  echo "app executable: ${DEV_EXECUTABLE_NAME}"
+  echo "app executable: ${STAGED_EXECUTABLE_NAME}"
   exit 0
 fi
 
 # Quiet logging: capture all noisy build output (xcodebuild, zig, codesign,
 # plistbuddy, etc.) to a single log file. On success we print only a one-line
 # summary plus the App/CLI paths. On failure we dump the log.
-RELOAD_LOG="/tmp/cmux-reload-${TAG_SLUG}.log"
+RELOAD_LOG="/tmp/cmux-reload-${TAG_SLUG:-main}.log"
 RELOAD_START_TIME="$(date +%s)"
 : > "$RELOAD_LOG"
 
@@ -1054,26 +1092,25 @@ if [[ -n "${TAG_SLUG:-}" ]]; then
   fi
 fi
 
-if [[ -n "$TAG" && "$APP_NAME" != "$SEARCH_APP_NAME" ]]; then
+if [[ "$APP_NAME" != "$SEARCH_APP_NAME" ]]; then
   TAG_APP_FINAL_PATH="$(dirname "$APP_PATH")/${APP_NAME}.app"
   TAG_APP_STAGING_PATH="$(dirname "$APP_PATH")/.${APP_NAME}.reload-$$.app"
   rm -rf "$TAG_APP_STAGING_PATH"
   cp -R "$APP_PATH" "$TAG_APP_STAGING_PATH"
-  # The Release configuration names the executable "gdock"; every tagged dev bundle
-  # exposes "gdock DEV" so pkill/pgrep patterns and launch helpers stay identical
-  # across configurations.
-  if [[ "$APP_EXECUTABLE_NAME" != "$DEV_EXECUTABLE_NAME" ]]; then
+  # Rename the Xcode product executable (e.g. "gdock" / "gdock DEV") to the
+  # staged user-facing name ("gdock <tag>", "gdock DBG", "gdock DBG <tag>").
+  if [[ "$APP_EXECUTABLE_NAME" != "$STAGED_EXECUTABLE_NAME" ]]; then
     if [[ ! -x "$TAG_APP_STAGING_PATH/Contents/MacOS/$APP_EXECUTABLE_NAME" ]]; then
       echo "error: staged app is missing its executable: $APP_EXECUTABLE_NAME" >&2
       exit 1
     fi
     mv "$TAG_APP_STAGING_PATH/Contents/MacOS/$APP_EXECUTABLE_NAME" \
-      "$TAG_APP_STAGING_PATH/Contents/MacOS/$DEV_EXECUTABLE_NAME"
+      "$TAG_APP_STAGING_PATH/Contents/MacOS/$STAGED_EXECUTABLE_NAME"
   fi
   INFO_PLIST="$TAG_APP_STAGING_PATH/Contents/Info.plist"
   if [[ -f "$INFO_PLIST" ]]; then
-    /usr/libexec/PlistBuddy -c "Set :CFBundleExecutable $DEV_EXECUTABLE_NAME" "$INFO_PLIST" 2>/dev/null \
-      || /usr/libexec/PlistBuddy -c "Add :CFBundleExecutable string $DEV_EXECUTABLE_NAME" "$INFO_PLIST"
+    /usr/libexec/PlistBuddy -c "Set :CFBundleExecutable $STAGED_EXECUTABLE_NAME" "$INFO_PLIST" 2>/dev/null \
+      || /usr/libexec/PlistBuddy -c "Add :CFBundleExecutable string $STAGED_EXECUTABLE_NAME" "$INFO_PLIST"
     /usr/libexec/PlistBuddy -c "Set :CFBundleName $APP_NAME" "$INFO_PLIST" 2>/dev/null \
       || /usr/libexec/PlistBuddy -c "Add :CFBundleName string $APP_NAME" "$INFO_PLIST"
     /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName $APP_NAME" "$INFO_PLIST" 2>/dev/null \
@@ -1183,7 +1220,7 @@ publish_reload_cli_path "$CLI_PATH"
 if [[ -n "$TAG" ]]; then
   /usr/bin/osascript -e "tell application id \"${BUNDLE_ID}\" to quit" >/dev/null 2>&1 || true
   sleep 0.3
-  pkill -f "${APP_NAME}.app/Contents/MacOS/${DEV_EXECUTABLE_NAME}" || true
+  pkill -f "${APP_NAME}.app/Contents/MacOS/${STAGED_EXECUTABLE_NAME}" || true
   sleep 0.3
 fi
 
@@ -1192,6 +1229,7 @@ if [[ "$LAUNCH" -eq 1 ]]; then
     # Non-tag mode: kill any running instance (across any DerivedData path) to avoid socket conflicts.
     /usr/bin/osascript -e "tell application id \"${BUNDLE_ID}\" to quit" >/dev/null 2>&1 || true
     sleep 0.3
+    pkill -f "/${APP_NAME}.app/Contents/MacOS/${STAGED_EXECUTABLE_NAME}" || true
     pkill -f "/${BASE_APP_NAME}.app/Contents/MacOS/${BASE_APP_NAME}" || true
     sleep 0.3
   fi
@@ -1272,7 +1310,7 @@ if [[ "$LAUNCH" -eq 1 ]]; then
   if [[ -n "${TAG_SLUG:-}" ]]; then
     # Launch tagged apps directly so LaunchServices cannot reuse a stale
     # LSEnvironment for the tag's bundle id.
-    APP_EXECUTABLE="$APP_PATH/Contents/MacOS/${DEV_EXECUTABLE_NAME}"
+    APP_EXECUTABLE="$APP_PATH/Contents/MacOS/${STAGED_EXECUTABLE_NAME}"
     if [[ ! -x "$APP_EXECUTABLE" ]]; then
       echo "error: tagged app executable not found: $APP_EXECUTABLE" >&2
       exit 1

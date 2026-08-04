@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# gdock-run — build or launch the current ghostty-dock branch's tagged DEV app.
+# gdock-run — build or launch the ghostty-dock main app (or a tagged/debug variant).
 set -euo pipefail
 
 SKIP_ZIG="${GDOCK_SKIP_ZIG:-1}"
-TAG_PREFIX="${GDOCK_TAG:-gdock}"
 STATE_DIR="${GDOCK_STATE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/gdock}"
 WORKTREE_OVERRIDE="${GDOCK_WORKTREE:-}"
 DERIVED_DATA_OVERRIDE="${GDOCK_DERIVED_DATA:-}"
@@ -18,17 +17,27 @@ FORCE_BUILD=0
 LAUNCH=1
 PATH_ONLY=0
 SHOW_LAST_RUN=0
+USER_TAG=""
+WANT_DEBUG=0
 
 usage() {
   cat <<'USAGE'
-gdock-run — build or launch a branch-specific ghostty-dock DEV app
+gdock-run — build or launch gdock
+
+Naming (matches reload.sh):
+  gdock-run                         Release → gdock.app              (main app)
+  gdock-run --tag <name>            Release → gdock <name>.app
+  gdock-run --debug                 Debug   → gdock DBG.app
+  gdock-run --debug --tag <name>    Debug   → gdock DBG <name>.app
 
 Usage:
-  gdock-run              Build when the current branch changed; then launch.
-  gdock-run --build      Force a rebuild of the current branch; then launch.
+  gdock-run              Build the main Release app when sources change; then launch.
+  gdock-run --build      Force a rebuild; then launch.
   gdock-run --build-only Force a rebuild; do not launch.
   gdock-run --no-launch  Build only when needed; do not launch.
-  gdock-run --path       Print the selected branch app (or last launched app).
+  gdock-run --tag <name> Parallel dogfood instance (appends tag to the name).
+  gdock-run --debug      Debug configuration (-Onone); names use "DBG".
+  gdock-run --path       Print the selected app path (or last launched app).
   gdock-run --last-run   Print the path and contents of the last saved run transcript.
   gdock-run --help
 
@@ -38,19 +47,18 @@ Every run (except --help / --last-run) is saved to:
 Previous run is rotated to last-run.log.prev / last-run.meta.prev.
 
 Inside a ghostty-dock worktree, gdock fingerprints HEAD plus tracked,
-untracked, and submodule state. Each branch gets its own tagged build and
-cache entry. Outside ghostty-dock, gdock opens the last app it launched.
+untracked, and submodule state. Cache keys include config + tag mode.
+Outside ghostty-dock, gdock opens the last app it launched.
 
 Environment overrides:
-  GDOCK_TAG            Branch-tag prefix (default: gdock).
   GDOCK_WORKTREE       Explicit ghostty-dock worktree instead of $PWD.
   GDOCK_DERIVED_DATA   Pass a derived-data override to reload.sh.
   GDOCK_APP            Fallback app outside a repo when no last app exists.
   GDOCK_STATE_DIR      Cache root (default: $XDG_CACHE_HOME/gdock or ~/.cache/gdock).
   GDOCK_SKIP_ZIG       Default: 1; set 0 to run Ghostty zig build phases.
 
-Tagged CLI usage is printed after a branch is selected:
-  CMUX_TAG=<branch-tag> scripts/cmux-debug-cli.sh …
+Tagged CLI usage (when --tag is set):
+  CMUX_TAG=<tag> scripts/cmux-debug-cli.sh …
 USAGE
 }
 
@@ -165,8 +173,8 @@ fi
 
 # === GDOCK_INNER=1: real work (all output captured by outer wrapper) ===
 
-for arg in "$@"; do
-  case "$arg" in
+while [[ $# -gt 0 ]]; do
+  case "$1" in
     -h|--help)
       usage
       exit 0
@@ -177,19 +185,43 @@ for arg in "$@"; do
       ;;
     --path)
       PATH_ONLY=1
+      shift
       ;;
     --build|-b)
       FORCE_BUILD=1
+      shift
       ;;
     --build-only)
       FORCE_BUILD=1
       LAUNCH=0
+      shift
       ;;
     --no-launch)
       LAUNCH=0
+      shift
+      ;;
+    --debug)
+      WANT_DEBUG=1
+      shift
+      ;;
+    --tag)
+      if [[ $# -lt 2 || -z "${2:-}" || "$2" == -* ]]; then
+        echo "gdock: --tag requires a value" >&2
+        exit 2
+      fi
+      USER_TAG="$2"
+      shift 2
+      ;;
+    --tag=*)
+      USER_TAG="${1#--tag=}"
+      if [[ -z "$USER_TAG" ]]; then
+        echo "gdock: --tag requires a value" >&2
+        exit 2
+      fi
+      shift
       ;;
     *)
-      echo "gdock: unknown argument: $arg" >&2
+      echo "gdock: unknown argument: $1" >&2
       usage >&2
       exit 2
       ;;
@@ -260,16 +292,37 @@ sanitize_tag_part() {
   value="${value#-}"
   value="${value%-}"
   value="${value:0:28}"
-  printf '%s\n' "${value:-branch}"
+  printf '%s\n' "${value:-tag}"
 }
 
-tag_for_branch() {
-  local branch="$1"
-  local branch_slug branch_hash prefix_slug
-  branch_slug="$(sanitize_tag_part "$branch")"
-  branch_hash="$(hash_text "$branch")"
-  prefix_slug="$(sanitize_tag_part "$TAG_PREFIX")"
-  printf '%s-%s-%s\n' "$prefix_slug" "$branch_slug" "${branch_hash:0:8}"
+# Cache/build identity for this invocation (config + optional tag).
+build_mode_key() {
+  local mode="release"
+  if [[ "$WANT_DEBUG" -eq 1 ]]; then
+    mode="debug"
+  fi
+  if [[ -n "$USER_TAG" ]]; then
+    printf '%s:%s\n' "$mode" "$(sanitize_tag_part "$USER_TAG")"
+  else
+    printf '%s:main\n' "$mode"
+  fi
+}
+
+# Expected staged app name (must match reload.sh).
+app_display_name() {
+  if [[ "$WANT_DEBUG" -eq 1 ]]; then
+    if [[ -n "$USER_TAG" ]]; then
+      printf 'gdock DBG %s\n' "$(sanitize_tag_part "$USER_TAG")"
+    else
+      printf 'gdock DBG\n'
+    fi
+  else
+    if [[ -n "$USER_TAG" ]]; then
+      printf 'gdock %s\n' "$(sanitize_tag_part "$USER_TAG")"
+    else
+      printf 'gdock\n'
+    fi
+  fi
 }
 
 repo_identity() {
@@ -344,13 +397,22 @@ write_atomic_line() {
 }
 
 expected_app_path() {
-  local tag="$1"
-  # reload.sh defaults to Release; tagged bundles are always named "gdock DEV <tag>.app"
-  # regardless of configuration (Release product is renamed during staging).
+  local config="Release"
+  local dd_slug="gdock"
+  local app_name
+  app_name="$(app_display_name)"
+  if [[ "$WANT_DEBUG" -eq 1 ]]; then
+    config="Debug"
+    dd_slug="gdock-dbg"
+  fi
+  if [[ -n "$USER_TAG" ]]; then
+    dd_slug="$(sanitize_tag_part "$USER_TAG")"
+  fi
   if [[ -n "$DERIVED_DATA_OVERRIDE" ]]; then
-    printf '%s/Build/Products/Release/gdock DEV %s.app\n' "$DERIVED_DATA_OVERRIDE" "$tag"
+    printf '%s/Build/Products/%s/%s.app\n' "$DERIVED_DATA_OVERRIDE" "$config" "$app_name"
   else
-    printf '%s/Library/Developer/Xcode/DerivedData/cmux-%s/Build/Products/Release/gdock DEV %s.app\n' "$HOME" "$tag" "$tag"
+    printf '%s/Library/Developer/Xcode/DerivedData/cmux-%s/Build/Products/%s/%s.app\n' \
+      "$HOME" "$dd_slug" "$config" "$app_name"
   fi
 }
 
@@ -375,26 +437,36 @@ last_app_path() {
   printf '%s\n' "$app"
 }
 
-build_branch() {
+build_app() {
   local root="$1"
-  local tag="$2"
-  local branch_state_dir="$3"
-  local output_file app fingerprint
+  local state_dir="$2"
+  local mode_key="$3"
+  local output_file app fingerprint reload_log_key
   local -a reload_args
   local reload_status=0
 
   output_file="$(mktemp "${TMPDIR:-/tmp}/gdock-reload.XXXXXX")"
   trap 'rm -f "$output_file"' RETURN
-  # Always build Release explicitly rather than inheriting reload.sh's default.
-  # The Debug configuration is -Onone and is unusably slow on a loaded machine,
-  # and relying on a default means a change to reload.sh could silently flip
-  # every gdock-run build to Debug.
-  reload_args=(--tag "$tag" --release)
+  reload_args=()
+  if [[ "$WANT_DEBUG" -eq 1 ]]; then
+    reload_args+=(--debug)
+  else
+    reload_args+=(--release)
+  fi
+  if [[ -n "$USER_TAG" ]]; then
+    reload_args+=(--tag "$USER_TAG")
+  fi
   if [[ -n "$DERIVED_DATA_OVERRIDE" ]]; then
     reload_args+=(--derived-data "$DERIVED_DATA_OVERRIDE")
   fi
 
-  echo "gdock: building tag=$tag worktree=$root" >&2
+  if [[ -n "$USER_TAG" ]]; then
+    reload_log_key="$(sanitize_tag_part "$USER_TAG")"
+  else
+    reload_log_key="main"
+  fi
+
+  echo "gdock: building mode=$mode_key worktree=$root" >&2
   set +e
   (
     cd "$root"
@@ -411,8 +483,8 @@ build_branch() {
   # Always keep the console chunk from this build.
   cp -f "$output_file" "${STATE_DIR}/last-reload-console.log" 2>/dev/null || true
   # Prefer the full reload.sh log (xcodebuild transcript) when present.
-  if [[ -f "/tmp/cmux-reload-${tag}.log" ]]; then
-    cp -f "/tmp/cmux-reload-${tag}.log" "${STATE_DIR}/last-reload.log" 2>/dev/null || true
+  if [[ -f "/tmp/cmux-reload-${reload_log_key}.log" ]]; then
+    cp -f "/tmp/cmux-reload-${reload_log_key}.log" "${STATE_DIR}/last-reload.log" 2>/dev/null || true
     echo "gdock: full reload log saved: ${STATE_DIR}/last-reload.log" >&2
   else
     cp -f "$output_file" "${STATE_DIR}/last-reload.log" 2>/dev/null || true
@@ -444,9 +516,9 @@ build_branch() {
   }
 
   fingerprint="$(repo_fingerprint "$root")"
-  write_atomic_line "$branch_state_dir/app" "$app"
-  write_atomic_line "$branch_state_dir/fingerprint" "$fingerprint"
-  write_atomic_line "$branch_state_dir/tag" "$tag"
+  write_atomic_line "$state_dir/app" "$app"
+  write_atomic_line "$state_dir/fingerprint" "$fingerprint"
+  write_atomic_line "$state_dir/mode" "$mode_key"
   printf '%s\n' "$app"
 }
 
@@ -477,18 +549,18 @@ if [[ -z "$repo_root" ]]; then
 fi
 
 branch="$(branch_name "$repo_root")"
-tag="$(tag_for_branch "$branch")"
+mode_key="$(build_mode_key)"
 repo_key="$(repo_identity "$repo_root")"
-branch_key="$(hash_text "$branch")"
-branch_state_dir="$STATE_DIR/builds/${repo_key:0:16}/${branch_key:0:16}"
-recorded_app="$(read_first_line "$branch_state_dir/app" 2>/dev/null || true)"
-recorded_fingerprint="$(read_first_line "$branch_state_dir/fingerprint" 2>/dev/null || true)"
+mode_hash="$(hash_text "$mode_key")"
+state_dir="$STATE_DIR/builds/${repo_key:0:16}/${mode_hash:0:16}"
+recorded_app="$(read_first_line "$state_dir/app" 2>/dev/null || true)"
+recorded_fingerprint="$(read_first_line "$state_dir/fingerprint" 2>/dev/null || true)"
 
 if [[ "$PATH_ONLY" -eq 1 ]]; then
   if [[ -n "$recorded_app" ]]; then
     printf '%s\n' "$recorded_app"
   else
-    expected_app_path "$tag"
+    expected_app_path
   fi
   exit 0
 fi
@@ -507,19 +579,21 @@ elif [[ ! -d "$recorded_app" ]]; then
   reason="recorded app is missing"
 elif [[ "$fingerprint" != "$recorded_fingerprint" ]]; then
   needs_build=1
-  reason="branch changed"
+  reason="sources changed"
 fi
 
 app="$recorded_app"
 if [[ "$needs_build" -eq 1 ]]; then
   echo "gdock: rebuild needed ($reason)" >&2
-  app="$(build_branch "$repo_root" "$tag" "$branch_state_dir")"
+  app="$(build_app "$repo_root" "$state_dir" "$mode_key")"
 else
-  echo "gdock: branch unchanged; reusing $app" >&2
+  echo "gdock: unchanged; reusing $app" >&2
 fi
 
-echo "gdock: branch=$branch tag=$tag" >&2
-echo "gdock: CLI: CMUX_TAG=$tag scripts/cmux-debug-cli.sh …" >&2
+echo "gdock: branch=$branch mode=$mode_key name=$(app_display_name)" >&2
+if [[ -n "$USER_TAG" ]]; then
+  echo "gdock: CLI: CMUX_TAG=$USER_TAG scripts/cmux-debug-cli.sh …" >&2
+fi
 if [[ "$LAUNCH" -eq 1 ]]; then
   launch_app "$app"
 fi
