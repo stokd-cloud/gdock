@@ -1636,6 +1636,7 @@ BE7A0010SIDEBARDOCKENV02 /* SessionSidebarDockSnapshot.swift in Sources */ = {is
 		BE7A0010SIDEBARDOCKFLGT02 /* SidebarDockFlagLayoutCrossTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKFLGT01 /* SidebarDockFlagLayoutCrossTests.swift */; };
 		68EDDFB05A6D52FDBE0EC8E2 /* SidebarDockFlagTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4E70E924295D338E336569 /* SidebarDockFlagTests.swift */; };
 		BE7A0010SIDEBARDOCKINSP02 /* SidebarDockInspectSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKINSP01 /* SidebarDockInspectSnapshot.swift */; };
+		A1B2C3D4E5F60001LEFTKIND02 /* SidebarDockLeftTabContentKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60001LEFTKIND01 /* SidebarDockLeftTabContentKind.swift */; };
 BE7A0010SIDEBARDOCKLIVE02 /* SidebarDockLiveSectionSemanticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */; };
 		A1B2C3D4E5F60001MNT02 /* SidebarDockMountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60001MNT01 /* SidebarDockMountTests.swift */; };
 		1411B3771C57309CC911FC64 /* SidebarDockPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EB242390A12A488F5CFD008 /* SidebarDockPanelView.swift */; };
@@ -3919,6 +3920,7 @@ BE7A0010SIDEBARDOCKENV01 /* SessionSidebarDockSnapshot.swift */ = {isa = PBXFile
 		BE7A0010SIDEBARDOCKFLGT01 /* SidebarDockFlagLayoutCrossTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockFlagLayoutCrossTests.swift; sourceTree = "<group>"; };
 		1F4E70E924295D338E336569 /* SidebarDockFlagTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockFlagTests.swift; sourceTree = "<group>"; };
 		BE7A0010SIDEBARDOCKINSP01 /* SidebarDockInspectSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockInspectSnapshot.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60001LEFTKIND01 /* SidebarDockLeftTabContentKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockLeftTabContentKind.swift; sourceTree = "<group>"; };
 BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockLiveSectionSemanticsTests.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60001MNT01 /* SidebarDockMountTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockMountTests.swift; sourceTree = "<group>"; };
 		7EB242390A12A488F5CFD008 /* SidebarDockPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockPanelView.swift; sourceTree = "<group>"; };
@@ -5198,6 +5200,7 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 				43CEFB99077EE7C26BBF16F6 /* SidebarDockStore.swift */,
 				A1B2C3D4E5F60001ROUT01 /* RightSidebarSelectionRouter.swift */,
 				A1B2C3D4E5F60001SEED01 /* SidebarDockSeeding.swift */,
+				A1B2C3D4E5F60001LEFTKIND01 /* SidebarDockLeftTabContentKind.swift */,
 				380356E52D476EE585AD02CE /* SidebarDockStoreRegistry.swift */,
 				5B0C00010000000000000002 /* SidebarResizerOcclusionResolver.swift */,
 				C0DEFF200000000000000002 /* CommandPaletteOverlay.swift */,
@@ -8423,6 +8426,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				9332702A430BAF9135E6390D /* SidebarDockEdge.swift in Sources */,
 				BE7A0010SIDEBARDOCKBAND02 /* SidebarDockEdgeBand.swift in Sources */,
 				BE7A0010SIDEBARDOCKINSP02 /* SidebarDockInspectSnapshot.swift in Sources */,
+				A1B2C3D4E5F60001LEFTKIND02 /* SidebarDockLeftTabContentKind.swift in Sources */,
 				1411B3771C57309CC911FC64 /* SidebarDockPanelView.swift in Sources */,
 				FF67D5D70FE120356BAC7B9D /* SidebarDockPlacementMatrix.swift in Sources */,
 				BE7A0010SIDEBARDOCKHDR02 /* SidebarDockSectionHeaderControlsSnapshot.swift in Sources */,

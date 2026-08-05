@@ -44,10 +44,72 @@ struct SidebarDockMountTests {
         let panel = try #require(store.panels.values.first)
         #expect(panel is LeftWorkspaceSelectorPanel)
         #expect(panel.panelType == .leftWorkspaceSelector)
+        #expect(SidebarDockLeftTabContentKind.resolve(panel: panel) == .workspaceSelector)
         // Sole selector: tab bar hidden (.multipleTabs with one tab).
         store.refreshTabBarVisibility()
         #expect(store.bonsplitController.configuration.tabBarVisibility == .multipleTabs)
         #expect(store.sectionCount == 1)
+    }
+
+    @Test func dockingToolsUnderLeftDispatchesRealToolKindsNotWorkspaceClone() throws {
+        // Regression: left contentForTab used to ignore tab id and always mount
+        // VerticalTabsSidebar, so Files/Find/Vault docked under Workspaces became
+        // a second workspace list.
+        let manager = TabManager()
+        let workspace = try #require(manager.selectedWorkspace)
+        let registry = SidebarDockStoreRegistry(windowId: UUID())
+        registry.left.updateRailContentHeight(900)
+        registry.right.updateRailContentHeight(900)
+
+        let selector = LeftWorkspaceSelectorPanel(workspace: workspace)
+        registry.left.seedRootPanels([selector])
+        let files = RightSidebarToolPanel(workspace: workspace, mode: .files)
+        let find = RightSidebarToolPanel(workspace: workspace, mode: .find)
+        let vault = RightSidebarToolPanel(workspace: workspace, mode: .sessions)
+        registry.right.seedRootPanels([files, find, vault])
+
+        #expect(SidebarDockLeftTabContentKind.resolve(panel: selector) == .workspaceSelector)
+        #expect(SidebarDockLeftTabContentKind.resolve(panel: files) == .files)
+        #expect(SidebarDockLeftTabContentKind.resolve(panel: find) == .find)
+        #expect(SidebarDockLeftTabContentKind.resolve(panel: vault) == .vault)
+
+        // Leave one tool on the right (empty-rail guard refuses draining the last).
+        for (panel, expected) in [
+            (files as any Panel, SidebarDockLeftTabContentKind.files),
+            (find as any Panel, .find),
+        ] {
+            let outcome = SidebarDockTransfer.moveTab(
+                registry: registry,
+                panelId: panel.id,
+                from: .right,
+                to: .left,
+                destination: .newVerticalSection(position: .bottom)
+            )
+            #expect(outcome == .moved)
+            let leftPanel = try #require(registry.left.panels[panel.id])
+            #expect(SidebarDockLeftTabContentKind.resolve(panel: leftPanel) == expected)
+            // Selector must still resolve as workspaces — never replaced by the tool.
+            #expect(
+                SidebarDockLeftTabContentKind.resolve(panel: registry.left.panels[selector.id])
+                    == .workspaceSelector
+            )
+        }
+
+        // Vault still on right; resolve path still maps sessions → vault for left
+        // hosts even before a transfer lands.
+        #expect(SidebarDockLeftTabContentKind.resolve(panel: vault) == .vault)
+        #expect(registry.right.panels[vault.id] != nil)
+
+        let kinds = registry.left.orderedSectionPaneIds().flatMap { pane in
+            registry.left.bonsplitController.tabs(inPane: pane).map { tab in
+                SidebarDockLeftTabContentKind.resolve(panel: registry.left.panel(for: tab.id))
+            }
+        }
+        #expect(kinds.contains(.workspaceSelector))
+        #expect(kinds.contains(.files))
+        #expect(kinds.contains(.find))
+        #expect(kinds.filter { $0 == .workspaceSelector }.count == 1)
+        #expect(!kinds.contains(.empty))
     }
 
     @Test func emptyRailsReseedCanonicalContents() throws {

@@ -1700,12 +1700,18 @@ struct ContentView: View {
         // Flag on + default provider: mount selector inside left dock rail.
         // Extension/custom providers keep the legacy VerticalTabsSidebar branch
         // (provider switch lives inside the sidebar; flag-off is identical).
+        //
+        // contentForTab MUST dispatch by panel type. Returning the workspace
+        // selector for every tab turns docked Files/Find/Vault into a Workspaces
+        // clone under the left rail.
         return Group {
             if sidebarDockEnabled, let registry = sidebarDockRegistry {
                 SidebarDockPanelView(
                     store: registry.left,
                     isRailVisible: sidebarState.isVisible,
-                    contentForTab: { _, _ in hosted },
+                    contentForTab: { tabId, _ in
+                        AnyView(leftDockContent(for: tabId, store: registry.left, workspaceSelector: hosted))
+                    },
                     shortCircuitHiddenContent: false
                 )
                 .accessibilityIdentifier("SidebarDock.left")
@@ -1716,6 +1722,42 @@ struct ContentView: View {
         .modifier(SidebarWidthFrameModifier(layout: sidebarLayout))
         .frame(maxHeight: .infinity, alignment: .topLeading)
         .background(leftDockRailSeedProbe)
+    }
+
+    /// Left-rail tab content: selector vs Files/Find/Vault (never a selector clone).
+    @ViewBuilder
+    private func leftDockContent(
+        for tabId: TabID,
+        store: SidebarDockStore,
+        workspaceSelector: AnyView
+    ) -> some View {
+        switch SidebarDockLeftTabContentKind.resolve(panel: store.panel(for: tabId)) {
+        case .workspaceSelector:
+            workspaceSelector
+        case .files:
+            FileExplorerPanelView(
+                store: fileExplorerStore,
+                state: fileExplorerState,
+                onOpenFilePreview: openFilePreviewFromSidebar,
+                presentation: .files
+            )
+        case .find:
+            FileExplorerPanelView(
+                store: fileExplorerStore,
+                state: fileExplorerState,
+                onOpenFilePreview: openFilePreviewFromSidebar,
+                presentation: .find
+            )
+        case .vault:
+            SessionIndexView(
+                store: sessionIndexStore,
+                onResume: { entry in
+                    resumeSession(entry: entry)
+                }
+            )
+        case .empty:
+            Color.clear
+        }
     }
 
     /// Ensures the per-window registry exists and left rail is seeded once.

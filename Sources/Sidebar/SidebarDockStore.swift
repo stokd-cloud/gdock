@@ -84,7 +84,10 @@ final class SidebarDockStore: BonsplitDelegate {
         self.windowId = windowId
         self.collapsedSectionHeight = collapsedSectionHeight
         self.bonsplitController = BonsplitController(
-            configuration: Self.makeConfiguration(collapsedSectionHeight: collapsedSectionHeight)
+            configuration: Self.makeConfiguration(
+                edge: edge,
+                collapsedSectionHeight: collapsedSectionHeight
+            )
         )
         self.bonsplitController.delegate = self
         // Drop default welcome tab so the root pane starts empty until seeded.
@@ -122,9 +125,20 @@ final class SidebarDockStore: BonsplitDelegate {
 
     // MARK: - Configuration
 
-    static func makeConfiguration(collapsedSectionHeight: CGFloat) -> BonsplitConfiguration {
+    static func makeConfiguration(
+        edge: SidebarDockEdge,
+        collapsedSectionHeight: CGFloat
+    ) -> BonsplitConfiguration {
         // Widen dividerPositionRange so collapse-to-header is not double-clamped
         // against the default 0.1...0.9 fraction range (mission D-4).
+        //
+        // Left rail: multi-section tab bars sit under the window traffic lights.
+        // Bonsplit's tabBarLeadingInset (first pane only) clears that chrome so
+        // "Workspaces" / tool tab titles do not collide with the close/min/zoom
+        // buttons. Right rail has no traffic lights — keep 0.
+        let tabBarLeadingInset: CGFloat = edge == .left
+            ? CGFloat(MinimalModeTitlebarDebugSettings.defaultTrafficLightTabBarInset)
+            : 0
         var config = BonsplitConfiguration(
             allowSplits: true,
             allowCloseTabs: true,
@@ -141,7 +155,8 @@ final class SidebarDockStore: BonsplitDelegate {
                 minimumPaneHeight: collapsedSectionHeight,
                 dividerThickness: 1,
                 showSplitButtons: false,
-                enableAnimations: false
+                enableAnimations: false,
+                tabBarLeadingInset: tabBarLeadingInset
             )
         )
         // Explicit public vars in case the initializer path changes.
@@ -149,6 +164,7 @@ final class SidebarDockStore: BonsplitDelegate {
         config.appearance.tabBarHeight = collapsedSectionHeight
         config.appearance.dividerThickness = 1
         config.appearance.showSplitButtons = false
+        config.appearance.tabBarLeadingInset = tabBarLeadingInset
         return config
     }
 

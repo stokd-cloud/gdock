@@ -40,7 +40,7 @@ struct SidebarDockStoreTests {
 
     @Test func makeConfigurationEnablesCollapseGeometryAndSuppressesSplitButtons() {
         let height: CGFloat = 28
-        let config = SidebarDockStore.makeConfiguration(collapsedSectionHeight: height)
+        let config = SidebarDockStore.makeConfiguration(edge: .right, collapsedSectionHeight: height)
         #expect(config.allowCloseLastPane == false)
         #expect(config.allowSplits == true)
         #expect(config.allowTabReordering == true)
@@ -51,6 +51,24 @@ struct SidebarDockStoreTests {
         #expect(config.appearance.tabBarHeight == height)
         #expect(config.dividerPositionRange.lowerBound == 0)
         #expect(config.dividerPositionRange.upperBound == 1)
+        // Right rail never sits under traffic lights.
+        #expect(config.appearance.tabBarLeadingInset == 0)
+    }
+
+    @Test func leftRailConfigurationInsetsTabBarPastTrafficLights() {
+        let height: CGFloat = 28
+        let left = SidebarDockStore.makeConfiguration(edge: .left, collapsedSectionHeight: height)
+        let right = SidebarDockStore.makeConfiguration(edge: .right, collapsedSectionHeight: height)
+        #expect(left.appearance.tabBarLeadingInset >= CGFloat(MinimalModeTitlebarDebugSettings.defaultTrafficLightTabBarInset))
+        #expect(right.appearance.tabBarLeadingInset == 0)
+        // Live store init applies the same inset.
+        let leftStore = SidebarDockStore(edge: .left, windowId: UUID())
+        let rightStore = SidebarDockStore(edge: .right, windowId: UUID())
+        #expect(
+            leftStore.bonsplitController.configuration.appearance.tabBarLeadingInset
+                >= CGFloat(MinimalModeTitlebarDebugSettings.defaultTrafficLightTabBarInset)
+        )
+        #expect(rightStore.bonsplitController.configuration.appearance.tabBarLeadingInset == 0)
     }
 
     @Test func storeHasNoMaximumSectionConstantAndStartsEmpty() {
