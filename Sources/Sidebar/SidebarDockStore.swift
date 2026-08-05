@@ -155,8 +155,8 @@ final class SidebarDockStore: BonsplitDelegate {
                 minimumPaneHeight: collapsedSectionHeight,
                 dividerThickness: 1,
                 showSplitButtons: false,
-                enableAnimations: false,
-                tabBarLeadingInset: tabBarLeadingInset
+                tabBarLeadingInset: tabBarLeadingInset,
+                enableAnimations: false
             )
         )
         // Explicit public vars in case the initializer path changes.
