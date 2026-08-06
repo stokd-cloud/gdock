@@ -14274,6 +14274,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             return true
         }
 
+        if matchConfiguredShortcut(event: event, action: .gdockNextQuadPane) {
+#if DEBUG
+            cmuxDebugLog("shortcut.action name=gdockNextQuadPane \(debugShortcutRouteSnapshot(event: event))")
+#endif
+            if shouldSuppressSplitShortcutForTransientTerminalFocusState(direction: .right) {
+                return true
+            }
+            _ = QuadSplitAdapters.performNextQuadPaneSharedFocusPath(
+                preferredWindow: event.window ?? shortcutRoutingActiveWindow,
+                tabManager: tabManager
+            )
+            return true
+        }
+
+        if matchConfiguredShortcut(event: event, action: .gdockQuadPaneWorkspaces) {
+#if DEBUG
+            cmuxDebugLog("shortcut.action name=gdockQuadPaneWorkspaces \(debugShortcutRouteSnapshot(event: event))")
+#endif
+            _ = QuadSplitAdapters.performQuadPaneWorkspacesSharedFocusPath(
+                preferredWindow: event.window ?? shortcutRoutingActiveWindow,
+                tabManager: tabManager
+            )
+            return true
+        }
+
         if matchConfiguredShortcut(event: event, action: .splitBrowserRight) {
 #if DEBUG
             cmuxDebugLog("shortcut.action name=splitBrowserRight \(debugShortcutRouteSnapshot(event: event))")
@@ -15105,6 +15130,55 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             return false
         }
         return tabManager?.createQuadSplit(focus: true) == true
+    }
+
+    /// Shared main-area gdock next-quad entrypoint used by the Settings-bound shortcut.
+    @discardableResult
+    func performNextQuadPaneShortcut(preferredWindow: NSWindow? = nil) -> Bool {
+        let targetWindow = preferredWindow ?? shortcutRoutingActiveWindow
+        let terminalContext = focusedTerminalShortcutContext(preferredWindow: targetWindow)
+        _ = synchronizeActiveMainWindowContext(preferredWindow: targetWindow)
+
+        if let terminalContext {
+            if let workspace = terminalContext.tabManager.tabs.first(where: { $0.id == terminalContext.workspaceId }),
+               workspace.layoutMode == .canvas {
+                return false
+            }
+            return terminalContext.tabManager.createNextQuadPane(
+                tabId: terminalContext.workspaceId,
+                surfaceId: terminalContext.panelId,
+                focus: true
+            )
+        }
+        if let workspace = tabManager?.selectedWorkspace,
+           workspace.layoutMode == .canvas {
+            return false
+        }
+        return tabManager?.createNextQuadPane(focus: true) == true
+    }
+
+    /// Shared main-area gdock quad-workspaces entrypoint used by the Settings-bound shortcut.
+    @discardableResult
+    func performQuadPaneWorkspacesShortcut(preferredWindow: NSWindow? = nil) -> Bool {
+        let targetWindow = preferredWindow ?? shortcutRoutingActiveWindow
+        let terminalContext = focusedTerminalShortcutContext(preferredWindow: targetWindow)
+        _ = synchronizeActiveMainWindowContext(preferredWindow: targetWindow)
+
+        if let terminalContext {
+            if let workspace = terminalContext.tabManager.tabs.first(where: { $0.id == terminalContext.workspaceId }),
+               workspace.layoutMode == .canvas {
+                return false
+            }
+            return terminalContext.tabManager.createQuadPaneWorkspaces(
+                tabId: terminalContext.workspaceId,
+                focus: true
+            )
+        }
+        if let workspace = tabManager?.selectedWorkspace,
+           workspace.layoutMode == .canvas {
+            return false
+        }
+        return tabManager?.createQuadPaneWorkspaces(focus: true) == true
     }
 
     @discardableResult

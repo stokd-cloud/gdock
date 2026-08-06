@@ -95,6 +95,10 @@ extension ShortcutAction {
         case .splitQuad:
             // D-3: unbound by default. ⌃⌘D is macOS-reserved; Cmd+D family exhausted.
             return nil
+        case .gdockNextQuadPane:
+            return ShortcutStroke(key: "y", command: true)
+        case .gdockQuadPaneWorkspaces:
+            return ShortcutStroke(key: "y", command: true, shift: true)
         case .splitBrowserRight: return ShortcutStroke(key: "d", command: true, option: true)
         case .splitBrowserDown: return ShortcutStroke(key: "d", command: true, shift: true, option: true)
         case .toggleCanvasLayout: return ShortcutStroke(key: "c", command: true, control: true)
