@@ -99,6 +99,8 @@ public enum ShortcutAction: String, CaseIterable, Sendable, Hashable, SettingCod
     case equalizeSplits
     /// True 2×2 terminal grid. Unbound by default (D-3); Settings-editable.
     case splitQuad
+    case gdockNextQuadPane = "gdock.nextQuadPane"
+    case gdockQuadPaneWorkspaces = "gdock.quadPaneWorkspaces"
     case splitBrowserRight
     case splitBrowserDown
     case toggleRightSidebar = "toggleFileExplorer"
@@ -198,7 +200,9 @@ extension ShortcutAction {
              .clearScreenKeepScrollback:
             return .navigation
         case .focusLeft, .focusRight, .focusUp, .focusDown, .splitRight, .splitDown,
-             .toggleSplitZoom, .equalizeSplits, .splitQuad, .splitBrowserRight, .splitBrowserDown,
+             .toggleSplitZoom, .equalizeSplits, .splitQuad,
+             .gdockNextQuadPane, .gdockQuadPaneWorkspaces,
+             .splitBrowserRight, .splitBrowserDown,
              .toggleRightSidebar, .fileExplorerOpenSelection, .fileExplorerOpenSelectionFinderAlias,
              .toggleCanvasLayout, .canvasRevealFocusedPane, .canvasOverview,
              .canvasZoomIn, .canvasZoomOut, .canvasZoomReset, .canvasTidy,
@@ -408,6 +412,10 @@ extension ShortcutAction {
         case .equalizeSplits: return "Equalize Splits"
         case .splitQuad:
             return String(localized: "shortcut.splitQuad.label", defaultValue: "Split Quad")
+        case .gdockNextQuadPane:
+            return String(localized: "shortcut.gdock.nextQuadPane.label", defaultValue: "Create Next Quad Pane")
+        case .gdockQuadPaneWorkspaces:
+            return String(localized: "shortcut.gdock.quadPaneWorkspaces.label", defaultValue: "Create Quad Pane Workspaces")
         case .splitBrowserRight: return "Split Browser Right"
         case .splitBrowserDown: return "Split Browser Down"
         case .toggleRightSidebar: return "Toggle Right Sidebar"

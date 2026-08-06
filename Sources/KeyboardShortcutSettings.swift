@@ -138,6 +138,8 @@ enum KeyboardShortcutSettings {
         /// by macOS for "Look Up & data detectors" and never reaches the app's key
         /// monitor; the rest of the Cmd+D family is already taken. Settings-editable.
         case splitQuad
+        case gdockNextQuadPane = "gdock.nextQuadPane"
+        case gdockQuadPaneWorkspaces = "gdock.quadPaneWorkspaces"
         case splitBrowserRight
         case splitBrowserDown
 
@@ -274,6 +276,10 @@ enum KeyboardShortcutSettings {
             case .toggleSplitZoom: return String(localized: "shortcut.togglePaneZoom.label", defaultValue: "Toggle Pane Zoom")
             case .equalizeSplits: return String(localized: "shortcut.equalizeSplits.label", defaultValue: "Equalize Splits")
             case .splitQuad: return String(localized: "shortcut.splitQuad.label", defaultValue: "Split Quad")
+            case .gdockNextQuadPane:
+                return String(localized: "shortcut.gdock.nextQuadPane.label", defaultValue: "Create Next Quad Pane")
+            case .gdockQuadPaneWorkspaces:
+                return String(localized: "shortcut.gdock.quadPaneWorkspaces.label", defaultValue: "Create Quad Pane Workspaces")
             case .splitBrowserRight: return String(localized: "shortcut.splitBrowserRight.label", defaultValue: "Split Browser Right")
             case .splitBrowserDown: return String(localized: "shortcut.splitBrowserDown.label", defaultValue: "Split Browser Down")
             case .toggleCanvasLayout: return String(localized: "shortcut.toggleCanvasLayout.label", defaultValue: "Toggle Canvas Layout")
@@ -463,6 +469,10 @@ enum KeyboardShortcutSettings {
                 // D-3: ship unbound. ⌃⌘D is swallowed by macOS Look Up; the rest of
                 // the Cmd+D family is already assigned. Users rebind in Settings.
                 return .unbound
+            case .gdockNextQuadPane:
+                return StoredShortcut(key: "y", command: true, shift: false, option: false, control: false)
+            case .gdockQuadPaneWorkspaces:
+                return StoredShortcut(key: "y", command: true, shift: true, option: false, control: false)
             case .splitBrowserRight:
                 return StoredShortcut(key: "d", command: true, shift: false, option: true, control: false)
             case .splitBrowserDown:

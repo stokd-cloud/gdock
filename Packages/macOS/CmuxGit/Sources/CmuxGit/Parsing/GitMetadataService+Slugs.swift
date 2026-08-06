@@ -4,13 +4,16 @@ extension GitMetadataService {
     /// Primary GitHub `owner/name` slug for the repository enclosing `directory`.
     ///
     /// Reads remotes from on-disk git config (no `git` process). Prefers
-    /// `upstream`, then `origin`, then other remotes — same ordering as
-    /// ``githubRepositorySlugs(fromGitRemoteVOutput:)``. Returns `nil` when
+    /// `origin` for checkout identity, then falls back to the ordered remote
+    /// list used by ``githubRepositorySlugs(fromGitRemoteVOutput:)``. Returns `nil` when
     /// `directory` is not inside a git repo or has no GitHub remote.
     public nonisolated static func primaryGitHubRepositorySlug(for directory: String) -> String? {
         guard let repository = resolveGitRepository(containing: directory),
               let output = gitRemoteVOutput(repository: repository) else {
             return nil
+        }
+        if let originSlug = githubRepositorySlugByRemoteName(fromGitRemoteVOutput: output)["origin"] {
+            return originSlug
         }
         return githubRepositorySlugs(fromGitRemoteVOutput: output).first
     }
@@ -21,22 +24,7 @@ extension GitMetadataService {
     /// Only `(fetch)` lines for `github.com` remotes contribute. Results are
     /// ordered `upstream`, then `origin`, then other remotes alphabetically.
     nonisolated static func githubRepositorySlugs(fromGitRemoteVOutput output: String) -> [String] {
-        var slugByRemoteName: [String: String] = [:]
-
-        for line in output.split(whereSeparator: \.isNewline) {
-            let parts = line.split(whereSeparator: \.isWhitespace)
-            guard parts.count >= 3 else { continue }
-
-            let remoteName = String(parts[0])
-            let remoteURL = String(parts[1])
-            let remoteKind = String(parts[2])
-            guard remoteKind == "(fetch)",
-                  let repoSlug = githubRepositorySlug(fromRemoteURL: remoteURL) else {
-                continue
-            }
-
-            slugByRemoteName[remoteName] = repoSlug
-        }
+        let slugByRemoteName = githubRepositorySlugByRemoteName(fromGitRemoteVOutput: output)
 
         let orderedRemoteNames = slugByRemoteName.keys.sorted { lhs, rhs in
             let lhsPriority = githubRemotePriority(lhs)
@@ -57,6 +45,27 @@ extension GitMetadataService {
             orderedSlugs.append(repoSlug)
         }
         return orderedSlugs
+    }
+
+    nonisolated static func githubRepositorySlugByRemoteName(fromGitRemoteVOutput output: String) -> [String: String] {
+        var slugByRemoteName: [String: String] = [:]
+
+        for line in output.split(whereSeparator: \.isNewline) {
+            let parts = line.split(whereSeparator: \.isWhitespace)
+            guard parts.count >= 3 else { continue }
+
+            let remoteName = String(parts[0])
+            let remoteURL = String(parts[1])
+            let remoteKind = String(parts[2])
+            guard remoteKind == "(fetch)",
+                  let repoSlug = githubRepositorySlug(fromRemoteURL: remoteURL) else {
+                continue
+            }
+
+            slugByRemoteName[remoteName] = repoSlug
+        }
+
+        return slugByRemoteName
     }
 
     /// Sort priority for a remote name: `upstream` (0), `origin` (1), other (2).
