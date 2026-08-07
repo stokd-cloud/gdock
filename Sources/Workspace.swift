@@ -13144,6 +13144,8 @@ extension Workspace: BonsplitDelegate {
                 )
             case .newSimulator:
                 _ = newSimulatorSurface(inPane: pane, focus: true)
+            case .splitQuad:
+                _ = QuadSplitAction.perform(inPane: pane, workspace: self)
             case .newTerminal, .newBrowser, .splitRight, .splitDown:
                 break
             }
@@ -13251,6 +13253,14 @@ extension Workspace: BonsplitDelegate {
             "pane=\(pane.id.uuidString.prefix(5)) identifier=\(identifier)"
         )
 #endif
+        // Split Quad uses bonsplit `.custom("cmux.splitQuad")`. Built-ins with a
+        // non-nil bonsplitAction are not registered in surfaceTabBarCommandButtons.
+        if identifier == QuadSplitAction.customActionIdentifier
+            || identifier == "splitQuad"
+            || CmuxSurfaceTabBarBuiltInAction(configID: identifier) == .splitQuad {
+            _ = QuadSplitAction.perform(inPane: pane, workspace: self)
+            return
+        }
         executeSurfaceTabBarCommandButton(identifier: identifier, inPane: pane)
     }
 

@@ -938,6 +938,10 @@ struct CmuxSurfaceTabBarButton: Codable, Sendable, Hashable, Identifiable {
     static let newSimulator = actionReference(CmuxSurfaceTabBarBuiltInAction.newSimulator.configID)
     static let splitRight = actionReference(CmuxSurfaceTabBarBuiltInAction.splitRight.configID)
     static let splitDown = actionReference(CmuxSurfaceTabBarBuiltInAction.splitDown.configID)
+    static let splitQuad = actionReference(
+        CmuxSurfaceTabBarBuiltInAction.splitQuad.configID,
+        tooltip: String(localized: "workspace.tooltip.splitQuad", defaultValue: "Split Quad")
+    )
 
     static let mobileConnect = actionReference(CmuxSurfaceTabBarBuiltInAction.mobileConnect.configID)
 
@@ -945,7 +949,8 @@ struct CmuxSurfaceTabBarButton: Codable, Sendable, Hashable, Identifiable {
         .newTerminal,
         .newBrowser,
         .splitRight,
-        .splitDown
+        .splitDown,
+        .splitQuad
     ]
 
     static func builtIn(
@@ -2068,7 +2073,8 @@ final class CmuxConfigStore: ObservableObject {
             .builtIn(.newTerminal),
             .builtIn(.newBrowser),
             .builtIn(.splitRight),
-            .builtIn(.splitDown)
+            .builtIn(.splitDown),
+            .builtIn(.splitQuad)
         ]
         let resolvedButtons = resolvedSurfaceTabBarButtons(
             configuredButtons,
