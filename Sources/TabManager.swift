@@ -325,11 +325,6 @@ class TabManager: ObservableObject {
                 }
             }
             publishCmuxWorkspaceSelectedChange(from: previousTabId)
-            // Rails reattach tool adapters to the newly selected workspace only
-            // in this window (VAL-CROSS-001 / D-15). Other windows are untouched.
-            if let workspace = selectedWorkspace {
-                reattachSidebarDockAdapters(to: workspace)
-            }
             let notificationDismissalContext = notificationDismissal.takePendingSelectionContext() ?? .activeFocus
 #if DEBUG
             let switchId = debugWorkspaceSwitchId
