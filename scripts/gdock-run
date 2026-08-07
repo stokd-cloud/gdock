@@ -248,8 +248,10 @@ is_ghostty_dock_root() {
   local origin_url
   [[ -x "$root/scripts/reload.sh" ]] || return 1
   origin_url="$(git -C "$root" remote get-url origin 2>/dev/null || true)"
+  # Accept both the pre-rename remote (ghostty-dock) and the product rename (gdock).
   case "$origin_url" in
-    */ghostty-dock|*/ghostty-dock.git|*:ghostty-dock|*:ghostty-dock.git)
+    */ghostty-dock|*/ghostty-dock.git|*:ghostty-dock|*:ghostty-dock.git|\
+    */gdock|*/gdock.git|*:gdock|*:gdock.git)
       return 0
       ;;
     *)
