@@ -1,28 +1,12 @@
 # Phase 4: Panel UI implementations
 
-**Project:** Stokd Rail Panels — First Slice
+**Project:** Stokd Rail Panels — Left Rail Slice
 **Slug:** stokd-rail-panels-first-slice
 **Review Mode:** complete
 
 ## Work Items
 
-### 4.1: Work panel (right rail tab)
-
-**Implementation Details**
-
-- **Landing:** fork-only.
-- Implement Work panel UI: list tasks + projects for active workspace context; filter/sort consistent with current stokd API shapes.
-- Wire as right-rail tool tab content for `stokdWork`.
-- Actor surfaces (palette / section menu if applicable) go through existing `SidebarDockActionInvoker` → `SidebarDockCommand.perform` patterns — no store-only-only reachability.
-- Failure modes: API down → empty state with error text; offline-friendly when fixtures allow.
-
-**Acceptance Criteria**
-
-- AC-4.1.a: Mounting `stokdWork` renders a non-empty view hierarchy for fixture-backed store.
-- AC-4.1.b: Unit/view-model tests cover list mapping for tasks and projects.
-- AC-4.1.c: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
-
-### 4.2: Worktrees panel (left section)
+### 4.1: Worktrees panel (left section)
 
 **Implementation Details**
 
@@ -33,11 +17,11 @@
 
 **Acceptance Criteria**
 
-- AC-4.2.a: Fixture repo produces expected worktree rows in unit tests.
-- AC-4.2.b: Non-git path yields empty state without crash.
-- AC-4.2.c: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorktreesPanelTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
+- AC-4.1.a: Fixture repo produces expected worktree rows in unit tests.
+- AC-4.1.b: Non-git path yields empty state without crash.
+- AC-4.1.c: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorktreesPanelTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
 
-### 4.3: Global Config panel (left section)
+### 4.2: Global Config panel (left section)
 
 **Implementation Details**
 
@@ -48,11 +32,11 @@
 
 **Acceptance Criteria**
 
-- AC-4.3.a: Schema fixture renders ≥1 field group.
-- AC-4.3.b: Write path unit test asserts `stokd config set` argv, never FileManager write to yaml.
-- AC-4.3.c: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdGlobalConfigPanelTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
+- AC-4.2.a: Schema fixture renders ≥1 field group.
+- AC-4.2.b: Write path unit test asserts `stokd config set` argv, never FileManager write to yaml.
+- AC-4.2.c: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdGlobalConfigPanelTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
 
-### 4.4: Usage panel (left section, bottom)
+### 4.3: Usage panel (left section, bottom)
 
 **Implementation Details**
 
@@ -63,7 +47,6 @@
 
 **Acceptance Criteria**
 
-- AC-4.4.a: Fixture usage records aggregate into provider/model rows.
-- AC-4.4.b: Missing cache columns do not display as measured zero when unavailable.
-- AC-4.4.c: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdUsagePanelTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
-
+- AC-4.3.a: Fixture usage records aggregate into provider/model rows.
+- AC-4.3.b: Missing cache columns do not display as measured zero when unavailable.
+- AC-4.3.c: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdUsagePanelTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
