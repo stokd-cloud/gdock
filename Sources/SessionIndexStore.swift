@@ -1,4 +1,5 @@
 import CmuxFoundation
+import CmuxGit
 import AppKit
 import Bonsplit
 import CMUXAgentLaunch
@@ -422,6 +423,11 @@ final class SessionIndexStore: ObservableObject {
     private func directoryDisplayName(_ path: String) -> String {
         if path.isEmpty {
             return String(localized: "sessionIndex.directory.unknown", defaultValue: "(no folder)")
+        }
+        // Prefer owner/repo (branch) so branch-named worktrees (…/main) do not
+        // all collapse to the same unhelpful section title.
+        if let repoLabel = GitMetadataService.repositoryDirectoryDisplayName(for: path) {
+            return repoLabel
         }
         return (path as NSString).lastPathComponent
     }

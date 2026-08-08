@@ -1,4 +1,5 @@
 import CMUXAgentLaunch
+import CmuxGit
 import Foundation
 
 // MARK: - Agents
@@ -588,6 +589,12 @@ struct SessionEntry: Identifiable, Hashable, Sendable {
 
     var cwdLabel: String? {
         guard let cwd, !cwd.isEmpty else { return nil }
+        // Inside a git checkout with a GitHub remote, collapse the path to the
+        // repo identity (owner/repo or owner/repo (branch)) instead of the full
+        // worktree path whose last segment is often just the branch name.
+        if let repoLabel = GitMetadataService.repositoryDirectoryDisplayName(for: cwd) {
+            return repoLabel
+        }
         let home = NSHomeDirectory()
         // Compare on a path boundary so /Users/al doesn't get matched by a
         // home of /Users/alice (would render as "~ice/foo").
@@ -602,6 +609,9 @@ struct SessionEntry: Identifiable, Hashable, Sendable {
 
     var cwdBasename: String? {
         guard let cwd, !cwd.isEmpty else { return nil }
+        if let repoLabel = GitMetadataService.repositoryDirectoryDisplayName(for: cwd) {
+            return repoLabel
+        }
         return (cwd as NSString).lastPathComponent
     }
 }
