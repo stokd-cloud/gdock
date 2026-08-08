@@ -114,7 +114,10 @@ import Testing
         #expect(GitMetadataService.repositoryDirectoryDisplayName(for: fixture.root.path) == nil)
     }
 
-    @Test func prefersUpstreamSlugThenOrigin() throws {
+    /// A Vault folder must be labelled with the repo it actually is. Preferring
+    /// the upstream slug labelled a gdock checkout `manaflow-ai/cmux`, so this
+    /// follows the origin-first ordering in `githubRemotePriority`.
+    @Test func prefersOriginSlugThenUpstream() throws {
         let fixture = try GitRepositoryFixture()
         try fixture.writeBranch("main")
         try fixture.writeConfig("""
@@ -127,7 +130,7 @@ import Testing
 
         #expect(
             GitMetadataService.repositoryDirectoryDisplayName(for: fixture.root.path)
-                == "owner/canonical"
+                == "me/fork"
         )
     }
 
