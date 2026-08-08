@@ -4,7 +4,7 @@ extension GitMetadataService {
     /// Primary GitHub `owner/name` slug for the repository enclosing `directory`.
     ///
     /// Reads remotes from on-disk git config (no `git` process). Prefers
-    /// `upstream`, then `origin`, then other remotes — same ordering as
+    /// `origin`, then `upstream`, then other remotes — same ordering as
     /// ``githubRepositorySlugs(fromGitRemoteVOutput:)``. Returns `nil` when
     /// `directory` is not inside a git repo or has no GitHub remote.
     public nonisolated static func primaryGitHubRepositorySlug(for directory: String) -> String? {
@@ -19,7 +19,7 @@ extension GitMetadataService {
     /// `git remote -v`-style output.
     ///
     /// Only `(fetch)` lines for `github.com` remotes contribute. Results are
-    /// ordered `upstream`, then `origin`, then other remotes alphabetically.
+    /// ordered `origin`, then `upstream`, then other remotes alphabetically.
     nonisolated static func githubRepositorySlugs(fromGitRemoteVOutput output: String) -> [String] {
         var slugByRemoteName: [String: String] = [:]
 
@@ -59,12 +59,17 @@ extension GitMetadataService {
         return orderedSlugs
     }
 
-    /// Sort priority for a remote name: `upstream` (0), `origin` (1), other (2).
+    /// Sort priority for a remote name: `origin` (0), `upstream` (1), other (2).
+    ///
+    /// `origin` outranks `upstream` so a fork checkout identifies as the fork it
+    /// actually is. A gdock worktree has `origin = stokd-cloud/gdock` and
+    /// `upstream = manaflow-ai/cmux`; grouping it under the upstream slug named
+    /// the workspace group after a repo the checkout does not belong to.
     nonisolated static func githubRemotePriority(_ remoteName: String) -> Int {
         switch remoteName.lowercased() {
-        case "upstream":
-            return 0
         case "origin":
+            return 0
+        case "upstream":
             return 1
         default:
             return 2
