@@ -16245,6 +16245,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 )
                 if didSplit { onExecuted?() }
                 return didSplit
+            case .splitQuad:
+                // Shared Quad Split recipe (H(V(L,A),V(R,B))) on the focused pane.
+                guard let workspace = context.tabManager.selectedWorkspace,
+                      let paneId = workspace.bonsplitController.focusedPaneId
+                        ?? workspace.bonsplitController.allPaneIds.first else {
+                    return false
+                }
+                let didSplit = QuadSplitAction.perform(inPane: paneId, workspace: workspace)
+                if didSplit { onExecuted?() }
+                return didSplit
             }
         case .command, .agent, .workspaceCommand, .workspace:
             guard let cmuxConfigStore = context.cmuxConfigStore else {
