@@ -124,6 +124,161 @@ import CmuxSettings
         ])
     }
 
+    // MARK: - Per-panel extraction
+
+    private func panel(_ id: UUID, _ directory: String)
+        -> GdockAutoWorkspaceGroupReconciler.PanelSnapshot {
+        .init(id: id, currentDirectory: directory)
+    }
+
+    /// The reported defect: `cd`-ing one panel into another repo moved the whole
+    /// workspace — dragging every unrelated sibling panel into the new group.
+    @Test func extractsOnlyTheRetargetedPanelFromAGroupedWorkspace() {
+        let groupId = UUID()
+        let w1 = UUID()
+        let stays = UUID()
+        let moves = UUID()
+        let plan = GdockAutoWorkspaceGroupReconciler.plan(
+            workspaces: [
+                .init(
+                    id: w1,
+                    // Workspace cwd already follows the retargeted panel; the group
+                    // name is what pins the workspace's home repo.
+                    currentDirectory: "/tmp/b",
+                    groupId: groupId,
+                    isGroupAnchor: false,
+                    panels: [panel(stays, "/tmp/a"), panel(moves, "/tmp/b")]
+                ),
+            ],
+            groups: [.init(id: groupId, name: repoA)],
+            slugForDirectory: slugMap([("/tmp/a", repoA), ("/tmp/b", repoB)])
+        )
+        #expect(plan == [
+            .extractPanel(panelId: moves, fromWorkspaceId: w1, slug: repoB),
+        ])
+        // The workspace itself must not be re-grouped.
+        #expect(!plan.contains { if case .addToGroup = $0 { return true } else { return false } })
+    }
+
+    @Test func extractsEachDivergentPanelSeparately() {
+        let groupId = UUID()
+        let w1 = UUID()
+        let stays = UUID()
+        let movesB = UUID()
+        let movesC = UUID()
+        let repoC = "third/repo"
+        let plan = GdockAutoWorkspaceGroupReconciler.plan(
+            workspaces: [
+                .init(
+                    id: w1,
+                    currentDirectory: "/tmp/a",
+                    groupId: groupId,
+                    isGroupAnchor: false,
+                    panels: [panel(stays, "/tmp/a"), panel(movesB, "/tmp/b"), panel(movesC, "/tmp/c")]
+                ),
+            ],
+            groups: [.init(id: groupId, name: repoA)],
+            slugForDirectory: slugMap([("/tmp/a", repoA), ("/tmp/b", repoB), ("/tmp/c", repoC)])
+        )
+        #expect(plan == [
+            .extractPanel(panelId: movesB, fromWorkspaceId: w1, slug: repoB),
+            .extractPanel(panelId: movesC, fromWorkspaceId: w1, slug: repoC),
+        ])
+    }
+
+    @Test func singlePanelWorkspaceStillMovesWholesale() {
+        let groupId = UUID()
+        let target = UUID()
+        let w1 = UUID()
+        let only = UUID()
+        let plan = GdockAutoWorkspaceGroupReconciler.plan(
+            workspaces: [
+                .init(
+                    id: w1,
+                    currentDirectory: "/tmp/b",
+                    groupId: groupId,
+                    isGroupAnchor: false,
+                    panels: [panel(only, "/tmp/b")]
+                ),
+            ],
+            groups: [.init(id: groupId, name: repoA), .init(id: target, name: repoB)],
+            slugForDirectory: slugMap([("/tmp/b", repoB)])
+        )
+        #expect(plan == [.addToGroup(workspaceId: w1, groupId: target)])
+    }
+
+    /// Every panel moving means the workspace genuinely relocated; extracting
+    /// each one would empty it panel by panel.
+    @Test func allPanelsDivergingMovesTheWholeWorkspace() {
+        let groupId = UUID()
+        let target = UUID()
+        let w1 = UUID()
+        let plan = GdockAutoWorkspaceGroupReconciler.plan(
+            workspaces: [
+                .init(
+                    id: w1,
+                    currentDirectory: "/tmp/b",
+                    groupId: groupId,
+                    isGroupAnchor: false,
+                    panels: [panel(UUID(), "/tmp/b"), panel(UUID(), "/tmp/b")]
+                ),
+            ],
+            groups: [.init(id: groupId, name: repoA), .init(id: target, name: repoB)],
+            slugForDirectory: slugMap([("/tmp/b", repoB)])
+        )
+        #expect(plan == [.addToGroup(workspaceId: w1, groupId: target)])
+    }
+
+    /// A hand-named group carries no repo identity, so panel-level extraction
+    /// must not fire off it.
+    @Test func manuallyNamedGroupDoesNotDriveExtraction() {
+        let groupId = UUID()
+        let w1 = UUID()
+        let plan = GdockAutoWorkspaceGroupReconciler.plan(
+            workspaces: [
+                .init(
+                    id: w1,
+                    currentDirectory: "/tmp/a",
+                    groupId: groupId,
+                    isGroupAnchor: false,
+                    panels: [panel(UUID(), "/tmp/a"), panel(UUID(), "/tmp/b")]
+                ),
+            ],
+            groups: [.init(id: groupId, name: "My Stuff")],
+            slugForDirectory: slugMap([("/tmp/a", repoA), ("/tmp/b", repoB)])
+        )
+        #expect(!plan.contains { if case .extractPanel = $0 { return true } else { return false } })
+    }
+
+    @Test func panelsMatchingTheHomeSlugAreLeftAlone() {
+        let groupId = UUID()
+        let w1 = UUID()
+        let plan = GdockAutoWorkspaceGroupReconciler.plan(
+            workspaces: [
+                .init(
+                    id: w1,
+                    currentDirectory: "/tmp/a",
+                    groupId: groupId,
+                    isGroupAnchor: false,
+                    panels: [panel(UUID(), "/tmp/a"), panel(UUID(), "/tmp/a/sub")]
+                ),
+            ],
+            groups: [.init(id: groupId, name: repoA)],
+            slugForDirectory: slugMap([("/tmp/a", repoA), ("/tmp/a/sub", repoA)])
+        )
+        #expect(plan.isEmpty)
+    }
+
+    @Test func groupNameIsReadAsSlugOnlyWhenItLooksLikeOne() {
+        #expect(GdockAutoWorkspaceGroupReconciler.repositorySlug(from: "owner/repo") == "owner/repo")
+        #expect(GdockAutoWorkspaceGroupReconciler.repositorySlug(from: "  owner/repo  ") == "owner/repo")
+        #expect(GdockAutoWorkspaceGroupReconciler.repositorySlug(from: "My Stuff") == nil)
+        #expect(GdockAutoWorkspaceGroupReconciler.repositorySlug(from: "owner") == nil)
+        #expect(GdockAutoWorkspaceGroupReconciler.repositorySlug(from: "a/b/c") == nil)
+        #expect(GdockAutoWorkspaceGroupReconciler.repositorySlug(from: "owner/") == nil)
+        #expect(GdockAutoWorkspaceGroupReconciler.repositorySlug(from: "own er/repo") == nil)
+    }
+
     @Test func settingCatalogKeyUsesGdockPrefix() {
         let key = SettingCatalog().gdock.autoWorkspaceGroupMode
         #expect(key.id == "gdock.autoWorkspaceGroupMode")

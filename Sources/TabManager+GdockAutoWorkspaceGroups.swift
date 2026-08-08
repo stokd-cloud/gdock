@@ -19,11 +19,25 @@ extension TabManager {
 
         let anchorIds = Set(workspaceGroups.map(\.anchorWorkspaceId))
         let workspaceSnapshots = tabs.map { tab in
-            GdockAutoWorkspaceGroupReconciler.WorkspaceSnapshot(
+            // Panel order follows `panels` keyed order only loosely; sort by id so
+            // planning is deterministic across reconciles.
+            let panels = tab.panelDirectories
+                .compactMap { panelId, directory -> GdockAutoWorkspaceGroupReconciler.PanelSnapshot? in
+                    let trimmed = directory.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !trimmed.isEmpty, tab.panels[panelId] != nil else { return nil }
+                    return GdockAutoWorkspaceGroupReconciler.PanelSnapshot(
+                        id: panelId,
+                        currentDirectory: trimmed
+                    )
+                }
+                .sorted { $0.id.uuidString < $1.id.uuidString }
+
+            return GdockAutoWorkspaceGroupReconciler.WorkspaceSnapshot(
                 id: tab.id,
                 currentDirectory: tab.currentDirectory,
                 groupId: tab.groupId,
-                isGroupAnchor: anchorIds.contains(tab.id)
+                isGroupAnchor: anchorIds.contains(tab.id),
+                panels: panels
             )
         }
         let groupSnapshots = workspaceGroups.map { group in
@@ -51,7 +65,37 @@ extension TabManager {
                 )
             case .addToGroup(let workspaceId, let groupId):
                 addWorkspaceToGroup(workspaceId: workspaceId, groupId: groupId)
+            case .extractPanel(let panelId, _, let slug):
+                extractGdockAutoWorkspaceGroupPanel(panelId: panelId, slug: slug)
             }
+        }
+    }
+
+    /// Moves one retargeted panel into its own workspace under `slug`'s group.
+    ///
+    /// Focus and window activation are deliberately suppressed: this runs off a
+    /// debounced cwd notification, and stealing focus mid-keystroke would be
+    /// worse than the mis-grouping it fixes.
+    private func extractGdockAutoWorkspaceGroupPanel(panelId: UUID, slug: String) {
+        guard let appDelegate = AppDelegate.shared,
+              appDelegate.canMoveSurfaceToNewWorkspace(panelId: panelId),
+              let move = appDelegate.moveSurfaceToNewWorkspace(
+                  panelId: panelId,
+                  focus: false,
+                  focusWindow: false
+              ) else {
+            return
+        }
+
+        if let existing = workspaceGroups.first(where: { $0.name == slug }) {
+            addWorkspaceToGroup(workspaceId: move.destinationWorkspaceId, groupId: existing.id)
+        } else {
+            _ = createWorkspaceGroup(
+                name: slug,
+                childWorkspaceIds: [move.destinationWorkspaceId],
+                selectAnchor: false,
+                collapseSidebarSelection: false
+            )
         }
     }
 
