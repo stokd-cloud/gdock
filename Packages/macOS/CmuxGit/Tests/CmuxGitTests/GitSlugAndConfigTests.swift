@@ -20,7 +20,7 @@ import Testing
         #expect(GitMetadataService.githubRepositorySlug(fromRemoteURL: "") == nil)
     }
 
-    @Test func ordersRemotesUpstreamThenOriginThenRest() {
+    @Test func ordersRemotesOriginThenUpstreamThenRest() {
         let output = """
         origin\thttps://github.com/me/fork.git (fetch)
         upstream\thttps://github.com/owner/repo.git (fetch)
@@ -28,7 +28,35 @@ import Testing
         """
         #expect(
             GitMetadataService.githubRepositorySlugs(fromGitRemoteVOutput: output)
-                == ["owner/repo", "me/fork", "zeta/zeta"]
+                == ["me/fork", "owner/repo", "zeta/zeta"]
+        )
+    }
+
+    /// A fork checkout must identify as the fork, not its upstream parent: gdock
+    /// has `origin = stokd-cloud/gdock` and `upstream = manaflow-ai/cmux`, and
+    /// naming its workspace group after the upstream was the reported defect.
+    @Test func primaryGitHubRepositorySlugPrefersOriginOverUpstream() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("cmux-git-fork-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let gitDir = root.appendingPathComponent(".git", isDirectory: true)
+        try FileManager.default.createDirectory(at: gitDir, withIntermediateDirectories: true)
+        let config = """
+        [core]
+        \trepositoryformatversion = 0
+        [remote "origin"]
+        \turl = git@github.com:stokd-cloud/gdock.git
+        \tfetch = +refs/heads/*:refs/remotes/origin/*
+        [remote "upstream"]
+        \turl = https://github.com/manaflow-ai/cmux.git
+        \tfetch = +refs/heads/*:refs/remotes/upstream/*
+        """
+        try config.write(to: gitDir.appendingPathComponent("config"), atomically: true, encoding: .utf8)
+
+        #expect(
+            GitMetadataService.primaryGitHubRepositorySlug(for: root.path) == "stokd-cloud/gdock"
         )
     }
 

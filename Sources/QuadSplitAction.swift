@@ -4,11 +4,20 @@ import Foundation
 
 /// Shared terminal Quad Split mutation used by every approved entrypoint.
 ///
-/// Recipe for target leaf `L`: replace `L` with `H(V(L,A), V(R,B))` — a root
-/// side-by-side split whose children are stacked pairs — then focus `B`
-/// (bottom-right). Exactly three local terminal splits (workspace API) or three
-/// Dock terminal splits; no outer programmatic-split guard (each split call
-/// owns its own).
+/// The workspace recipe flattens: whatever the workspace looked like, it ends
+/// as a root `H(V(TL,BL), V(TR,BR))` — a flat 2x2 — with focus on `BR`. Every
+/// surface is first collapsed into the invoking pane, then three splits deal
+/// them back out, so invoking Quad Split on an already-split workspace produces
+/// a quad rather than nesting a quad inside one leaf.
+///
+/// Quadrant contents come from ``QuadSplitPlanner``: existing background tabs
+/// fill empty quadrants before any new terminal is spawned, and surplus
+/// surfaces stay as background tabs of their quadrant. When the controller
+/// forbids cross-pane tab moves, flattening is impossible and the legacy
+/// three-new-terminal recipe runs against the target leaf instead.
+///
+/// The Dock recipe is unchanged and still splits the target leaf locally;
+/// `DockSplitStore` has no cross-pane surface-move primitive to flatten with.
 ///
 /// Known vetoes are preflighted without calling a side-effecting remote
 /// delegate (D-20 / D-25). An unexpected second/third split failure is logged
@@ -214,9 +223,105 @@ enum QuadSplitAction {
             return .vetoed(veto)
         }
 
+        // Redistributing surfaces needs cross-pane tab moves. Without them the
+        // only reachable recipe is the legacy three-new-terminal one.
+        guard workspace.bonsplitController.configuration.allowCrossPaneTabMove else {
+            return performLegacyNestedQuad(inPane: paneId, workspace: workspace)
+        }
+
+        let panes = orderedPaneSnapshots(workspace: workspace)
+        guard let quadrants = QuadSplitPlanner.plan(panes: panes, targetPaneId: paneId.id) else {
+            return .lateFailure(completedSplits: 0)
+        }
+        // Guaranteed by the planner contract: the target pane leads quadrant 0
+        // and preflight proved it holds a mapped surface.
+        guard let anchorPanelId = quadrants[0].leadPanelId else {
+            return .lateFailure(completedSplits: 0)
+        }
+
         workspace.clearSplitZoom()
 
-        // 1. side-by-side: left (L) | right (R)
+        // Collapse every surface into the target pane so the resulting tree is a
+        // flat 2x2 no matter how the workspace was split beforehand. Quadrant 0's
+        // trailing tabs are already here and need no further move.
+        for panelId in panes.flatMap(\.panelIds) where panelId != anchorPanelId {
+            guard let anchorPane = workspace.paneId(forPanelId: anchorPanelId) else {
+                logLateFailure(surface: "workspace", completedSplits: 0, detail: "anchor pane unresolved during collapse")
+                return .lateFailure(completedSplits: 0)
+            }
+            guard workspace.moveSurface(panelId: panelId, toPane: anchorPane, focus: false) else {
+                logLateFailure(surface: "workspace", completedSplits: 0, detail: "collapse move failed")
+                return .lateFailure(completedSplits: 0)
+            }
+        }
+
+        // 1. side-by-side: left (TL) | right (TR)
+        guard let anchorPane = workspace.paneId(forPanelId: anchorPanelId) else {
+            logLateFailure(surface: "workspace", completedSplits: 0, detail: "anchor pane unresolved after collapse")
+            return .lateFailure(completedSplits: 0)
+        }
+        guard let topRightPane = realizeQuadrant(
+            quadrants[1],
+            from: anchorPane,
+            orientation: .horizontal,
+            workspace: workspace
+        ) else {
+            logLateFailure(surface: "workspace", completedSplits: 0, detail: "top-right quadrant failed")
+            return .lateFailure(completedSplits: 0)
+        }
+        if shouldInjectLateFailure(afterCompletedSplits: 1) {
+            logLateFailure(surface: "workspace", completedSplits: 1, detail: "injected failure after step 1")
+            return .lateFailure(completedSplits: 1)
+        }
+
+        // 2. stack the left column: top (TL) / bottom (BL)
+        guard let bottomLeftPane = realizeQuadrant(
+            quadrants[2],
+            from: anchorPane,
+            orientation: .vertical,
+            workspace: workspace
+        ) else {
+            logLateFailure(surface: "workspace", completedSplits: 1, detail: "bottom-left quadrant failed")
+            return .lateFailure(completedSplits: 1)
+        }
+        if shouldInjectLateFailure(afterCompletedSplits: 2) {
+            logLateFailure(surface: "workspace", completedSplits: 2, detail: "injected failure after step 2")
+            return .lateFailure(completedSplits: 2)
+        }
+
+        // 3. stack the right column: top (TR) / bottom (BR) — focus ends on BR
+        guard let bottomRightPane = realizeQuadrant(
+            quadrants[3],
+            from: topRightPane,
+            orientation: .vertical,
+            workspace: workspace
+        ) else {
+            logLateFailure(surface: "workspace", completedSplits: 2, detail: "bottom-right quadrant failed")
+            return .lateFailure(completedSplits: 2)
+        }
+
+        // Surplus surfaces ride along as background tabs of their quadrant.
+        let quadrantPanes = [anchorPane, topRightPane, bottomLeftPane, bottomRightPane]
+        for (quadrant, destination) in zip(quadrants, quadrantPanes) {
+            for panelId in quadrant.trailingPanelIds where destination != anchorPane {
+                guard workspace.moveSurface(panelId: panelId, toPane: destination, focus: false) else {
+                    logLateFailure(surface: "workspace", completedSplits: 3, detail: "trailing tab move failed")
+                    return .lateFailure(completedSplits: 3)
+                }
+            }
+        }
+
+        focusQuadrantLead(quadrants[3], pane: bottomRightPane, workspace: workspace)
+        return .success
+    }
+
+    /// Legacy recipe: three new terminals split off the target leaf.
+    ///
+    /// Only reachable when the controller forbids cross-pane tab moves, which
+    /// rules out collapsing the tree into a flat 2x2.
+    private static func performLegacyNestedQuad(inPane paneId: PaneID, workspace: Workspace) -> Outcome {
+        workspace.clearSplitZoom()
+
         guard workspace.splitPaneWithNewTerminal(
             targetPane: paneId,
             orientation: .horizontal,
@@ -236,7 +341,6 @@ enum QuadSplitAction {
             return .lateFailure(completedSplits: 1)
         }
 
-        // 2. stack the left column: top (L) / bottom (A)
         guard workspace.splitPaneWithNewTerminal(
             targetPane: paneId,
             orientation: .vertical,
@@ -252,7 +356,6 @@ enum QuadSplitAction {
             return .lateFailure(completedSplits: 2)
         }
 
-        // 3. stack the right column: top (R) / bottom (B) — focus ends on B
         guard workspace.splitPaneWithNewTerminal(
             targetPane: rightPaneId,
             orientation: .vertical,
@@ -265,6 +368,80 @@ enum QuadSplitAction {
         }
 
         return .success
+    }
+
+    /// Splits `sourcePane` to create one quadrant, reusing an existing surface
+    /// when the planner assigned one and spawning a terminal otherwise.
+    private static func realizeQuadrant(
+        _ quadrant: QuadSplitPlanner.Quadrant,
+        from sourcePane: PaneID,
+        orientation: SplitOrientation,
+        workspace: Workspace
+    ) -> PaneID? {
+        if let leadPanelId = quadrant.leadPanelId,
+           let tabId = workspace.surfaceIdFromPanelId(leadPanelId) {
+            return workspace.bonsplitController.splitPane(
+                sourcePane,
+                orientation: orientation,
+                movingTab: tabId,
+                insertFirst: false
+            )
+        }
+        guard let panel = workspace.splitPaneWithNewTerminal(
+            targetPane: sourcePane,
+            orientation: orientation,
+            insertFirst: false,
+            workingDirectory: nil,
+            initialInput: nil
+        ) else {
+            return nil
+        }
+        return workspace.paneId(forPanelId: panel.id)
+    }
+
+    /// Leaves focus on the bottom-right quadrant, matching the documented recipe.
+    private static func focusQuadrantLead(
+        _ quadrant: QuadSplitPlanner.Quadrant,
+        pane: PaneID,
+        workspace: Workspace
+    ) {
+        workspace.bonsplitController.focusPane(pane)
+        if let leadPanelId = quadrant.leadPanelId {
+            workspace.focusPanel(leadPanelId)
+        }
+        workspace.scheduleTerminalGeometryReconcile()
+    }
+
+    /// Workspace panes in tree order with their surfaces, for the planner.
+    static func orderedPaneSnapshots(workspace: Workspace) -> [QuadSplitPlanner.PaneSnapshot] {
+        var snapshots: [QuadSplitPlanner.PaneSnapshot] = []
+
+        func visit(_ node: ExternalTreeNode) {
+            switch node {
+            case .pane(let pane):
+                guard let paneUUID = UUID(uuidString: pane.id) else { return }
+                let paneId = PaneID(id: paneUUID)
+                let panelIds = workspace.bonsplitController.tabs(inPane: paneId)
+                    .compactMap { workspace.panelIdFromSurfaceId($0.id) }
+                    .filter { workspace.panels[$0] != nil }
+                guard !panelIds.isEmpty else { return }
+                let selectedPanelId = workspace.bonsplitController.selectedTab(inPane: paneId)
+                    .flatMap { workspace.panelIdFromSurfaceId($0.id) }
+                snapshots.append(
+                    QuadSplitPlanner.PaneSnapshot(
+                        paneId: paneUUID,
+                        panelIds: panelIds,
+                        selectedPanelId: selectedPanelId
+                    )
+                )
+            case .split(let split):
+                visit(split.first)
+                visit(split.second)
+            }
+        }
+
+        visit(workspace.bonsplitController.treeSnapshot())
+        return snapshots
     }
 
     /// Lossless preflight for a workspace target. Never invokes the remote

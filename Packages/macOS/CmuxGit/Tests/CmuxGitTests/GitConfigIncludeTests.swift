@@ -20,7 +20,7 @@ import Testing
         return GitMetadataService.githubRepositorySlugs(fromGitRemoteVOutput: output)
     }
 
-    @Test func prioritizesUpstreamThenOriginAndDeduplicates() {
+    @Test func prioritizesOriginThenUpstreamAndDeduplicates() {
         let output = """
         origin https://github.com/austinwang/cmux.git (fetch)
         origin https://github.com/austinwang/cmux.git (push)
@@ -31,7 +31,7 @@ import Testing
         """
         #expect(
             GitMetadataService.githubRepositorySlugs(fromGitRemoteVOutput: output)
-                == ["manaflow-ai/cmux", "austinwang/cmux"]
+                == ["austinwang/cmux", "manaflow-ai/cmux"]
         )
     }
 
@@ -44,7 +44,7 @@ import Testing
             url = https://github.com/manaflow-ai/cmux.git ; upstream source
             fetch = +refs/heads/*:refs/remotes/upstream/*
         """
-        #expect(slugs(fromConfig: config) == ["manaflow-ai/cmux", "austinwang/cmux"])
+        #expect(slugs(fromConfig: config) == ["austinwang/cmux", "manaflow-ai/cmux"])
     }
 
     @Test func unquotesUrlValues() {
@@ -56,7 +56,7 @@ import Testing
             url = "https://github.com/manaflow-ai/cmux.git" ; upstream source
             fetch = +refs/heads/*:refs/remotes/upstream/*
         """
-        #expect(slugs(fromConfig: config) == ["manaflow-ai/cmux", "austinwang/cmux"])
+        #expect(slugs(fromConfig: config) == ["austinwang/cmux", "manaflow-ai/cmux"])
     }
 
     @Test func usesLastRemoteURLValue() {
@@ -86,7 +86,7 @@ import Testing
             url = https://github.com/manaflow-ai/cmux.git ; canonical repo
         """.write(to: fixture.gitDirectory.appendingPathComponent("conditional-remotes.inc"), atomically: true, encoding: .utf8)
 
-        #expect(slugs(forDirectory: fixture.root.path) == ["manaflow-ai/cmux", "austinwang/cmux"])
+        #expect(slugs(forDirectory: fixture.root.path) == ["austinwang/cmux", "manaflow-ai/cmux"])
     }
 
     @Test func appliesIncludesInPlace() throws {

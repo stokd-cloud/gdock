@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		626F0EFC5D1643E885CC776E /* QuadSplitAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01BAA63BCC864AB59E2E8A8D /* QuadSplitAction.swift */; };
+		81F471C255034794B5C84547 /* QuadSplitPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2167180241244A596651E6D /* QuadSplitPlanner.swift */; };
 		A11CE0040000000000000001 /* AboutLicenseContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0030000000000000001 /* AboutLicenseContent.swift */; };
 		A11CE0010000000000000001 /* AboutLicensesResourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0020000000000000001 /* AboutLicensesResourceTests.swift */; };
 		A5C017000000000000000001 /* AccountSignInFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5C017000000000000000002 /* AccountSignInFlow.swift */; };
@@ -2176,6 +2177,7 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		C06552030000000000000001 /* TabManagerTitleUpdateStalenessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C06552030000000000000002 /* TabManagerTitleUpdateStalenessTests.swift */; };
 		C06552020000000000000001 /* TabManagerTitleUpdateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C06552020000000000000002 /* TabManagerTitleUpdateTests.swift */; };
 		B6BF3DC98DB1495E57900199 /* TabManagerUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42092CDB2109E250F7F2A76E /* TabManagerUnitTests.swift */; };
+		49FBEDCED42D4EDEAFA1CAF2 /* QuadSplitPlannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FA4C301F2A4439FA3852002 /* QuadSplitPlannerTests.swift */; };
 		A71100000000000000000001 /* TailscaleStatusProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71100000000000000000002 /* TailscaleStatusProviding.swift */; };
 		C7A507000000000000000002 /* TaskManagerResourcesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A507000000000000000001 /* TaskManagerResourcesTests.swift */; };
 		C7A503000000000000000002 /* TaskManagerSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A503000000000000000001 /* TaskManagerSnapshot.swift */; };
@@ -2744,6 +2746,7 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 
 /* Begin PBXFileReference section */
 		01BAA63BCC864AB59E2E8A8D /* QuadSplitAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadSplitAction.swift; sourceTree = "<group>"; };
+		E2167180241244A596651E6D /* QuadSplitPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadSplitPlanner.swift; sourceTree = "<group>"; };
 		A11CE0030000000000000001 /* AboutLicenseContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutLicenseContent.swift; sourceTree = "<group>"; };
 		A11CE0020000000000000001 /* AboutLicensesResourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutLicensesResourceTests.swift; sourceTree = "<group>"; };
 		A5C017000000000000000002 /* AccountSignInFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountSignInFlow.swift; sourceTree = "<group>"; };
@@ -4815,6 +4818,7 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		C06552030000000000000002 /* TabManagerTitleUpdateStalenessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabManagerTitleUpdateStalenessTests.swift; sourceTree = "<group>"; };
 		C06552020000000000000002 /* TabManagerTitleUpdateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabManagerTitleUpdateTests.swift; sourceTree = "<group>"; };
 		42092CDB2109E250F7F2A76E /* TabManagerUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabManagerUnitTests.swift; sourceTree = "<group>"; };
+		3FA4C301F2A4439FA3852002 /* QuadSplitPlannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadSplitPlannerTests.swift; sourceTree = "<group>"; };
 		A71100000000000000000002 /* TailscaleStatusProviding.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TailscaleStatusProviding.swift; sourceTree = "<group>"; };
 		C7A507000000000000000001 /* TaskManagerResourcesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskManagerResourcesTests.swift; sourceTree = "<group>"; };
 		C7A503000000000000000001 /* TaskManagerSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskManagerSnapshot.swift; sourceTree = "<group>"; };
@@ -6130,6 +6134,7 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 				GDOCKAWSG00000000000003 /* GdockAutoWorkspaceGroupModeSettings.swift */,
 				GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */,
 				01BAA63BCC864AB59E2E8A8D /* QuadSplitAction.swift */,
+				E2167180241244A596651E6D /* QuadSplitPlanner.swift */,
 				E30750000000000000000001 /* WorkspaceTabColorResolution.swift */,
 				E3B7A4000000000000000002 /* WorkspaceTabColorSettings.swift */,
 				E3B7A4000000000000000004 /* WorkspaceTabColorEntry.swift */,
@@ -7851,6 +7856,7 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 				C06552030000000000000002 /* TabManagerTitleUpdateStalenessTests.swift */,
 				C06552020000000000000002 /* TabManagerTitleUpdateTests.swift */,
 				42092CDB2109E250F7F2A76E /* TabManagerUnitTests.swift */,
+				3FA4C301F2A4439FA3852002 /* QuadSplitPlannerTests.swift */,
 				9492CAFE0000000000000001 /* LastTerminalChildExitRecoveryTests.swift */,
 				C9D9924AC89D7C3408DBC56A /* WorkspaceRecoveryTests.swift */,
 				939AA681FBA244B994634EE0 /* WorkspaceRecoveryReviewRegressionTests.swift */,
@@ -9105,6 +9111,7 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 				904090409040904090409047 /* DockSplitPanelContentView.swift in Sources */,
 				DCDC1000000000000000B011 /* DockSplitStore+Appearance.swift in Sources */,
 				626F0EFC5D1643E885CC776E /* QuadSplitAction.swift in Sources */,
+				81F471C255034794B5C84547 /* QuadSplitPlanner.swift in Sources */,
 				8777D0038777D0038777D003 /* DockSplitStore+AttentionRouting.swift in Sources */,
 				DCDC1000000000000000B021 /* DockSplitStore+CloseConfirmation.swift in Sources */,
 				9518D0C10000000000000001 /* DockSplitStore+ClosedItemHistory.swift in Sources */,
@@ -11073,6 +11080,7 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 				C06552030000000000000001 /* TabManagerTitleUpdateStalenessTests.swift in Sources */,
 				C06552020000000000000001 /* TabManagerTitleUpdateTests.swift in Sources */,
 				B6BF3DC98DB1495E57900199 /* TabManagerUnitTests.swift in Sources */,
+				49FBEDCED42D4EDEAFA1CAF2 /* QuadSplitPlannerTests.swift in Sources */,
 				C7A507000000000000000002 /* TaskManagerResourcesTests.swift in Sources */,
 				C7A507000000000000004529 /* TaskManagerViewSnapshotBoundaryTests.swift in Sources */,
 				46F6AC15863EC84DCD3770A2 /* TerminalAndGhosttyTests.swift in Sources */,
@@ -11316,6 +11324,7 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = cloud.stokd.ghostty-dock.debug;
 				PRODUCT_NAME = "gdock DEV";
+				PRODUCT_MODULE_NAME = cmux_DEV;
 				OTHER_SWIFT_FLAGS = (
 					"-Xllvm",
 					"-global-isel=0",
