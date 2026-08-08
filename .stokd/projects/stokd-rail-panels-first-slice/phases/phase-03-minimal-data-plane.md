@@ -1,27 +1,26 @@
-# Phase 3: Minimal data plane
+# Phase 3: Config and usage data access
 
-**Project:** Stokd Rail Panels — First Slice
+**Project:** Stokd Rail Panels — Left Rail Slice
 **Slug:** stokd-rail-panels-first-slice
 **Review Mode:** complete
 
 ## Work Items
 
-### 3.1: CLI runner and API client stubs for panels
+### 3.1: Config schema access and usage ingest
 
 **Implementation Details**
 
 - **Landing:** fork-only.
-- Add a minimal runner that resolves `stokd` executable (`STOKD_CLI_PATH` → `~/.stokd/bin/stokd` → PATH) and runs commands with an explicit working directory (active workspace cwd).
-- Add thin REST client for local stokd API (default `http://localhost:8167`) for Work list endpoints (tasks/projects paged) — URLProtocol-testable.
-- Config schema read path for Global Config: prefer `stokd config schema --json` when available; layered value reads may parse YAML layers read-only.
-- Usage ingest: prefer watching provider stores over 60s full poll; accept thin poll as interim if watch lands in same phase’s last item — document chosen path.
-- **Never** write config files from the app; writes only via `stokd config set`.
-- Failure modes: CLI missing → structured error code 127; API down → empty list + banner-ready error; never fatal process exit.
+- **Reuse** the stokd CLI runner from `docs/stokd-work-panel.prd.md` (executable resolution, working directory, structured errors). Do not add a second runner or a second executable-resolution path.
+- Config schema read path for Global Config: prefer `stokd config schema --json` via that runner; layered value reads may parse YAML layers read-only.
+- Config write path: construct `stokd config set …` argv only. **Never** write config files from the app.
+- Usage ingest: prefer watching provider stores over a 60s full poll; accept a thin poll as an interim if the watch lands in this phase's last item — document the chosen path in code.
+- Failure modes: CLI missing → the runner's structured error (code 127) surfaced as panel state; no stores → empty/unobserved state; never a fatal process exit.
 
 **Acceptance Criteria**
 
-- AC-3.1.a: Unit — executable resolution order with fixtures.
-- AC-3.1.b: Unit — Work API decoder accepts paged fixture JSON.
-- AC-3.1.c: Unit — config write path only constructs CLI argv (no FileManager write to config.yaml).
-- AC-3.1.d: `swift test` or unit suite for the data plane target → exit 0.
-
+- AC-3.1.a: Config schema fixture JSON decodes into the render model used by Phase 4.
+- AC-3.1.b: Usage ingest maps fixture provider store records into aggregate-ready values.
+- AC-3.1.c: The config write path only constructs CLI argv — no `FileManager`/`Data.write` to `config.yaml`.
+- AC-3.1.d: `rg` shows exactly one stokd executable-resolution implementation in `Sources/` (the prerequisite's).
+- AC-3.1.e: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdConfigUsageDataTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.

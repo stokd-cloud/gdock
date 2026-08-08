@@ -1,199 +1,120 @@
 [
   {
     "phase_number": 1,
-    "title": "Panel kinds, placement matrix, and beta gate",
+    "title": "Left-rail panel kinds and placement",
     "work_items": [
       {
-        "item_number": "1.1",
-        "title": "Register four stokd rail panel kinds and placement rules",
+        "acceptance_criteria": "- AC-1.1.a: Three new stokd panel kinds exist in source with stable raw values → registry can address them.\n- AC-1.1.b: Placement matrix allows all three on the left rail and rejects them on the right → `rg`/unit asserts match §0.\n- AC-1.1.c: The existing gate is reused — no new beta flag key is introduced by this PRD.\n- AC-1.1.d: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdRailPanelKindTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.\n- AC-1.1.e: `./scripts/lint-pbxproj-test-wiring.sh` → exit 0 for any new test file.",
+        "acceptance_tests": "- Test-1.1.a: Unit — kinds enum/registry lists the three new kinds (plus existing kinds unchanged).\n- Test-1.1.b: Unit — placement matrix edge cases (left allowed, right rejected).\n- Test-1.1.c: Regression — `rg` shows no new `…stokdPanels…` flag key beyond the prerequisite's.\n- Test-1.1.d: Same suite is the executable gate for AC-1.1.d.\n- Test-1.1.e: Regression — pbx wiring script.",
         "dependencies": [],
-        "implementation_details": "Add rail-hosted panel kinds for Work, Worktrees, Global Config, and Usage using the existing left/right rail substrate (SidebarDock* / RightSidebarMode patterns). Extend placement matrix so Work defaults to right rail tool tab strip; Global Config, Worktrees, and Usage are allowed on left (and movable per rail rules) but default seed places them left. Do not introduce DockableKind canvas freeform docking. Prefer reusing sidebar.beta.dock.enabled or add sidebar.beta.stokdPanels.enabled default off; flag off leaves rails unchanged.",
-        "acceptance_criteria": "Four panel kinds exist and are addressable by rail commands; placement matrix allows Work on right and the three left sections on left; flag default off; no canvas dock path; unit tests for allow/refuse edges pass.",
-        "components": [
-          "Sources/Sidebar/SidebarDockPlacementMatrix.swift",
-          "Sources/Sidebar/SidebarDockCommand.swift",
-          "Sources/Sidebar/RightSidebarSelectionRouter.swift",
-          "Sources/App/WorkspaceRuntimeSettings.swift"
-        ]
-      },
-      {
-        "item_number": "1.2",
-        "title": "Actor wiring for open/focus of each stokd panel",
-        "dependencies": [
-          "1.1"
-        ],
-        "implementation_details": "Wire palette, context menu, header, and debug/socket entrypoints through the shared SidebarDockCommand / SidebarDockActionInvoker path used by Files/Find/Vault so open/focus is not store-only. No duplicated per-entrypoint mutation paths.",
-        "acceptance_criteria": "Each of Work, Worktrees, Global Config, Usage can be opened/focused via the same actor surface other rail tools use; actor/wiring tests fail without wiring and pass with it.",
-        "components": [
-          "Sources/Sidebar/SidebarDockActionInvoker.swift",
-          "Sources/Sidebar/SidebarDockCommand.swift"
-        ]
+        "implementation_details": "- **Landing:** fork-only.\n- Extend the existing stokd rail panel identity surface (introduced by the prerequisite PRD, following existing patterns: `RightSidebarMode` and/or the `PanelType` cases used by `SidebarDockStore`) with three kinds: `stokdWorktrees`, `stokdGlobalConfig`, `stokdUsage` (exact Swift names may use existing casing conventions; raw values must be stable for persistence).\n- Update `SidebarDockPlacementMatrix` (or equivalent) so `stokdWorktrees`, `stokdGlobalConfig`, `stokdUsage` are allowed on the **left** rail as sections and rejected on the right rail.\n- Do not modify the existing right-rail placement entries owned by the prerequisite PRD.\n- Reuse the prerequisite PRD's feature gate as-is; do not introduce a second flag.\n- Provide display titles for section headers (localized keys).\n- Scaffold empty or placeholder panel hosts that compile and mount without crashing (real UI in Phase 4).\n- Failure modes: unknown kind in snapshot → skip + log, never crash; flag-off → kinds not offered in UI.",
+        "item_number": "1.1",
+        "title": "Register three left-rail stokd panel kinds",
+        "verification_commands": "set -euo pipefail\nrg -n 'stokdWorktrees|stokdGlobalConfig|stokdUsage' Sources/\ntest -f cmuxTests/StokdRailPanelKindTests.swift || test -f cmuxTests/SidebarDockPlacementMatrixTests.swift\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/StokdRailPanelKindTests CMUX_SKIP_ZIG_BUILD=1 test \\\n  || ./scripts/test-unit.sh -only-testing:cmuxTests/SidebarDockPlacementMatrixTests CMUX_SKIP_ZIG_BUILD=1 test"
       }
     ]
   },
   {
     "phase_number": 2,
-    "title": "Default layout seeding",
+    "title": "Default seed layout",
     "work_items": [
       {
-        "item_number": "2.1",
-        "title": "Idempotent seed for left stack + right Work tab",
+        "acceptance_criteria": "- AC-2.1.a: Unit seed of an empty registry with the flag on produces left order Workspaces → Global Config → Worktrees → Usage.\n- AC-2.1.b: Second seed call does not duplicate stokd sections.\n- AC-2.1.c: Flag off → seed does not introduce stokd kinds.\n- AC-2.1.d: Seeding leaves the right-rail tool tab strip byte-identical to its pre-seed state.\n- AC-2.1.e: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdRailPanelSeedTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.",
+        "acceptance_tests": "- Test-2.1.a: Unit — default layout diagram.\n- Test-2.1.b: Unit — idempotent reseed.\n- Test-2.1.c: Unit — flag-off no-op.\n- Test-2.1.d: Unit — right rail untouched.\n- Test-2.1.e: Suite gate.",
         "dependencies": [
           "1.1"
         ],
-        "implementation_details": "Extend SidebarDockSeeding (or sibling) so first enable with flag on produces: LEFT top Workspaces (existing); then Global Config, Worktrees, Usage bottom; RIGHT Tools section tabs Files | Find | Vault | Work. Use a seed generation / stokd-panels-seed-applied marker so reloads do not thrash user rearrangements. Additive snapshot fields only; no SessionSnapshotSchema.currentVersion bump.",
-        "acceptance_criteria": "Cold window with flag on seeds exactly the \u00a70 default layout; second launch does not re-shuffle user layout; flag off seeds nothing stokd-specific; unit test asserts seed diagram.",
-        "components": [
-          "Sources/Sidebar/SidebarDockSeeding.swift",
-          "Sources/Sidebar/SidebarDockStore.swift"
-        ]
+        "implementation_details": "- **Landing:** fork-only.\n- Extend `SidebarDockSeeding` (or sibling) so when the gate is on and the stokd seed generation is not yet applied:\n  - **Left:** keep/ensure the workspaces section at top; create sections Global Config, Worktrees, Usage in that vertical order (Usage bottom).\n- Reuse the prerequisite PRD's idempotent marker (seed generation int / `stokdPanelsSeedApplied`) — advance it rather than adding a second marker — so re-open does not re-insert duplicates or reset user layout.\n- Do not touch right-rail seeding; the Work tab remains owned by the prerequisite PRD.\n- Flag-off: seed path no-ops for stokd kinds.\n- Failure modes: partial seed failure leaves non-stokd rails intact; log and continue.",
+        "item_number": "2.1",
+        "title": "Seed the left-rail stack",
+        "verification_commands": "set -euo pipefail\nrg -n 'stokdPanelsSeed|seedStokd|Global Config|stokdUsage' Sources/Sidebar/\nrg -n 'stokdWorktrees|stokdGlobalConfig|stokdUsage' Sources/Sidebar/\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/StokdRailPanelSeedTests CMUX_SKIP_ZIG_BUILD=1 test"
       }
     ]
   },
   {
     "phase_number": 3,
-    "title": "Data plane (CLI / API helpers)",
+    "title": "Config and usage data access",
     "work_items": [
       {
-        "item_number": "3.1",
-        "title": "Shared stokd CLI invoke + API client helpers",
-        "dependencies": [],
-        "implementation_details": "Add minimal app-local helpers under Sources/Stokd/ (extract package only if needed) for CLI invoke and local API client. No direct mutation of ~/.stokd/config.yaml or workspace YAML; config writes only via stokd config set. Resolve workspace context from active window focused cwd.",
-        "acceptance_criteria": "Helpers invoke CLI/API without crashing when missing; clear error results; unit tests with fixtures/mocks; no direct config.yaml writes in Sources/Stokd.",
-        "components": [
-          "Sources/Stokd/"
-        ]
-      },
-      {
-        "item_number": "3.2",
-        "title": "Data mappers for Work, Worktrees, Global Config, Usage",
+        "acceptance_criteria": "- AC-3.1.a: Config schema fixture JSON decodes into the render model used by Phase 4.\n- AC-3.1.b: Usage ingest maps fixture provider store records into aggregate-ready values.\n- AC-3.1.c: The config write path only constructs CLI argv — no `FileManager`/`Data.write` to `config.yaml`.\n- AC-3.1.d: `rg` shows exactly one stokd executable-resolution implementation in `Sources/` (the prerequisite's).\n- AC-3.1.e: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdConfigUsageDataTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.",
+        "acceptance_tests": "- Test-3.1.a: Unit — schema JSON decode fixtures.\n- Test-3.1.b: Unit — usage record ingest fixtures.\n- Test-3.1.c: Unit — writer argv only.\n- Test-3.1.d: Regression — single CLI resolver.\n- Test-3.1.e: Suite gate.",
         "dependencies": [
-          "3.1"
+          "1.1"
         ],
-        "implementation_details": "Mappers/fixtures: Work from paged tasks/projects API; Worktrees from git/local worktree discovery (document source of truth); Global Config from stokd config schema --json + layered values; Usage per provider/model for supported timespans with reasoning tokens and restart-safe provider dedupe when already in model. Never invent fake zeros for unreported cache columns.",
-        "acceptance_criteria": "Unit tests for each mapper with fixtures; empty/error states modeled; no fabricated cache metrics.",
-        "components": [
-          "Sources/Stokd/"
-        ]
+        "implementation_details": "- **Landing:** fork-only.\n- **Reuse** the stokd CLI runner from `docs/stokd-work-panel.prd.md` (executable resolution, working directory, structured errors). Do not add a second runner or a second executable-resolution path.\n- Config schema read path for Global Config: prefer `stokd config schema --json` via that runner; layered value reads may parse YAML layers read-only.\n- Config write path: construct `stokd config set …` argv only. **Never** write config files from the app.\n- Usage ingest: prefer watching provider stores over a 60s full poll; accept a thin poll as an interim if the watch lands in this phase's last item — document the chosen path in code.\n- Failure modes: CLI missing → the runner's structured error (code 127) surfaced as panel state; no stores → empty/unobserved state; never a fatal process exit.",
+        "item_number": "3.1",
+        "title": "Config schema access and usage ingest",
+        "verification_commands": "set -euo pipefail\nrg -n 'StokdCLI|stokd config set|config schema' Sources/\ntest \"$(rg -c -n 'STOKD_CLI_PATH' Sources/ | wc -l | tr -d ' ')\" = \"1\"\n! rg -n 'write.*config\\.yaml|FileManager.*config\\.yaml' Sources/Stokd/ Sources/Sidebar/ 2>/dev/null || true\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/StokdConfigUsageDataTests CMUX_SKIP_ZIG_BUILD=1 test"
       }
     ]
   },
   {
     "phase_number": 4,
-    "title": "Panel UIs",
+    "title": "Panel UI implementations",
     "work_items": [
       {
+        "acceptance_criteria": "- AC-4.1.a: Fixture repo produces expected worktree rows in unit tests.\n- AC-4.1.b: Non-git path yields empty state without crash.\n- AC-4.1.c: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorktreesPanelTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.",
+        "acceptance_tests": "- Test-4.1.a: Unit — row composition.\n- Test-4.1.b: Unit — non-git empty.\n- Test-4.1.c: Suite gate.",
+        "dependencies": [
+          "1.1",
+          "3.1"
+        ],
+        "implementation_details": "- **Landing:** fork-only.\n- Implement Worktrees section: inventory from Git/local worktree discovery for the active repo (document source of truth in code; do not hard-depend only on incomplete CLI if git is authoritative).\n- Rows: path, branch, dirty; open/reveal minimum; land/review actions optional for this slice if unsafe.\n- Failure modes: non-git cwd → empty + explanation.",
         "item_number": "4.1",
-        "title": "Work right-rail tab host",
-        "dependencies": [
-          "1.1",
-          "1.2",
-          "3.2"
-        ],
-        "implementation_details": "SwiftUI host for Work mounted as a right-rail tool tab alongside Files/Find/Vault. List/filter/sort matching current stokd API shapes. Port open/mark-done/copy-hash only where native affordances are clear; no agents-window flows.",
-        "acceptance_criteria": "Right tab strip includes Work; panel loads real data or clear empty/error; never blank crash; snapshot-boundary rules respected.",
-        "components": [
-          "Sources/Sidebar/SidebarDockPanelView.swift",
-          "Sources/Stokd/"
-        ]
+        "title": "Worktrees panel (left section)",
+        "verification_commands": "set -euo pipefail\nrg -n 'StokdWorktree|stokdWorktrees' Sources/\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorktreesPanelTests CMUX_SKIP_ZIG_BUILD=1 test"
       },
       {
+        "acceptance_criteria": "- AC-4.2.a: Schema fixture renders ≥1 field group.\n- AC-4.2.b: Write path unit test asserts `stokd config set` argv, never FileManager write to yaml.\n- AC-4.2.c: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdGlobalConfigPanelTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.",
+        "acceptance_tests": "- Test-4.2.a: Unit — schema decode + render model.\n- Test-4.2.b: Unit — write argv.\n- Test-4.2.c: Suite gate.",
+        "dependencies": [
+          "1.1",
+          "3.1"
+        ],
+        "implementation_details": "- **Landing:** fork-only.\n- Schema-driven settings UI from CLI schema descriptor; scope from active window focused workspace cwd.\n- Show layered provenance when cheap; writes only through CLI writer with explicit scope (default workspace; global requires deliberate switch).\n- Failure modes: CLI missing → “stokd CLI not found” state; unknown field types render read-only.",
         "item_number": "4.2",
-        "title": "Global Config left section host",
-        "dependencies": [
-          "1.1",
-          "1.2",
-          "3.2"
-        ],
-        "implementation_details": "Full rail section UI for schema-driven Global Config with scope from focused workspace cwd. Display layered provenance where cheap; writes only via CLI writer with explicit scope. Two separate sections (not tabs) with Worktrees per default D5/open-question default.",
-        "acceptance_criteria": "Section appears in left seed stack; schema fields render; writes go through stokd config set; empty/error when CLI missing.",
-        "components": [
-          "Sources/Stokd/",
-          "Sources/Sidebar/SidebarDockPanelView.swift"
-        ]
+        "title": "Global Config panel (left section)",
+        "verification_commands": "set -euo pipefail\nrg -n 'StokdGlobalConfig|stokdGlobalConfig|config schema' Sources/\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/StokdGlobalConfigPanelTests CMUX_SKIP_ZIG_BUILD=1 test"
       },
       {
+        "acceptance_criteria": "- AC-4.3.a: Fixture usage records aggregate into provider/model rows.\n- AC-4.3.b: Missing cache columns do not display as measured zero when unavailable.\n- AC-4.3.c: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdUsagePanelTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.",
+        "acceptance_tests": "- Test-4.3.a: Unit — aggregation.\n- Test-4.3.b: Unit — unavailable cache columns.\n- Test-4.3.c: Suite gate.",
+        "dependencies": [
+          "1.1",
+          "3.1"
+        ],
+        "implementation_details": "- **Landing:** fork-only.\n- Per provider → per model token/cost breakdown for supported timespans.\n- Prefer file-watch/incremental ingest; include reasoning tokens and restart-safe provider dedupe when data model supports it; mark unmeasured cache columns unavailable rather than fake zeros.\n- Failure modes: no stores → configured-but-unobserved rows or empty state, not crash.",
         "item_number": "4.3",
-        "title": "Worktrees left section host",
-        "dependencies": [
-          "1.1",
-          "1.2",
-          "3.2"
-        ],
-        "implementation_details": "Left section listing worktrees: path, branch, dirty; open (and land only if safe commands exist). v1 is list+open first; no full review-chip surface required.",
-        "acceptance_criteria": "Section lists real worktrees or clear empty/error; open works for a normal local repo; list-row snapshot boundary holds.",
-        "components": [
-          "Sources/Stokd/",
-          "Sources/Sidebar/SidebarDockPanelView.swift"
-        ]
-      },
-      {
-        "item_number": "4.4",
-        "title": "Usage left bottom section host",
-        "dependencies": [
-          "1.1",
-          "1.2",
-          "3.2"
-        ],
-        "implementation_details": "Own bottom left section (not nested under Worktrees). Per provider \u2192 per model token/cost for supported timespans. Prefer file-watch/incremental ingest over dumb 60s full poll when practical.",
-        "acceptance_criteria": "Usage is bottom left section in seed; shows breakdown or clear empty/error; no fake cache zeros.",
-        "components": [
-          "Sources/Stokd/",
-          "Sources/Sidebar/SidebarDockPanelView.swift"
-        ]
+        "title": "Usage panel (left section, bottom)",
+        "verification_commands": "set -euo pipefail\nrg -n 'StokdUsage|stokdUsage|TokenUsage' Sources/\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/StokdUsagePanelTests CMUX_SKIP_ZIG_BUILD=1 test"
       }
     ]
   },
   {
     "phase_number": 5,
-    "title": "Persistence, localization, and dogfood gate",
+    "title": "Persistence, localization, and rollout",
     "work_items": [
       {
+        "acceptance_criteria": "- AC-5.1.a: Round-trip unit test exit 0 for a layout including the three left-rail stokd sections.\n- AC-5.1.b: `rg` shows no increment of `SessionSnapshotSchema.currentVersion` in the change set relative to pre-phase baseline (version remains 1).\n- AC-5.1.c: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdRailPanelPersistenceTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.",
+        "acceptance_tests": "- Test-5.1.a: Unit — encode/decode.\n- Test-5.1.b: Regression — schema version pin.\n- Test-5.1.c: Suite gate.",
+        "dependencies": [],
+        "implementation_details": "- **Landing:** fork-only.\n- Persist left-rail section membership, order, collapse, and extents for the three new kinds using the **additive optional** snapshot rules established by the prerequisite PRD — **never** bump `SessionSnapshotSchema.currentVersion` and never add a `SessionWorkspaceLayoutSnapshot` case. Right-rail tab selection persistence is already covered by the prerequisite PRD.\n- Round-trip unit test: seed layout → encode → decode → equal membership.\n- Failure modes: unknown future kind → skip; corrupt optional → default seed once.",
         "item_number": "5.1",
-        "title": "Rail snapshot persistence for stokd sections/tabs",
-        "dependencies": [
-          "2.1",
-          "4.1",
-          "4.2",
-          "4.3",
-          "4.4"
-        ],
-        "implementation_details": "Section list, selected tab, collapse, and extents ride existing rail snapshot fields with additive optionals only. Flag off: no stokd sections/tabs appear.",
-        "acceptance_criteria": "Rearrangements survive relaunch; flag off restores prior non-stokd behavior; no schema version bump.",
-        "components": [
-          "Sources/Sidebar/SidebarDockStore.swift",
-          "Sources/Sidebar/SidebarDockSeeding.swift"
-        ]
+        "title": "Snapshot persistence for stokd rail membership",
+        "verification_commands": "set -euo pipefail\nrg -n 'currentVersion' Sources/SessionSnapshotSchema.swift Packages Sources 2>/dev/null | head -20\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/StokdRailPanelPersistenceTests CMUX_SKIP_ZIG_BUILD=1 test"
       },
       {
+        "acceptance_criteria": "- AC-5.2.a: Localization keys for the Worktrees, Global Config, and Usage section titles exist in en and ja.\n- AC-5.2.b: `./scripts/lint-pbxproj-test-wiring.sh` → exit 0.\n- AC-5.2.c: Tagged reload compiles (or unit suites above all green if CI skips full app) → exit 0.\n- AC-5.2.d: `git -C vendor/bonsplit rev-parse HEAD` equals pin `48643102d6b68400069429bd43c15d7bda2b00a1` (or current PRD pin if rail PRD updates it — do not change bonsplit in this project).",
+        "acceptance_tests": "- Test-5.2.a: Regression — xcstrings keys present.\n- Test-5.2.b: Regression — pbx wiring.\n- Test-5.2.c: Integration — tagged build or documented unit substitute.\n- Test-5.2.d: Regression — bonsplit SHA.",
+        "dependencies": [
+          "4.1",
+          "4.3",
+          "5.1"
+        ],
+        "implementation_details": "- **Landing:** fork-only.\n- Every new user-facing string uses `String(localized:)` with en+ja entries `state == translated` and `ja != en` for non-identical natural text.\n- Actor wiring: palette/debug can open/focus each stokd panel via the same invoker path as other rail tools.\n- Tagged dogfood: `CMUX_SKIP_ZIG_BUILD=1 ./scripts/reload.sh --tag stokd-left-rail-panels` builds; with flag on, cold window matches the §0 left-rail layout.\n- Bonsplit clean: `git -C vendor/bonsplit status --porcelain` empty; pinned SHA unchanged.",
         "item_number": "5.2",
-        "title": "en+ja localization and pbx test wiring",
-        "dependencies": [
-          "4.1",
-          "4.2",
-          "4.3",
-          "4.4"
-        ],
-        "implementation_details": "All user-facing strings via String(localized:) with en+ja in Resources/Localizable.xcstrings. New cmuxTests files wired in cmux.xcodeproj. bonsplit submodule SHA unchanged.",
-        "acceptance_criteria": "Localization audit for new strings en+ja; lint-pbxproj-test-wiring clean; vendor/bonsplit pointer unchanged.",
-        "components": [
-          "Resources/Localizable.xcstrings",
-          "cmux.xcodeproj/project.pbxproj",
-          "cmuxTests/"
-        ]
-      },
-      {
-        "item_number": "5.3",
-        "title": "Tagged dogfood stokd-rail-panels",
-        "dependencies": [
-          "5.1",
-          "5.2"
-        ],
-        "implementation_details": "Build with ./scripts/reload.sh --tag stokd-rail-panels, flag on, confirm left stack + right Work tab visually and via debug/socket where available.",
-        "acceptance_criteria": "Tagged Debug app builds; default layout visible with flag on; each panel non-crashing with real or empty/error state; acceptance checklist in PRD \u00a74 satisfied.",
-        "components": [
-          "scripts/reload.sh"
-        ]
+        "title": "Localization audit and dogfood gate",
+        "verification_commands": "set -euo pipefail\nrg -n 'stokd\\.(worktrees|globalConfig|usage)|sidebarDock\\.stokd' Resources/Localizable.xcstrings || \\\n  rg -n 'Worktrees|Global Config|Token Usage|STOKD' Resources/Localizable.xcstrings\n./scripts/lint-pbxproj-test-wiring.sh\ngit -C vendor/bonsplit status --porcelain\n# Preferred full gate when environment allows:\n# CMUX_SKIP_ZIG_BUILD=1 ./scripts/reload.sh --tag stokd-left-rail-panels\n./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorktreesPanelTests \\\n  -only-testing:cmuxTests/StokdGlobalConfigPanelTests \\\n  -only-testing:cmuxTests/StokdUsagePanelTests \\\n  -only-testing:cmuxTests/StokdRailPanelSeedTests \\\n  CMUX_SKIP_ZIG_BUILD=1 test"
       }
     ]
   }
