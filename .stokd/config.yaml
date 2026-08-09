@@ -1,0 +1,5 @@
+git:
+  land:
+    target: upstream-ag-brand-quad
+  worktree:
+    baseBranch: upstream-ag-brand-quad
