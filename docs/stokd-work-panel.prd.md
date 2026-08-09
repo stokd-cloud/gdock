@@ -47,18 +47,6 @@ RIGHT RAIL
 
 The left rail is untouched by this PRD: the existing workspaces section stays exactly as it is on `main`. Users may reorder the tool tabs after seed; first enable must match this diagram.
 
-### Non-goals
-
-- Worktrees, Global Config, Usage panels (sibling PRD)
-- Agents, Agent chat (ACP), Reviews, Current Activity, Model Configuration, Workload Configuration
-- 1:1 VS Code parity for every extension action
-- Widget-tile chrome from the widgets PRD
-- Socket.IO realtime as a hard requirement
-- Freeform canvas dock-anywhere
-- Upstream cmux PRs / `vendor/bonsplit` changes
-
----
-
 ## 1. Objectives & Constraints
 
 ### Objectives
@@ -83,6 +71,26 @@ The left rail is untouched by this PRD: the existing workspaces section stays ex
 - SwiftUI snapshot-boundary and no-state-mutation-in-body rules apply (see `CLAUDE.md`).
 - Bonsplit submodule SHA unchanged and worktree clean.
 
+### Scope Inventory
+
+- Rail identity, placement, shared action routing, seeding, and snapshot persistence under
+  `Sources/Sidebar/SidebarDock*` and the existing session snapshot surfaces.
+- A minimal stokd boundary under `Sources/Stokd/`: executable resolution, CLI process results,
+  local REST transport, task/project value types, and Work presentation state.
+- The right-rail Work tool tab, including loading, populated, empty, and error states.
+- The existing `sidebar.beta.dock.enabled` gate; no new gdock setting is introduced by this PRD.
+- Localized en+ja strings in `Resources/Localizable.xcstrings`.
+- Focused Swift tests under `cmuxTests/`, explicit Xcode test-target wiring, and tagged dogfood.
+
+### Non-Goals
+
+- Worktrees, Global Config, and Usage panels, which remain in their standalone sibling PRDs (`docs/stokd-worktrees-panel.prd.md`, `docs/stokd-global-config-panel.prd.md`, `docs/stokd-usage-panel.prd.md`).
+- Agents, Agent chat (ACP), Reviews, Current Activity, Model Configuration, or Workload
+  Configuration.
+- 1:1 VS Code parity for every extension action or write actions in the first release.
+- Widget-tile chrome, Socket.IO realtime as a hard requirement, or freeform canvas docking.
+- Upstream cmux PRs, `vendor/bonsplit` changes, or direct writes to stokd configuration files.
+
 ---
 
 ## 1.5 Required Toolchain
@@ -105,7 +113,108 @@ Prefer `CMUX_SKIP_ZIG_BUILD=1` on tagged reloads when host zig is not 0.15.2.
 
 ---
 
-## 2. Execution Phases
+## 2. Contract
+
+**VAL-RAIL-001** — Work is a stable right-rail tool kind.
+Surface: library
+Needs: the existing SidebarDock rail substrate
+Behavior: With the rail gate enabled, gdock can address `stokdWork` by a stable persisted value,
+  place it on the right rail, reject it on the left rail, and ignore unknown persisted kinds.
+Evidence: Persist the RED → GREEN results from `StokdWorkPanelKindTests` and the Xcode test-wiring
+  lint output in the phase evidence.
+Rigor: R2
+Why: The kind is shared persistence and placement infrastructure, so an independent validator must
+  confirm the focused regression suite rather than relying only on implementer inspection.
+
+**VAL-FLAG-001** — The existing rail beta gate controls all stokd panels.
+Surface: library
+Needs: VAL-RAIL-001 and the grandfathered `sidebar.beta.dock.enabled` setting
+Behavior: When `sidebar.beta.dock.enabled` is absent or false no stokd panel is offered, and when it
+  is true the same shared enablement path permits Work and future stokd rail panels.
+Evidence: Persist the RED → GREEN results from `StokdRailPanelFlagTests` plus source evidence that
+  the implementation introduces no fork-only setting outside the `gdock.*` namespace.
+Rigor: R2
+Why: A shared gate affects every current and future stokd panel and needs independent validation of
+  both default-off and enabled behavior.
+
+**VAL-CLI-001** — CLI execution is resolved safely and never writes configuration directly.
+Surface: cli
+Needs: the active workspace working directory and a supported stokd installation
+Behavior: gdock resolves the stokd executable in the documented precedence order, runs it off the
+  main actor with structured process results, and reports a missing executable as code 127 without
+  mutating `config.yaml`.
+Evidence: Persist the RED → GREEN results from `StokdCLIRunnerTests` and the direct-write source
+  scan from the work item's Verification Commands.
+Rigor: R2
+Why: Process execution and configuration safety cross an application boundary and warrant an
+  independent validator of both success and failure paths.
+
+**VAL-API-001** — Work receives paged tasks and projects from the local stokd API.
+Surface: api
+Needs: a configurable local stokd API base URL and offline URLProtocol fixtures
+Behavior: Given a reachable local API, Work receives decoded paged task and project values; given
+  connection, HTTP, or decoding failure, it receives an empty result with a structured error within
+  the configured timeout.
+Evidence: Persist the RED → GREEN `StokdWorkAPIClientTests` results for pages, URL selection,
+  refused connections, non-2xx responses, and decoding failures.
+Rigor: R2
+Why: Network-bound decoding and error normalization need independent fixture-based validation.
+
+**VAL-WORK-001** — Work presentation state is deterministic and race-safe.
+Surface: library
+Needs: VAL-API-001
+Behavior: For a fixed task/project response, Work exposes deterministic immutable row snapshots,
+  distinct populated/empty/error states, and discards responses superseded by a newer request.
+Evidence: Persist the RED → GREEN results from `StokdWorkPanelViewModelTests`, including the
+  out-of-order completion fixture.
+Rigor: R2
+Why: Ordering and stale-response defects are user-visible but reliably covered by an independent
+  deterministic unit-test lane.
+
+**VAL-WORK-002** — Users can view and focus Work without blank chrome or duplicated actions.
+Surface: artifact
+Needs: VAL-RAIL-001 and VAL-WORK-001
+Behavior: Selecting Work from any supported entrypoint focuses one right-rail tool-tab
+  implementation that renders identifiable populated, empty, and error content through the shared
+  SidebarDock action path.
+Evidence: Persist the RED → GREEN `StokdWorkPanelViewTests` results, the snapshot-boundary source
+  scan, and tagged dogfood evidence showing the mounted panel states.
+Rigor: R2
+Why: The actor-facing SwiftUI surface needs independent test and dogfood confirmation.
+
+**VAL-SEED-001** — First enable seeds Work once without disturbing user layout.
+Surface: library
+Needs: VAL-FLAG-001 and VAL-WORK-002
+Behavior: On first gated enable, the right-rail Tools tabs seed as Files, Find, Vault, Work; later
+  launches preserve user order, never duplicate Work, and never add or reorder left-rail sections.
+Evidence: Persist the RED → GREEN `StokdWorkPanelSeedTests` results for initial seed, reseed,
+  customized order, gate-off behavior, and left-rail invariance.
+Rigor: R2
+Why: Seed mutations can silently overwrite user customization and require independent regression
+  validation.
+
+**VAL-PERSIST-001** — Work rail membership round-trips additively.
+Surface: library
+Needs: VAL-SEED-001 and the existing session snapshot schema
+Behavior: A Work-inclusive rail layout round-trips membership, order, and selection through
+  additive optional snapshot fields while retaining schema version 1 and skipping unknown kinds.
+Evidence: Persist the RED → GREEN `StokdWorkPanelPersistenceTests` results and the schema-version
+  source check.
+Rigor: R2
+Why: Session restoration is durable user state and needs independent round-trip validation.
+
+**VAL-ROLL-001** — The localized Work panel is buildable and ready for gated dogfood.
+Surface: artifact
+Needs: VAL-WORK-002, VAL-SEED-001, and VAL-PERSIST-001
+Behavior: A tagged gdock build presents localized en+ja Work strings, opens and focuses Work through
+  the shared action path, and leaves the pinned bonsplit submodule unchanged and clean.
+Evidence: Persist the localization audit, focused suite output, test-wiring lint, bonsplit SHA/status,
+  and tagged `reload.sh` build result.
+Rigor: R2
+Why: Release readiness combines source catalogs, build output, and repository integrity and should
+  be independently validated as one terminal artifact gate.
+
+## 3. Execution Topology
 
 ## Phase 1: Panel kind, placement, and feature gate
 
@@ -113,7 +222,8 @@ Prefer `CMUX_SKIP_ZIG_BUILD=1` on tagged reloads when host zig is not 0.15.2.
 
 ### 1.1 Register the stokdWork rail panel kind
 
-**Dependencies:** none
+**Targets:** VAL-RAIL-001
+**Dependencies:** []
 
 **Landing:** fork-only
 
@@ -151,30 +261,30 @@ test -f cmuxTests/StokdWorkPanelKindTests.swift
 
 ### 1.2 Feature gate for stokd rail panels
 
-**Dependencies:** 1.1
+**Targets:** VAL-FLAG-001
+**Dependencies:** ["1.1"]
 
 **Landing:** fork-only
 
 **Implementation Details**
 - **Landing:** fork-only.
-- Decide and implement **one** gate, documented in a code comment, and treat it as the gate for **all** future stokd rail panels:
-  - **Option A:** reuse `sidebar.beta.dock.enabled` (stokd panels appear only when rails are on), or
-  - **Option B:** dedicated `gdock.sidebar.beta.stokdPanels.enabled`, default false, still requiring rails on to mount.
+- Reuse the grandfathered upstream `sidebar.beta.dock.enabled` key and expose one shared enablement
+  helper as the gate for **all** future stokd rail panels.
 - Default **off**. Flag-off: no stokd kind in seed, palette, or tab strip.
-- Per fork conventions (`CLAUDE.md`), any **new** setting id must use the `gdock.` prefix and live in `GdockCatalogSection`; reusing the grandfathered upstream `sidebar.beta.dock.enabled` key is the only exception.
-- Surface in Beta Features settings if Option B (localized en+ja).
+- Introduce no new setting id; any future dedicated setting remains subject to the `gdock.` prefix
+  and `GdockCatalogSection` convention.
 - Failure modes: missing key → false; never throw from a settings read.
 
 **Acceptance Criteria**
 - AC-1.2.a: Key absent from UserDefaults → stokd panels disabled.
-- AC-1.2.b: Enable path returns true only when the key is set true (and the rail gate is satisfied under Option B).
-- AC-1.2.c: If Option B is chosen, the new setting id begins with `gdock.` and is registered in `GdockCatalogSection`.
+- AC-1.2.b: Shared enablement returns true only when `sidebar.beta.dock.enabled` is true.
+- AC-1.2.c: No new stokd-panels setting id is registered outside the existing rail gate.
 - AC-1.2.d: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdRailPanelFlagTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
 
 **Acceptance Tests**
 - Test-1.2.a: Unit — default-off.
 - Test-1.2.b: Unit — enable/disable matrix.
-- Test-1.2.c: Regression — `rg` asserts the `gdock.` prefix and catalog registration (skipped with a recorded note if Option A is chosen).
+- Test-1.2.c: Regression — source scan confirms the shared existing gate and no dedicated key.
 - Test-1.2.d: Suite gate.
 
 **Verification Commands**
@@ -193,7 +303,8 @@ rg -n 'stokdPanels|sidebar\.beta\.dock\.enabled|gdock\.sidebar\.beta\.stokdPanel
 
 ### 2.1 stokd CLI runner
 
-**Dependencies:** 1.1
+**Targets:** VAL-CLI-001
+**Dependencies:** []
 
 **Landing:** fork-only
 
@@ -227,7 +338,8 @@ rg -n 'STOKD_CLI_PATH|\.stokd/bin/stokd' Sources/
 
 ### 2.2 Local stokd API client for tasks and projects
 
-**Dependencies:** 2.1
+**Targets:** VAL-API-001
+**Dependencies:** ["2.1"]
 
 **Landing:** fork-only
 
@@ -266,7 +378,8 @@ rg -n '8167|StokdWorkAPI|URLProtocol' Sources/ cmuxTests/
 
 ### 3.1 Work panel view model
 
-**Dependencies:** 1.1, 2.2
+**Targets:** VAL-WORK-001
+**Dependencies:** []
 
 **Landing:** fork-only
 
@@ -301,7 +414,8 @@ rg -n 'StokdWorkPanelViewModel' Sources/ cmuxTests/
 
 ### 3.2 Work panel view and rail mounting
 
-**Dependencies:** 3.1
+**Targets:** VAL-WORK-002
+**Dependencies:** ["3.1"]
 
 **Landing:** fork-only
 
@@ -344,7 +458,8 @@ rg -n 'SidebarDockActionInvoker|SidebarDockCommand' Sources/
 
 ### 4.1 Seed Work into the right-rail tool tab strip
 
-**Dependencies:** 1.2, 3.2
+**Targets:** VAL-SEED-001
+**Dependencies:** []
 
 **Landing:** fork-only
 
@@ -386,7 +501,8 @@ rg -n 'stokdPanelsSeed|seedStokd|stokdWork' Sources/Sidebar/
 
 ### 5.1 Snapshot persistence for stokd rail membership
 
-**Dependencies:** 3.2, 4.1
+**Targets:** VAL-PERSIST-001
+**Dependencies:** []
 
 **Landing:** fork-only
 
@@ -419,7 +535,8 @@ rg -n 'currentVersion' Sources/ Packages/ | rg -n 'SessionSnapshotSchema' || tru
 
 ### 5.2 Localization audit and dogfood gate
 
-**Dependencies:** 1.2, 3.2, 4.1, 5.1
+**Targets:** VAL-ROLL-001
+**Dependencies:** ["5.1"]
 
 **Landing:** fork-only
 
@@ -474,7 +591,7 @@ git -C vendor/bonsplit rev-parse HEAD
 
 ---
 
-## 3. Completion Criteria
+## 4. Completion Criteria
 
 - [ ] All Phase 1–5 work items' Verification Commands exit 0.
 - [ ] Flag on + cold seed shows the right-rail Tools strip as Files, Find, Vault, Work.
@@ -487,7 +604,7 @@ git -C vendor/bonsplit rev-parse HEAD
 
 ---
 
-## 4. Rollout & Validation
+## 5. Rollout & Validation
 
 ### Rollout Strategy
 
@@ -505,10 +622,12 @@ git -C vendor/bonsplit rev-parse HEAD
 
 ---
 
-## 5. Open Questions
+## 6. Open Questions
 
-1. Shared rail flag (Option A) vs dedicated `gdock.sidebar.beta.stokdPanels.enabled` (Option B) — Phase 1.2 decides; default Option A if unanswered.
-2. Does Work need write actions (start/complete/note) in v1, or list + open only? Default: list + open only; write actions are a follow-up.
-3. Should Work fall back to `stokd task list --json` / `stokd project list --json` via the CLI runner when the local API is down? Default: no fallback in v1 — show the error state; revisit after dogfood.
-
-If unanswered at implement time: take the defaults above and record the choice in project notes.
+- Decision: reuse `sidebar.beta.dock.enabled` as the shared stokd rail gate; a dedicated
+  `gdock.sidebar.beta.stokdPanels.enabled` setting is deferred until dogfood demonstrates a need for
+  independent exposure control.
+- Decision: v1 is list + open only; task/project write actions are follow-up scope.
+- Decision: v1 does not fall back to `stokd task list --json` or `stokd project list --json` when
+  the local API is down; it renders the specified error state and revisits fallback after dogfood.
+- No unresolved questions block autonomous execution. No phase declares a planned `**Stop:**`.
