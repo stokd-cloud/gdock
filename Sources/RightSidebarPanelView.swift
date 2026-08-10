@@ -125,6 +125,9 @@ struct RightSidebarPanelView: View {
     @State private var focusShortcutHintMonitor = WindowScopedShortcutHintModifierMonitor(activation: .commandOnly)
     @State private var closeShortcutHintMonitor = WindowScopedShortcutHintModifierMonitor(activation: .commandOnly)
     @State private var hasMountedRightSidebarContent = false
+    /// Tools dragged down out of the mode bar into their own stacked sections.
+    /// Empty means the sidebar renders exactly as it always has.
+    @State private var sectionLayout = RightSidebarSectionLayout()
     @State private var keyboardShortcutSettingsObserver = KeyboardShortcutSettingsObserver.shared
     private let alwaysShowShortcutHints = ShortcutHintDebugSettings().alwaysShowHints
     private let closeShortcutHintXOffset = ShortcutHintDebugSettings.defaultRightSidebarCloseHintX
@@ -178,6 +181,10 @@ struct RightSidebarPanelView: View {
                 .rightSidebarChromeBottomBorder()
             contentForMode
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .onDrop(of: [.text], delegate: RightSidebarSectionDropDelegate(
+                    layout: $sectionLayout,
+                    selectedMode: fileExplorerState.mode
+                ))
         }
         .shortcutHintVisibilityAnimation(value: focusShortcutHintAnimationValue)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -243,6 +250,11 @@ struct RightSidebarPanelView: View {
                         ) != true {
                             selectMode(mode)
                         }
+                    }
+                    .onDrag {
+                        // Plain text payload: no custom UTType to declare in
+                        // Info.plist for a prototype drag.
+                        NSItemProvider(object: item.mode.rawValue as NSString)
                     }
                 }
                 Spacer(minLength: 0)
@@ -377,35 +389,71 @@ struct RightSidebarPanelView: View {
     @ViewBuilder
     private var contentForMode: some View {
         if RightSidebarContentMountPolicy.shouldMountContent(isRightSidebarVisible: fileExplorerState.isVisible, hasMountedContent: hasMountedRightSidebarContent) {
-            switch fileExplorerState.mode {
-            case .files:
-                FileExplorerPanelView(
-                    store: fileExplorerStore,
-                    state: fileExplorerState,
-                    onOpenFilePreview: onOpenFilePreview,
-                    presentation: .files
-                )
-            case .find:
-                FileExplorerPanelView(
-                    store: fileExplorerStore,
-                    state: fileExplorerState,
-                    onOpenFilePreview: onOpenFilePreview,
-                    presentation: .find
-                )
-            case .sessions:
-                SessionIndexView(store: sessionIndexStore, onResume: onResumeSession)
-                    .onAppear {
-                        sessionIndexStore.setCurrentDirectoryIfChanged(sessionIndexDirectory)
-                    }
-            case .feed:
-                FeedPanelView()
-            case .dock:
-                dockPanel(windowAppearance: windowAppearance)
-            case .customSidebar:
-                EmptyView()
+            if sectionLayout.isEmpty {
+                toolContent(for: fileExplorerState.mode)
+            } else {
+                stackedContent
             }
         } else {
             Color.clear
+        }
+    }
+
+    /// The view a tool renders, independent of whether it is shown as the single
+    /// sidebar tool or as one section of a stack. Sections re-parent these exact
+    /// views; nothing is re-hosted.
+    @ViewBuilder
+    private func toolContent(for mode: RightSidebarMode) -> some View {
+        switch mode {
+        case .files:
+            FileExplorerPanelView(
+                store: fileExplorerStore,
+                state: fileExplorerState,
+                onOpenFilePreview: onOpenFilePreview,
+                presentation: .files
+            )
+        case .find:
+            FileExplorerPanelView(
+                store: fileExplorerStore,
+                state: fileExplorerState,
+                onOpenFilePreview: onOpenFilePreview,
+                presentation: .find
+            )
+        case .sessions:
+            SessionIndexView(store: sessionIndexStore, onResume: onResumeSession)
+                .onAppear {
+                    sessionIndexStore.setCurrentDirectoryIfChanged(sessionIndexDirectory)
+                }
+        case .feed:
+            FeedPanelView()
+        case .dock:
+            dockPanel(windowAppearance: windowAppearance)
+        case .customSidebar:
+            EmptyView()
+        }
+    }
+
+    /// Sidebar split into sections: the still-selected tool on top, then each
+    /// tool that has been dragged down out of the mode bar.
+    private var stackedContent: some View {
+        VStack(spacing: 0) {
+            if !sectionLayout.contains(fileExplorerState.mode) {
+                toolContent(for: fileExplorerState.mode)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                Rectangle()
+                    .fill(Color.primary.opacity(0.12))
+                    .frame(height: 1)
+            }
+            RightSidebarSectionStack(
+                layout: $sectionLayout,
+                onReturnToModeBar: { mode in
+                    sectionLayout.remove(mode)
+                },
+                content: { mode in
+                    toolContent(for: mode)
+                }
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
