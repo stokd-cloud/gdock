@@ -67,22 +67,19 @@ extension CMUXCLI {
     }
 
     func startDiffViewerHTTPServer(rootDirectory: URL, runtime: URL? = nil) throws -> URL {
-        guard let cmuxExecutableURL = diffViewerExecutableURL(for: runtime),
-              let executableURL = diffViewerServerExecutableURL(for: runtime) else {
+        guard let cmuxExecutableURL = diffViewerExecutableURL(for: runtime) else {
             throw CLIError(message: "Failed to resolve cmux executable for diff viewer server")
         }
 
+        // The HTTP server is always the cmux executable's `diff-viewer-server`
+        // subcommand. `cmux-diff-sidecar` is selected by
+        // `diffViewerServerExecutableURL` as the TYPED-session RPC transport
+        // (`rpc`/`handshake`); it does not implement `serve`, so spawning it
+        // here made it print its usage line instead of a port and fail with
+        // "Diff viewer server returned an invalid port".
         let process = Process()
-        process.executableURL = executableURL
-        if executableURL == cmuxExecutableURL {
-            process.arguments = ["diff-viewer-server", "--root", rootDirectory.path]
-        } else {
-            process.arguments = [
-                "serve",
-                "--root", rootDirectory.path,
-                "--cmux", cmuxExecutableURL.path,
-            ]
-        }
+        process.executableURL = cmuxExecutableURL
+        process.arguments = ["diff-viewer-server", "--root", rootDirectory.path]
         process.environment = ProcessInfo.processInfo.environment
 
         let stdoutPipe = Pipe()

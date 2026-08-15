@@ -1178,8 +1178,14 @@ extension CMUXCLI {
             "transparent_background": true,
             "bypass_remote_proxy": true
         ]
+        // `browser.open_split` requires a token for ANY diff-viewer URL, not
+        // just the custom scheme: the live HTTP form carries it as the first
+        // path component. Mirrors `runDiffCommand`; without it the app rejects
+        // the call with "Missing trusted diff viewer session".
+        params["diff_viewer_token"] = editor.url.scheme == DiffViewerURLMapper.scheme
+            ? (editor.url.host ?? "")
+            : (editor.url.path.split(separator: "/").first.map(String.init) ?? "")
         if editor.url.scheme == DiffViewerURLMapper.scheme {
-            params["diff_viewer_token"] = editor.url.host ?? ""
             params["diff_viewer_files"] = editor.allowedFiles.map(\.jsonObject)
         }
         if let windowHandle { params["window_id"] = windowHandle }
