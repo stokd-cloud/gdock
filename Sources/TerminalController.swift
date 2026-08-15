@@ -7018,6 +7018,9 @@ class TerminalController {
         ) {
             return error
         }
+        if let error = v2RegisterEditorFileIfNeeded(params: params, url: url) {
+            return error
+        }
 
         var result: V2CallResult = .err(code: "internal_error", message: "Failed to create browser", data: nil)
         v2MainSync {

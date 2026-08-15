@@ -4651,3 +4651,44 @@ extension MobileBrowserStreamInputFocusTests {
         XCTAssertTrue(delivered, "Backspace must reach an input focused inside a shadow root")
     }
 }
+
+/// Restore extraction for diff-viewer / `cmux edit` pages served over the
+/// local HTTP server: the page's hash router rewrites the URL fragment to a
+/// leading-slash form after load, and the restored `webView.url` carries that
+/// variant. Regression for the 404 where a restored editor navigated a
+/// dead-port HTTP URL because the components extractor required the bare
+/// scheme fragment and so never persisted the surface as restorable.
+/// `@MainActor` because upstream moved `CmuxDiffViewerURLSchemeHandler` into
+/// its own file and made it main-actor isolated; PR #5761 wrote these tests
+/// against the earlier non-isolated type nested in `BrowserPanel.swift`.
+@MainActor
+@Suite struct DiffViewerHTTPRestoreComponentsTests {
+    private let token = "0123456789abcdef0123"
+
+    @Test func httpFormWithBareSchemeFragmentExtracts() {
+        let url = URL(string: "http://127.0.0.1:53800/\(token)/editor-1-A.html#cmux-diff-viewer")!
+        let c = CmuxDiffViewerURLSchemeHandler.diffViewerComponents(from: url)
+        #expect(c?.token == token)
+        #expect(c?.requestPath == "/editor-1-A.html")
+    }
+
+    @Test func httpFormWithRouterLeadingSlashFragmentExtracts() {
+        // The form a restored page actually carries after the hash router runs.
+        let url = URL(string: "http://127.0.0.1:53800/\(token)/editor-1-A.html#/cmux-diff-viewer")!
+        let c = CmuxDiffViewerURLSchemeHandler.diffViewerComponents(from: url)
+        #expect(c?.token == token)
+        #expect(c?.requestPath == "/editor-1-A.html")
+    }
+
+    @Test func customSchemeFormStillExtracts() {
+        let url = URL(string: "cmux-diff-viewer://\(token)/editor-1-A.html")!
+        let c = CmuxDiffViewerURLSchemeHandler.diffViewerComponents(from: url)
+        #expect(c?.token == token)
+        #expect(c?.requestPath == "/editor-1-A.html")
+    }
+
+    @Test func unrelatedHttpFragmentDoesNotExtract() {
+        let url = URL(string: "http://127.0.0.1:53800/\(token)/editor-1-A.html#/something-else")!
+        #expect(CmuxDiffViewerURLSchemeHandler.diffViewerComponents(from: url) == nil)
+    }
+}

@@ -290,6 +290,7 @@ public struct CmuxDiffViewerSessionPreparer: Sendable {
 
     private static func isAllowedMimeType(_ mimeType: String) -> Bool {
         mimeType == "text/html" || mimeType == "text/javascript" || mimeType == "text/x-diff"
+            || mimeType == "text/css"
     }
 
     private static func pathExtensionMatchesMimeType(path: String, mimeType: String) -> Bool {
@@ -300,6 +301,10 @@ public struct CmuxDiffViewerSessionPreparer: Sendable {
             path.hasSuffix(".mjs") || path.hasSuffix(".js")
         case "text/x-diff":
             path.hasSuffix(".patch")
+        // `text/css` is served (non-executable, nosniff) so the Monaco editor
+        // surface can fetch and inline its stylesheet over the custom scheme.
+        case "text/css":
+            path.hasSuffix(".css")
         default:
             false
         }

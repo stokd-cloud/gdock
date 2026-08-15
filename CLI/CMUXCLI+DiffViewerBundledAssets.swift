@@ -21,7 +21,10 @@ extension CMUXCLI {
             }
             var relativePath = String(standardized.path.dropFirst(rootURL.path.count + 1))
             if relativePath.hasSuffix(".deflate") { relativePath.removeLast(".deflate".count) }
-            guard ["js", "mjs"].contains(URL(fileURLWithPath: relativePath, isDirectory: false).pathExtension) else {
+            // `css` is included so the Monaco editor surface can serve its
+            // stylesheet; the codicon `ttf` is intentionally omitted (skipped
+            // for v1 to avoid relaxing the served-page font CSP).
+            guard ["js", "mjs", "css"].contains(URL(fileURLWithPath: relativePath, isDirectory: false).pathExtension) else {
                 continue
             }
             relativePaths.insert(relativePath)

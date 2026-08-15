@@ -1062,6 +1062,289 @@ extension CMUXCLI {
         print("OK surface=\(surfaceText) pane=\(paneText)")
     }
 
+    private struct EditorWriteResult {
+        var fileURL: URL
+        var url: URL
+        var title: String
+        var token: String
+        var allowedFiles: [DiffViewerAllowedFile]
+    }
+
+    /// Opens a file in the Monaco editor surface. The editor reuses the diff
+    /// viewer custom-scheme serving + `browser.open_split` flow: it writes an
+    /// `editor` webviews page (with the file content + live appearance injected
+    /// as config), registers the bundled webviews assets in the per-token
+    /// allowlist, and asks the app to open a webview surface at that URL.
+    func runEditCommand(
+        commandArgs: [String],
+        socketPath: String,
+        explicitPassword: String?,
+        jsonOutput: Bool,
+        idFormat: CLIIDFormat
+    ) throws {
+        let usage = "Usage: cmux edit <file> [--window <w>] [--workspace <ws>] [--surface <s>] [--focus]"
+        var filePathArg: String?
+        var windowArg: String?
+        var workspaceArg: String?
+        var surfaceArg: String?
+        var focus = false
+        var index = 0
+        var optionsEnded = false
+        func takeValue(for flag: String) throws -> String {
+            index += 1
+            guard index < commandArgs.count else {
+                throw CLIError(message: "Missing value for \(flag). \(usage)")
+            }
+            return commandArgs[index]
+        }
+        func acceptPositional(_ value: String) throws {
+            guard filePathArg == nil else {
+                throw CLIError(message: "cmux edit accepts a single file; unexpected argument: \(value). \(usage)")
+            }
+            filePathArg = value
+        }
+        while index < commandArgs.count {
+            let arg = commandArgs[index]
+            if optionsEnded {
+                try acceptPositional(arg)
+            } else {
+                switch arg {
+                case "--":
+                    optionsEnded = true
+                case "--window":
+                    windowArg = try takeValue(for: arg)
+                case "--workspace":
+                    workspaceArg = try takeValue(for: arg)
+                case "--surface":
+                    surfaceArg = try takeValue(for: arg)
+                case "--focus":
+                    focus = true
+                default:
+                    if arg.hasPrefix("-") {
+                        throw CLIError(message: "Unknown option: \(arg). \(usage)")
+                    }
+                    try acceptPositional(arg)
+                }
+            }
+            index += 1
+        }
+        guard let filePathArg else {
+            throw CLIError(message: usage)
+        }
+
+        let fileURL = URL(fileURLWithPath: resolvePath(filePathArg)).standardizedFileURL
+        var isDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: fileURL.path, isDirectory: &isDirectory) else {
+            throw CLIError(message: "File not found: \(fileURL.path)")
+        }
+        guard !isDirectory.boolValue else {
+            throw CLIError(message: "Cannot edit a directory: \(fileURL.path)")
+        }
+        let fileData: Data
+        do {
+            fileData = try Data(contentsOf: fileURL)
+        } catch {
+            throw CLIError(message: "Cannot read file \(fileURL.path): \(error.localizedDescription)")
+        }
+        guard let content = String(data: fileData, encoding: .utf8) else {
+            throw CLIError(message: "Cannot open as text (not UTF-8): \(fileURL.path)")
+        }
+
+        let appearance = diffViewerAppearance(socketPath: socketPath, fontSizeOverride: nil)
+        let runtime = diffViewerRuntime(socketPath: socketPath)
+        let writable = FileManager.default.isWritableFile(atPath: fileURL.path)
+        // Pure Swift nibble encoding: String(format:) in hash paths is the
+        // known unbounded-memory P0 class in this repo.
+        let hexDigits = Array("0123456789abcdef".utf8)
+        var contentShaBytes = [UInt8]()
+        contentShaBytes.reserveCapacity(64)
+        for byte in SHA256.hash(data: fileData) {
+            contentShaBytes.append(hexDigits[Int(byte >> 4)])
+            contentShaBytes.append(hexDigits[Int(byte & 0x0f)])
+        }
+        let contentSha256 = String(decoding: contentShaBytes, as: UTF8.self)
+        let editor = try writeEditor(
+            filePath: fileURL.path,
+            content: content,
+            title: fileURL.lastPathComponent,
+            appearance: appearance,
+            runtime: runtime,
+            readOnly: !writable,
+            contentSha256: contentSha256
+        )
+
+        let client = try connectClient(
+            socketPath: socketPath,
+            explicitPassword: explicitPassword,
+            launchIfNeeded: true
+        )
+        defer { client.close() }
+        let windowHandle = try normalizeWindowHandle(windowArg, client: client)
+        let workspaceRaw = workspaceArg ?? (windowArg == nil ? ProcessInfo.processInfo.environment["CMUX_WORKSPACE_ID"] : nil)
+        let workspaceHandle = try normalizeWorkspaceHandle(workspaceRaw, client: client, windowHandle: windowHandle)
+        let surfaceRaw = surfaceArg ?? (windowArg == nil ? ProcessInfo.processInfo.environment["CMUX_SURFACE_ID"] : nil)
+        let surfaceHandle = try normalizeSurfaceHandle(surfaceRaw, client: client, workspaceHandle: workspaceHandle, windowHandle: windowHandle)
+
+        var params: [String: Any] = [
+            "url": editor.url.absoluteString,
+            "focus": focus,
+            "show_omnibar": false,
+            "transparent_background": true,
+            "bypass_remote_proxy": true
+        ]
+        // `browser.open_split` requires a token for ANY diff-viewer URL, not
+        // just the custom scheme: the live HTTP form carries it as the first
+        // path component. Mirrors `runDiffCommand`; without it the app rejects
+        // the call with "Missing trusted diff viewer session".
+        params["diff_viewer_token"] = editor.url.scheme == DiffViewerURLMapper.scheme
+            ? (editor.url.host ?? "")
+            : (editor.url.path.split(separator: "/").first.map(String.init) ?? "")
+        if editor.url.scheme == DiffViewerURLMapper.scheme {
+            params["diff_viewer_files"] = editor.allowedFiles.map(\.jsonObject)
+        }
+        if let windowHandle { params["window_id"] = windowHandle }
+        if let workspaceHandle { params["workspace_id"] = workspaceHandle }
+        if let surfaceHandle { params["surface_id"] = surfaceHandle }
+
+        let payload = try client.sendV2(method: "browser.open_split", params: params)
+        if jsonOutput {
+            var response = payload
+            // Report the source file (consistent with the human-readable line);
+            // expose the generated viewer page separately.
+            response["path"] = fileURL.path
+            response["viewer_path"] = editor.fileURL.path
+            response["url"] = editor.url.absoluteString
+            response["title"] = editor.title
+            print(jsonString(formatIDs(response, mode: idFormat)))
+            return
+        }
+        let surfaceText = formatHandle(payload, kind: "surface", idFormat: idFormat) ?? "unknown"
+        let paneText = formatHandle(payload, kind: "pane", idFormat: idFormat) ?? "unknown"
+        print("OK surface=\(surfaceText) pane=\(paneText) path=\(fileURL.path)")
+    }
+
+    private func writeEditor(
+        filePath: String,
+        content: String,
+        title: String,
+        appearance: DiffViewerAppearance,
+        runtime: URL?,
+        readOnly: Bool,
+        contentSha256: String
+    ) throws -> EditorWriteResult {
+        let directory = try diffViewerDirectory()
+        let origin = try diffViewerHTTPServerOrigin(rootDirectory: directory, runtime: runtime)
+        let mapper = DiffViewerURLMapper(
+            token: UUID().uuidString.lowercased(),
+            rootDirectory: directory,
+            origin: origin
+        )
+        let timestamp = Int(Date().timeIntervalSince1970)
+        let filename = "editor-\(timestamp)-\(UUID().uuidString.prefix(8)).html"
+        let viewerFileURL = directory.appendingPathComponent(filename, isDirectory: false)
+        let assets = try ensureDiffViewerAssets(nextTo: viewerFileURL, runtime: runtime)
+        try writeEditorHTML(
+            to: viewerFileURL,
+            appModuleURL: assets.appModuleURL,
+            filePath: filePath,
+            content: content,
+            title: title,
+            appearance: appearance,
+            readOnly: readOnly,
+            contentSha256: contentSha256
+        )
+        let allowedFiles = try diffViewerAllowedFiles(
+            pageURLs: [viewerFileURL],
+            assets: assets,
+            mapper: mapper
+        )
+        try writeDiffViewerHTTPManifest(
+            token: mapper.token,
+            files: allowedFiles,
+            rootDirectory: directory
+        )
+        if !readOnly {
+            // The write capability travels through the uid-owned trusted
+            // directory (0600 sidecar), never through socket params: only a
+            // real `cmux edit` can mint it, so browser.open_split callers
+            // cannot point an editor token at an arbitrary file.
+            let servingOrigin = origin.absoluteString
+            let sidecar: [String: Any] = [
+                "token": mapper.token,
+                "path": filePath,
+                "origin": servingOrigin
+            ]
+            let sidecarURL = directory.appendingPathComponent(".editor-\(mapper.token).json", isDirectory: false)
+            let sidecarData = try JSONSerialization.data(withJSONObject: sidecar, options: [.sortedKeys])
+            try sidecarData.write(to: sidecarURL, options: .atomic)
+            try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: sidecarURL.path)
+        }
+        return EditorWriteResult(
+            fileURL: viewerFileURL,
+            url: try mapper.viewerURL(for: viewerFileURL),
+            title: title,
+            token: mapper.token,
+            allowedFiles: allowedFiles
+        )
+    }
+
+    private static let editorLabels: [String: String] = [
+        "conflictChanged": CMUXDiffViewerLocalization.string("editor.conflict.changed", defaultValue: "The file changed on disk after it was opened."),
+        "conflictMissing": CMUXDiffViewerLocalization.string("editor.conflict.missing", defaultValue: "The file no longer exists on disk."),
+        "dismiss": CMUXDiffViewerLocalization.string("editor.conflict.dismiss", defaultValue: "Dismiss"),
+        "modified": CMUXDiffViewerLocalization.string("editor.status.modified", defaultValue: "Modified"),
+        "overwrite": CMUXDiffViewerLocalization.string("editor.conflict.overwrite", defaultValue: "Overwrite"),
+        "readOnly": CMUXDiffViewerLocalization.string("editor.status.readOnly", defaultValue: "Read-only"),
+        "saved": CMUXDiffViewerLocalization.string("editor.status.saved", defaultValue: "Saved"),
+        "saveFailed": CMUXDiffViewerLocalization.string("editor.error.saveFailed", defaultValue: "Could not save the file."),
+        "savePermissionDenied": CMUXDiffViewerLocalization.string("editor.error.permissionDenied", defaultValue: "You don't have permission to save this file."),
+        "saveUnavailable": CMUXDiffViewerLocalization.string("editor.error.saveUnavailable", defaultValue: "Saving is unavailable for this editor."),
+        "saving": CMUXDiffViewerLocalization.string("editor.status.saving", defaultValue: "Saving…"),
+        "useDiskVersion": CMUXDiffViewerLocalization.string("editor.conflict.useDiskVersion", defaultValue: "Use disk version"),
+    ]
+
+    private func writeEditorHTML(
+        to viewerURL: URL,
+        appModuleURL: String,
+        filePath: String,
+        content: String,
+        title: String,
+        appearance: DiffViewerAppearance,
+        readOnly: Bool,
+        contentSha256: String
+    ) throws {
+        let payload: [String: Any] = [
+            "filePath": filePath,
+            "content": content,
+            "title": title,
+            "appearance": appearance.jsonObject,
+            "readOnly": readOnly,
+            "contentSha256": contentSha256,
+            "labels": Self.editorLabels
+        ]
+        let config: [String: Any] = ["payload": payload]
+        let configLiteral = try jsonScriptLiteral(config)
+        let escapedAppModuleURL = htmlEscaped(appModuleURL)
+        let escapedTitle = htmlEscaped(title)
+        let htmlLanguage = Locale.current.language.languageCode?.identifier ?? "en"
+        let html = """
+        <!doctype html>
+        <html lang="\(htmlEscaped(htmlLanguage))" data-cmux-webview-kind="editor">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>\(escapedTitle)</title>
+        </head>
+        <body data-cmux-webview-kind="editor">
+          <script id="cmux-editor-config" type="application/json">\(configLiteral)</script>
+          <div id="root"></div>
+          <script type="module" src="\(escapedAppModuleURL)"></script>
+        </body>
+        </html>
+        """
+        try html.write(to: viewerURL, atomically: true, encoding: .utf8)
+    }
+
     private func diffViewerRuntime(socketPath: String) -> URL? {
         if let taggedExecutableURL = taggedDiffViewerExecutableURL(socketPath: socketPath) {
             return taggedExecutableURL
@@ -7003,6 +7286,7 @@ extension CMUXCLI {
 
     private func diffViewerHTTPIsAllowedMimeType(_ mimeType: String) -> Bool {
         mimeType == "text/html" || mimeType == "text/javascript" || mimeType == "text/x-diff"
+            || mimeType == "text/css"
     }
 
     private func diffViewerHTTPPathExtensionMatchesMimeType(path: String, mimeType: String) -> Bool {
@@ -7014,6 +7298,11 @@ extension CMUXCLI {
         }
         if mimeType == "text/x-diff" {
             return path.hasSuffix(".patch")
+        }
+        // `text/css` is served (non-executable, nosniff) so the Monaco editor
+        // surface can fetch and inline its stylesheet over the local server.
+        if mimeType == "text/css" {
+            return path.hasSuffix(".css")
         }
         return false
     }
@@ -7049,7 +7338,7 @@ extension CMUXCLI {
             }
         }
         for assetURL in assets.files {
-            try append(assetURL, mimeType: "text/javascript")
+            try append(assetURL, mimeType: assetURL.pathExtension == "css" ? "text/css" : "text/javascript")
         }
         return files
     }
