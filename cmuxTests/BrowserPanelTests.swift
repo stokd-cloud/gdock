@@ -4658,6 +4658,10 @@ extension MobileBrowserStreamInputFocusTests {
 /// variant. Regression for the 404 where a restored editor navigated a
 /// dead-port HTTP URL because the components extractor required the bare
 /// scheme fragment and so never persisted the surface as restorable.
+/// `@MainActor` because upstream moved `CmuxDiffViewerURLSchemeHandler` into
+/// its own file and made it main-actor isolated; PR #5761 wrote these tests
+/// against the earlier non-isolated type nested in `BrowserPanel.swift`.
+@MainActor
 @Suite struct DiffViewerHTTPRestoreComponentsTests {
     private let token = "0123456789abcdef0123"
 
