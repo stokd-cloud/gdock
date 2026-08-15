@@ -2831,8 +2831,18 @@ final class BrowserPanel: Panel, ObservableObject {
         "globe"
     }
 
+    /// Set by the editor save bridge when a `cmux edit` page reports unsaved
+    /// buffer changes; drives tab close-confirmation through `isDirty`.
+    var editorBufferIsDirty = false
+    /// True while a `cmux edit` Monaco page is live in this webview; gates the
+    /// undo/redo key routing so plain browser pages keep default behavior.
+    var editorPageActive = false
+    /// Pending first stroke of a chorded save shortcut (see
+    /// `handleEditorKeyEquivalent`).
+    var editorSaveChordPrefixPending = false
+
     var isDirty: Bool {
-        false
+        editorBufferIsDirty
     }
 
     // Internal so BrowserPrewarmedWebViewPool builds prewarm webviews with
@@ -3020,6 +3030,11 @@ final class BrowserPanel: Panel, ObservableObject {
         setupSSLTrustBypassMessageHandler(for: webView)
         setupMediaPlaybackMessageHandler(for: webView)
         webAuthnCoordinator.install(on: webView)
+        setupEditorSaveMessageHandler(for: webView)
+        webView.onEditorSaveKeyEquivalent = { [weak self, weak webView] event in
+            guard let self, let webView else { return false }
+            return self.handleEditorKeyEquivalent(event: event, webView: webView)
+        }
         applyMuteState(to: webView, reason: "bindWebView")
         mobileBrowserWebViewDidBind()
     }
@@ -3089,6 +3104,12 @@ final class BrowserPanel: Panel, ObservableObject {
                 // discarded. didCommit does not fire for same-document (pushState)
                 // navigations, so a persisting SPA video keeps its frame id.
                 self.resetMediaPlaybackTracking()
+                // A new top-level document replaces any editor buffer; clear
+                // its dirty mirror so close-confirmation and the save
+                // shortcut never act on a page that is gone.
+                self.editorBufferIsDirty = false
+                self.editorPageActive = false
+                self.editorSaveChordPrefixPending = false
                 self.publishCommittedURL(from: webView)
                 self.applyMuteState(to: webView, reason: "navigationCommit")
                 if self.shouldTreatCommitAsDiscardedRestoreCommit(from: webView) {

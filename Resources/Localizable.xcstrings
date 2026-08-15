@@ -204,6 +204,90 @@
         "ja": { "stringUnit": { "state": "translated", "value": "通知デバッグ" } }
       }
     },
+    "editor.conflict.changed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "The file changed on disk after it was opened." } },
+        "ja": { "stringUnit": { "state": "translated", "value": "ファイルは開いた後にディスク上で変更されました。" } }
+      }
+    },
+    "editor.conflict.dismiss": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Dismiss" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "閉じる" } }
+      }
+    },
+    "editor.conflict.missing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "The file no longer exists on disk." } },
+        "ja": { "stringUnit": { "state": "translated", "value": "ファイルはディスク上に存在しません。" } }
+      }
+    },
+    "editor.conflict.overwrite": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Overwrite" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "上書き" } }
+      }
+    },
+    "editor.conflict.useDiskVersion": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Use disk version" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "ディスクの内容を使用" } }
+      }
+    },
+    "editor.error.permissionDenied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "You don't have permission to save this file." } },
+        "ja": { "stringUnit": { "state": "translated", "value": "このファイルを保存する権限がありません。" } }
+      }
+    },
+    "editor.error.saveFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Could not save the file." } },
+        "ja": { "stringUnit": { "state": "translated", "value": "ファイルを保存できませんでした。" } }
+      }
+    },
+    "editor.error.saveUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Saving is unavailable for this editor." } },
+        "ja": { "stringUnit": { "state": "translated", "value": "このエディタでは保存できません。" } }
+      }
+    },
+    "editor.status.modified": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Modified" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "変更あり" } }
+      }
+    },
+    "editor.status.readOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Read-only" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "読み取り専用" } }
+      }
+    },
+    "editor.status.saved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Saved" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "保存済み" } }
+      }
+    },
+    "editor.status.saving": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Saving…" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "保存中…" } }
+      }
+    },
     "feed.notification.exitPlan.revise": {
       "extractionState": "manual",
       "localizations": {
