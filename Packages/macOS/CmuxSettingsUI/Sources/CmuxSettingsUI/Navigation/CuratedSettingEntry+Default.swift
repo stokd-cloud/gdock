@@ -276,6 +276,17 @@ extension Array where Element == CuratedSettingEntry {
             // Beta
             .init(section: .betaFeatures, id: "feed", title: "Feed", synonyms: "feed right sidebar agent decisions permissions questions approval beta unstable"),
             .init(section: .betaFeatures, id: "dock", title: "Dock", synonyms: "dock right sidebar terminal controls tui beta unstable"),
+            .init(
+                section: .betaFeatures,
+                id: "sidebar-dock",
+                title: String(localized: "settings.betaFeatures.sidebarDock", defaultValue: "Sidebar Dock Spaces"),
+                detailText: [
+                    String(localized: "settings.betaFeatures.sidebarDock.subtitleOn", defaultValue: "Lets you stack collapsible tool sections on the left and right sidebars."),
+                    String(localized: "settings.betaFeatures.sidebarDock.subtitleOff", defaultValue: "Keeps both sidebars in their classic single-panel layout until you enable this."),
+                ].joined(separator: " "),
+                paths: ["sidebar.beta.dock.enabled"],
+                synonyms: String(localized: "settings.search.alias.setting.betaFeatures.sidebar-dock", defaultValue: "sidebar.beta.dock.enabled sidebar dock spaces rails collapsible sections left right beta")
+            ),
             .init(section: .betaFeatures, id: "customSidebars", title: "Custom Sidebars", synonyms: "custom sidebars swift json interpreted vibe beta unstable"),
             .init(section: .betaFeatures, id: "remoteTmux", title: "Remote tmux", synonyms: "remote tmux ssh control mode -CC mirror session window pane sidebar workspace beta unstable"),
             .init(

@@ -6,9 +6,9 @@
 // ==========================================
 // Project Identity
 // ==========================================
-PRODUCT_NAME = cmux
-PRODUCT_DISPLAY_NAME = cmux
-PRODUCT_BUNDLE_IDENTIFIER = dev.cmux.ios
+PRODUCT_NAME = GhosttyDock
+PRODUCT_DISPLAY_NAME = Ghostty Dock
+PRODUCT_BUNDLE_IDENTIFIER = cloud.stokd.ghostty-dock.ios
 // User-visible versions (CFBundleShortVersionString). Keep beta and production
 // independent: TestFlight can stay on the already-approved beta version while
 // the first production App Store upload starts from its own release version.

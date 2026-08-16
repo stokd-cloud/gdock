@@ -46,7 +46,9 @@ extension DockSplitStore {
             minimumPaneWidth: Self.minimumDockPaneSize,
             minimumPaneHeight: Self.minimumDockPaneSize,
             dividerHitExpansion: PortalSplitDividerRegion.dividerHitExpansion,
-            // Match main-area five-button list including Split Quad.
+            // Match the main area's five-button list (newTerminal, newBrowser,
+            // splitRight, splitDown, splitQuad). Without an explicit list the
+            // Dock would keep bonsplit's four-button defaults.
             splitButtons: QuadSplitAction.defaultSplitActionButtons,
             splitButtonBackdropEffect: Workspace.bonsplitSplitButtonBackdropEffect(),
             splitButtonTooltips: Workspace.currentSplitButtonTooltips(),

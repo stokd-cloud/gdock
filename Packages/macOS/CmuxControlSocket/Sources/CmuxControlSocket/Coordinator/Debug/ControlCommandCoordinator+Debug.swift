@@ -48,6 +48,8 @@ extension ControlCommandCoordinator {
             return debugCommandPaletteSelection(request.params)
         case "debug.command_palette.results":
             return debugCommandPaletteResults(request.params)
+        case "debug.command_palette.query_run":
+            return debugCommandPaletteQueryRun(request.params)
         case "debug.command_palette.rename_input.interact":
             return debugCommandPaletteEvent(.renameInputInteraction, request.params)
         case "debug.command_palette.rename_input.delete_backward":
@@ -431,6 +433,16 @@ extension ControlCommandCoordinator {
                 "text_length": .int(Int64(max(0, textLength))),
             ]))
         }
+    }
+
+    /// `debug.command_palette.query_run` — set real palette query, return
+    /// production registry results (command ids), optionally execute one hit
+    /// through its registered handler (not store/invoker-direct).
+    func debugCommandPaletteQueryRun(_ params: [String: JSONValue]) -> ControlCallResult {
+        guard let debugContext else {
+            return .err(code: "unavailable", message: "Control debug context unavailable", data: nil)
+        }
+        return debugContext.controlDebugCommandPaletteQueryRun(params: params)
     }
 
     /// `debug.command_palette.rename_input.select_all` — read (and optionally

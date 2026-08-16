@@ -23,8 +23,8 @@ def resolve_cmux_cli() -> str:
         raise RuntimeError(f"Configured cmux CLI is not executable: {explicit}")
 
     candidates: list[str] = []
-    candidates.extend(glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/*/Build/Products/Debug/cmux")))
-    candidates.extend(glob.glob("/tmp/cmux-*/Build/Products/Debug/cmux"))
+    candidates.extend(glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/*/Build/Products/*/cmux")))
+    candidates.extend(glob.glob("/tmp/cmux-*/Build/Products/*/cmux"))
     candidates = [path for path in candidates if os.path.exists(path) and os.access(path, os.X_OK)]
     if candidates:
         candidates.sort(key=os.path.getmtime, reverse=True)

@@ -6,6 +6,7 @@ import Bonsplit
 import AppKit
 import CmuxAppKitSupportUI
 import CmuxFeedback
+import CmuxUpdater
 
 /// View that renders the appropriate panel view based on panel type
 struct PanelContentView: View {
@@ -111,6 +112,20 @@ struct PanelContentView: View {
                     isFocused: isFocused,
                     isVisibleInUI: isVisibleInUI,
                     appearance: appearance,
+                    onRequestPanelFocus: onRequestPanelFocus
+                )
+            }
+        case .leftWorkspaceSelector:
+            if let leftSelectorPanel = panel as? LeftWorkspaceSelectorPanel,
+               let customSidebarTabManager {
+                LeftWorkspaceSelectorPanelHost(
+                    panel: leftSelectorPanel,
+                    tabManager: customSidebarTabManager,
+                    sidebarUnread: customSidebarUnread,
+                    isFocused: isFocused,
+                    isVisibleInUI: isVisibleInUI,
+                    appearance: appearance,
+                    windowAppearance: windowAppearance,
                     onRequestPanelFocus: onRequestPanelFocus
                 )
             }
@@ -230,11 +245,74 @@ struct PanelContentView: View {
     private var shouldInstallPaneDropTarget: Bool {
         guard isVisibleInUI else { return false }
         switch panel.panelType {
-        case .markdown, .filePreview, .rightSidebarTool, .customSidebar, .simulator, .agentSession, .project, .extensionBrowser, .workspaceTodo, .notifications, .cloudVMLoading, .mobilePairing, .accountSignIn:
+        case .markdown, .filePreview, .rightSidebarTool, .leftWorkspaceSelector, .customSidebar,
+             .simulator, .agentSession, .project, .extensionBrowser, .workspaceTodo,
+             .notifications, .cloudVMLoading, .mobilePairing, .accountSignIn:
             return true
         case .terminal, .browser:
             return false
         }
+    }
+}
+
+/// Bridges AppDelegate window context into `LeftWorkspaceSelectorPanelView`
+/// so the pane hosts the real selector without ContentView-only state.
+private struct LeftWorkspaceSelectorPanelHost: View {
+    @ObservedObject var panel: LeftWorkspaceSelectorPanel
+    let tabManager: TabManager
+    let sidebarUnread: SidebarUnreadModel
+    let isFocused: Bool
+    let isVisibleInUI: Bool
+    let appearance: PanelAppearance
+    let windowAppearance: WindowAppearanceSnapshot
+    let onRequestPanelFocus: () -> Void
+
+    var body: some View {
+        let app = AppDelegate.shared
+        let context = app?.preferredRegisteredMainWindowContext(preferredWindow: nil)
+        let fileExplorerState = context?.fileExplorerState
+            ?? app?.fileExplorerState
+            ?? FileExplorerState()
+        let updateViewModel = app?.updateViewModel ?? UpdateStateModel()
+        let windowId = context?.windowId ?? UUID()
+        let hostWindow = context?.window ?? app?.windowForMainWindowId(windowId)
+        let windowRef = WeakWindowReference(hostWindow)
+        let sidebarState = context?.sidebarState ?? app?.sidebarState
+
+        LeftWorkspaceSelectorPanelView(
+            panel: panel,
+            tabManager: tabManager,
+            sidebarUnread: sidebarUnread,
+            fileExplorerState: fileExplorerState,
+            updateViewModel: updateViewModel,
+            windowId: windowId,
+            observedWindowReference: windowRef,
+            isFocused: isFocused,
+            isVisibleInUI: isVisibleInUI,
+            appearance: appearance,
+            windowAppearance: windowAppearance,
+            onRequestPanelFocus: onRequestPanelFocus,
+            onToggleFixedLeft: {
+                if let sidebarState {
+                    sidebarState.toggle()
+                } else {
+                    _ = AppDelegate.shared?.toggleSidebarInActiveMainWindow()
+                }
+            },
+            onSendFeedback: {
+                if let hostWindow {
+                    FeedbackComposerBridge().openComposer(in: hostWindow)
+                } else {
+                    FeedbackComposerBridge().openComposer()
+                }
+            },
+            onNewTab: {
+                AppDelegate.shared?.performNewWorkspaceAction(
+                    tabManager: tabManager,
+                    debugSource: "leftWorkspaceSelectorPane.newWorkspace"
+                )
+            }
+        )
     }
 }
 

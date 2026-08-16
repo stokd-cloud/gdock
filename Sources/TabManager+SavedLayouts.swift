@@ -20,4 +20,13 @@ extension TabManager {
         }
         return workspace
     }
+
+    /// Reattach rail tool panels when the selected workspace changes.
+    ///
+    /// Full rail-store reattach (left/right `reattachAllPanels`) lands with the
+    /// sidebar-dock mission. Until those stores expose that API on this branch,
+    /// this is a safe no-op so workspace selection still compiles and runs.
+    func reattachSidebarDockAdapters(to workspace: Workspace) {
+        _ = workspace
+    }
 }

@@ -924,6 +924,10 @@ struct ContentView: View {
     @StateObject private var fullscreenControlsViewModel = TitlebarControlsViewModel()
     @StateObject private var fileExplorerStore = FileExplorerStore()
     @StateObject private var sessionIndexStore = SessionIndexStore()
+    /// Per-window left/right dock rails (created once; seeded when flag is on).
+    @State private var sidebarDockRegistry: SidebarDockStoreRegistry?
+    @AppStorage(RightSidebarBetaFeatureSettings.sidebarDockEnabledKey)
+    private var sidebarDockEnabled = RightSidebarBetaFeatureSettings.defaultSidebarDockEnabled
     @StateObject private var selectedWorkspaceDirectoryObserver = SelectedWorkspaceDirectoryObserver()
     @State private var commandPaletteOverlayRenderModel = CommandPaletteOverlayRenderModel()
     @State private var backgroundWorkspacePrimeCoordinator = BackgroundWorkspacePrimeCoordinator()
@@ -1758,15 +1762,31 @@ struct ContentView: View {
             selection: $sidebarSelectionState.selection,
             selectedTabIds: $selectedTabIds, lastSidebarSelectionIndex: $lastSidebarSelectionIndex, sidebarRenderWorkerClient: $sidebarRenderWorkerClient
         )
-        return Group {
+        let hosted: AnyView = {
             if featureFlags.isAppKitSidebarListEnabled {
                 // FLAG(sidebar-appkit-list-experiment): parent-driven
                 // re-evaluations (divider width ticks, unrelated ContentView
                 // state churn) skip the sidebar subtree; all sidebar content
                 // flows through tracked dependencies that bypass the gate.
-                sidebar.equatable()
+                return AnyView(sidebar.equatable())
+            }
+            return AnyView(sidebar)
+        }()
+
+        // Flag on + default provider: mount selector inside left dock rail.
+        // Extension/custom providers keep the legacy VerticalTabsSidebar branch
+        // (provider switch lives inside the sidebar; flag-off is identical).
+        return Group {
+            if sidebarDockEnabled, let registry = sidebarDockRegistry {
+                SidebarDockPanelView(
+                    store: registry.left,
+                    isRailVisible: sidebarState.isVisible,
+                    contentForTab: { _, _ in hosted },
+                    shortCircuitHiddenContent: false
+                )
+                .accessibilityIdentifier("SidebarDock.left")
             } else {
-                sidebar
+                hosted
             }
         }
         .modifier(SidebarWidthFrameModifier(layout: sidebarLayout))
@@ -1775,6 +1795,59 @@ struct ContentView: View {
             { sidebarFocusBoundary.attach($0) },
             onDismantle: { sidebarFocusBoundary.detach($0) }
         ))
+        .background(leftDockRailSeedProbe)
+    }
+
+    /// Ensures the per-window registry exists and left rail is seeded once.
+    @ViewBuilder
+    private var leftDockRailSeedProbe: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .onAppear { ensureSidebarDockRegistrySeeded() }
+            .onChange(of: sidebarDockEnabled) { _, enabled in
+                if enabled { ensureSidebarDockRegistrySeeded() }
+            }
+            .accessibilityHidden(true)
+    }
+
+    private func ensureSidebarDockRegistrySeeded() {
+        let registry: SidebarDockStoreRegistry
+        if let existing = sidebarDockRegistry {
+            registry = existing
+        } else {
+            let created = SidebarDockStoreRegistry(windowId: windowId)
+            sidebarDockRegistry = created
+            registry = created
+        }
+        // Attach registry to window context for selection router / socket targeting.
+        if let context = AppDelegate.shared?.mainWindowContexts.values.first(where: { $0.windowId == windowId }) {
+            context.sidebarDockRegistry = registry
+        }
+        guard sidebarDockEnabled,
+              let workspace = tabManager.selectedWorkspace ?? tabManager.tabs.first else {
+            return
+        }
+        // Wire mirror before seed so programmatic select publishes only via
+        // Bonsplit didSelectTab / didFocusPane (VAL-RAIL-009).
+        registry.right.onFocusedToolModeChanged = { [fileExplorerState] mode in
+            guard let mode else { return }
+            if fileExplorerState.mode != mode {
+                fileExplorerState.mode = mode
+            }
+        }
+        SidebarDockSeeding.seedRegistryIfEmpty(
+            registry: registry,
+            workspace: workspace,
+            preferredRightMode: fileExplorerState.mode
+        )
+        if let mode = registry.right.focusedToolMode(),
+           SidebarDockPlacementMatrix.allows(mode: mode),
+           fileExplorerState.mode != mode,
+           fileExplorerState.mode != .feed,
+           fileExplorerState.mode != .dock,
+           fileExplorerState.mode != .customSidebar {
+            _ = registry.right.selectToolMode(mode, focus: false)
+        }
     }
 
     /// Native titlebar inset reported by AppKit. Standard mode follows cmux's visual chrome;
@@ -2009,8 +2082,10 @@ struct ContentView: View {
                 cmuxDebugLog("rightSidebar.closeButton")
                 #endif
                 _ = AppDelegate.shared?.closeRightSidebarInActiveMainWindow(preferredWindow: observedWindow)
-            }
+            },
+            dockRegistry: sidebarDockRegistry
         )
+        .onAppear { ensureSidebarDockRegistrySeeded() }
         .frame(width: rightSidebarWidth)
         .clipped()
         .allowsHitTesting(rightSidebarVisible)
@@ -2408,16 +2483,59 @@ struct ContentView: View {
     }
 
     func openRightSidebarToolPane(_ mode: RightSidebarMode) {
-        guard mode.canOpenAsPane,
-              let workspace = tabManager.selectedWorkspace,
-              let paneId = workspace.bonsplitController.focusedPaneId ?? workspace.bonsplitController.allPaneIds.first else {
+        guard mode.canOpenAsPane else {
             NSSound.beep()
             return
         }
 
         sidebarSelectionState.selection = .tabs
+        // Shared AppDelegate path: openOrFocus singleton pane and hide fixed host.
+        if AppDelegate.shared?.openOrFocusRightSidebarToolPaneInActiveMainWindow(
+            mode: mode,
+            preferredWindow: observedWindow,
+            hideFixedHost: true
+        ) == true {
+            return
+        }
+
+        // Fallback when no registered main-window context (unit/previews).
+        guard let workspace = tabManager.selectedWorkspace else {
+            NSSound.beep()
+            return
+        }
         workspace.clearSplitZoom()
-        _ = workspace.openOrFocusRightSidebarToolSurface(inPane: paneId, mode: mode, focus: true)
+        guard workspace.showOrFocusRightSidebarToolPane(mode: mode, focus: true) != nil else {
+            NSSound.beep()
+            return
+        }
+        if fileExplorerState.isVisible {
+            fileExplorerState.setVisible(false)
+        }
+    }
+
+    /// Open the real left workspace selector as a dockable pane (singleton) and
+    /// hide the fixed left host so canvas mode is not dependent on the bolted column.
+    func openLeftWorkspaceSelectorPane() {
+        sidebarSelectionState.selection = .tabs
+        if AppDelegate.shared?.openOrFocusLeftWorkspaceSelectorPaneInActiveMainWindow(
+            preferredWindow: observedWindow,
+            hideFixedHost: true
+        ) == true {
+            return
+        }
+
+        guard let workspace = tabManager.selectedWorkspace else {
+            NSSound.beep()
+            return
+        }
+        workspace.clearSplitZoom()
+        guard workspace.showOrFocusLeftWorkspaceSelectorPane(focus: true) != nil else {
+            NSSound.beep()
+            return
+        }
+        if sidebarState.isVisible {
+            sidebarState.isVisible = false
+        }
     }
 
     private func openFilePreviewFromSidebar(filePath: String) {
@@ -2914,7 +3032,18 @@ struct ContentView: View {
         })
 
         view = AnyView(view.onReceive(NotificationCenter.default.publisher(for: .workspaceLayoutModeDidChange)) { notification in
-            guard (notification.object as? Workspace)?.id == tabManager.selectedTabId else { return }
+            guard let workspace = notification.object as? Workspace,
+                  workspace.id == tabManager.selectedTabId else { return }
+            // Canvas default: hide fixed side hosts; tools/selector open as dockable panes.
+            if workspace.layoutMode == .canvas {
+                if fileExplorerState.isVisible {
+                    fileExplorerState.setVisible(false)
+                    _ = AppDelegate.shared?.restoreTerminalFocusAfterRightSidebarHidden(in: observedWindow)
+                }
+                if sidebarState.isVisible {
+                    sidebarState.isVisible = false
+                }
+            }
             refreshTmuxWorkspacePaneWindowOverlay(in: observedWindow)
         })
 
@@ -3079,6 +3208,20 @@ struct ContentView: View {
             ) else { return }
             openCommandPaletteCommands()
         })
+
+#if DEBUG
+        view = AnyView(view.onReceive(NotificationCenter.default.publisher(for: .commandPaletteDebugSetQueryRequested)) { notification in
+            let requestedWindow = notification.object as? NSWindow
+            guard Self.shouldHandleCommandPaletteRequest(
+                observedWindow: observedWindow,
+                requestedWindow: requestedWindow,
+                keyWindow: NSApp.keyWindow,
+                mainWindow: NSApp.mainWindow
+            ) else { return }
+            let query = (notification.userInfo?["query"] as? String) ?? Self.commandPaletteCommandsPrefix
+            applyCommandPaletteDebugQuery(query)
+        })
+#endif
 
         view = AnyView(view.onReceive(NotificationCenter.default.publisher(for: .savedLayoutSaveRequested)) { notification in
             if Self.shouldHandleSavedLayoutSaveRequest(observedWindow: observedWindow, requestedWindow: notification.object as? NSWindow, keyWindow: NSApp.keyWindow, mainWindow: NSApp.mainWindow) {
@@ -5176,8 +5319,19 @@ struct ContentView: View {
         let usageHistory = commandPaletteUsageHistoryByCommandId
         let queryIsEmpty = CommandPaletteFuzzyMatcher.preparedQuery(matchingQuery).isEmpty
         let historyTimestamp = Date().timeIntervalSince1970
-        let additionalScoreBoost: (String, Bool) -> Int = { commandId, _ in
-            Self.commandPaletteForkPriorityBoost(commandId: commandId, query: matchingQuery)
+        let paletteWindowId = windowId
+        let additionalScoreBoost: (String, Bool) -> Int = { commandId, queryIsEmpty in
+            var boost = Self.commandPaletteForkPriorityBoost(commandId: commandId, query: matchingQuery)
+            // Eligible dock rail actions are late in contribution rank order.
+            // When the commands list is unfiltered, boost them so the public
+            // palette actually surfaces sidebarDock.* while `when` still gates
+            // flag-off / wrong-context cases.
+            if queryIsEmpty,
+               commandId.hasPrefix("sidebarDock."),
+               Self.sidebarDockPaletteCommandIsAvailable(commandId, windowId: paletteWindowId) {
+                boost += 5_000
+            }
+            return boost
         }
         let visiblePreviewResultLimit = Self.commandPaletteVisiblePreviewResultLimit
         if preservePendingActivation {
@@ -7215,6 +7369,14 @@ struct ContentView: View {
                 keywords: ["toggle", "sidebar", "left", "layout"]
             )
         )
+        contributions.append(
+            CommandPaletteCommandContribution(
+                commandId: "palette.openLeftWorkspaceSelectorAsPane",
+                title: constant(String(localized: "command.openLeftWorkspaceSelectorAsPane.title", defaultValue: "Open Workspaces as Pane")),
+                subtitle: constant(String(localized: "command.openLeftWorkspaceSelectorAsPane.subtitle", defaultValue: "Pane")),
+                keywords: ["workspace", "workspaces", "selector", "sidebar", "left", "pane", "canvas"]
+            )
+        )
         // "Sidebar: <provider>" switch commands for each available view. The
         // built-in views are always offered; `descriptors` adds the hosted
         // extension sidebar only while the experimental Extensions beta is on.
@@ -7232,6 +7394,7 @@ struct ContentView: View {
         }
         contributions.append(contentsOf: Self.commandPaletteRightSidebarModeCommandContributions())
         contributions.append(contentsOf: Self.commandPaletteRightSidebarToolPaneCommandContributions())
+        contributions.append(contentsOf: Self.commandPaletteSidebarDockCommandContributions(windowId: windowId))
         contributions.append(
             CommandPaletteCommandContribution(
                 commandId: "palette.toggleMatchTerminalBackground",
@@ -8020,6 +8183,15 @@ struct ContentView: View {
         )
         contributions.append(
             CommandPaletteCommandContribution(
+                commandId: "palette.terminalSplitQuad",
+                title: constant(String(localized: "command.terminalSplitQuad.title", defaultValue: "Split Quad")),
+                subtitle: constant(String(localized: "command.terminalSplitRight.subtitle", defaultValue: "Terminal Layout")),
+                keywords: ["terminal", "split", "quad", "2x2", "grid", "four"],
+                when: { $0.bool(CommandPaletteContextKeys.panelIsTerminal) }
+            )
+        )
+        contributions.append(
+            CommandPaletteCommandContribution(
                 commandId: "palette.forkAgentConversationRight",
                 title: constant(String(localized: "command.forkAgentConversationRight.title", defaultValue: "Fork Conversation to the Right")),
                 subtitle: terminalPanelSubtitle,
@@ -8468,6 +8640,9 @@ struct ContentView: View {
         registry.register(commandId: "palette.toggleSidebar") {
             sidebarState.toggle()
         }
+        registry.register(commandId: "palette.openLeftWorkspaceSelectorAsPane") {
+            openLeftWorkspaceSelectorPane()
+        }
         // Register a handler for every possible view (including the hosted
         // extension sidebar) regardless of the beta flag, so a contribution that
         // was visible when the flag was on still resolves after a runtime flip.
@@ -8487,6 +8662,7 @@ struct ContentView: View {
                 handleCommandPaletteRightSidebarToolPane(descriptor.mode)
             }
         }
+        registerSidebarDockCommandHandlers(&registry)
         registry.register(commandId: "palette.toggleMatchTerminalBackground") {
             sidebarMatchTerminalBackground.toggle()
         }
@@ -8961,6 +9137,18 @@ struct ContentView: View {
             if !executeConfiguredAction(id: CmuxSurfaceTabBarBuiltInAction.splitDown.configID) {
                 tabManager.createSplit(direction: .down)
             }
+        }
+        registry.register(commandId: "palette.terminalSplitQuad") {
+            // Shared production path with View menu / shortcut / Dock palette
+            // (VAL-QUAD-002). Does not bypass the adapter — this IS the palette
+            // adapter; it converges on the shared focus path.
+            let preferredWindow = NSApp.keyWindow
+                ?? AppDelegate.shared?.mainWindow(for: windowId)
+                ?? NSApp.mainWindow
+            _ = QuadSplitAdapters.performSharedFocusPath(
+                preferredWindow: preferredWindow,
+                tabManager: tabManager
+            )
         }
         registry.register(commandId: "palette.terminalSplitBrowserRight") {
             _ = tabManager.createBrowserSplit(direction: .right)
@@ -9597,7 +9785,10 @@ struct ContentView: View {
             mode = "workspace_description_input"
         }
 
-        let rows = Array(commandPaletteVisibleResults.prefix(20)).map { result in
+        // Cap high enough that dogfood `debug.command_palette.results` limit
+        // (up to 100) can surface late-ranked but eligible dock commands after
+        // a real query filter; the socket layer still applies its own limit.
+        let rows = Array(commandPaletteVisibleResults.prefix(100)).map { result in
                 CommandPaletteDebugResultRow(
                     commandId: result.command.id,
                     title: result.command.title,
@@ -9650,6 +9841,32 @@ struct ContentView: View {
         refreshCommandPaletteUsageHistory()
         resetCommandPaletteListState(initialQuery: initialQuery)
     }
+
+#if DEBUG
+    /// DEBUG dogfood: set the live palette query and rebuild production results.
+    private func applyCommandPaletteDebugQuery(_ query: String) {
+        let normalized: String = {
+            if query.hasPrefix(Self.commandPaletteCommandsPrefix) {
+                return query
+            }
+            if query.isEmpty {
+                return Self.commandPaletteCommandsPrefix
+            }
+            return Self.commandPaletteCommandsPrefix + query
+        }()
+        if !isCommandPalettePresented {
+            presentCommandPalette(initialQuery: normalized)
+            return
+        }
+        commandPaletteMode = .commands
+        commandPaletteQuery = normalized
+        commandPaletteSelectedResultIndex = 0
+        commandPaletteSelectionAnchorCommandID = nil
+        scheduleCommandPaletteResultsRefresh(forceSearchCorpusRefresh: true)
+        syncCommandPaletteOverlayCommandListState()
+        syncCommandPaletteDebugStateForObservedWindow()
+    }
+#endif
 
     private func resetCommandPaletteListState(initialQuery: String) {
         commandPaletteMode = .commands
@@ -10528,8 +10745,7 @@ enum CmuxExtensionSidebarSelection {
         #if DEBUG
         if let override = customSidebarsDirectoryOverrideForTesting { return override }
         #endif
-        return FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".config/cmux/sidebars", isDirectory: true)
+        return CmuxConfigLocation().sidebarsDirectory
     }
 
     /// One provider descriptor per `<name>.swift`/`<name>.json` file in the

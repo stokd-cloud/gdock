@@ -8,6 +8,8 @@
 
 ### 5.1: Snapshot persistence for stokd rail membership
 
+**Dependencies:** 3.2, 4.1
+
 **Implementation Details**
 
 - **Landing:** fork-only.
@@ -25,7 +27,7 @@
 
 ### 5.2: Localization audit and dogfood gate
 
-**Dependencies:** 5.1
+**Dependencies:** 1.2, 3.2, 4.1, 5.1
 
 **Implementation Details**
 

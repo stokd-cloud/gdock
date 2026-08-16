@@ -1,6 +1,10 @@
 import Foundation
 import Combine
 import AppKit
+import Bonsplit
+import CmuxDockable
+import CmuxSettings
+import SwiftUI
 
 /// Type of panel content
 public enum PanelType: String, Codable, Sendable {
@@ -9,6 +13,7 @@ public enum PanelType: String, Codable, Sendable {
     case markdown
     case filePreview = "filepreview"
     case rightSidebarTool
+    case leftWorkspaceSelector
     case customSidebar
     case simulator
     case agentSession
@@ -33,6 +38,10 @@ public enum PanelType: String, Codable, Sendable {
         }
         if rawValue.lowercased() == Self.rightSidebarTool.rawValue.lowercased() {
             self = .rightSidebarTool
+            return
+        }
+        if rawValue.lowercased() == Self.leftWorkspaceSelector.rawValue.lowercased() {
+            self = .leftWorkspaceSelector
             return
         }
         if rawValue.lowercased() == Self.customSidebar.rawValue.lowercased() {
@@ -300,12 +309,13 @@ enum FocusFlashPattern {
     }
 }
 
-/// Protocol for all panel types (terminal, browser, etc.)
+/// Protocol for all panel types (terminal, browser, etc.).
+///
+/// Refines ``Dockable`` so every visible panel can mount on the freeform canvas
+/// without a content-kind enum branch. Default ``Dockable`` witnesses map from
+/// existing panel members; terminals/browsers override capability methods.
 @MainActor
-public protocol Panel: AnyObject, Identifiable, ObservableObject where ID == UUID {
-    /// Unique identifier for this panel
-    var id: UUID { get }
-
+public protocol Panel: Dockable, Identifiable, ObservableObject where ID == UUID {
     /// Box that owns this panel's restart-stable surface identity.
     var stableSurfaceIdentity: PanelStableSurfaceIdentity { get }
 
@@ -358,6 +368,78 @@ public protocol Panel: AnyObject, Identifiable, ObservableObject where ID == UUI
 extension Panel {
     public var displayIcon: String? { nil }
     public var isDirty: Bool { false }
+
+    /// Stable kind string matching ``PanelType/rawValue`` (and therefore
+    /// ``DockableKind``). Force-unwrap is safe under the PanelType↔DockableKind
+    /// parity test.
+    public var dockableKind: DockableKind {
+        guard let kind = DockableKind(rawValue: panelType.rawValue) else {
+            preconditionFailure(
+                "PanelType rawValue must match DockableKind: \(panelType.rawValue)"
+            )
+        }
+        return kind
+    }
+
+    /// Chrome title for docked panes and tabs.
+    public var dockableTitle: String { displayTitle }
+
+    /// Default hosted content path for non-portal panels.
+    ///
+    /// When a canvas mount environment is installed, builds the shared
+    /// ``CanvasHostedPanelContentView`` hosting view. Otherwise returns an
+    /// empty container sized by the host (unit-test / pre-mount smoke path).
+    public func makeDockContentView(context: DockableMountContext) -> NSView {
+        if let env = DockableCanvasMountEnvironmentStorage.current {
+            return Self.makeCanvasHostedContentView(
+                panel: self,
+                environment: env,
+                onFocus: context.onFocus
+            )
+        }
+        let view = NSView(frame: context.container.bounds)
+        view.autoresizingMask = [.width, .height]
+        view.wantsLayer = true
+        return view
+    }
+
+    /// Builds the SwiftUI hosting view used for non-portal canvas panes.
+    @MainActor
+    static func makeCanvasHostedContentView(
+        panel: any Panel,
+        environment: DockableCanvasMountEnvironment,
+        onFocus: @escaping @MainActor (UUID) -> Void
+    ) -> NSView {
+        let workspace = environment.workspace
+        let workspaceId = workspace?.id ?? UUID()
+        let paneId = workspace?.bonsplitPaneId(forPanelId: panel.id) ?? PaneID()
+        let hostingContainer = NSView()
+        let presentation = CanvasHostedPanelPresentation(
+            isFocused: false,
+            allowsPointerInput: environment.isWorkspaceVisible,
+            pointerInputOwner: hostingContainer
+        )
+        let content = CanvasHostedPanelContentView(
+            presentation: presentation,
+            panel: panel,
+            workspaceId: workspaceId,
+            paneId: paneId,
+            isVisibleInUI: environment.isWorkspaceVisible,
+            portalPriority: environment.portalPriority,
+            appearance: environment.appearance,
+            windowAppearance: environment.windowAppearance,
+            settingsRuntime: environment.settingsRuntime,
+            customSidebarTabManager: workspace?.owningTabManager,
+            onRequestPanelFocus: {
+                onFocus(panel.id)
+            }
+        )
+        let hosted = NSHostingView(rootView: AnyView(content))
+        // The pane's content container dictates the size; never let the
+        // hosting view shrink to SwiftUI's ideal size.
+        hosted.sizingOptions = []
+        return hosted
+    }
 
     func captureFocusIntent(in window: NSWindow?) -> PanelFocusIntent {
         _ = window

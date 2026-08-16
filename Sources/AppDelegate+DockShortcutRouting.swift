@@ -30,7 +30,7 @@ extension KeyboardShortcutSettings.Action {
              .clearScreenKeepScrollback,
              .focusLeft, .focusRight, .focusUp, .focusDown,
              .focusPreviousPane, .focusNextPane,
-             .splitRight, .splitDown, .toggleSplitZoom,
+             .splitRight, .splitDown, .splitQuad, .toggleSplitZoom,
              .equalizeSplits,
              .splitBrowserRight, .splitBrowserDown,
              .openBrowser, .focusBrowserAddressBar,
@@ -184,6 +184,15 @@ extension AppDelegate {
         return panelId
     }
 
+    /// Tri-state Dock routing result so an applicable Dock failure cannot fall
+    /// through to the main area (VAL-QUAD-003).
+    enum DockRouteOutcome: Equatable {
+        /// Dock does not own focus — caller may fall through to main.
+        case notApplicable
+        /// Dock owned the request (success or handled failure). Do not fall through.
+        case handled(success: Bool)
+    }
+
     /// Splits the focused Dock pane (terminal or browser). Returns `true` when
     /// handled, or `false` to fall through to the main-area split path. Reuses the
     /// main area's `SplitDirection` → orientation/insert mapping so Dock splits
@@ -195,29 +204,54 @@ extension AppDelegate {
         action: KeyboardShortcutSettings.Action,
         preferredWindow: NSWindow?
     ) -> Bool {
-        if kind == .browser, !BrowserAvailabilitySettings.isEnabled() {
-            return false
-        }
-        guard let store = focusedDockStoreForShortcut(
-            action: action,
+        switch routeSplitToFocusedDockOutcome(
+            kind: kind,
+            direction: direction,
             preferredWindow: preferredWindow
-        ) else {
+        ) {
+        case .notApplicable:
             return false
+        case .handled(let success):
+            return success
         }
-        guard let panelId = store.newSplit(
+    }
+
+    /// Tri-state compass split routing for the focused Dock.
+    func routeSplitToFocusedDockOutcome(
+        kind: DockSurfaceKind,
+        direction: SplitDirection,
+        preferredWindow: NSWindow?
+    ) -> DockRouteOutcome {
+        if kind == .browser, !BrowserAvailabilitySettings.isEnabled() {
+            return .notApplicable
+        }
+        guard let store = focusedDockStoreForShortcut(preferredWindow: preferredWindow) else {
+            return .notApplicable
+        }
+        let panelId = store.newSplit(
             kind: kind,
             orientation: direction.orientation,
             insertFirst: direction.insertFirst,
             sourcePanelId: store.focusedPanelId,
             focus: true
-        ) else {
-            return false
-        }
-        if kind == .browser,
-           let browser = store.browserPanel(for: panelId) {
+        )
+        if let panelId, kind == .browser, let browser = store.browserPanel(for: panelId) {
             _ = focusBrowserAddressBar(in: browser)
         }
-        return true
+        return .handled(success: panelId != nil)
+    }
+
+    /// Routes a Quad Split to the focused Dock with tri-state semantics so a
+    /// Dock-owned failure never falls through to the main area.
+    func routeQuadToFocusedDock(preferredWindow: NSWindow?) -> DockRouteOutcome {
+        guard let store = focusedDockStoreForShortcut(preferredWindow: preferredWindow) else {
+            return .notApplicable
+        }
+        guard let pane = store.resolvePane(requestedPaneID: nil) else {
+            return .handled(success: false)
+        }
+        let success = QuadSplitAction.perform(inPane: pane, dock: store)
+        return .handled(success: success)
     }
 
     /// Executes a semantic surface/focus command when the Dock owns keyboard

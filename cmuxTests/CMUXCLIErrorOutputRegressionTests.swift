@@ -2408,7 +2408,7 @@ import Testing
         let fakeStableCLIPath = try fakeTaggedBundledCLIPath(
             sourceCLIPath: cliPath,
             tagSlug: "stable-\(UUID().uuidString.lowercased())",
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "cloud.stokd.ghostty-dock",
             bundleName: "cmux"
         )
         let defaultResponder = try UnixSocketResponder(path: defaultStableSocketPath, response: "OK DEFAULT")
@@ -2473,7 +2473,7 @@ import Testing
         let fakeStableCLIPath = try fakeTaggedBundledCLIPath(
             sourceCLIPath: cliPath,
             tagSlug: "stable-\(UUID().uuidString.lowercased())",
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "cloud.stokd.ghostty-dock",
             bundleName: "cmux"
         )
         let defaultResponder = try UnixSocketResponder(path: defaultStableSocketPath, response: "OK DEFAULT")
@@ -2527,7 +2527,7 @@ import Testing
         let fakeStableCLIPath = try fakeTaggedBundledCLIPath(
             sourceCLIPath: cliPath,
             tagSlug: "stable-\(UUID().uuidString.lowercased())",
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "cloud.stokd.ghostty-dock",
             bundleName: "cmux"
         )
         let defaultResponder = try UnixSocketResponder(path: defaultStableSocketPath, response: "OK DEFAULT")
@@ -2719,7 +2719,7 @@ import Testing
         // run's expectation and appends to its list, so the identifier carries a per-run
         // suffix. The CLI takes the identifier from CMUX_BUNDLE_ID here because this
         // socket file name has no channel prefix to derive one from.
-        let bundleIdentifier = "com.cmuxterm.app.debug.issue-4355-test."
+        let bundleIdentifier = "cloud.stokd.ghostty-dock.debug.issue-4355-test."
             + UUID().uuidString.lowercased().replacingOccurrences(of: "-", with: "")
         let notificationQueue = OperationQueue()
         notificationQueue.maxConcurrentOperationCount = 1
@@ -2801,14 +2801,14 @@ import Testing
         try writeTheme(named: "Theme A", background: "#101010", to: themesURL)
 
         // The reload target is derived from the socket file name, not from CMUX_BUNDLE_ID:
-        // `cmux-debug-<slug>.sock` becomes `com.cmuxterm.app.debug.<slug>`, where every run of
+        // `cmux-debug-<slug>.sock` becomes `cloud.stokd.ghostty-dock.debug.<slug>`, where every run of
         // non-alphanumerics in the slug collapses to a dot. A raw UUID here would put its dashes
         // into the identifier as dots, so keep the unique part hex-only and the expected
         // identifier stays a plain template rather than a call into the CLI's own helper.
         let uniqueSuffix = UUID().uuidString.lowercased().replacingOccurrences(of: "-", with: "")
         let socketPath = "/tmp/cmux-debug-active-theme-\(uniqueSuffix).sock"
-        let staleBundleIdentifier = "com.cmuxterm.app.debug.stale.theme"
-        let targetBundleIdentifier = "com.cmuxterm.app.debug.active.theme.\(uniqueSuffix)"
+        let staleBundleIdentifier = "cloud.stokd.ghostty-dock.debug.stale.theme"
+        let targetBundleIdentifier = "cloud.stokd.ghostty-dock.debug.active.theme.\(uniqueSuffix)"
         let reloadExpectation = expectation(description: "cmux themes set targets the resolved socket bundle")
         let notificationQueue = OperationQueue()
         notificationQueue.maxConcurrentOperationCount = 1
@@ -2884,7 +2884,7 @@ import Testing
         try writeTheme(named: "Theme A", background: "#101010", to: themesURL)
 
         // The reload target comes from the socket file name before CMUX_BUNDLE_ID is even
-        // consulted: `cmux-nightly-<slug>.sock` becomes `com.cmuxterm.app.nightly.<slug>`.
+        // consulted: `cmux-nightly-<slug>.sock` becomes `cloud.stokd.ghostty-dock.nightly.<slug>`.
         // So scoping the identifier means scoping the socket name it is read from, and both
         // take the same hex-only suffix — a raw UUID's dashes would turn into dots in the
         // identifier. Scoping matters because the reload goes out machine-wide: on the
@@ -2892,7 +2892,7 @@ import Testing
         // config, and two runs at once shared one identifier.
         let uniqueSuffix = UUID().uuidString.lowercased().replacingOccurrences(of: "-", with: "")
         let socketPath = "/tmp/cmux-nightly-\(uniqueSuffix).sock"
-        let bundleIdentifier = "com.cmuxterm.app.nightly.\(uniqueSuffix)"
+        let bundleIdentifier = "cloud.stokd.ghostty-dock.nightly.\(uniqueSuffix)"
         var environment = ProcessInfo.processInfo.environment
         for key in Array(environment.keys) where key.hasPrefix("CMUX_") {
             environment.removeValue(forKey: key)
@@ -2980,7 +2980,7 @@ import Testing
         let socketPath = "/tmp/cmux-theme-picker-\(UUID().uuidString.prefix(8)).sock"
         let responder = try UnixSocketResponder(path: socketPath, response: "OK")
         defer { responder.stop() }
-        let bundleIdentifier = "com.cmuxterm.app.debug.theme-picker.\(UUID().uuidString.lowercased())"
+        let bundleIdentifier = "cloud.stokd.ghostty-dock.debug.theme-picker.\(UUID().uuidString.lowercased())"
         let reloadExpectation = expectation(description: "bare cmux themes posts final reload notification")
         let notificationQueue = OperationQueue()
         notificationQueue.maxConcurrentOperationCount = 1
@@ -3721,7 +3721,7 @@ import Testing
         try FileManager.default.createDirectory(at: binURL, withIntermediateDirectories: true)
 
         let info: [String: Any] = [
-            "CFBundleIdentifier": bundleIdentifier ?? "com.cmuxterm.app.debug.\(tagSlug.replacingOccurrences(of: "-", with: "."))",
+            "CFBundleIdentifier": bundleIdentifier ?? "cloud.stokd.ghostty-dock.debug.\(tagSlug.replacingOccurrences(of: "-", with: "."))",
             "CFBundleName": bundleName ?? "cmux DEV \(tagSlug)",
             "CFBundlePackageType": "APPL"
         ]

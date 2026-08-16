@@ -2,12 +2,12 @@ public import Foundation
 
 public enum SocketPathMarkerFiles {
     /// The stable release bundle identifier used for machine-wide discovery.
-    public static let stableBundleIdentifier = "com.cmuxterm.app"
+    public static let stableBundleIdentifier = "cloud.stokd.ghostty-dock"
     public static let stableMarkerFileName = "last-socket-path"
     public static let stableTmpPath = "/tmp/cmux-last-socket-path"
-    public static let nightlyBundleIdentifier = "com.cmuxterm.app.nightly"
-    public static let stagingBundleIdentifier = "com.cmuxterm.app.staging"
-    public static let defaultBaseDebugBundleIdentifier = "com.cmuxterm.app.debug"
+    public static let nightlyBundleIdentifier = "cloud.stokd.ghostty-dock.nightly"
+    public static let stagingBundleIdentifier = "cloud.stokd.ghostty-dock.staging"
+    public static let defaultBaseDebugBundleIdentifier = "cloud.stokd.ghostty-dock.debug"
     public static let defaultDebugSocketPath = "/tmp/cmux-debug.sock"
     public static let defaultNightlySocketPath = "/tmp/cmux-nightly.sock"
     public static let defaultStagingSocketPath = "/tmp/cmux-staging.sock"

@@ -3,13 +3,18 @@ import CmuxTerminalCore
 import Combine
 import AppKit
 import Bonsplit
+import CmuxDockable
 import CmuxTerminal
 import CmuxWorkspaces
 
 /// TerminalPanel wraps an existing TerminalSurface and conforms to the Panel protocol.
 /// This allows TerminalSurface to be used within the bonsplit-based layout system.
+///
+/// Also conforms to ``PortalHostable`` so canvas mounts can detach the Ghostty
+/// surface from the window portal and rebind it on unmount without a
+/// terminal-specific content enum branch.
 @MainActor
-final class TerminalPanel: Panel, ObservableObject {
+final class TerminalPanel: Panel, PortalHostable, ObservableObject {
     private enum TextBoxInputFocusIntent: Equatable {
         case hidden
         case terminal
@@ -903,5 +908,91 @@ final class TerminalPanel: Panel, ObservableObject {
     private func textBoxOrSurfaceOwnsEscapeContext(in window: NSWindow?) -> Bool {
         guard let window else { return false }
         return textBoxOrSurfaceOwnsResponder(in: window)
+    }
+
+    // MARK: - Dockable / PortalHostable
+
+    /// Returns the Ghostty surface scroll view for direct canvas mounting.
+    func makeDockContentView(context: DockableMountContext) -> NSView {
+        let view = hostedView
+        view.setFocusHandler { [id = self.id] in
+            context.onFocus(id)
+        }
+        return view
+    }
+
+    /// Detaches the hosted surface from the window portal so the canvas can
+    /// parent it directly (clip instead of portal reflow at the viewport edge).
+    func detachContentFromPortal() -> NSView {
+        let view = hostedView
+        TerminalWindowPortalRegistry.detach(hostedView: view)
+        return view
+    }
+
+    /// Matches the pre-refactor canvas unmount path: deactivate, clear focus /
+    /// overlay, mark occluded-visible for portal handoff, remove from the pane
+    /// container, and bump ``viewReattachToken`` so the split-layout
+    /// representable rebinds the portal on its next update.
+    func reattachContentToPortal(_ view: NSView) {
+        let hosted = hostedView
+        if view !== hosted {
+            // Callers should pass the view returned from detach/makeDockContentView.
+            // Fall through with the panel's authoritative hosted view.
+        }
+        hosted.setActive(false)
+        hosted.setFocusHandler(nil)
+        hosted.setInactiveOverlay(color: .clear, opacity: 0, visible: false)
+        // Parameter is "visible": unmount currently leaves the surface marked
+        // visible so the portal rebind path can re-adopt without a blank frame.
+        surface.setOcclusion(true)
+        if hosted.superview != nil {
+            hosted.removeFromSuperview()
+        }
+        viewReattachToken &+= 1
+    }
+
+    /// Drives Ghostty occlusion while the surface stays mounted (true = visible).
+    func setDockRendering(_ rendering: Bool) {
+        surface.setOcclusion(rendering)
+    }
+
+    func tearDownDockMount() {
+        reattachContentToPortal(hostedView)
+    }
+
+    /// Encodes terminal session fields for ``DockableRegistry`` restore.
+    ///
+    /// Includes non-default representative state available on the panel (cwd,
+    /// font size, tmux start, hibernation, text-box draft). Scrollback, agent
+    /// resume bindings, and remote PTY identity are attached by the workspace
+    /// session snapshot path into the same ``SessionTerminalPanelSnapshot``
+    /// payload schema when persisting a live session.
+    func encodeDockPayload() throws -> Data {
+        let snapshot = SessionTerminalPanelSnapshot(
+            workingDirectory: requestedWorkingDirectory ?? directory.nilIfEmpty,
+            fontSize: surface.sessionFontSizeOverrideBasePoints(),
+            scrollback: nil,
+            agent: agentHibernationState?.agent,
+            tmuxStartCommand: surface.debugTmuxStartCommand(),
+            hibernation: agentHibernationState.map {
+                SessionAgentHibernationSnapshot(
+                    hibernatedAt: $0.hibernatedAt.timeIntervalSince1970,
+                    lastActivityAt: $0.lastActivityAt.timeIntervalSince1970
+                )
+            },
+            resumeBinding: nil,
+            textBoxDraft: sessionTextBoxDraftSnapshot(),
+            isRemoteTerminal: nil,
+            remotePTYSessionID: nil,
+            wasAgentRunning: agentHibernationState != nil ? true : nil
+        )
+        return try JSONEncoder().encode(snapshot)
+    }
+}
+
+private extension String {
+    var nilIfEmpty: String? {
+        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }

@@ -36,8 +36,22 @@ extension CmuxSettingsFileStore {
         sourcePath: String,
         snapshot: inout ResolvedSettingsSnapshot
     ) {
+        let betaKeys = BetaFeaturesCatalogSection()
+        // sidebar.beta.dock.enabled — rail dock spaces (VAL-FLAG-001).
+        if let dock = beta["dock"] as? [String: Any] {
+            if let enabled = jsonBool(dock["enabled"]) {
+                snapshot.managedUserDefaults[betaKeys.sidebarDock.userDefaultsKey] = .bool(enabled)
+            } else if dock.keys.contains("enabled") {
+                logInvalid("sidebar.beta.dock.enabled", sourcePath: sourcePath)
+            }
+        } else if let enabled = jsonBool(beta["dock"]) {
+            // Accept bare boolean `sidebar.beta.dock` as an alias of `.enabled`.
+            snapshot.managedUserDefaults[betaKeys.sidebarDock.userDefaultsKey] = .bool(enabled)
+        } else if beta.keys.contains("dock") {
+            logInvalid("sidebar.beta.dock", sourcePath: sourcePath)
+        }
+
         if let rawTodos = beta["workspaceTodos"], let todos = rawTodos as? [String: Any] {
-            let betaKeys = BetaFeaturesCatalogSection()
             if let controls = todos["controls"] as? [String: Any] {
                 if let enabled = jsonBool(controls["enabled"]) {
                     snapshot.managedUserDefaults[

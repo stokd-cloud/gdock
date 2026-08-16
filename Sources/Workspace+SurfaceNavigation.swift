@@ -188,6 +188,8 @@ extension Workspace {
             return SurfaceKind.filePreview.rawValue
         case .rightSidebarTool:
             return SurfaceKind.rightSidebarTool.rawValue
+        case .leftWorkspaceSelector:
+            return SurfaceKind.leftWorkspaceSelector.rawValue
         case .customSidebar:
             return SurfaceKind.customSidebar.rawValue
         case .simulator:

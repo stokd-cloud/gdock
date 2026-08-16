@@ -3,6 +3,8 @@ import AppKit
 import Bonsplit
 import CmuxCanvas
 import CmuxCanvasUI
+import CmuxDockable
+import CmuxWorkspaces
 
 extension Notification.Name {
     /// Posted (object = the `Workspace`) whenever its `layoutMode` changes,
@@ -216,24 +218,98 @@ extension Workspace {
     }
 }
 
-/// The kind of surface `openNewCanvasPane` should create.
-enum CanvasNewPaneType {
-    case terminal
-    case browser
-    case simulator
-}
-
 extension Workspace {
+    /// Shared show path for Files / Find / Vault: focus the singleton pane for
+    /// `mode`, or create one. Canvas layout free-floats a new pane; splits mode
+    /// opens a tab in the focused bonsplit pane. Fixed right-host chrome is not
+    /// required.
+    @discardableResult
+    func showOrFocusRightSidebarToolPane(
+        mode: RightSidebarMode,
+        focus: Bool = true
+    ) -> RightSidebarToolPanel? {
+        guard mode.canOpenAsPane else { return nil }
+
+        if let existing = existingRightSidebarToolPanel(mode: mode) {
+            if focus {
+                focusPanel(existing.id)
+                if layoutMode == .canvas {
+                    canvasModel.viewport?.revealPane(existing.id, animated: true)
+                }
+            }
+            return existing
+        }
+
+        guard let paneId = bonsplitController.focusedPaneId ?? bonsplitController.allPaneIds.first else {
+            return nil
+        }
+
+        if layoutMode == .canvas {
+            let anchorPanelId = focusedPanelId
+            let preferredSize: CanvasSize? = anchorPanelId
+                .flatMap { canvasModel.frame(of: $0) }
+                .map { CanvasSize(width: Double($0.width), height: Double($0.height)) }
+            guard let panel = newRightSidebarToolSurface(inPane: paneId, mode: mode, focus: focus) else {
+                return nil
+            }
+            // Free-float the new tool like openNewCanvasPane (not a tab of the anchor).
+            canvasModel.syncPanes(
+                panelIds: orderedPanelIds,
+                focusedPanelId: anchorPanelId,
+                preferredDirection: nil,
+                preferredNewPaneSize: preferredSize
+            )
+            if focus {
+                focusPanel(panel.id)
+                canvasModel.viewport?.modelDidChangeExternally(animated: false)
+                canvasModel.viewport?.revealPane(panel.id, animated: true)
+            }
+            return panel
+        }
+
+        return openOrFocusRightSidebarToolSurface(inPane: paneId, mode: mode, focus: focus)
+    }
+
     /// Creates a new surface as its own free-floating canvas pane (not joined
     /// as a tab of an existing pane), the automation counterpart to the
     /// canvas "new pane" gesture. Returns the new surface/panel UUID, or `nil`
-    /// when creation fails (e.g. no focused bonsplit pane, or the browser is
-    /// disabled). Must be called in canvas mode.
+    /// when creation fails (e.g. no focused bonsplit pane, unregistered kind,
+    /// missing create context, or browser disabled). Must be called in canvas mode.
+    ///
+    /// Creation goes through the dockable registry/bootstrap for non-terminal
+    /// kinds and through the full workspace surface creators for terminal and
+    /// browser so spawn/config subscriptions stay intact.
     @discardableResult
     func openNewCanvasPane(
-        type: CanvasNewPaneType,
+        kind: DockableKind,
         focus: Bool = true,
         direction: CanvasDirection? = nil
+    ) -> UUID? {
+        openNewCanvasPane(focus: focus, direction: direction) { paneId in
+            createCanvasDockablePanel(kind: kind, inPane: paneId, focus: focus)
+        }
+    }
+
+    /// Simulator panes are not a ``DockableKind`` (they carry device/runtime
+    /// selection state the registry does not model), so they get their own
+    /// canvas entry point that reuses the same pane placement path.
+    @discardableResult
+    func openNewCanvasSimulatorPane(
+        focus: Bool = true,
+        direction: CanvasDirection? = nil
+    ) -> UUID? {
+        openNewCanvasPane(focus: focus, direction: direction) { paneId in
+            newSimulatorSurface(inPane: paneId, focus: focus)?.id
+        }
+    }
+
+    /// Shared placement core: creates a panel via `makePanel`, then gives it its
+    /// own canvas pane instead of joining it as a tab.
+    @discardableResult
+    private func openNewCanvasPane(
+        focus: Bool,
+        direction: CanvasDirection?,
+        makePanel: (PaneID) -> UUID?
     ) -> UUID? {
         guard layoutMode == .canvas else { return nil }
         guard let focusedPaneId = bonsplitController.focusedPaneId else { return nil }
@@ -241,24 +317,11 @@ extension Workspace {
         let preferredSize: CanvasSize? = anchorPanelId
             .flatMap { canvasModel.frame(of: $0) }
             .map { CanvasSize(width: Double($0.width), height: Double($0.height)) }
-        let newPanelId: UUID
-        switch type {
-        case .terminal:
-            guard let panel = newTerminalSurface(inPane: focusedPaneId, focus: focus) else {
-                return nil
-            }
-            newPanelId = panel.id
-        case .browser:
-            guard let panel = newBrowserSurface(inPane: focusedPaneId, focus: focus) else {
-                return nil
-            }
-            newPanelId = panel.id
-        case .simulator:
-            guard let panel = newSimulatorSurface(inPane: focusedPaneId, focus: focus) else {
-                return nil
-            }
-            newPanelId = panel.id
+
+        guard let newPanelId = makePanel(focusedPaneId) else {
+            return nil
         }
+
         // Give the new surface its own canvas pane (the placer positions it
         // near the focused pane) rather than joining it as a tab.
         canvasModel.syncPanes(
@@ -271,6 +334,160 @@ extension Workspace {
         canvasModel.viewport?.modelDidChangeExternally(animated: false)
         canvasModel.viewport?.revealPane(newPanelId, animated: true)
         return newPanelId
+    }
+
+    /// Creates a panel of `kind` in `paneId` via registry-backed factories and
+    /// existing surface installers. Returns `nil` for unregistered/fail-closed
+    /// kinds without crashing.
+    private func createCanvasDockablePanel(
+        kind: DockableKind,
+        inPane paneId: PaneID,
+        focus: Bool
+    ) -> UUID? {
+        DockableBootstrap.registerAllIfNeeded()
+
+        switch kind {
+        case .terminal:
+            return newTerminalSurface(inPane: paneId, focus: focus)?.id
+        case .browser:
+            return newBrowserSurface(inPane: paneId, focus: focus)?.id
+        case .markdown:
+            let filePath = defaultCanvasScratchMarkdownPath()
+            return newMarkdownSurface(inPane: paneId, filePath: filePath, focus: focus)?.id
+        case .filePreview:
+            let filePath = defaultCanvasScratchMarkdownPath()
+            return newFilePreviewSurface(inPane: paneId, filePath: filePath, focus: focus)?.id
+        case .project:
+            let projectPath = currentDirectory.isEmpty
+                ? FileManager.default.temporaryDirectory.path
+                : currentDirectory
+            return newProjectSurface(inPane: paneId, projectPath: projectPath, focus: focus)?.id
+        case .agentSession:
+            return newAgentSessionSurface(
+                inPane: paneId,
+                rendererKind: .react,
+                focus: focus
+            )?.id
+        case .rightSidebarTool:
+            return newRightSidebarToolSurface(inPane: paneId, mode: .files, focus: focus)?.id
+        case .leftWorkspaceSelector:
+            return newLeftWorkspaceSelectorSurface(inPane: paneId, focus: focus)?.id
+        case .extensionBrowser:
+            return newSidebarExtensionBrowserSurface(
+                inPane: paneId,
+                title: String(
+                    localized: "sidebar.extensions.browser.title",
+                    defaultValue: "Sidebar Extensions"
+                ),
+                focus: focus
+            )?.id
+        case .workspaceTodo, .customSidebar, .cloudVMLoading:
+            // Registry make + generic install for context-heavy / content-less kinds.
+            return installRegistryDockable(kind: kind, inPane: paneId, focus: focus)
+        }
+    }
+
+    /// Registry-backed create + bonsplit install for kinds without a dedicated
+    /// `new*Surface` convenience used by canvas open.
+    private func installRegistryDockable(
+        kind: DockableKind,
+        inPane paneId: PaneID,
+        focus: Bool
+    ) -> UUID? {
+        var context = DockableCreateContext(workspaceId: id)
+        context.workingDirectory = currentDirectory.isEmpty ? nil : currentDirectory
+        context.filePath = defaultCanvasScratchMarkdownPath()
+        context.projectPath = currentDirectory.isEmpty
+            ? FileManager.default.temporaryDirectory.path
+            : currentDirectory
+        context.rightSidebarMode = .files
+        if kind == .customSidebar {
+            let sidebarURL = FileManager.default.temporaryDirectory
+                .appendingPathComponent("canvas-\(UUID().uuidString.prefix(8)).cmuxsidebar")
+            try? "".write(to: sidebarURL, atomically: true, encoding: .utf8)
+            context.customSidebarName = "Canvas"
+            context.customSidebarFileURL = sidebarURL
+        }
+
+        guard let dockable = DockableBootstrap.make(
+            kind: kind,
+            context: context,
+            workspace: self
+        ), let panel = dockable as? any Panel else {
+            return nil
+        }
+
+        let shouldFocusNewTab = focus
+        let previousFocusedPanelId = focusedPanelId
+        let previousHostedView = focusedTerminalPanel?.hostedView
+
+        panels[panel.id] = panel
+        panelTitles[panel.id] = panel.displayTitle
+
+        let surfaceKindRaw = Self.surfaceKindRawValue(for: kind)
+        guard let newTabId = bonsplitController.createTab(
+            title: panel.displayTitle,
+            icon: panel.displayIcon,
+            kind: surfaceKindRaw,
+            isDirty: panel.isDirty,
+            isLoading: false,
+            isPinned: false,
+            inPane: paneId
+        ) else {
+            panels.removeValue(forKey: panel.id)
+            panelTitles.removeValue(forKey: panel.id)
+            return nil
+        }
+
+        bindSurface(newTabId, toPanelId: panel.id)
+        publishCmuxSurfaceCreated(
+            panel.id,
+            paneId: paneId,
+            kind: Self.cmuxEventSurfaceKind(panel),
+            origin: "canvas_new_pane",
+            focused: shouldFocusNewTab
+        )
+
+        if shouldFocusNewTab {
+            bonsplitController.focusPane(paneId)
+            bonsplitController.selectTab(newTabId)
+            applyTabSelection(tabId: newTabId, inPane: paneId)
+        } else {
+            preserveFocusAfterNonFocusSplit(
+                preferredPanelId: previousFocusedPanelId,
+                splitPanelId: panel.id,
+                previousHostedView: previousHostedView
+            )
+        }
+        return panel.id
+    }
+
+    /// Scratch markdown path for canvas open when no file is supplied.
+    private func defaultCanvasScratchMarkdownPath() -> String {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("cmux-canvas-\(UUID().uuidString.prefix(8)).md")
+        if !FileManager.default.fileExists(atPath: url.path) {
+            try? "# Untitled\n".write(to: url, atomically: true, encoding: .utf8)
+        }
+        return url.path
+    }
+
+    /// Maps ``DockableKind`` onto bonsplit ``SurfaceKind`` wire values.
+    private static func surfaceKindRawValue(for kind: DockableKind) -> String {
+        switch kind {
+        case .terminal: return SurfaceKind.terminal.rawValue
+        case .browser: return SurfaceKind.browser.rawValue
+        case .markdown: return SurfaceKind.markdown.rawValue
+        case .filePreview: return SurfaceKind.filePreview.rawValue
+        case .rightSidebarTool: return SurfaceKind.rightSidebarTool.rawValue
+        case .leftWorkspaceSelector: return SurfaceKind.leftWorkspaceSelector.rawValue
+        case .customSidebar: return SurfaceKind.customSidebar.rawValue
+        case .agentSession: return SurfaceKind.agentSession.rawValue
+        case .project: return SurfaceKind.project.rawValue
+        case .extensionBrowser: return SurfaceKind.extensionBrowser.rawValue
+        case .workspaceTodo: return SurfaceKind.todo.rawValue
+        case .cloudVMLoading: return SurfaceKind.cloudVMLoading.rawValue
+        }
     }
 
     /// Makes a freshly created panel a tab of the canvas pane hosting

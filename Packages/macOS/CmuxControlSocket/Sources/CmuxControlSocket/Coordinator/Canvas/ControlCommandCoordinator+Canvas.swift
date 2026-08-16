@@ -260,15 +260,30 @@ extension ControlCommandCoordinator {
     // MARK: - new_pane
 
     /// `canvas.new_pane` — create a new free-floating canvas pane (`type`
-    /// defaults to `terminal`).
+    /// defaults to `terminal`). Accepts dockable kind strings including
+    /// `terminal`, `browser`, and `markdown`; unknown kinds fail closed.
     func canvasNewPane(_ params: [String: JSONValue]) -> ControlCallResult {
         let type = string(params, "type") ?? "terminal"
-        guard ["terminal", "browser", "simulator"].contains(type) else {
+        let allowedKinds: Set<String> = [
+            "terminal",
+            "browser",
+            "simulator",
+            "markdown",
+            "filepreview",
+            "rightSidebarTool",
+            "customSidebar",
+            "agentSession",
+            "project",
+            "extensionBrowser",
+            "workspaceTodo",
+            "cloudVMLoading",
+        ]
+        guard allowedKinds.contains(type) else {
             return .err(
                 code: "invalid_params",
                 message: String(
                     localized: "cli.canvas.error.invalidPaneType",
-                    defaultValue: "type must be terminal, browser, or simulator"
+                    defaultValue: "type must be a known pane kind (terminal, browser, simulator, markdown, …)"
                 ),
                 data: nil
             )

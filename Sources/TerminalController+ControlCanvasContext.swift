@@ -1,6 +1,7 @@
 import CmuxCanvas
 import CmuxCanvasUI
 import CmuxControlSocket
+import CmuxDockable
 import Foundation
 
 /// Canvas-domain witnesses. Reads snapshot the workspace's `canvasModel`;
@@ -231,13 +232,18 @@ extension TerminalController: ControlCanvasContext {
             return .workspaceNotFound
         }
         guard ws.layoutMode == .canvas else { return .notCanvasMode }
-        let paneType: CanvasNewPaneType
-        switch type {
-        case "browser": paneType = .browser
-        case "simulator": paneType = .simulator
-        default: paneType = .terminal
+        // Shared kind path: accept DockableKind raw values (terminal/browser/markdown/…).
+        // "simulator" is not a DockableKind and routes to the dedicated simulator
+        // pane API. Unknown strings fail closed without creating a pane.
+        let newSurfaceID: UUID?
+        if type == "simulator" {
+            newSurfaceID = ws.openNewCanvasSimulatorPane(focus: true)
+        } else if let kind = DockableKind(rawValue: type) {
+            newSurfaceID = ws.openNewCanvasPane(kind: kind, focus: true)
+        } else {
+            return .tabManagerUnavailable
         }
-        guard let surfaceID = ws.openNewCanvasPane(type: paneType, focus: true) else {
+        guard let surfaceID = newSurfaceID else {
             return .tabManagerUnavailable
         }
         return .created(mode: ws.layoutMode.rawValue, surfaceID: surfaceID)

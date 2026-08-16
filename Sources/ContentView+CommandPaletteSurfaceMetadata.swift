@@ -13,6 +13,8 @@ extension ContentView {
             return String(localized: "commandPalette.kind.filePreview", defaultValue: "File Preview")
         case .rightSidebarTool:
             return String(localized: "commandPalette.kind.rightSidebarTool", defaultValue: "Tool")
+        case .leftWorkspaceSelector:
+            return String(localized: "commandPalette.kind.leftWorkspaceSelector", defaultValue: "Workspaces")
         case .customSidebar:
             return String(localized: "commandPalette.kind.customSidebar", defaultValue: "Custom Sidebar")
         case .simulator: return String(localized: "commandPalette.kind.simulator", defaultValue: "Simulator")
@@ -46,6 +48,8 @@ extension ContentView {
             return ["file", "preview", "text", "pdf", "image", "audio", "video"]
         case .rightSidebarTool:
             return ["tool", "files", "find", "vault", "sidebar"]
+        case .leftWorkspaceSelector:
+            return ["workspaces", "workspace", "selector", "sidebar", "rail"]
         case .customSidebar:
             return ["custom", "sidebar", "pane"]
         case .simulator: return ["simulator", "iphone", "ipad", "ios"]

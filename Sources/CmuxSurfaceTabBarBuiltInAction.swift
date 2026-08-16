@@ -11,7 +11,7 @@ enum CmuxSurfaceTabBarBuiltInAction: String, Codable, Sendable, CaseIterable, Ha
     case newSimulator = "cmux.newSimulator"
     case splitRight = "cmux.splitRight"
     case splitDown = "cmux.splitDown"
-    /// Fork-only 2×2 terminal split via bonsplit `.custom("cmux.splitQuad")`.
+    /// Fork-only 2×2 terminal split via bonsplit `.custom("cmux.splitQuad")` (D-5).
     case splitQuad = "cmux.splitQuad"
 
     init?(configID: String) {
@@ -114,6 +114,7 @@ enum CmuxSurfaceTabBarBuiltInAction: String, Codable, Sendable, CaseIterable, Ha
         case .splitDown:
             return .splitDown
         case .splitQuad:
+            // D-5: fork cannot push bonsplit; use custom action id filtered out of remote-tmux.
             return .custom(rawValue)
         }
     }

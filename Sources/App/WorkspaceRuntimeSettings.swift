@@ -479,9 +479,14 @@ enum AgentHibernationTrackingGate {
 enum RightSidebarBetaFeatureSettings {
     static let feedEnabledKey = "rightSidebar.beta.feed.enabled"
     static let dockEnabledKey = "rightSidebar.beta.dock.enabled"
+    /// Sidebar rails (left + right) VS Code-style dock spaces. Key is
+    /// `sidebar.beta.dock.enabled` even though this enum is historically
+    /// right-sidebar-named — renaming would enlarge every future ingest conflict.
+    static let sidebarDockEnabledKey = "sidebar.beta.dock.enabled"
 
     static let defaultFeedEnabled = false
     static let defaultDockEnabled = false
+    static let defaultSidebarDockEnabled = false
 
     nonisolated static func isFeedEnabled(defaults: UserDefaults = .standard) -> Bool {
         guard defaults.object(forKey: feedEnabledKey) != nil else { return defaultFeedEnabled }
@@ -491,6 +496,11 @@ enum RightSidebarBetaFeatureSettings {
     nonisolated static func isDockEnabled(defaults: UserDefaults = .standard) -> Bool {
         guard defaults.object(forKey: dockEnabledKey) != nil else { return defaultDockEnabled }
         return defaults.bool(forKey: dockEnabledKey)
+    }
+
+    nonisolated static func isSidebarDockEnabled(defaults: UserDefaults = .standard) -> Bool {
+        guard defaults.object(forKey: sidebarDockEnabledKey) != nil else { return defaultSidebarDockEnabled }
+        return defaults.bool(forKey: sidebarDockEnabledKey)
     }
 }
 

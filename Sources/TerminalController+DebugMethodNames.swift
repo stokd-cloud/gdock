@@ -18,6 +18,7 @@ extension TerminalController {
         "debug.command_palette.visible",
         "debug.command_palette.selection",
         "debug.command_palette.results",
+        "debug.command_palette.query_run",
         "debug.command_palette.rename_input.interact",
         "debug.command_palette.rename_input.delete_backward",
         "debug.command_palette.rename_input.selection",
@@ -49,6 +50,28 @@ extension TerminalController {
         "debug.terminal.simulate_file_drop",
         "debug.sidebar.simulate_drag",
         "debug.mobile.transport.disconnect",
+        // Sidebar dock rail dogfood (VAL-RAIL-003..008). DEBUG-only; mutations
+        // share production invoker/drop/header paths — not a public substitute.
+        "debug.sidebar_dock.inspect",
+        "debug.sidebar_dock.perform_command",
+        "debug.sidebar_dock.simulate_drop",
+        "debug.sidebar_dock.reorder_section",
+        "debug.sidebar_dock.reorder_tab",
+        "debug.sidebar_dock.divider_drag",
+        "debug.sidebar_dock.resize_rail",
+        "debug.sidebar_dock.refuse_paths",
+        "debug.sidebar_dock.transfer",
+        // Quad named-adapter dogfood (VAL-QUAD-002/003 / D-34). DEBUG-only;
+        // invokes production adapters — never QuadSplitAction.perform as substitute.
+        "debug.quad.adapter_perform",
+        "debug.quad.adapters",
+        // Quad running-app late-failure / veto dogfood (VAL-QUAD-004 / D-34).
+        // Configures the existing testingFailAfterCompletedSplits seam and runs
+        // the real shared QuadSplitAction path with topology/veto/log snapshots.
+        "debug.quad.fail_after",
+        "debug.quad.reset_hooks",
+        "debug.quad.perform",
+        "debug.quad.stage_fixture",
         "mobile.dev_stack_auth.configure",
     ]
 }

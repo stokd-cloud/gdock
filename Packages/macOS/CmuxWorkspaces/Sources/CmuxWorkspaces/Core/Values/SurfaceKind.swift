@@ -25,6 +25,8 @@ public struct SurfaceKind: RawRepresentable, Hashable, Sendable {
     public static let filePreview = SurfaceKind(rawValue: "filePreview")
     /// A right-sidebar tool pane hosted as a surface.
     public static let rightSidebarTool = SurfaceKind(rawValue: "rightSidebarTool")
+    /// The left workspace/session selector hosted as a surface (not fixed chrome).
+    public static let leftWorkspaceSelector = SurfaceKind(rawValue: "leftWorkspaceSelector")
     /// A custom sidebar hosted as a Bonsplit pane.
     public static let customSidebar = SurfaceKind(rawValue: "customSidebar")
     /// A native Apple Simulator pane.

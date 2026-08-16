@@ -76,6 +76,8 @@
 
 ### 2.1: stokd CLI runner
 
+**Dependencies:** 1.1
+
 **Implementation Details**
 
 - **Landing:** fork-only.
@@ -122,6 +124,8 @@
 ## Work Items
 
 ### 3.1: Work panel view model
+
+**Dependencies:** 1.1, 2.2
 
 **Implementation Details**
 
@@ -172,6 +176,8 @@
 
 ### 4.1: Seed Work into the right-rail tool tab strip
 
+**Dependencies:** 1.2, 3.2
+
 **Implementation Details**
 
 - **Landing:** fork-only.
@@ -202,6 +208,8 @@
 
 ### 5.1: Snapshot persistence for stokd rail membership
 
+**Dependencies:** 3.2, 4.1
+
 **Implementation Details**
 
 - **Landing:** fork-only.
@@ -219,7 +227,7 @@
 
 ### 5.2: Localization audit and dogfood gate
 
-**Dependencies:** 5.1
+**Dependencies:** 1.2, 3.2, 4.1, 5.1
 
 **Implementation Details**
 

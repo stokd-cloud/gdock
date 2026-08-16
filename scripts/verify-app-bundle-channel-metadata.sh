@@ -32,13 +32,13 @@ fi
 
 case "$CHANNEL" in
   stable)
-    EXPECTED_NAME="cmux"
-    EXPECTED_BUNDLE_ID="com.cmuxterm.app"
+    EXPECTED_NAME="Ghostty Dock"
+    EXPECTED_BUNDLE_ID="cloud.stokd.ghostty-dock"
     EXPECTED_ICON_NAME="AppIcon"
     ;;
   nightly)
-    EXPECTED_NAME="cmux NIGHTLY"
-    EXPECTED_BUNDLE_ID="com.cmuxterm.app.nightly"
+    EXPECTED_NAME="Ghostty Dock NIGHTLY"
+    EXPECTED_BUNDLE_ID="cloud.stokd.ghostty-dock.nightly"
     EXPECTED_ICON_NAME="AppIcon-Nightly"
     ;;
   *)

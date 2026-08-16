@@ -77,6 +77,8 @@ extension ContentView {
             return .splitRight
         case "palette.terminalSplitDown":
             return .splitDown
+        case "palette.terminalSplitQuad":
+            return .splitQuad
         case "palette.findInDirectory":
             return .findInDirectory
         case "palette.terminalFind":
@@ -197,10 +199,33 @@ extension ContentView {
             NSSound.beep()
             return
         }
+        let source = RightSidebarSelectionRouter.paletteSource(for: mode)
+        let window = observedWindow ?? NSApp.keyWindow ?? NSApp.mainWindow
+        // Dock rails: single selection seam (VAL-RAIL-009).
+        if RightSidebarBetaFeatureSettings.isSidebarDockEnabled(),
+           let app = AppDelegate.shared {
+            let route = app.routeRightSidebarSelection(
+                RightSidebarSelectionRequest(mode: mode, focus: true, source: source)
+            )
+            if route != .rejected {
+                return
+            }
+        }
+        // Files / Find / Vault: shared show path (pane when host hidden; in-rail when open).
+        if mode.canOpenAsPane {
+            if AppDelegate.shared?.showRightSidebarToolInActiveMainWindow(
+                mode: mode,
+                preferredWindow: window
+            ) != true {
+                // Host already hidden and no context: force pane open via ContentView path.
+                openRightSidebarToolPane(mode)
+            }
+            return
+        }
         if AppDelegate.shared?.focusRightSidebarInActiveMainWindow(
             mode: mode,
             focusFirstItem: true,
-            preferredWindow: observedWindow ?? NSApp.keyWindow ?? NSApp.mainWindow
+            preferredWindow: window
         ) != true {
             fileExplorerState.setVisible(true)
             if fileExplorerState.mode != mode {

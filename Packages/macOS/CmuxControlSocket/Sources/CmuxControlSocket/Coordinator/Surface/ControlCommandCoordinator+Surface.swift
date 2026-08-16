@@ -333,13 +333,15 @@ extension ControlCommandCoordinator {
         guard context?.controlSurfaceRoutingResolvesTabManager(routing: routing) ?? false else {
             return .err(code: "unavailable", message: "TabManager not available", data: nil)
         }
-        // Token set mirrors the app's `parseSplitDirection`; validating it here
-        // preserves the legacy error ORDER (direction → agent-session → divider).
+        // Token set mirrors the app's parseSplitDirection plus the quad grid
+        // token accepted by new-split / new_split. Validating here preserves
+        // the legacy error ORDER (direction → agent-session → divider).
         guard let directionRaw = string(params, "direction"),
-              ["left", "l", "right", "r", "up", "u", "down", "d"].contains(directionRaw.lowercased()) else {
+              ["left", "l", "right", "r", "up", "u", "down", "d", "quad", "q"]
+                .contains(directionRaw.lowercased()) else {
             return .err(
                 code: "invalid_params",
-                message: "Missing or invalid direction (left|right|up|down)",
+                message: "Missing or invalid direction (left|right|up|down|quad)",
                 data: nil
             )
         }
@@ -382,7 +384,7 @@ extension ControlCommandCoordinator {
             // and then it still emits the legacy error.
             return .err(
                 code: "invalid_params",
-                message: "Missing or invalid direction (left|right|up|down)",
+                message: "Missing or invalid direction (left|right|up|down|quad)",
                 data: nil
             )
         case .agentSessionRejected(let typeRawValue):

@@ -587,7 +587,7 @@ extension MobileHostIrohRuntime {
     #if DEBUG
     static func developmentStoreDirectory(service: String) -> URL {
         let rawBundleScope = Bundle.main.bundleIdentifier
-            ?? "com.cmuxterm.app.debug"
+            ?? "cloud.stokd.ghostty-dock.debug"
         let bundleScope = String(rawBundleScope.map { character in
             character.isASCII
                 && (character.isLetter

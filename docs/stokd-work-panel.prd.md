@@ -2,10 +2,10 @@
 
 ## 0. Source Context
 
-**Derived From:** Sliced out of `.stokd/projects/stokd-rail-panels-first-slice/prd.md` on 2026-08-08 — the Work panel is being shipped on its own ahead of the remaining left-rail panels.
+**Derived From:** Sliced out of the stokd rail-panels first slice on 2026-08-08 — the Work panel is being shipped on its own ahead of the remaining left-rail panels.
 **Feature Name:** Stokd Work Panel
 **PRD Owner:** Brian Stoker
-**Last Updated:** 2026-08-08
+**Last Updated:** 2026-08-12
 **Repository:** `stokd-cloud/ghostty-dock` (fork of `manaflow-ai/cmux`), branch `main`
 **Landing:** fork-only on `main`
 
@@ -20,15 +20,15 @@ Because this is the first stokd panel to land, this PRD **owns the shared founda
 3. the minimal stokd data plane (CLI executable resolution + local REST client),
 4. additive snapshot persistence rules for stokd rail membership.
 
-The remaining three panels (**Worktrees**, **Global Config**, **Usage**) are specified in `.stokd/projects/stokd-rail-panels-first-slice/prd.md`, which now depends on this PRD for items 1–4 and must not re-implement them.
+The remaining three panels (**Worktrees**, **Global Config**, **Usage**) are specified in `docs/stokd-worktrees-panel.prd.md`, `docs/stokd-global-config-panel.prd.md`, and `docs/stokd-usage-panel.prd.md`, which depend on this PRD for items 1–4 and must not re-implement them.
 
 ### Source inventory (read-only)
 
 | Source | Role |
 |---|---|
 | `stokd-cloud/mono` → `docs/port-stokd-panels-to-ghostty-dock.prd.md` | Behavior inventory for Work |
-| `.stokd/projects/dockable-sidebar-spaces-and-quad-split/prd.md` | Authoritative rail substrate (sections, collapse, resize, persistence) |
-| `.stokd/projects/stokd-rail-panels-first-slice/prd.md` | Sibling PRD for the left-rail panels; consumes this PRD's foundation |
+| `docs/cmux-all-ui-dockable.prd.md` | Authoritative rail substrate (sections, collapse, resize, persistence) |
+| `docs/stokd-worktrees-panel.prd.md`, `docs/stokd-global-config-panel.prd.md`, `docs/stokd-usage-panel.prd.md` | Sibling panel PRDs; they consume this PRD's foundation |
 | Live `main` | `Sources/Sidebar/SidebarDock*` |
 
 ### Default layout (load-bearing)
@@ -52,7 +52,7 @@ The left rail is untouched by this PRD: the existing workspaces section stays ex
 ### Objectives
 
 - Register the `stokdWork` rail panel kind with a stable raw value and right-rail placement.
-- Define the stokd-panels beta gate once, in a form the sibling left-rail PRD can reuse unchanged.
+- Define the stokd-panels beta gate once, in a form the sibling panel PRDs can reuse unchanged.
 - Provide a minimal, testable stokd data plane: CLI executable resolution + local REST client for tasks/projects.
 - Render Work as right-rail tool tab content with a real data path and explicit empty/error states — no blank crash chrome.
 - Seed Work into the right-rail Tools tab strip on first enable, idempotently.
@@ -63,7 +63,7 @@ The left rail is untouched by this PRD: the existing workspaces section stays ex
 - **Fork-only** on `stokd-cloud/ghostty-dock` `main`.
 - **Rail host only** — no freeform canvas dock-anywhere.
 - **Beta-gated**, default off.
-- This PRD lands **before** `.stokd/projects/stokd-rail-panels-first-slice/prd.md`; that PRD consumes the kind surface, gate, data plane, and persistence rules defined here.
+- This PRD lands **before** the sibling panel PRDs; they consume the kind surface, gate, data plane, and persistence rules defined here.
 - The data plane is a headless CLI/API boundary — panels stay thin and never shell out inline.
 - Config writes (if any surface later needs them) only via `stokd config set …` — never mutate `~/.stokd/config.yaml` directly.
 - All user-facing strings localized en+ja via `String(localized:)` / `Resources/Localizable.xcstrings`.
@@ -216,9 +216,9 @@ Why: Release readiness combines source catalogs, build output, and repository in
 
 ## 3. Execution Topology
 
-## Phase 1: Panel kind, placement, and feature gate
+## Phase 1: Stokd Work right-rail panel
 
-**Purpose:** Nothing can be seeded, mounted, or persisted until the `stokdWork` kind exists in the rail registry/placement matrix and the enablement gate is defined. This phase creates types and wiring only — no panel body yet.
+**Purpose:** One unattended pass delivers the whole slice — kind, gate, data plane, UI, seed, persistence, and the localized dogfood gate. No decision in this slice depends on artifacts that only exist once part of the work has shipped, so there is no `**Stop:**` and no second phase; all ordering is carried by `**Dependencies:**`.
 
 ### 1.1 Register the stokdWork rail panel kind
 
@@ -232,8 +232,8 @@ Why: Release readiness combines source catalogs, build output, and repository in
 - Extend the rail panel identity surface (match existing patterns: `RightSidebarMode` and/or the `PanelType` cases used by `SidebarDockStore`) with the kind `stokdWork`. Exact Swift casing follows existing conventions; the **raw value must be stable** because it is persisted.
 - Update `SidebarDockPlacementMatrix` (or equivalent) so `stokdWork` is allowed on the **right** rail (tool-tab strip) and disallowed on the left rail.
 - Provide a display title for the tool tab via a localized key.
-- Scaffold an empty placeholder panel host that compiles and mounts without crashing (real UI in Phase 3).
-- Leave room for the sibling PRD's left-rail kinds: do not close the kind surface to further cases, and do not name the enum/registry `…WorkOnly…`.
+- Scaffold an empty placeholder panel host that compiles and mounts without crashing (real UI in 1.6).
+- Leave room for the sibling PRDs' left-rail kinds: do not close the kind surface to further cases, and do not name the enum/registry `…WorkOnly…`.
 - Failure modes: unknown kind in a persisted snapshot → skip + log, never crash; flag-off → kind is not offered in UI.
 
 **Acceptance Criteria**
@@ -295,16 +295,10 @@ rg -n 'stokdPanels|sidebar\.beta\.dock\.enabled|gdock\.sidebar\.beta\.stokdPanel
 ./scripts/test-unit.sh -only-testing:cmuxTests/StokdRailPanelFlagTests CMUX_SKIP_ZIG_BUILD=1 test
 ```
 
----
-
-## Phase 2: Minimal stokd data plane
-
-**Purpose:** Cannot start before Phase 1 because the panel host must exist to consume it; must finish before Phase 3 because the Work UI is a thin view over this boundary. Lives under `Sources/Stokd/` without a full SPM package unless extraction clearly pays for itself.
-
-### 2.1 stokd CLI runner
+### 1.3 stokd CLI runner
 
 **Targets:** VAL-CLI-001
-**Dependencies:** []
+**Dependencies:** ["1.1"]
 
 **Landing:** fork-only
 
@@ -316,16 +310,16 @@ rg -n 'stokdPanels|sidebar\.beta\.dock\.enabled|gdock\.sidebar\.beta\.stokdPanel
 - Failure modes: CLI missing → structured error with code 127, surfaced as panel state; never a fatal process exit.
 
 **Acceptance Criteria**
-- AC-2.1.a: Executable resolution follows `STOKD_CLI_PATH` → `~/.stokd/bin/stokd` → `PATH` against fixtures.
-- AC-2.1.b: Missing executable yields a structured error (code 127), not a crash or `fatalError`.
-- AC-2.1.c: No source under `Sources/Stokd/` writes to `config.yaml` via `FileManager`/`Data.write`.
-- AC-2.1.d: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdCLIRunnerTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
+- AC-1.3.a: Executable resolution follows `STOKD_CLI_PATH` → `~/.stokd/bin/stokd` → `PATH` against fixtures.
+- AC-1.3.b: Missing executable yields a structured error (code 127), not a crash or `fatalError`.
+- AC-1.3.c: No source under `Sources/Stokd/` writes to `config.yaml` via `FileManager`/`Data.write`.
+- AC-1.3.d: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdCLIRunnerTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
 
 **Acceptance Tests**
-- Test-2.1.a: Unit — CLI path resolution order.
-- Test-2.1.b: Unit — missing-binary error shape.
-- Test-2.1.c: Regression — `rg` proves no direct yaml write.
-- Test-2.1.d: Suite gate.
+- Test-1.3.a: Unit — CLI path resolution order.
+- Test-1.3.b: Unit — missing-binary error shape.
+- Test-1.3.c: Regression — `rg` proves no direct yaml write.
+- Test-1.3.d: Suite gate.
 
 **Verification Commands**
 ```bash
@@ -336,10 +330,10 @@ rg -n 'STOKD_CLI_PATH|\.stokd/bin/stokd' Sources/
 ./scripts/test-unit.sh -only-testing:cmuxTests/StokdCLIRunnerTests CMUX_SKIP_ZIG_BUILD=1 test
 ```
 
-### 2.2 Local stokd API client for tasks and projects
+### 1.4 Local stokd API client for tasks and projects
 
 **Targets:** VAL-API-001
-**Dependencies:** ["2.1"]
+**Dependencies:** ["1.3"]
 
 **Landing:** fork-only
 
@@ -351,16 +345,16 @@ rg -n 'STOKD_CLI_PATH|\.stokd/bin/stokd' Sources/
 - Failure modes: API down / non-2xx / decode failure → empty result plus a banner-ready error value; never fatal, never a hang without timeout.
 
 **Acceptance Criteria**
-- AC-2.2.a: Paged fixture JSON for tasks and projects decodes into the expected value types.
-- AC-2.2.b: Connection refused and non-2xx responses map to a structured error, and the result is an empty list plus error — not a throw across the UI boundary.
-- AC-2.2.c: Requests target the configured base URL, defaulting to `http://localhost:8167`.
-- AC-2.2.d: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkAPIClientTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
+- AC-1.4.a: Paged fixture JSON for tasks and projects decodes into the expected value types.
+- AC-1.4.b: Connection refused and non-2xx responses map to a structured error, and the result is an empty list plus error — not a throw across the UI boundary.
+- AC-1.4.c: Requests target the configured base URL, defaulting to `http://localhost:8167`.
+- AC-1.4.d: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkAPIClientTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
 
 **Acceptance Tests**
-- Test-2.2.a: Unit — JSON decode fixtures for tasks and projects (including an empty page and a next-page cursor).
-- Test-2.2.b: Unit — error mapping via `URLProtocol` stub (refused + 500).
-- Test-2.2.c: Unit — base URL default and override.
-- Test-2.2.d: Suite gate.
+- Test-1.4.a: Unit — JSON decode fixtures for tasks and projects (including an empty page and a next-page cursor).
+- Test-1.4.b: Unit — error mapping via `URLProtocol` stub (refused + 500).
+- Test-1.4.c: Unit — base URL default and override.
+- Test-1.4.d: Suite gate.
 
 **Verification Commands**
 ```bash
@@ -370,16 +364,10 @@ rg -n '8167|StokdWorkAPI|URLProtocol' Sources/ cmuxTests/
 ./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkAPIClientTests CMUX_SKIP_ZIG_BUILD=1 test
 ```
 
----
-
-## Phase 3: Work panel UI
-
-**Purpose:** Depends on the Phase 1 kind/gate and the Phase 2 data plane. This is the visible deliverable — the port of the VS Code Work surface into the right rail.
-
-### 3.1 Work panel view model
+### 1.5 Work panel view model
 
 **Targets:** VAL-WORK-001
-**Dependencies:** []
+**Dependencies:** ["1.1", "1.4"]
 
 **Landing:** fork-only
 
@@ -391,18 +379,18 @@ rg -n '8167|StokdWorkAPI|URLProtocol' Sources/ cmuxTests/
 - Failure modes: API down → `empty(error:)` state carrying user-facing text; empty result → distinct empty state; stale in-flight load is superseded by request id, never applied out of order.
 
 **Acceptance Criteria**
-- AC-3.1.a: Loading fixture data produces the expected ordered row snapshots for tasks and projects.
-- AC-3.1.b: Filter and sort produce deterministic ordering for a fixed fixture set.
-- AC-3.1.c: An error response yields an error state with non-empty user-facing text and zero rows.
-- AC-3.1.d: An out-of-order late response for a superseded request id is discarded.
-- AC-3.1.e: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelViewModelTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
+- AC-1.5.a: Loading fixture data produces the expected ordered row snapshots for tasks and projects.
+- AC-1.5.b: Filter and sort produce deterministic ordering for a fixed fixture set.
+- AC-1.5.c: An error response yields an error state with non-empty user-facing text and zero rows.
+- AC-1.5.d: An out-of-order late response for a superseded request id is discarded.
+- AC-1.5.e: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelViewModelTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
 
 **Acceptance Tests**
-- Test-3.1.a: Unit — fixture load → row mapping.
-- Test-3.1.b: Unit — filter/sort determinism.
-- Test-3.1.c: Unit — error state.
-- Test-3.1.d: Unit — superseded-request discard.
-- Test-3.1.e: Suite gate.
+- Test-1.5.a: Unit — fixture load → row mapping.
+- Test-1.5.b: Unit — filter/sort determinism.
+- Test-1.5.c: Unit — error state.
+- Test-1.5.d: Unit — superseded-request discard.
+- Test-1.5.e: Suite gate.
 
 **Verification Commands**
 ```bash
@@ -412,33 +400,33 @@ rg -n 'StokdWorkPanelViewModel' Sources/ cmuxTests/
 ./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelViewModelTests CMUX_SKIP_ZIG_BUILD=1 test
 ```
 
-### 3.2 Work panel view and rail mounting
+### 1.6 Work panel view and rail mounting
 
 **Targets:** VAL-WORK-002
-**Dependencies:** ["3.1"]
+**Dependencies:** ["1.5"]
 
 **Landing:** fork-only
 
 **Implementation Details**
 - **Landing:** fork-only.
-- Implement the SwiftUI body for Work and wire it as right-rail tool tab content for `stokdWork`, replacing the Phase 1 placeholder.
+- Implement the SwiftUI body for Work and wire it as right-rail tool tab content for `stokdWork`, replacing the placeholder from 1.1.
 - Rows carry value snapshots plus closure action bundles only — reference pattern: `IndexSectionActions` / `SectionGapActions` in `Sources/SessionIndexView.swift`.
 - Actor surfaces (command palette, tab strip, section menu) go through the existing `SidebarDockActionInvoker` → `SidebarDockCommand.perform` path — one shared action path, no store-only reachability, per the shared-behavior policy.
 - Failure modes: API down → empty state with error text; no data → empty state; neither may render blank chrome.
 
 **Acceptance Criteria**
-- AC-3.2.a: Mounting `stokdWork` with a fixture-backed view model renders a non-empty view hierarchy.
-- AC-3.2.b: Error and empty states each render identifiable, non-blank content.
-- AC-3.2.c: Every entrypoint that focuses/opens Work resolves through `SidebarDockActionInvoker`/`SidebarDockCommand` — no duplicated open logic.
-- AC-3.2.d: No type below the Work row list holds an `ObservableObject`/`@Observable` reference (snapshot-boundary rule).
-- AC-3.2.e: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelViewTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
+- AC-1.6.a: Mounting `stokdWork` with a fixture-backed view model renders a non-empty view hierarchy.
+- AC-1.6.b: Error and empty states each render identifiable, non-blank content.
+- AC-1.6.c: Every entrypoint that focuses/opens Work resolves through `SidebarDockActionInvoker`/`SidebarDockCommand` — no duplicated open logic.
+- AC-1.6.d: No type below the Work row list holds an `ObservableObject`/`@Observable` reference (snapshot-boundary rule).
+- AC-1.6.e: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelViewTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
 
 **Acceptance Tests**
-- Test-3.2.a: Unit — mounted hierarchy is non-empty for fixtures.
-- Test-3.2.b: Unit — error/empty state rendering.
-- Test-3.2.c: Unit — invoker reachability for the open/focus command.
-- Test-3.2.d: Regression — `rg` over the Work row files shows no `@ObservedObject`/`@EnvironmentObject`/`@StateObject`/`@Bindable`.
-- Test-3.2.e: Suite gate.
+- Test-1.6.a: Unit — mounted hierarchy is non-empty for fixtures.
+- Test-1.6.b: Unit — error/empty state rendering.
+- Test-1.6.c: Unit — invoker reachability for the open/focus command.
+- Test-1.6.d: Regression — `rg` over the Work row files shows no `@ObservedObject`/`@EnvironmentObject`/`@StateObject`/`@Bindable`.
+- Test-1.6.e: Suite gate.
 
 **Verification Commands**
 ```bash
@@ -450,40 +438,35 @@ rg -n 'SidebarDockActionInvoker|SidebarDockCommand' Sources/
 ./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelViewTests CMUX_SKIP_ZIG_BUILD=1 test
 ```
 
----
-
-## Phase 4: Default seed
-
-**Purpose:** Runs after Phase 3 so a cold-start window seeds a tab that renders real content rather than a placeholder. Makes the §0 diagram true on first enable without thrashing later user rearrangements.
-
-### 4.1 Seed Work into the right-rail tool tab strip
+### 1.7 Seed Work into the right-rail tool tab strip
 
 **Targets:** VAL-SEED-001
-**Dependencies:** []
+**Dependencies:** ["1.2", "1.6"]
 
 **Landing:** fork-only
 
 **Implementation Details**
 - **Landing:** fork-only.
 - Extend `SidebarDockSeeding` (or sibling) so that when the gate is on and the stokd seed generation has not been applied, the right rail's Tools section includes Work as a tab alongside Files, Find, Vault — order Files, Find, Vault, Work unless the user has already customized the order.
-- Idempotent marker (seed generation int / `stokdPanelsSeedApplied`) shared with the sibling left-rail PRD so re-open never re-inserts duplicates or resets user layout.
+- Idempotent marker (seed generation int / `stokdPanelsSeedApplied`) shared with the sibling panel PRDs so re-open never re-inserts duplicates or resets user layout.
 - Flag-off: the seed path no-ops for stokd kinds.
 - Left rail is not modified by this PRD's seed.
+- Seeding runs after 1.6 so a cold-start window seeds a tab that renders real content rather than a placeholder.
 - Failure modes: partial seed failure leaves non-stokd rails intact; log and continue.
 
 **Acceptance Criteria**
-- AC-4.1.a: Seeding an empty registry with the flag on yields right-rail tools Files, Find, Vault, Work in that order.
-- AC-4.1.b: A second seed call does not duplicate the Work tab and does not reset a customized order.
-- AC-4.1.c: Flag off → seed introduces no stokd kinds.
-- AC-4.1.d: Seeding does not add or reorder any left-rail section.
-- AC-4.1.e: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelSeedTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
+- AC-1.7.a: Seeding an empty registry with the flag on yields right-rail tools Files, Find, Vault, Work in that order.
+- AC-1.7.b: A second seed call does not duplicate the Work tab and does not reset a customized order.
+- AC-1.7.c: Flag off → seed introduces no stokd kinds.
+- AC-1.7.d: Seeding does not add or reorder any left-rail section.
+- AC-1.7.e: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelSeedTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
 
 **Acceptance Tests**
-- Test-4.1.a: Unit — default tab order matches §0.
-- Test-4.1.b: Unit — idempotent reseed / custom order preserved.
-- Test-4.1.c: Unit — flag-off no-op.
-- Test-4.1.d: Unit — left rail untouched.
-- Test-4.1.e: Suite gate.
+- Test-1.7.a: Unit — default tab order matches §0.
+- Test-1.7.b: Unit — idempotent reseed / custom order preserved.
+- Test-1.7.c: Unit — flag-off no-op.
+- Test-1.7.d: Unit — left rail untouched.
+- Test-1.7.e: Suite gate.
 
 **Verification Commands**
 ```bash
@@ -493,16 +476,10 @@ rg -n 'stokdPanelsSeed|seedStokd|stokdWork' Sources/Sidebar/
 ./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelSeedTests CMUX_SKIP_ZIG_BUILD=1 test
 ```
 
----
-
-## Phase 5: Persistence, localization, and rollout
-
-**Purpose:** Last phase — depends on the panel and seed existing so snapshot keys and strings are real. Closes the slice for dogfood and fixes the persistence contract the sibling PRD inherits.
-
-### 5.1 Snapshot persistence for stokd rail membership
+### 1.8 Snapshot persistence for stokd rail membership
 
 **Targets:** VAL-PERSIST-001
-**Dependencies:** []
+**Dependencies:** ["1.6", "1.7"]
 
 **Landing:** fork-only
 
@@ -510,20 +487,20 @@ rg -n 'stokdPanelsSeed|seedStokd|stokdWork' Sources/Sidebar/
 - **Landing:** fork-only.
 - Persist right-rail tool membership, order, and selected tab including `stokdWork` using **additive optional** snapshot fields only — **never** bump `SessionSnapshotSchema.currentVersion` and never add a `SessionWorkspaceLayoutSnapshot` case.
 - Round-trip: seed layout → encode → decode → equal membership and selection.
-- These rules are the contract the sibling left-rail PRD reuses for its sections.
+- These rules are the contract the sibling panel PRDs reuse for their sections.
 - Failure modes: unknown future kind → skip; corrupt optional → fall back to the default seed once.
 
 **Acceptance Criteria**
-- AC-5.1.a: Round-trip of a Work-inclusive layout preserves membership, order, and selected tab.
-- AC-5.1.b: `SessionSnapshotSchema.currentVersion` is unchanged from the pre-phase baseline (remains 1).
-- AC-5.1.c: A snapshot containing an unknown stokd kind decodes with that entry skipped and no crash.
-- AC-5.1.d: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelPersistenceTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
+- AC-1.8.a: Round-trip of a Work-inclusive layout preserves membership, order, and selected tab.
+- AC-1.8.b: `SessionSnapshotSchema.currentVersion` is unchanged from the baseline (remains 1).
+- AC-1.8.c: A snapshot containing an unknown stokd kind decodes with that entry skipped and no crash.
+- AC-1.8.d: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelPersistenceTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.
 
 **Acceptance Tests**
-- Test-5.1.a: Unit — encode/decode round-trip.
-- Test-5.1.b: Regression — schema version pin.
-- Test-5.1.c: Unit — unknown-kind skip.
-- Test-5.1.d: Suite gate.
+- Test-1.8.a: Unit — encode/decode round-trip.
+- Test-1.8.b: Regression — schema version pin.
+- Test-1.8.c: Unit — unknown-kind skip.
+- Test-1.8.d: Suite gate.
 
 **Verification Commands**
 ```bash
@@ -533,33 +510,33 @@ rg -n 'currentVersion' Sources/ Packages/ | rg -n 'SessionSnapshotSchema' || tru
 ./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelPersistenceTests CMUX_SKIP_ZIG_BUILD=1 test
 ```
 
-### 5.2 Localization audit and dogfood gate
+### 1.9 Localization audit and dogfood gate
 
 **Targets:** VAL-ROLL-001
-**Dependencies:** ["5.1"]
+**Dependencies:** ["1.2", "1.6", "1.7", "1.8"]
 
 **Landing:** fork-only
 
 **Implementation Details**
 - **Landing:** fork-only.
-- Every new user-facing string uses `String(localized:)` with en+ja entries in `Resources/Localizable.xcstrings`, `state == translated`, and `ja != en` for non-identical natural text. Covered surfaces: tool tab title, empty state, error state, any beta-settings row added in 1.2.
+- Every new user-facing string uses `String(localized:)` with en+ja entries in `Resources/Localizable.xcstrings`, `state == translated`, and `ja != en` for non-identical natural text. Covered surfaces: tool tab title, empty state, error state, any beta-settings row touched in 1.2.
 - Palette/debug can open and focus Work through the same invoker path as other rail tools.
 - Tagged dogfood: `CMUX_SKIP_ZIG_BUILD=1 ./scripts/reload.sh --tag stokd-work-panel` builds; with the flag on, a cold window matches §0.
 - Bonsplit clean: `git -C vendor/bonsplit status --porcelain` empty; pinned SHA unchanged.
 
 **Acceptance Criteria**
-- AC-5.2.a: Every new Work string key exists in both en and ja with `state == translated`.
-- AC-5.2.b: No bare English literal in new Work Swift sources' `Text(`/`Button(`/alert titles.
-- AC-5.2.c: `./scripts/lint-pbxproj-test-wiring.sh` → exit 0.
-- AC-5.2.d: Tagged reload compiles → exit 0 (or, where the environment cannot build the app, all suites in this PRD green with that substitution recorded in the session output).
-- AC-5.2.e: `git -C vendor/bonsplit status --porcelain` empty and `git -C vendor/bonsplit rev-parse HEAD` equals the pin `48643102d6b68400069429bd43c15d7bda2b00a1`.
+- AC-1.9.a: Every new Work string key exists in both en and ja with `state == translated`.
+- AC-1.9.b: No bare English literal in new Work Swift sources' `Text(`/`Button(`/alert titles.
+- AC-1.9.c: `./scripts/lint-pbxproj-test-wiring.sh` → exit 0.
+- AC-1.9.d: Tagged reload compiles → exit 0 (or, where the environment cannot build the app, all suites in this PRD green with that substitution recorded in the session output).
+- AC-1.9.e: `git -C vendor/bonsplit status --porcelain` empty and `git -C vendor/bonsplit rev-parse HEAD` equals the pin `48643102d6b68400069429bd43c15d7bda2b00a1`.
 
 **Acceptance Tests**
-- Test-5.2.a: Regression — xcstrings key/locale audit (parse the catalog, compare en vs ja).
-- Test-5.2.b: Regression — `rg` for bare English in new Swift sources.
-- Test-5.2.c: Regression — pbxproj test wiring.
-- Test-5.2.d: Integration — tagged build or documented unit substitute.
-- Test-5.2.e: Regression — bonsplit clean + SHA pin.
+- Test-1.9.a: Regression — xcstrings key/locale audit (parse the catalog, compare en vs ja).
+- Test-1.9.b: Regression — `rg` for bare English in new Swift sources.
+- Test-1.9.c: Regression — pbxproj test wiring.
+- Test-1.9.d: Integration — tagged build or documented unit substitute.
+- Test-1.9.e: Regression — bonsplit clean + SHA pin.
 
 **Verification Commands**
 ```bash
@@ -593,14 +570,14 @@ git -C vendor/bonsplit rev-parse HEAD
 
 ## 4. Completion Criteria
 
-- [ ] All Phase 1–5 work items' Verification Commands exit 0.
+- [ ] All work items 1.1–1.9 Verification Commands exit 0.
 - [ ] Flag on + cold seed shows the right-rail Tools strip as Files, Find, Vault, Work.
 - [ ] Work lists real tasks and projects from a local stokd workspace, with distinct empty and error states.
 - [ ] Flag off: no Work tab; existing rails unchanged; left rail untouched in both states.
 - [ ] Config is never written directly to yaml by the app.
 - [ ] en+ja strings present; pbxproj test wiring clean; bonsplit clean and at the pinned SHA.
 - [ ] `SessionSnapshotSchema.currentVersion` unchanged.
-- [ ] The foundation (kind surface, gate, data plane, persistence rules) is reusable as-is by `.stokd/projects/stokd-rail-panels-first-slice/prd.md` — no Work-only naming that would force a rewrite there.
+- [ ] The foundation (kind surface, gate, data plane, persistence rules) is reusable as-is by the sibling Worktrees, Global Config, and Usage panel PRDs — no Work-only naming that would force a rewrite there.
 
 ---
 
@@ -630,4 +607,3 @@ git -C vendor/bonsplit rev-parse HEAD
 - Decision: v1 is list + open only; task/project write actions are follow-up scope.
 - Decision: v1 does not fall back to `stokd task list --json` or `stokd project list --json` when
   the local API is down; it renders the specified error state and revisits fallback after dogfood.
-- No unresolved questions block autonomous execution. No phase declares a planned `**Stop:**`.

@@ -3364,7 +3364,7 @@ struct CMUXCLI {
     }
 
     private static let browserDisabledDefaultsKey = "browserDisabledOverride"
-    private static let defaultBrowserSettingsDomain = "com.cmuxterm.app"
+    private static let defaultBrowserSettingsDomain = "cloud.stokd.ghostty-dock"
 
     private static func containingAppBundleIdentifier() -> String? {
         normalizedEnvValue(CLIExecutableLocator.enclosingAppBundle()?.bundleIdentifier)
@@ -3682,7 +3682,7 @@ struct CMUXCLI {
 
         guard index < args.count else {
             throw CLIError(
-                message: "Missing command. Usage: cmux <path>|<command> [options]. Run 'cmux --help' for the full command list.",
+                message: "Missing command. Usage: \(invokedToolName()) <path>|<command> [options]. Run '\(invokedToolName()) --help' for the full command list.",
                 exitCode: 2
             )
         }
@@ -5094,7 +5094,7 @@ struct CMUXCLI {
             let windowRaw = windowOpt ?? windowId
             let workspaceArg = wsArg ?? (windowRaw == nil ? ProcessInfo.processInfo.environment["CMUX_WORKSPACE_ID"] : nil)
             let surfaceRaw = sfArg ?? panelArg ?? (wsArg == nil && windowRaw == nil ? ProcessInfo.processInfo.environment["CMUX_SURFACE_ID"] : nil)
-            let direction = try validatedSplitDirection(rem4.first, commandName: "new-split")
+            let direction = try validatedNewSplitDirection(rem4.first, commandName: "new-split")
             if let unknown = rem4.dropFirst().first(where: { $0.hasPrefix("--") }) {
                 throw CLIError(message: "new-split: unknown flag '\(unknown)'")
             }
@@ -16929,9 +16929,10 @@ struct CMUXCLI {
             """
         case "new-split":
             return """
-            Usage: cmux new-split <left|right|up|down> [flags]
+            Usage: cmux new-split <left|right|up|down|quad> [flags]
 
-            Split the current pane in the given direction.
+            Split the current pane in the given direction, or create a 2×2
+            terminal grid with `quad` (shared Split Quad action).
 
             Flags:
               --workspace <id|ref>   Target workspace (default: $CMUX_WORKSPACE_ID)
@@ -16944,6 +16945,7 @@ struct CMUXCLI {
             Example:
               cmux new-split right
               cmux new-split down --workspace workspace:1
+              cmux new-split quad
             """
         case "list-panes":
             return """
@@ -36505,17 +36507,18 @@ export default CMUXSessionRestore;
 
 
     private func versionSummary() -> String {
+        let tool = invokedToolName()
         let info = resolvedVersionInfo()
         let commit = info["CMUXCommit"].flatMap { normalizedCommitHash($0) }
         let baseSummary: String
         if let version = info["CFBundleShortVersionString"], let build = info["CFBundleVersion"] {
-            baseSummary = "cmux \(version) (\(build))"
+            baseSummary = "\(tool) \(version) (\(build))"
         } else if let version = info["CFBundleShortVersionString"] {
-            baseSummary = "cmux \(version)"
+            baseSummary = "\(tool) \(version)"
         } else if let build = info["CFBundleVersion"] {
-            baseSummary = "cmux build \(build)"
+            baseSummary = "\(tool) build \(build)"
         } else {
-            baseSummary = "cmux version unknown"
+            baseSummary = "\(tool) version unknown"
         }
         guard let commit else { return baseSummary }
         return "\(baseSummary) [\(commit)]"
@@ -36861,13 +36864,22 @@ export default CMUXSessionRestore;
         return URL(fileURLWithPath: expanded).standardizedFileURL
     }
 
+    private func invokedToolName() -> String {
+        if let path = currentExecutablePath(), !path.isEmpty {
+            return URL(fileURLWithPath: path).lastPathComponent
+        }
+        let processName = ProcessInfo.processInfo.processName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return processName.isEmpty ? "gdock" : processName
+    }
+
     private func usage() -> String {
+        let tool = invokedToolName()
         return """
-        cmux - control cmux via Unix socket
+        \(tool) - control Ghostty Dock via Unix socket
 
         Usage:
-          cmux <path>                Open a directory in a new workspace (launches cmux if needed)
-          cmux [global-options] <command> [options]
+          \(tool) <path>                Open a directory in a new workspace (launches Ghostty Dock if needed)
+          \(tool) [global-options] <command> [options]
 
         Targets:
           Commands that accept a window, workspace, pane, or surface take a UUID, a short ref (window:1/workspace:2/pane:3/surface:4), or an index.
@@ -36945,7 +36957,7 @@ export default CMUXSessionRestore;
           ssh-session-attach --session-id <id> [--workspace <id|ref|index>] [--pane <id|ref|index> | --split <left|right|up|down>]
           ssh-session-cleanup [--workspace <id|ref|index> | --all-workspaces] (--session-id <id> | --all)
           remote-daemon-status [--os <darwin|linux>] [--arch <arm64|amd64>]
-          new-split <left|right|up|down> [--workspace <id|ref|index>] [--surface <id|ref|index>] [--panel <id|ref|index>] [--window <id|ref|index>] [--focus <true|false>]
+          new-split <left|right|up|down|quad> [--workspace <id|ref|index>] [--surface <id|ref|index>] [--panel <id|ref|index>] [--window <id|ref|index>] [--focus <true|false>]
           list-panes [--workspace <id|ref|index>] [--window <id|ref|index>]
           list-pane-surfaces [--workspace <id|ref|index>] [--pane <id|ref|index>] [--window <id|ref|index>]
           tree [--all] [--workspace <id|ref|index>] [--window <id|ref|index>]

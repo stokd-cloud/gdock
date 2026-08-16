@@ -104,6 +104,7 @@ struct WorkspaceCanvasHostView: View {
         case .markdown: return "doc.richtext"
         case .filePreview: return "doc.text.magnifyingglass"
         case .rightSidebarTool: return "sidebar.right"
+        case .leftWorkspaceSelector: return "sidebar.left"
         case .customSidebar: return "wand.and.stars"
         case .simulator: return "iphone.gen3"
         case .agentSession: return "sparkles"

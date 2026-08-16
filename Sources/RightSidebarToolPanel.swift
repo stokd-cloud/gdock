@@ -11,6 +11,10 @@ final class RightSidebarToolPanel: Panel, ObservableObject {
 
     @Published private(set) var focusFlashToken: Int = 0
 
+    /// Panel-owned Find query/results so cross-rail moves remount without data loss
+    /// (VAL-MOVE-001). FileExplorerContainerView syncs this on snapshot changes.
+    var preservedSearchSnapshot: FileSearchSnapshot = .empty
+
     private weak var workspace: Workspace?
     private weak var fileExplorerContainerView: FileExplorerContainerView?
     private weak var sessionIndexFocusAnchorView: RightSidebarToolFocusAnchorView?

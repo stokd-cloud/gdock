@@ -10,6 +10,7 @@ import Testing
         #expect(SurfaceKind.markdown.rawValue == "markdown")
         #expect(SurfaceKind.filePreview.rawValue == "filePreview")
         #expect(SurfaceKind.rightSidebarTool.rawValue == "rightSidebarTool")
+        #expect(SurfaceKind.leftWorkspaceSelector.rawValue == "leftWorkspaceSelector")
         #expect(SurfaceKind.customSidebar.rawValue == "customSidebar")
         #expect(SurfaceKind.simulator.rawValue == "simulator")
         #expect(SurfaceKind.agentSession.rawValue == "agentSession")

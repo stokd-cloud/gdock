@@ -1537,15 +1537,18 @@ def resolve_cli_path(raw: str | None, tag: str | None) -> str:
     if env_cli:
         candidates.append(os.path.expanduser(env_cli))
     if tag:
-        candidates.append(os.path.expanduser(f"~/Library/Developer/Xcode/DerivedData/cmux-{tag}/Build/Products/Debug/cmux DEV {tag}.app/Contents/Resources/bin/cmux"))
-        candidates.append(os.path.expanduser(f"~/Library/Developer/Xcode/DerivedData/cmux-{tag}/Build/Products/Debug/cmux"))
+        # reload.sh builds Release by default and Debug under --debug.
+        for configuration in ("Release", "Debug"):
+            products = f"~/Library/Developer/Xcode/DerivedData/cmux-{tag}/Build/Products/{configuration}"
+            candidates.append(os.path.expanduser(f"{products}/cmux DEV {tag}.app/Contents/Resources/bin/cmux"))
+            candidates.append(os.path.expanduser(f"{products}/cmux"))
     last_cli = pathlib.Path("/tmp/cmux-last-cli-path")
     if last_cli.exists():
         try:
             candidates.append(last_cli.read_text(encoding="utf-8").strip())
         except OSError:
             pass
-    candidates.extend(glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug/cmux"), recursive=True))
+    candidates.extend(glob.glob(os.path.expanduser("~/Library/Developer/Xcode/DerivedData/**/Build/Products/*/cmux"), recursive=True))
     for candidate in candidates:
         if candidate and os.path.isfile(candidate) and os.access(candidate, os.X_OK):
             return candidate

@@ -1,6 +1,5 @@
 # cmux agent notes
 
-## Setup
 ## ghostty-dock (gdock) fork conventions
 
 This checkout is the **ghostty-dock** fork (product short name **gdock**), based on upstream cmux.
@@ -26,9 +25,11 @@ This checkout is the **ghostty-dock** fork (product short name **gdock**), based
 Always build with a tag. **Never run bare `xcodebuild` or `open` an untagged `cmux DEV.app`**: untagged builds share the default debug socket and bundle ID with other agents, causing conflicts and stealing focus.
 
 ```bash
-./scripts/reload.sh --tag <branch-slug>            # build Debug, kill same-tag app, do not launch
+./scripts/reload.sh --tag <branch-slug>            # build Release, kill same-tag app, do not launch
 ./scripts/reload.sh --tag <branch-slug> --launch   # also open it
 ```
+
+`reload.sh` builds the **Release** configuration by default (Debug is `-Onone` and is barely usable on a loaded machine), so tagged apps land in `Build/Products/Release/` as `gdock <tag>.app`. Pass `--debug` when you need `#if DEBUG` affordances (Debug menu, dogfood auto sign-in, debug event log); that build lands in `Build/Products/Debug/` as `gdock DBG <tag>.app`. `--print-plan` prints the resolved configuration, bundle id, and app path without building.
 
 A tag gives the app its own name, bundle ID, socket, and derived data path, so it runs side-by-side with the user's main app. Report the build to the user as a markdown link to `http://127.0.0.1:17320/<tag>`. Never put a `file://` URL, a raw `.app` path, or `/tmp/cmux-<tag>/...` in chat output.
 
@@ -50,7 +51,7 @@ Clean up older tags you started this session (quit the app, remove its `/tmp` so
 
 ## Tag-bound debug CLI
 
-For CLI or socket dogfood against a tagged Debug app, set `CMUX_TAG` and use the helper. Do not use `/tmp/cmux-cli`, which points at the most recently reloaded build and can target the user's main app socket.
+For CLI or socket dogfood against a tagged dev app (Release or Debug), set `CMUX_TAG` and use the helper. Do not use `/tmp/cmux-cli`, which points at the most recently reloaded build and can target the user's main app socket.
 
 ```bash
 CMUX_TAG=<tag> scripts/cmux-debug-cli.sh list-workspaces

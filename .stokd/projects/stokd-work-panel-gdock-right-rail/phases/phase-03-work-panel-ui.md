@@ -8,6 +8,8 @@
 
 ### 3.1: Work panel view model
 
+**Dependencies:** 1.1, 2.2
+
 **Implementation Details**
 
 - **Landing:** fork-only.

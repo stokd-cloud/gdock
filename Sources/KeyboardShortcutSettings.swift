@@ -9,7 +9,7 @@ import SwiftUI
 enum KeyboardShortcutSettings {
     static let didChangeNotification = Notification.Name("cmux.keyboardShortcutSettingsDidChange")
     static let actionUserInfoKey = "action"
-    static let settingsFileDisplayPath = "~/.config/cmux/cmux.json"
+    static let settingsFileDisplayPath = "~/.config/ghostty-dock/cmux.json"
     static var settingsFileStore: KeyboardShortcutSettingsFileStore = .appLive {
         didSet { notifySettingsFileDidChange() }
     }
@@ -145,6 +145,10 @@ enum KeyboardShortcutSettings {
         case decreaseWorkspaceTerminalFontSize
         case resetWorkspaceTerminalFontSize
         case equalizeSplits
+        /// True 2×2 terminal grid. Unbound by default (D-3): plain ⌃⌘D is reserved
+        /// by macOS for "Look Up & data detectors" and never reaches the app's key
+        /// monitor; the rest of the Cmd+D family is already taken. Settings-editable.
+        case splitQuad
         case splitBrowserRight
         case splitBrowserDown
 
@@ -308,6 +312,7 @@ enum KeyboardShortcutSettings {
                     defaultValue: "Reset Font Size for Workspace Terminals"
                 )
             case .equalizeSplits: return String(localized: "shortcut.equalizeSplits.label", defaultValue: "Equalize Splits")
+            case .splitQuad: return String(localized: "shortcut.splitQuad.label", defaultValue: "Split Quad")
             case .splitBrowserRight: return String(localized: "shortcut.splitBrowserRight.label", defaultValue: "Split Browser Right")
             case .splitBrowserDown: return String(localized: "shortcut.splitBrowserDown.label", defaultValue: "Split Browser Down")
             case .toggleCanvasLayout: return String(localized: "shortcut.toggleCanvasLayout.label", defaultValue: "Toggle Canvas Layout")
@@ -514,6 +519,10 @@ enum KeyboardShortcutSettings {
             case .resetWorkspaceTerminalFontSize:
                 return StoredShortcut(key: "0", command: true, shift: false, option: false, control: true)
             case .equalizeSplits: return StoredShortcut(key: "=", command: true, shift: true, option: false, control: true)
+            case .splitQuad:
+                // D-3: ship unbound. ⌃⌘D is swallowed by macOS Look Up; the rest of
+                // the Cmd+D family is already assigned. Users rebind in Settings.
+                return .unbound
             case .splitBrowserRight:
                 return StoredShortcut(key: "d", command: true, shift: false, option: true, control: false)
             case .splitBrowserDown:

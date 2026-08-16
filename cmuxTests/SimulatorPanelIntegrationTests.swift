@@ -65,7 +65,7 @@ struct SimulatorPanelIntegrationTests {
         let workspace = Workspace()
         workspace.setLayoutMode(.canvas)
 
-        let panelID = try #require(workspace.openNewCanvasPane(type: .simulator, focus: true))
+        let panelID = try #require(workspace.openNewCanvasSimulatorPane(focus: true))
         let panel = try #require(workspace.panels[panelID] as? SimulatorPanel)
         defer { panel.close() }
 

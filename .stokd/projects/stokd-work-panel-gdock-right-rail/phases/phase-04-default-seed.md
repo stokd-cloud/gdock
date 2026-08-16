@@ -8,6 +8,8 @@
 
 ### 4.1: Seed Work into the right-rail tool tab strip
 
+**Dependencies:** 1.2, 3.2
+
 **Implementation Details**
 
 - **Landing:** fork-only.

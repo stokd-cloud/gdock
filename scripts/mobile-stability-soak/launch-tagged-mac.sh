@@ -3,7 +3,15 @@ set -euo pipefail
 
 tag="${CMUX_TAG:-swmob}"
 repo="${CMUX_REPO:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
-app="${CMUX_SWAPP:-$HOME/Library/Developer/Xcode/DerivedData/cmux-${tag}/Build/Products/Debug/cmux DEV ${tag}.app}"
+products="$HOME/Library/Developer/Xcode/DerivedData/cmux-${tag}/Build/Products"
+app="${CMUX_SWAPP:-}"
+if [[ -z "$app" ]]; then
+  # reload.sh builds Release by default and Debug under --debug.
+  app="${products}/Release/cmux DEV ${tag}.app"
+  if [[ ! -x "$app/Contents/MacOS/cmux DEV" ]] && [[ -x "${products}/Debug/cmux DEV ${tag}.app/Contents/MacOS/cmux DEV" ]]; then
+    app="${products}/Debug/cmux DEV ${tag}.app"
+  fi
+fi
 port="${CMUX_PORT:-9300}"
 port_range="${CMUX_PORT_RANGE:-10}"
 port_end="${CMUX_PORT_END:-$((port + port_range - 1))}"

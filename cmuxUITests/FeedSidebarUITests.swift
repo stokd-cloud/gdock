@@ -357,13 +357,15 @@ final class FeedSidebarUITests: XCTestCase {
     }
 
     private func revealDockMode(in app: XCUIApplication) -> Bool {
+        // D-12: RightSidebarModeButton.dock is unavailable under dock rails; prefer
+        // keyboard / reveal paths first, then mode-button only when present.
         app.activate()
         if waitForFeedSidebarReveal(timeout: 5), waitForDockModeVisible(in: app, timeout: 8) {
             return true
         }
 
         let dockButton = app.buttons["RightSidebarModeButton.dock"].firstMatch
-        if waitForHittable(dockButton, timeout: 5) {
+        if dockButton.exists, waitForHittable(dockButton, timeout: 5) {
             dockButton.click()
             return waitForDockModeVisible(in: app, timeout: 8)
         }
@@ -398,17 +400,19 @@ final class FeedSidebarUITests: XCTestCase {
     }
 
     private func waitForDockModeVisible(in app: XCUIApplication, timeout: TimeInterval) -> Bool {
+        // Under dock rails (D-12) the mode button id is lost; DockPanel is the authority.
         let dockButton = app.buttons["RightSidebarModeButton.dock"].firstMatch
         let dockPanel = app.descendants(matching: .any)["DockPanel"].firstMatch
         return pollUntil(timeout: timeout, interval: 0.2) {
-            dockButton.exists && dockButton.isHittable && dockPanel.exists
+            dockPanel.exists && (!dockButton.exists || dockButton.isHittable)
         }
     }
 
     private func waitForRightSidebarHidden(in app: XCUIApplication, timeout: TimeInterval) -> Bool {
         let dockButton = app.buttons["RightSidebarModeButton.dock"].firstMatch
+        let dockPanel = app.descendants(matching: .any)["DockPanel"].firstMatch
         return pollUntil(timeout: timeout, interval: 0.2) {
-            !dockButton.exists || !dockButton.isHittable
+            (!dockButton.exists || !dockButton.isHittable) && !dockPanel.exists
         }
     }
 

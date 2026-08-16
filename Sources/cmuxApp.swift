@@ -1072,6 +1072,10 @@ struct cmuxApp: App {
                 performSplitFromMenu(direction: .down)
             }
 
+            splitCommandButton(title: String(localized: "menu.view.splitQuad", defaultValue: "Split Quad"), shortcut: menuShortcut(for: .splitQuad)) {
+                performQuadSplitFromMenu()
+            }
+
             splitCommandButton(title: String(localized: "menu.view.splitBrowserRight", defaultValue: "Split Browser Right"), shortcut: menuShortcut(for: .splitBrowserRight)) {
                 performBrowserSplitFromMenu(direction: .right)
             }
@@ -1236,6 +1240,15 @@ struct cmuxApp: App {
             return
         }
         tabManager.createSplit(direction: direction)
+    }
+
+    private func performQuadSplitFromMenu() {
+        // Shared production path with palette / shortcut (VAL-QUAD-002).
+        let preferredWindow = NSApp.keyWindow ?? NSApp.mainWindow
+        _ = QuadSplitAdapters.performSharedFocusPath(
+            preferredWindow: preferredWindow,
+            tabManager: tabManager
+        )
     }
 
     private func performBrowserSplitFromMenu(direction: SplitDirection) {
@@ -5305,7 +5318,7 @@ enum AppIconLaunchState {
 enum AppIconSettings {
     static let modeKey = "appIconMode"
     static let defaultMode: AppIconMode = .automatic
-    private static let dockTileIconDidChangeNotification = Notification.Name("com.cmuxterm.appIconDidChange")
+    private static let dockTileIconDidChangeNotification = Notification.Name("cloud.stokd.ghostty-dockIconDidChange")
     private static var liveEnvironmentProvider: () -> Environment = { .live() }
 
     private static func isRunningUnderXCTest(_ env: [String: String] = ProcessInfo.processInfo.environment) -> Bool {
@@ -5542,8 +5555,8 @@ enum BuildFlavor: String, Sendable {
         if SocketControlSettings.isDebugLikeBundleIdentifier(normalizedBundleIdentifier) {
             return .dev
         }
-        if normalizedBundleIdentifier == "com.cmuxterm.app.nightly"
-            || normalizedBundleIdentifier?.hasPrefix("com.cmuxterm.app.nightly.") == true {
+        if normalizedBundleIdentifier == "cloud.stokd.ghostty-dock.nightly"
+            || normalizedBundleIdentifier?.hasPrefix("cloud.stokd.ghostty-dock.nightly.") == true {
             return .nightly
         }
         if bundleNames.contains(where: containsNightlyToken) {

@@ -8,6 +8,8 @@
 
 ### 2.1: stokd CLI runner
 
+**Dependencies:** 1.1
+
 **Implementation Details**
 
 - **Landing:** fork-only.

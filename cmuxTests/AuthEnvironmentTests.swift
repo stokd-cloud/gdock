@@ -89,7 +89,7 @@ struct AuthEnvironmentTests {
         #expect(
             AuthEnvironment.callbackScheme(
                 environment: ["CMUX_TAG": "Safari Auth!"],
-                bundleIdentifier: "com.cmuxterm.app.debug.safari-auth",
+                bundleIdentifier: "cloud.stokd.ghostty-dock.debug.safari-auth",
                 isDebugBuild: true
             ) == "cmux-dev-safari-auth"
         )
@@ -100,14 +100,14 @@ struct AuthEnvironmentTests {
         #expect(
             AuthEnvironment.callbackScheme(
                 environment: ["CMUX_TAG": "safari-auth"],
-                bundleIdentifier: "com.cmuxterm.app",
+                bundleIdentifier: "cloud.stokd.ghostty-dock",
                 isDebugBuild: false
             ) == "cmux"
         )
         #expect(
             AuthEnvironment.callbackScheme(
                 environment: ["CMUX_TAG": "safari-auth"],
-                bundleIdentifier: "com.cmuxterm.app.nightly",
+                bundleIdentifier: "cloud.stokd.ghostty-dock.nightly",
                 isDebugBuild: false
             ) == "cmux-nightly"
         )
@@ -126,7 +126,7 @@ struct AuthEnvironmentTests {
                 "CMUX_AUTH_WWW_ORIGIN": "https://cmux.com",
                 "CMUX_AUTH_CALLBACK_SCHEME": "cmux",
             ],
-            bundleIdentifier: "com.cmuxterm.app"
+            bundleIdentifier: "cloud.stokd.ghostty-dock"
         )
 
         assertNativeSignInURL(url)
@@ -140,7 +140,7 @@ struct AuthEnvironmentTests {
                 "CMUX_TAG": "pair-auth",
                 "CMUX_PORT": "4123",
             ],
-            bundleIdentifier: "com.cmuxterm.app.debug.pair-auth"
+            bundleIdentifier: "cloud.stokd.ghostty-dock.debug.pair-auth"
         )
 
         #expect(url.scheme == "http")
@@ -177,7 +177,7 @@ struct AuthEnvironmentTests {
                 "CMUX_AUTH_WWW_ORIGIN": "https://cmux.com",
                 "CMUX_AUTH_CALLBACK_SCHEME": "cmux",
             ],
-            bundleIdentifier: "com.cmuxterm.app"
+            bundleIdentifier: "cloud.stokd.ghostty-dock"
         )
         let russianURL = AuthEnvironment.signInURL(
             callbackState: "state-1",
@@ -188,7 +188,7 @@ struct AuthEnvironmentTests {
                 "CMUX_AUTH_WWW_ORIGIN": "https://cmux.com",
                 "CMUX_AUTH_CALLBACK_SCHEME": "cmux",
             ],
-            bundleIdentifier: "com.cmuxterm.app"
+            bundleIdentifier: "cloud.stokd.ghostty-dock"
         )
 
         #expect(russianURL == englishURL)

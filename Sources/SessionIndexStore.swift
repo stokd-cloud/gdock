@@ -3,6 +3,7 @@ import CmuxGit
 import AppKit
 import Bonsplit
 import CMUXAgentLaunch
+import CmuxGit
 import Combine
 import Darwin
 import Foundation

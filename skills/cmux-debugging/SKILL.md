@@ -13,7 +13,8 @@ Put debug event instrumentation (keys, mouse, focus, splits, tabs) in the unifie
 tail -f "$(cat /tmp/cmux-last-debug-log-path 2>/dev/null || echo /tmp/cmux-debug.log)"
 ```
 
-- Untagged Debug app logs to `/tmp/cmux-debug.log`; tagged (`./scripts/reload.sh --tag <tag>`) to `/tmp/cmux-debug-<tag>.log`.
+- Untagged Debug app logs to `/tmp/cmux-debug.log`; tagged (`./scripts/reload.sh --tag <tag> --debug`) to `/tmp/cmux-debug-<tag>.log`.
+- `reload.sh` defaults to the Release configuration, where `CMUXDebugLog` is compiled out entirely; pass `--debug` whenever you need the event log.
 - `reload.sh` writes the current log path to `/tmp/cmux-last-debug-log-path` and the selected dev CLI path to `/tmp/cmux-last-cli-path`, and points `/tmp/cmux-cli` and `$HOME/.local/bin/cmux-dev` at that CLI.
 - Implementation: `Packages/macOS/CMUXDebugLog/Sources/CMUXDebugLog/DebugEventLog.swift`. App shim: `Sources/App/DebugLogging.swift`. Both are `#if DEBUG`, so every call site must be wrapped in `#if DEBUG` / `#endif`.
 - `cmuxDebugLog("message")` timestamps and appends in real time. A 500-entry ring buffer backs it; `CMUXDebugLog.DebugEventLog.shared.dump()` writes the full buffer to file.

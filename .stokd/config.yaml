@@ -1,5 +1,7 @@
-git:
-  land:
-    target: upstream-ag-brand-quad
+providers:
+- grok
+git: 
   worktree:
-    baseBranch: upstream-ag-brand-quad
+    baseBranch: upstream-main
+  land:
+    target: rc1

@@ -131,10 +131,19 @@ class CmuxPerfRunner:
         return pathlib.Path(tempfile.mkdtemp(prefix=f"cmux-perf-{self.tag_slug}-"))
 
     def default_app_path(self) -> pathlib.Path:
-        return pathlib.Path.home() / (
-            f"Library/Developer/Xcode/DerivedData/cmux-{self.tag_slug}/"
-            f"Build/Products/Debug/cmux DEV {self.tag_slug}.app"
+        # reload.sh builds Release by default and Debug under --debug; prefer the
+        # most recently built bundle, falling back to the Release path.
+        products = pathlib.Path.home() / (
+            f"Library/Developer/Xcode/DerivedData/cmux-{self.tag_slug}/Build/Products"
         )
+        candidates = [
+            products / configuration / f"cmux DEV {self.tag_slug}.app"
+            for configuration in ("Release", "Debug")
+        ]
+        existing = [path for path in candidates if path.is_dir()]
+        if not existing:
+            return candidates[0]
+        return max(existing, key=lambda path: path.stat().st_mtime)
 
     def check_paths(self) -> None:
         if not self.binary_path.exists():

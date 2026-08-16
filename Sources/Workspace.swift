@@ -485,10 +485,13 @@ extension Workspace {
         let browserSnapshot: SessionBrowserPanelSnapshot?
         let markdownSnapshot: SessionMarkdownPanelSnapshot?
         let filePreviewSnapshot: SessionFilePreviewPanelSnapshot?
-        let rightSidebarToolSnapshot: SessionRightSidebarToolPanelSnapshot?; var customSidebarSnapshot: SessionCustomSidebarPanelSnapshot? = nil
+        let rightSidebarToolSnapshot: SessionRightSidebarToolPanelSnapshot?
+        var leftWorkspaceSelectorSnapshot: SessionLeftWorkspaceSelectorPanelSnapshot? = nil
+        var customSidebarSnapshot: SessionCustomSidebarPanelSnapshot? = nil
         var simulatorSnapshot: SessionSimulatorPanelSnapshot? = nil
         let agentSessionSnapshot: SessionAgentSessionPanelSnapshot?
-        let projectSnapshot: SessionProjectPanelSnapshot?; var workspaceTodoSnapshot: SessionWorkspaceTodoPanelSnapshot? = nil
+        let projectSnapshot: SessionProjectPanelSnapshot?
+        var workspaceTodoSnapshot: SessionWorkspaceTodoPanelSnapshot? = nil
         var notificationsPanelSnapshot: SessionNotificationsPanelSnapshot? = nil
         switch panel.panelType {
         case .terminal:
@@ -701,6 +704,15 @@ extension Workspace {
             rightSidebarToolSnapshot = SessionRightSidebarToolPanelSnapshot(mode: toolPanel.mode)
             agentSessionSnapshot = nil
             projectSnapshot = nil
+        case .leftWorkspaceSelector:
+            terminalSnapshot = nil
+            browserSnapshot = nil
+            markdownSnapshot = nil
+            filePreviewSnapshot = nil
+            rightSidebarToolSnapshot = nil
+            agentSessionSnapshot = nil
+            projectSnapshot = nil
+            leftWorkspaceSelectorSnapshot = SessionLeftWorkspaceSelectorPanelSnapshot()
         case .customSidebar:
             guard let snapshot = customSidebarSessionSnapshot(for: panel) else { return nil }
             terminalSnapshot = nil; browserSnapshot = nil; markdownSnapshot = nil; filePreviewSnapshot = nil; rightSidebarToolSnapshot = nil
@@ -754,7 +766,7 @@ extension Workspace {
         case .accountSignIn:
             return nil
         }
-        return SessionPanelSnapshot(
+        let snapshot = SessionPanelSnapshot(
             id: panelId,
             stableSurfaceId: panel.stableSurfaceId,
             type: panel.panelType,
@@ -777,6 +789,7 @@ extension Workspace {
             markdown: markdownSnapshot,
             filePreview: filePreviewSnapshot,
             rightSidebarTool: rightSidebarToolSnapshot,
+            leftWorkspaceSelector: leftWorkspaceSelectorSnapshot,
             customSidebar: customSidebarSnapshot,
             simulator: simulatorSnapshot,
             agentSession: agentSessionSnapshot,
@@ -784,6 +797,17 @@ extension Workspace {
             workspaceTodo: workspaceTodoSnapshot,
             notificationsPanel: notificationsPanelSnapshot
         )
+        // New primary encode requires a DockableSnapshot payload. Encode failures
+        // log+skip this pane rather than aborting the whole session snapshot.
+        do {
+            _ = try snapshot.makeDockableSnapshot()
+        } catch {
+            #if DEBUG
+            print("sessionPanelSnapshot: encodeDockPayload failed for \(panelId) type=\(panel.panelType.rawValue): \(error)")
+            #endif
+            return nil
+        }
+        return snapshot
     }
     private func closedPanelHistoryEntry(panelId: UUID, tabId: TabID, pane: PaneID) -> ClosedPanelHistoryEntry? {
         guard !suppressClosedPanelHistory else { return nil }
@@ -1787,6 +1811,12 @@ extension Workspace {
             }
             applySessionPanelMetadata(snapshot, toPanelId: toolPanel.id)
             return toolPanel.id
+        case .leftWorkspaceSelector:
+            guard let selectorPanel = newLeftWorkspaceSelectorSurface(inPane: paneId, focus: false) else {
+                return nil
+            }
+            applySessionPanelMetadata(snapshot, toPanelId: selectorPanel.id)
+            return selectorPanel.id
         case .customSidebar: return restoreCustomSidebarPanel(from: snapshot, inPane: paneId)
         case .simulator: return restoreSimulatorPanel(from: snapshot, inPane: paneId)
         case .agentSession:
@@ -9192,17 +9222,33 @@ final class Workspace: Identifiable, ObservableObject, FilePreviewTabMetadataHos
         focus: Bool = true
     ) -> RightSidebarToolPanel? {
         guard mode.canOpenAsPane else { return nil }
-        for (existingId, panel) in panels {
+        if let existing = existingRightSidebarToolPanel(mode: mode) {
+            if focus {
+                focusPanel(existing.id)
+            }
+            return existing
+        }
+        return newRightSidebarToolSurface(inPane: paneId, mode: mode, focus: focus)
+    }
+
+    func existingRightSidebarToolPanel(mode: RightSidebarMode) -> RightSidebarToolPanel? {
+        guard mode.canOpenAsPane else { return nil }
+        for panel in panels.values {
             guard let toolPanel = panel as? RightSidebarToolPanel,
                   toolPanel.mode == mode else {
                 continue
             }
-            if focus {
-                focusPanel(existingId)
-            }
             return toolPanel
         }
-        return newRightSidebarToolSurface(inPane: paneId, mode: mode, focus: focus)
+        return nil
+    }
+
+    var focusedPanelIsRightSidebarTool: Bool {
+        guard let focusedPanelId,
+              panels[focusedPanelId] is RightSidebarToolPanel else {
+            return false
+        }
+        return true
     }
 
     @discardableResult
@@ -13355,8 +13401,9 @@ extension Workspace: BonsplitDelegate {
             "pane=\(pane.id.uuidString.prefix(5)) identifier=\(identifier)"
         )
 #endif
-        // Split Quad uses bonsplit `.custom("cmux.splitQuad")`. Built-ins with a
-        // non-nil bonsplitAction are not registered in surfaceTabBarCommandButtons.
+        // Split Quad uses bonsplit `.custom("cmux.splitQuad")` (D-5). Built-ins with a
+        // non-nil bonsplitAction are not registered in surfaceTabBarCommandButtons, so
+        // route the shared action here before the executable-button lookup.
         if identifier == QuadSplitAction.customActionIdentifier
             || identifier == "splitQuad"
             || CmuxSurfaceTabBarBuiltInAction(configID: identifier) == .splitQuad {

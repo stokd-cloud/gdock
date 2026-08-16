@@ -315,6 +315,148 @@ extension TerminalController: ControlDebugContext {
         return CommandPaletteSettingsStore(defaults: .standard).renameSelectsAllOnFocus
     }
 
+    // MARK: - debug.command_palette.query_run
+
+    /// Sets the real palette query, returns production registry results
+    /// (command ids), and optionally executes a hit through its registered
+    /// handler. Does not call `SidebarDockActionInvoker` / store APIs directly.
+    ///
+    /// Schema:
+    /// ```
+    /// debug.command_palette.query_run
+    /// params: {
+    ///   window_id: uuid,
+    ///   query: string,              // matching query (commands prefix optional)
+    ///   command_id?: string,        // execute when present and in results
+    ///   limit?: int                 // 1...100, default 48
+    /// }
+    /// result: {
+    ///   window_id, query, matching_query, visible,
+    ///   results:[{command_id,title,score}],
+    ///   executed_command_id?, handled?,
+    ///   uses: [sidebarDockPaletteRegistryResults, sidebarDockPaletteRegisteredHandler]
+    /// }
+    /// ```
+    func controlDebugCommandPaletteQueryRun(params: [String: JSONValue]) -> ControlCallResult {
+        guard let windowID = uuidValue(params["window_id"]) else {
+            return .err(code: "invalid_params", message: "Missing or invalid window_id", data: nil)
+        }
+        guard let window = AppDelegate.shared?.mainWindow(for: windowID) else {
+            return .err(
+                code: "not_found",
+                message: "Window not found",
+                data: .object([
+                    "window_id": .string(windowID.uuidString),
+                ])
+            )
+        }
+        let rawQuery: String = {
+            if case let .string(value) = params["query"] { return value }
+            return ""
+        }()
+        let limit: Int = {
+            if case let .int(value) = params["limit"] {
+                return max(1, min(100, Int(value)))
+            }
+            if case let .double(value) = params["limit"] {
+                return max(1, min(100, Int(value)))
+            }
+            return 48
+        }()
+        let executeCommandId: String? = {
+            if case let .string(value) = params["command_id"], !value.isEmpty {
+                return value
+            }
+            return nil
+        }()
+
+        let matchingQuery = ContentView.sidebarDockPaletteMatchingQuery(rawQuery)
+        // Drive the real ContentView query so debug.command_palette.results
+        // and the overlay reflect the same production search state.
+        let commandsQuery = matchingQuery.isEmpty ? ">" : ">" + matchingQuery
+        NotificationCenter.default.post(
+            name: .commandPaletteDebugSetQueryRequested,
+            object: window,
+            userInfo: ["query": commandsQuery]
+        )
+        // Allow SwiftUI onReceive to apply the query and refresh the snapshot.
+        for _ in 0..<8 {
+            RunLoop.current.run(mode: .default, before: Date(timeIntervalSinceNow: 0.01))
+        }
+
+        let target = SidebarDockActionInvoker.resolveTarget(
+            windowId: windowID,
+            preferredWindow: window
+        )
+        let flagEnabled = RightSidebarBetaFeatureSettings.isSidebarDockEnabled()
+        let registryResults = ContentView.sidebarDockPaletteRegistryResults(
+            query: matchingQuery,
+            flagEnabled: flagEnabled,
+            target: target,
+            limit: limit
+        )
+
+        var handled: Bool?
+        var executed: String?
+        if let executeCommandId {
+            guard registryResults.contains(where: { $0.commandId == executeCommandId }) else {
+                return .err(
+                    code: "not_found",
+                    message: "command_id not present in production registry results for query",
+                    data: .object([
+                        "command_id": .string(executeCommandId),
+                        "query": .string(matchingQuery),
+                        "result_ids": .array(registryResults.map { .string($0.commandId) }),
+                    ])
+                )
+            }
+            // Execute only through the registered-handler factory — never
+            // SidebarDockActionInvoker/store directly from this dogfood method.
+            let run = ContentView.sidebarDockPaletteRegisteredHandler(
+                commandId: executeCommandId,
+                windowId: windowID,
+                preferredWindow: window
+            )
+            handled = run()
+            executed = executeCommandId
+        }
+
+        let visible = controlDebugCommandPaletteVisible(windowID: windowID)
+        let snapshot = controlDebugCommandPaletteSnapshot(windowID: windowID)
+        let rows: [JSONValue] = registryResults.map { row in
+            .object([
+                "command_id": .string(row.commandId),
+                "title": .string(row.title),
+                "score": .int(Int64(row.score)),
+            ])
+        }
+        var payload: [String: JSONValue] = [
+            "window_id": .string(windowID.uuidString),
+            "query": .string(matchingQuery),
+            "matching_query": .string(matchingQuery),
+            "palette_query": .string(snapshot.query),
+            "visible": .bool(visible),
+            "results": .array(rows),
+            "result_count": .int(Int64(registryResults.count)),
+            "uses": .array([
+                .string("sidebarDockPaletteRegistryResults"),
+                .string("sidebarDockPaletteRegisteredHandler"),
+            ]),
+        ]
+        if let executed {
+            payload["executed_command_id"] = .string(executed)
+        }
+        if let handled {
+            payload["handled"] = .bool(handled)
+        }
+        return .ok(.object(payload))
+    }
+
+    private func uuidValue(_ value: JSONValue?) -> UUID? {
+        guard case let .string(raw) = value else { return nil }
+        return UUID(uuidString: raw)
+    }
+
     // MARK: - debug.browser.*
 
     func controlDebugFocusedBrowserAddressBarSurfaceID() -> UUID? {

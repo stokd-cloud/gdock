@@ -189,6 +189,8 @@ jobs:
 
       - name: Validate selected iOS test execution guard
         run: python3 tests/test_ios_selected_test_execution.py
+      - name: Validate reload.sh default build configuration
+        run: ./tests/test_reload_configuration_default.sh
 
       - name: Validate cmuxTests sharding
         run: |
@@ -277,6 +279,9 @@ jobs:
           python3 tests/test_package_resolved_policy_remote_inputs.py
           python3 tests/test_check_package_resolved_policy.py
           python3 scripts/check-package-resolved-policy.py
+
+      - name: Ghostty Dock brand guard
+        run: python3 scripts/check-brand.py
 
       - name: Validate bash shell integration job control
         run: python3 tests/test_bash_integration_no_done_notifications.py

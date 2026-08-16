@@ -622,6 +622,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         var debugWorkspaceTerminalFontSizeEnqueueResultOverride: Bool?
 #endif
 
+        /// Per-window left/right rail stores (flag-on dock spaces).
+        var sidebarDockRegistry: SidebarDockStoreRegistry?
+
         init(
             windowId: UUID,
             tabManager: TabManager,
@@ -1387,6 +1390,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Thin-skin rebrand: copy legacy cmux config/defaults into Ghostty Dock
+        // locations without destroying the upstream paths (see GhosttyDockConfigMigration).
+        GhosttyDockConfigMigration.migrateAllIfNeeded()
+
         let env = ProcessInfo.processInfo.environment
         let telemetryEnabled = TelemetrySettings.enabledForCurrentLaunch
         let sentryStartupPolicy = MacSentryStartupPolicy(
@@ -1401,6 +1408,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 "telemetry": telemetryEnabled ? "1" : "0"
             ]
         )
+        // Register Dockable kind factories before any canvas open / session restore path.
+        DockableBootstrap.registerAllIfNeeded()
         AppIconLaunchState.markDidFinishLaunching()
         AppearanceSettingsUserDefaultsObserver.shared.startObserving()
         systemAppearanceObserver.startObserving()
@@ -7059,6 +7068,65 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             guard mode.isAvailable() else {
                 return .failure(String(localized: "rightSidebar.remote.error.modeUnavailable", defaultValue: "ERROR: Right sidebar mode '\(mode.rawValue)' is not available"))
             }
+            // Single window-scoped selection seam (VAL-RAIL-009).
+            let source: RightSidebarSelectionSource = focus ? .remoteSet : .remoteSetNoFocus
+            let request = RightSidebarSelectionRequest(
+                mode: mode,
+                focus: focus,
+                source: source,
+                windowId: context?.windowId ?? target.windowId
+            )
+            if RightSidebarBetaFeatureSettings.isSidebarDockEnabled() {
+                let route = routeRightSidebarSelection(request)
+                if route == .rejected {
+                    // Fall back to legacy host paths when registry is not yet wired.
+                    if mode.canOpenAsPane, focus {
+                        guard showRightSidebarToolInActiveMainWindow(
+                            mode: mode,
+                            preferredWindow: preferredWindow
+                        ) else {
+                            return .failure(String(localized: "rightSidebar.remote.error.focusFailed", defaultValue: "ERROR: Failed to focus right sidebar"))
+                        }
+                        return .ok
+                    }
+                    if focus {
+                        guard focusRightSidebarInActiveMainWindow(mode: mode, focusFirstItem: true, preferredWindow: preferredWindow) else {
+                            return .failure(String(localized: "rightSidebar.remote.error.focusFailed", defaultValue: "ERROR: Failed to focus right sidebar"))
+                        }
+                        return .ok
+                    }
+                    state.setVisible(true)
+                    state.mode = mode
+                    context?.keyboardFocusCoordinator.rememberRightSidebarMode(mode)
+                    return .ok
+                }
+                context?.keyboardFocusCoordinator.rememberRightSidebarMode(mode)
+                return .ok
+            }
+            if mode.canOpenAsPane {
+                // Files / Find / Vault: shared show path — pane when host hidden,
+                // in-rail mode switch when fixed host is already open.
+                if focus {
+                    guard showRightSidebarToolInActiveMainWindow(
+                        mode: mode,
+                        preferredWindow: preferredWindow
+                    ) else {
+                        return .failure(String(localized: "rightSidebar.remote.error.focusFailed", defaultValue: "ERROR: Failed to focus right sidebar"))
+                    }
+                } else if state.isVisible {
+                    state.mode = mode
+                    context?.keyboardFocusCoordinator.rememberRightSidebarMode(mode)
+                } else if let workspace = context?.tabManager.selectedWorkspace {
+                    // Host hidden: ensure singleton pane exists without forcing rail open.
+                    _ = workspace.showOrFocusRightSidebarToolPane(mode: mode, focus: false)
+                    state.mode = mode
+                    context?.keyboardFocusCoordinator.rememberRightSidebarMode(mode)
+                } else {
+                    state.mode = mode
+                    context?.keyboardFocusCoordinator.rememberRightSidebarMode(mode)
+                }
+                return .ok
+            }
             if focus {
                 guard focusRightSidebarInActiveMainWindow(mode: mode, focusFirstItem: true, preferredWindow: preferredWindow) else {
                     return .failure(String(localized: "rightSidebar.remote.error.focusFailed", defaultValue: "ERROR: Failed to focus right sidebar"))
@@ -7156,6 +7224,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     func shouldRouteRightSidebarModeShortcut(in window: NSWindow?) -> Bool {
         guard let window else { return false }
         let sidebarIntentActive = keyboardFocusCoordinator(for: window)?.activeRightSidebarMode != nil
+        // Tool panes are the primary home for Files/Find/Vault; allow mode
+        // shortcuts while a right-sidebar tool pane is focused.
+        if preferredRegisteredMainWindowContext(preferredWindow: window)?
+            .tabManager.selectedWorkspace?
+            .focusedPanelIsRightSidebarTool == true {
+            return true
+        }
         guard let responder = window.firstResponder else { return sidebarIntentActive }
         if isRightSidebarFocusResponder(responder, in: window) { return true }
         if sidebarIntentActive, responder is NSWindow { return true }
@@ -7282,6 +7357,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             "fr=\(beforeResponder)"
         )
 #endif
+        // Dock rail: establish selected-tab authority before keyboard focus so
+        // mode focus cannot land as a scalar-only write (VAL-RAIL-007/009, D-32).
+        // `focus: false` here avoids re-entering this method via the router.
+        if RightSidebarBetaFeatureSettings.isSidebarDockEnabled() {
+            let modeForRail = requestedMode
+                ?? context.fileExplorerState?.mode
+                ?? fileExplorerState?.mode
+            if let modeForRail, SidebarDockPlacementMatrix.allows(mode: modeForRail) {
+                _ = ensureRightSidebarRailSelection(
+                    mode: modeForRail,
+                    focus: false,
+                    source: .railPaneFocus,
+                    windowId: context.windowId
+                )
+            }
+        }
         if let window {
             mainWindowVisibilityController.focusForInWindowCommand(window, reason: .rightSidebarFocus)
         }
@@ -7298,6 +7389,169 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         )
 #endif
         return result
+    }
+
+    /// Ensure dock-on rail tool selection updates the window-scoped store tab
+    /// (and callback mirror) without competing scalar writes.
+    @discardableResult
+    func ensureRightSidebarRailSelection(
+        mode: RightSidebarMode,
+        focus: Bool,
+        source: RightSidebarSelectionSource,
+        windowId: UUID? = nil
+    ) -> RightSidebarSelectionRoute {
+        guard RightSidebarBetaFeatureSettings.isSidebarDockEnabled() else { return .rejected }
+        guard SidebarDockPlacementMatrix.allows(mode: mode) else { return .rejected }
+        return routeRightSidebarSelection(
+            RightSidebarSelectionRequest(
+                mode: mode,
+                focus: focus,
+                source: source,
+                windowId: windowId
+            )
+        )
+    }
+
+    /// Show left workspace selector: openOrFocus singleton pane when the fixed
+    /// left host is closed/hidden; if the fixed host is already open, leave it
+    /// as the in-rail selector and only ensure visibility/focus of the host.
+    @discardableResult
+    func showLeftWorkspaceSelectorInActiveMainWindow(
+        preferredWindow: NSWindow? = nil
+    ) -> Bool {
+        let context = preferredRegisteredMainWindowContext(preferredWindow: preferredWindow)
+        let state = context?.sidebarState ?? sidebarState
+        if state?.isVisible == true {
+            // Fixed host already open: keep using the bolted column.
+            if let window = context.flatMap({ $0.window ?? windowForMainWindowId($0.windowId) }) {
+                mainWindowVisibilityController.focusForInWindowCommand(window, reason: .rightSidebarToggle)
+                setActiveMainWindow(window)
+            }
+            return true
+        }
+        return openOrFocusLeftWorkspaceSelectorPaneInActiveMainWindow(
+            preferredWindow: preferredWindow,
+            hideFixedHost: true
+        )
+    }
+
+    /// Shared openOrFocus path for the real left workspace selector pane.
+    /// Creates or focuses the singleton and optionally keeps the fixed left host hidden.
+    @discardableResult
+    func openOrFocusLeftWorkspaceSelectorPaneInActiveMainWindow(
+        preferredWindow: NSWindow? = nil,
+        hideFixedHost: Bool = true
+    ) -> Bool {
+        let context = preferredRegisteredMainWindowContext(preferredWindow: preferredWindow)
+        guard let context else { return false }
+
+        let window = context.window ?? windowForMainWindowId(context.windowId)
+        if let window {
+            mainWindowVisibilityController.focusForInWindowCommand(window, reason: .rightSidebarToggle)
+            setActiveMainWindow(window)
+        }
+
+        guard let workspace = context.tabManager.selectedWorkspace else { return false }
+        workspace.clearSplitZoom()
+        guard let panel = workspace.showOrFocusLeftWorkspaceSelectorPane(focus: true) else {
+            return false
+        }
+
+        let state = context.sidebarState ?? sidebarState
+        if hideFixedHost, let state, state.isVisible {
+            state.isVisible = false
+        }
+
+        workspace.focusPanel(panel.id)
+        panel.focus()
+        return true
+    }
+
+    /// Show Files / Find / Vault: openOrFocus singleton pane when the fixed host
+    /// is closed/hidden; if the fixed host is already open, keep focusing it for
+    /// in-rail mode switches. Shared show entrypoints call this.
+    @discardableResult
+    func showRightSidebarToolInActiveMainWindow(
+        mode: RightSidebarMode,
+        preferredWindow: NSWindow? = nil
+    ) -> Bool {
+        guard mode.canOpenAsPane else {
+            return focusRightSidebarInActiveMainWindow(
+                mode: mode,
+                focusFirstItem: true,
+                preferredWindow: preferredWindow
+            )
+        }
+        let context = preferredRegisteredMainWindowContext(preferredWindow: preferredWindow)
+        let state = context?.fileExplorerState ?? fileExplorerState
+        // Fixed host already open: mode switch stays in-rail (mode bar / focus).
+        // Host closed (canvas default / user hidden): openOrFocus pane path.
+        if state?.isVisible == true {
+            // Shortcut / show path: selection authority first when dock rails are on.
+            if RightSidebarBetaFeatureSettings.isSidebarDockEnabled(),
+               SidebarDockPlacementMatrix.allows(mode: mode) {
+                _ = ensureRightSidebarRailSelection(
+                    mode: mode,
+                    focus: false,
+                    source: .shortcutWindow,
+                    windowId: context?.windowId
+                )
+            }
+            return focusRightSidebarInActiveMainWindow(
+                mode: mode,
+                focusFirstItem: true,
+                preferredWindow: preferredWindow
+            )
+        }
+        return openOrFocusRightSidebarToolPaneInActiveMainWindow(
+            mode: mode,
+            preferredWindow: preferredWindow,
+            hideFixedHost: true
+        )
+    }
+
+    /// Shared show/open path for Files, Find, and Vault panes. Focuses an
+    /// existing singleton or creates one; optionally hides the fixed right host
+    /// so the rail is not required to use the tool.
+    @discardableResult
+    func openOrFocusRightSidebarToolPaneInActiveMainWindow(
+        mode: RightSidebarMode,
+        preferredWindow: NSWindow? = nil,
+        hideFixedHost: Bool = true
+    ) -> Bool {
+        guard mode.canOpenAsPane else { return false }
+        let context = preferredRegisteredMainWindowContext(preferredWindow: preferredWindow)
+        guard let context else { return false }
+
+        let window = context.window ?? windowForMainWindowId(context.windowId)
+        if let window {
+            mainWindowVisibilityController.focusForInWindowCommand(window, reason: .rightSidebarFocus)
+            setActiveMainWindow(window)
+        }
+
+        guard let workspace = context.tabManager.selectedWorkspace else { return false }
+        workspace.clearSplitZoom()
+        guard let panel = workspace.showOrFocusRightSidebarToolPane(mode: mode, focus: true) else {
+            return false
+        }
+
+        let state = context.fileExplorerState ?? fileExplorerState
+        if let state {
+            // Keep mode memory in sync for chrome that still keys off FileExplorerState.
+            if state.mode != mode {
+                state.mode = mode
+            }
+            // Pane replaces the fixed rail for this show path; do not restore
+            // terminal focus here — the tool pane is about to take focus.
+            if hideFixedHost, state.isVisible {
+                state.setVisible(false)
+            }
+        }
+
+        // Focus the singleton tool pane surface.
+        workspace.focusPanel(panel.id)
+        panel.focus()
+        return true
     }
 
 #if DEBUG
@@ -7336,10 +7590,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             )
         }
 
-        if state.mode != mode {
+        state.setVisible(true)
+        // Dock rail tools: route selection so selected_tab_id / focused_tool_mode
+        // update; mirror owns the legacy scalar. Flag-off / non-rail still write mode.
+        if RightSidebarBetaFeatureSettings.isSidebarDockEnabled(),
+           SidebarDockPlacementMatrix.allows(mode: mode) {
+            _ = ensureRightSidebarRailSelection(
+                mode: mode,
+                focus: false,
+                source: .debugFocus,
+                windowId: context?.windowId
+            )
+        } else if state.mode != mode {
             state.mode = mode
         }
-        state.setVisible(true)
 
         let focusApplied = context?.keyboardFocusCoordinator.focusRightSidebar(
             mode: mode,
@@ -13828,11 +14092,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
            let mode = rightSidebarModeShortcut(for: event),
            let rightSidebarWindow = mainWindowForShortcutEvent(event) ?? event.window ?? shortcutRoutingActiveWindow,
            shouldRouteRightSidebarModeShortcut(in: rightSidebarWindow) {
-            _ = focusRightSidebarInActiveMainWindow(
-                mode: mode,
-                focusFirstItem: true,
-                preferredWindow: rightSidebarWindow
-            )
+            // Pane modes: show path (pane when host hidden / already tool-focused).
+            // Feed/dock stay on fixed-host focus.
+            if mode.canOpenAsPane {
+                _ = showRightSidebarToolInActiveMainWindow(
+                    mode: mode,
+                    preferredWindow: rightSidebarWindow
+                )
+            } else {
+                _ = focusRightSidebarInActiveMainWindow(
+                    mode: mode,
+                    focusFirstItem: true,
+                    preferredWindow: rightSidebarWindow
+                )
+            }
             return true
         }
 
@@ -14760,6 +15033,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             _ = performSplitShortcut(
                 direction: .down,
                 preferredWindow: event.window ?? shortcutRoutingActiveWindow
+            )
+            return true
+        }
+
+        if matchConfiguredShortcut(event: event, action: .splitQuad) {
+#if DEBUG
+            cmuxDebugLog("shortcut.action name=splitQuad \(debugShortcutRouteSnapshot(event: event))")
+#endif
+            // Shared production path with View menu / both palettes (VAL-QUAD-002).
+            // Dock tri-state is inside performSharedFocusPath (VAL-QUAD-003).
+            if shouldSuppressSplitShortcutForTransientTerminalFocusState(direction: .right) {
+                return true
+            }
+            _ = QuadSplitAdapters.performSharedFocusPath(
+                preferredWindow: event.window ?? shortcutRoutingActiveWindow,
+                tabManager: tabManager
             )
             return true
         }
@@ -15775,6 +16064,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
 #endif
 
+    /// Shared main-area Quad Split entrypoint used by shortcut, View menu, and
+    /// configured-action adapters. Dock routing is handled by callers so tri-state
+    /// fallthrough rules stay explicit at each surface.
+    @discardableResult
+    func performQuadSplitShortcut(preferredWindow: NSWindow? = nil) -> Bool {
+        let targetWindow = preferredWindow ?? shortcutRoutingActiveWindow
+        let terminalContext = focusedTerminalShortcutContext(preferredWindow: targetWindow)
+        _ = synchronizeActiveMainWindowContext(preferredWindow: targetWindow)
+
+        if let terminalContext {
+            if let workspace = terminalContext.tabManager.tabs.first(where: { $0.id == terminalContext.workspaceId }),
+               workspace.layoutMode == .canvas {
+                return false
+            }
+            return terminalContext.tabManager.createQuadSplit(
+                tabId: terminalContext.workspaceId,
+                surfaceId: terminalContext.panelId,
+                focus: true
+            )
+        }
+        if let workspace = tabManager?.selectedWorkspace,
+           workspace.layoutMode == .canvas {
+            return false
+        }
+        return tabManager?.createQuadSplit(focus: true) == true
+    }
+
     @discardableResult
     func performSplitShortcut(direction: SplitDirection, preferredWindow: NSWindow? = nil) -> Bool {
         let targetWindow = preferredWindow ?? shortcutRoutingActiveWindow
@@ -15818,7 +16134,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 if let workspace = terminalContext.tabManager.tabs.first(where: { $0.id == terminalContext.workspaceId }),
                    workspace.layoutMode == .canvas {
                     return workspace.openNewCanvasPane(
-                        type: .terminal,
+                        kind: .terminal,
                         focus: true,
                         direction: direction.canvasDirection
                     ) != nil
@@ -15832,7 +16148,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             if let workspace = tabManager?.selectedWorkspace,
                workspace.layoutMode == .canvas {
                 return workspace.openNewCanvasPane(
-                    type: .terminal,
+                    kind: .terminal,
                     focus: true,
                     direction: direction.canvasDirection
                 ) != nil
@@ -16540,13 +16856,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 if didSplit { onExecuted?() }
                 return didSplit
             case .splitQuad:
-                // Shared Quad Split recipe (H(V(L,A),V(R,B))) on the focused pane.
-                guard let workspace = context.tabManager.selectedWorkspace,
-                      let paneId = workspace.bonsplitController.focusedPaneId
-                        ?? workspace.bonsplitController.allPaneIds.first else {
-                    return false
+                let window = preferredWindow ?? shortcutRoutingActiveWindow
+                // Shared production path with View menu / primary palette /
+                // shortcut (VAL-QUAD-002). Dock tri-state lives in
+                // performSharedFocusPath (VAL-QUAD-003).
+                if shouldSuppressSplitShortcutForTransientTerminalFocusState(
+                    direction: .right,
+                    tabManager: context.tabManager
+                ) {
+                    return true
                 }
-                let didSplit = QuadSplitAction.perform(inPane: paneId, workspace: workspace)
+                let didSplit = QuadSplitAdapters.performSharedFocusPath(
+                    preferredWindow: window,
+                    tabManager: context.tabManager
+                )
                 if didSplit { onExecuted?() }
                 return didSplit
             }
