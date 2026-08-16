@@ -1,0 +1,166 @@
+{
+  "slug": "stokd-work-panel-gdock-right-rail",
+  "title": "Stokd Work Panel (gdock right rail)",
+  "status": "attention",
+  "created_at": "2026-08-12T20:42:08.147827+00:00",
+  "storage_mode": "database",
+  "error_message": null,
+  "progress_log": [
+    "[2026-08-12T20:42:09.640082+00:00] Project created; PRD written to prd.md; phases extracted; review files written to phases/",
+    "[2026-08-12T20:42:39.658489+00:00] 2 open attention item(s)"
+  ],
+  "review_mode": "complete",
+  "workspace_root": "/opt/worktrees/stokd-cloud/gdock/project-493eefd-stokd-work-panel-gdock-right-rai",
+  "phases": [
+    {
+      "phase_number": 1,
+      "purpose": "Nothing can be seeded, mounted, or persisted until the `stokdWork` kind exists in the rail registry/placement matrix and the enablement gate is defined. This phase creates types and wiring only — no panel body yet.",
+      "title": "Panel kind, placement, and feature gate",
+      "work_items": [
+        {
+          "acceptance_criteria": "- AC-1.1.a: `stokdWork` exists in source with a stable raw value → the rail registry can address it.\n- AC-1.1.b: Placement matrix allows `stokdWork` on the right rail and rejects it on the left → unit asserts match §0.\n- AC-1.1.c: Decoding a snapshot containing an unrecognized stokd kind string does not crash and drops only that entry.\n- AC-1.1.d: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelKindTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.\n- AC-1.1.e: `./scripts/lint-pbxproj-test-wiring.sh` → exit 0 for the new test file.",
+          "acceptance_tests": "- Test-1.1.a: Unit — kind enum/registry exposes `stokdWork`; existing non-stokd kinds unchanged.\n- Test-1.1.b: Unit — placement matrix edge cases (right allowed, left rejected).\n- Test-1.1.c: Unit — unknown-kind decode is skipped, not fatal.\n- Test-1.1.d: Suite gate for AC-1.1.d.\n- Test-1.1.e: Regression — pbxproj test wiring script.",
+          "dependencies": [],
+          "implementation_details": "- **Landing:** fork-only.\n- Extend the rail panel identity surface (match existing patterns: `RightSidebarMode` and/or the `PanelType` cases used by `SidebarDockStore`) with the kind `stokdWork`. Exact Swift casing follows existing conventions; the **raw value must be stable** because it is persisted.\n- Update `SidebarDockPlacementMatrix` (or equivalent) so `stokdWork` is allowed on the **right** rail (tool-tab strip) and disallowed on the left rail.\n- Provide a display title for the tool tab via a localized key.\n- Scaffold an empty placeholder panel host that compiles and mounts without crashing (real UI in Phase 3).\n- Leave room for the sibling PRD's left-rail kinds: do not close the kind surface to further cases, and do not name the enum/registry `…WorkOnly…`.\n- Failure modes: unknown kind in a persisted snapshot → skip + log, never crash; flag-off → kind is not offered in UI.",
+          "item_number": "1.1",
+          "targets": [],
+          "title": "Register the stokdWork rail panel kind",
+          "verification_commands": "set -euo pipefail\nrg -n 'stokdWork' Sources/\ntest -f cmuxTests/StokdWorkPanelKindTests.swift\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelKindTests CMUX_SKIP_ZIG_BUILD=1 test"
+        },
+        {
+          "acceptance_criteria": "- AC-1.2.a: Key absent from UserDefaults → stokd panels disabled.\n- AC-1.2.b: Enable path returns true only when the key is set true (and the rail gate is satisfied under Option B).\n- AC-1.2.c: If Option B is chosen, the new setting id begins with `gdock.` and is registered in `GdockCatalogSection`.\n- AC-1.2.d: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdRailPanelFlagTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.",
+          "acceptance_tests": "- Test-1.2.a: Unit — default-off.\n- Test-1.2.b: Unit — enable/disable matrix.\n- Test-1.2.c: Regression — `rg` asserts the `gdock.` prefix and catalog registration (skipped with a recorded note if Option A is chosen).\n- Test-1.2.d: Suite gate.",
+          "dependencies": [
+            "1.1"
+          ],
+          "implementation_details": "- **Landing:** fork-only.\n- Decide and implement **one** gate, documented in a code comment, and treat it as the gate for **all** future stokd rail panels:\n  - **Option A:** reuse `sidebar.beta.dock.enabled` (stokd panels appear only when rails are on), or\n  - **Option B:** dedicated `gdock.sidebar.beta.stokdPanels.enabled`, default false, still requiring rails on to mount.\n- Default **off**. Flag-off: no stokd kind in seed, palette, or tab strip.\n- Per fork conventions (`CLAUDE.md`), any **new** setting id must use the `gdock.` prefix and live in `GdockCatalogSection`; reusing the grandfathered upstream `sidebar.beta.dock.enabled` key is the only exception.\n- Surface in Beta Features settings if Option B (localized en+ja).\n- Failure modes: missing key → false; never throw from a settings read.",
+          "item_number": "1.2",
+          "targets": [],
+          "title": "Feature gate for stokd rail panels",
+          "verification_commands": "set -euo pipefail\nrg -n 'stokdPanels|sidebar\\.beta\\.dock\\.enabled|gdock\\.sidebar\\.beta\\.stokdPanels' Sources/ Packages/\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/StokdRailPanelFlagTests CMUX_SKIP_ZIG_BUILD=1 test"
+        }
+      ]
+    },
+    {
+      "phase_number": 2,
+      "purpose": "Cannot start before Phase 1 because the panel host must exist to consume it; must finish before Phase 3 because the Work UI is a thin view over this boundary. Lives under `Sources/Stokd/` without a full SPM package unless extraction clearly pays for itself.",
+      "title": "Minimal stokd data plane",
+      "work_items": [
+        {
+          "acceptance_criteria": "- AC-2.1.a: Executable resolution follows `STOKD_CLI_PATH` → `~/.stokd/bin/stokd` → `PATH` against fixtures.\n- AC-2.1.b: Missing executable yields a structured error (code 127), not a crash or `fatalError`.\n- AC-2.1.c: No source under `Sources/Stokd/` writes to `config.yaml` via `FileManager`/`Data.write`.\n- AC-2.1.d: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdCLIRunnerTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.",
+          "acceptance_tests": "- Test-2.1.a: Unit — CLI path resolution order.\n- Test-2.1.b: Unit — missing-binary error shape.\n- Test-2.1.c: Regression — `rg` proves no direct yaml write.\n- Test-2.1.d: Suite gate.",
+          "dependencies": [
+            "1.1"
+          ],
+          "implementation_details": "- **Landing:** fork-only.\n- Add a minimal runner that resolves the `stokd` executable in order: `STOKD_CLI_PATH` → `~/.stokd/bin/stokd` → `PATH`.\n- Runs commands with an explicit working directory (the active workspace cwd), returns structured stdout/stderr/exit code; never blocks the main actor.\n- **Never** write config files from the app; any future write path constructs `stokd config set` argv only.\n- Failure modes: CLI missing → structured error with code 127, surfaced as panel state; never a fatal process exit.",
+          "item_number": "2.1",
+          "targets": [],
+          "title": "stokd CLI runner",
+          "verification_commands": "set -euo pipefail\nrg -n 'STOKD_CLI_PATH|\\.stokd/bin/stokd' Sources/\n! rg -n 'config\\.yaml' Sources/Stokd/ Sources/Sidebar/\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/StokdCLIRunnerTests CMUX_SKIP_ZIG_BUILD=1 test"
+        },
+        {
+          "acceptance_criteria": "- AC-2.2.a: Paged fixture JSON for tasks and projects decodes into the expected value types.\n- AC-2.2.b: Connection refused and non-2xx responses map to a structured error, and the result is an empty list plus error — not a throw across the UI boundary.\n- AC-2.2.c: Requests target the configured base URL, defaulting to `http://localhost:8167`.\n- AC-2.2.d: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkAPIClientTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.",
+          "acceptance_tests": "- Test-2.2.a: Unit — JSON decode fixtures for tasks and projects (including an empty page and a next-page cursor).\n- Test-2.2.b: Unit — error mapping via `URLProtocol` stub (refused + 500).\n- Test-2.2.c: Unit — base URL default and override.\n- Test-2.2.d: Suite gate.",
+          "dependencies": [
+            "2.1"
+          ],
+          "implementation_details": "- **Landing:** fork-only.\n- Add a thin REST client for the local stokd API (default `http://localhost:8167`, overridable) covering the paged task and project list endpoints used by Work.\n- `URLProtocol`-testable: all requests go through an injectable `URLSession` configuration so tests run offline against fixtures.\n- Decode into value types (no reference-type stores leaking below a list boundary — see the snapshot-boundary rule in `CLAUDE.md`).\n- Failure modes: API down / non-2xx / decode failure → empty result plus a banner-ready error value; never fatal, never a hang without timeout.",
+          "item_number": "2.2",
+          "targets": [],
+          "title": "Local stokd API client for tasks and projects",
+          "verification_commands": "set -euo pipefail\nrg -n '8167|StokdWorkAPI|URLProtocol' Sources/ cmuxTests/\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkAPIClientTests CMUX_SKIP_ZIG_BUILD=1 test"
+        }
+      ]
+    },
+    {
+      "phase_number": 3,
+      "purpose": "Depends on the Phase 1 kind/gate and the Phase 2 data plane. This is the visible deliverable — the port of the VS Code Work surface into the right rail.",
+      "title": "Work panel UI",
+      "work_items": [
+        {
+          "acceptance_criteria": "- AC-3.1.a: Loading fixture data produces the expected ordered row snapshots for tasks and projects.\n- AC-3.1.b: Filter and sort produce deterministic ordering for a fixed fixture set.\n- AC-3.1.c: An error response yields an error state with non-empty user-facing text and zero rows.\n- AC-3.1.d: An out-of-order late response for a superseded request id is discarded.\n- AC-3.1.e: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelViewModelTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.",
+          "acceptance_tests": "- Test-3.1.a: Unit — fixture load → row mapping.\n- Test-3.1.b: Unit — filter/sort determinism.\n- Test-3.1.c: Unit — error state.\n- Test-3.1.d: Unit — superseded-request discard.\n- Test-3.1.e: Suite gate.",
+          "dependencies": [
+            "1.1",
+            "2.2"
+          ],
+          "implementation_details": "- **Landing:** fork-only.\n- View model owns load / reload / filter / sort for tasks + projects scoped to the active workspace context.\n- Exposes immutable row snapshots to the view (no store references below the list boundary).\n- No state mutation inside view-body computations; refreshes happen in load completions or property observers.\n- Failure modes: API down → `empty(error:)` state carrying user-facing text; empty result → distinct empty state; stale in-flight load is superseded by request id, never applied out of order.",
+          "item_number": "3.1",
+          "targets": [],
+          "title": "Work panel view model",
+          "verification_commands": "set -euo pipefail\nrg -n 'StokdWorkPanelViewModel' Sources/ cmuxTests/\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelViewModelTests CMUX_SKIP_ZIG_BUILD=1 test"
+        },
+        {
+          "acceptance_criteria": "- AC-3.2.a: Mounting `stokdWork` with a fixture-backed view model renders a non-empty view hierarchy.\n- AC-3.2.b: Error and empty states each render identifiable, non-blank content.\n- AC-3.2.c: Every entrypoint that focuses/opens Work resolves through `SidebarDockActionInvoker`/`SidebarDockCommand` — no duplicated open logic.\n- AC-3.2.d: No type below the Work row list holds an `ObservableObject`/`@Observable` reference (snapshot-boundary rule).\n- AC-3.2.e: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelViewTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.",
+          "acceptance_tests": "- Test-3.2.a: Unit — mounted hierarchy is non-empty for fixtures.\n- Test-3.2.b: Unit — error/empty state rendering.\n- Test-3.2.c: Unit — invoker reachability for the open/focus command.\n- Test-3.2.d: Regression — `rg` over the Work row files shows no `@ObservedObject`/`@EnvironmentObject`/`@StateObject`/`@Bindable`.\n- Test-3.2.e: Suite gate.",
+          "dependencies": [
+            "3.1"
+          ],
+          "implementation_details": "- **Landing:** fork-only.\n- Implement the SwiftUI body for Work and wire it as right-rail tool tab content for `stokdWork`, replacing the Phase 1 placeholder.\n- Rows carry value snapshots plus closure action bundles only — reference pattern: `IndexSectionActions` / `SectionGapActions` in `Sources/SessionIndexView.swift`.\n- Actor surfaces (command palette, tab strip, section menu) go through the existing `SidebarDockActionInvoker` → `SidebarDockCommand.perform` path — one shared action path, no store-only reachability, per the shared-behavior policy.\n- Failure modes: API down → empty state with error text; no data → empty state; neither may render blank chrome.",
+          "item_number": "3.2",
+          "targets": [],
+          "title": "Work panel view and rail mounting",
+          "verification_commands": "set -euo pipefail\nrg -n 'StokdWorkPanel|stokdWork' Sources/\n! rg -n '@(ObservedObject|EnvironmentObject|StateObject|Bindable)' Sources/Stokd/Work/\nrg -n 'SidebarDockActionInvoker|SidebarDockCommand' Sources/\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelViewTests CMUX_SKIP_ZIG_BUILD=1 test"
+        }
+      ]
+    },
+    {
+      "phase_number": 4,
+      "purpose": "Runs after Phase 3 so a cold-start window seeds a tab that renders real content rather than a placeholder. Makes the §0 diagram true on first enable without thrashing later user rearrangements.",
+      "title": "Default seed",
+      "work_items": [
+        {
+          "acceptance_criteria": "- AC-4.1.a: Seeding an empty registry with the flag on yields right-rail tools Files, Find, Vault, Work in that order.\n- AC-4.1.b: A second seed call does not duplicate the Work tab and does not reset a customized order.\n- AC-4.1.c: Flag off → seed introduces no stokd kinds.\n- AC-4.1.d: Seeding does not add or reorder any left-rail section.\n- AC-4.1.e: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelSeedTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.",
+          "acceptance_tests": "- Test-4.1.a: Unit — default tab order matches §0.\n- Test-4.1.b: Unit — idempotent reseed / custom order preserved.\n- Test-4.1.c: Unit — flag-off no-op.\n- Test-4.1.d: Unit — left rail untouched.\n- Test-4.1.e: Suite gate.",
+          "dependencies": [
+            "1.2",
+            "3.2"
+          ],
+          "implementation_details": "- **Landing:** fork-only.\n- Extend `SidebarDockSeeding` (or sibling) so that when the gate is on and the stokd seed generation has not been applied, the right rail's Tools section includes Work as a tab alongside Files, Find, Vault — order Files, Find, Vault, Work unless the user has already customized the order.\n- Idempotent marker (seed generation int / `stokdPanelsSeedApplied`) shared with the sibling left-rail PRD so re-open never re-inserts duplicates or resets user layout.\n- Flag-off: the seed path no-ops for stokd kinds.\n- Left rail is not modified by this PRD's seed.\n- Failure modes: partial seed failure leaves non-stokd rails intact; log and continue.",
+          "item_number": "4.1",
+          "targets": [],
+          "title": "Seed Work into the right-rail tool tab strip",
+          "verification_commands": "set -euo pipefail\nrg -n 'stokdPanelsSeed|seedStokd|stokdWork' Sources/Sidebar/\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelSeedTests CMUX_SKIP_ZIG_BUILD=1 test"
+        }
+      ]
+    },
+    {
+      "phase_number": 5,
+      "purpose": "Last phase — depends on the panel and seed existing so snapshot keys and strings are real. Closes the slice for dogfood and fixes the persistence contract the sibling PRD inherits.",
+      "title": "Persistence, localization, and rollout",
+      "work_items": [
+        {
+          "acceptance_criteria": "- AC-5.1.a: Round-trip of a Work-inclusive layout preserves membership, order, and selected tab.\n- AC-5.1.b: `SessionSnapshotSchema.currentVersion` is unchanged from the pre-phase baseline (remains 1).\n- AC-5.1.c: A snapshot containing an unknown stokd kind decodes with that entry skipped and no crash.\n- AC-5.1.d: `./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelPersistenceTests CMUX_SKIP_ZIG_BUILD=1 test` → exit 0.",
+          "acceptance_tests": "- Test-5.1.a: Unit — encode/decode round-trip.\n- Test-5.1.b: Regression — schema version pin.\n- Test-5.1.c: Unit — unknown-kind skip.\n- Test-5.1.d: Suite gate.",
+          "dependencies": [
+            "3.2",
+            "4.1"
+          ],
+          "implementation_details": "- **Landing:** fork-only.\n- Persist right-rail tool membership, order, and selected tab including `stokdWork` using **additive optional** snapshot fields only — **never** bump `SessionSnapshotSchema.currentVersion` and never add a `SessionWorkspaceLayoutSnapshot` case.\n- Round-trip: seed layout → encode → decode → equal membership and selection.\n- These rules are the contract the sibling left-rail PRD reuses for its sections.\n- Failure modes: unknown future kind → skip; corrupt optional → fall back to the default seed once.",
+          "item_number": "5.1",
+          "targets": [],
+          "title": "Snapshot persistence for stokd rail membership",
+          "verification_commands": "set -euo pipefail\nrg -n 'currentVersion' Sources/ Packages/ | rg -n 'SessionSnapshotSchema' || true\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelPersistenceTests CMUX_SKIP_ZIG_BUILD=1 test"
+        },
+        {
+          "acceptance_criteria": "- AC-5.2.a: Every new Work string key exists in both en and ja with `state == translated`.\n- AC-5.2.b: No bare English literal in new Work Swift sources' `Text(`/`Button(`/alert titles.\n- AC-5.2.c: `./scripts/lint-pbxproj-test-wiring.sh` → exit 0.\n- AC-5.2.d: Tagged reload compiles → exit 0 (or, where the environment cannot build the app, all suites in this PRD green with that substitution recorded in the session output).\n- AC-5.2.e: `git -C vendor/bonsplit status --porcelain` empty and `git -C vendor/bonsplit rev-parse HEAD` equals the pin `48643102d6b68400069429bd43c15d7bda2b00a1`.",
+          "acceptance_tests": "- Test-5.2.a: Regression — xcstrings key/locale audit (parse the catalog, compare en vs ja).\n- Test-5.2.b: Regression — `rg` for bare English in new Swift sources.\n- Test-5.2.c: Regression — pbxproj test wiring.\n- Test-5.2.d: Integration — tagged build or documented unit substitute.\n- Test-5.2.e: Regression — bonsplit clean + SHA pin.",
+          "dependencies": [
+            "1.2",
+            "3.2",
+            "4.1",
+            "5.1"
+          ],
+          "implementation_details": "- **Landing:** fork-only.\n- Every new user-facing string uses `String(localized:)` with en+ja entries in `Resources/Localizable.xcstrings`, `state == translated`, and `ja != en` for non-identical natural text. Covered surfaces: tool tab title, empty state, error state, any beta-settings row added in 1.2.\n- Palette/debug can open and focus Work through the same invoker path as other rail tools.\n- Tagged dogfood: `CMUX_SKIP_ZIG_BUILD=1 ./scripts/reload.sh --tag stokd-work-panel` builds; with the flag on, a cold window matches §0.\n- Bonsplit clean: `git -C vendor/bonsplit status --porcelain` empty; pinned SHA unchanged.",
+          "item_number": "5.2",
+          "targets": [],
+          "title": "Localization audit and dogfood gate",
+          "verification_commands": "set -euo pipefail\npython3 - <<'PY'\nimport json\nc = json.load(open('Resources/Localizable.xcstrings'))\nbad = [k for k, v in c['strings'].items()\n       if 'stokd' in k.lower() and 'work' in k.lower()\n       and 'ja' not in v.get('localizations', {})]\nassert not bad, f\"missing ja: {bad}\"\nprint(\"ja coverage ok\")\nPY\n./scripts/lint-pbxproj-test-wiring.sh\ngit -C vendor/bonsplit status --porcelain\ngit -C vendor/bonsplit rev-parse HEAD\n# Preferred full gate when the environment allows:\n# CMUX_SKIP_ZIG_BUILD=1 ./scripts/reload.sh --tag stokd-work-panel\n./scripts/test-unit.sh -only-testing:cmuxTests/StokdWorkPanelKindTests \\\n  -only-testing:cmuxTests/StokdRailPanelFlagTests \\\n  -only-testing:cmuxTests/StokdCLIRunnerTests \\\n  -only-testing:cmuxTests/StokdWorkAPIClientTests \\\n  -only-testing:cmuxTests/StokdWorkPanelViewModelTests \\\n  -only-testing:cmuxTests/StokdWorkPanelViewTests \\\n  -only-testing:cmuxTests/StokdWorkPanelSeedTests \\\n  -only-testing:cmuxTests/StokdWorkPanelPersistenceTests \\\n  CMUX_SKIP_ZIG_BUILD=1 test"
+        }
+      ]
+    }
+  ],
+  "project_id": "5d95933a-934e-47cf-a3b9-d4e644d519e9",
+  "hash_short": "493eefd",
+  "phase_id": "493eefd-stokd-work-panel-gdock-right-rail"
+}
