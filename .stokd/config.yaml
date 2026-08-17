@@ -1,7 +1,0 @@
-providers:
-- grok
-git: 
-  worktree:
-    baseBranch: upstream-main
-  land:
-    target: rc1
