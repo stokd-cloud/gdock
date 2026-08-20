@@ -19,6 +19,7 @@ enum RightSidebarSelectionSource: String, CaseIterable, Sendable {
     case paletteVault
     case paletteFeed
     case paletteDock
+    case paletteStokdWork
     case findInDirectory
     case contextualFind
     case remoteSet
@@ -185,6 +186,7 @@ enum RightSidebarSelectionRouter {
         case .sessions: return .paletteVault
         case .feed: return .paletteFeed
         case .dock: return .paletteDock
+        case .stokdWork: return .paletteStokdWork
         case .customSidebar: return .paletteDock
         }
     }

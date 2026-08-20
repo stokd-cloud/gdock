@@ -149723,6 +149723,23 @@
         }
       }
     },
+    "rightSidebar.mode.stokdWork": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Work"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作業"
+          }
+        }
+      }
+    },
     "rightSidebar.mode.pendingHelp": {
       "extractionState": "manual",
       "localizations": {

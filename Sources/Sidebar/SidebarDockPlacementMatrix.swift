@@ -17,6 +17,7 @@ enum SidebarDockPlacementMatrix {
         .files,
         .find,
         .sessions,
+        .stokdWork,
     ]
 
     static func allows(panelType: PanelType) -> Bool {
@@ -32,7 +33,18 @@ enum SidebarDockPlacementMatrix {
         return true
     }
 
+    @MainActor
+    static func allows(panel: any Panel, on edge: SidebarDockEdge) -> Bool {
+        guard allows(panel: panel) else { return false }
+        guard let tool = panel as? RightSidebarToolPanel else { return true }
+        return allows(mode: tool.mode, on: edge)
+    }
+
     static func allows(mode: RightSidebarMode) -> Bool {
         allowedRightSidebarModes.contains(mode)
+    }
+
+    static func allows(mode: RightSidebarMode, on edge: SidebarDockEdge) -> Bool {
+        allows(mode: mode) && (mode != .stokdWork || edge == .right)
     }
 }

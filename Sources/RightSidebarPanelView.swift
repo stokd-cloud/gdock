@@ -19,6 +19,7 @@ enum RightSidebarMode: String, CaseIterable, Codable, Sendable {
     case sessions
     case feed
     case dock
+    case stokdWork
     case customSidebar = "custom-sidebar"
 
     var label: String {
@@ -28,6 +29,7 @@ enum RightSidebarMode: String, CaseIterable, Codable, Sendable {
         case .sessions: return String(localized: "rightSidebar.mode.sessions", defaultValue: "Vault")
         case .feed: return String(localized: "rightSidebar.mode.feed", defaultValue: "Feed")
         case .dock: return String(localized: "rightSidebar.mode.dock", defaultValue: "Dock")
+        case .stokdWork: return String(localized: "rightSidebar.mode.stokdWork", defaultValue: "Work")
         case .customSidebar: return String(localized: "rightSidebar.mode.customSidebar", defaultValue: "Custom")
         }
     }
@@ -39,6 +41,7 @@ enum RightSidebarMode: String, CaseIterable, Codable, Sendable {
         case .sessions: return "books.vertical"
         case .feed: return "dot.radiowaves.left.and.right"
         case .dock: return "dock.rectangle"
+        case .stokdWork: return "checklist"
         case .customSidebar: return "wand.and.stars"
         }
     }
@@ -50,7 +53,7 @@ enum RightSidebarMode: String, CaseIterable, Codable, Sendable {
         case .sessions: return .switchRightSidebarToSessions
         case .feed: return .switchRightSidebarToFeed
         case .dock: return .switchRightSidebarToDock
-        case .customSidebar: return nil
+        case .stokdWork, .customSidebar: return nil
         }
     }
 }
@@ -75,7 +78,7 @@ enum FileExplorerRootSyncPolicy {
         switch mode {
         case .files, .find:
             return true
-        case .sessions, .feed, .dock, .customSidebar:
+        case .sessions, .feed, .dock, .stokdWork, .customSidebar:
             return false
         }
     }
@@ -308,6 +311,8 @@ struct RightSidebarPanelView: View {
                     .onAppear {
                         sessionIndexStore.setCurrentDirectoryIfChanged(sessionIndexDirectory)
                     }
+            case .stokdWork:
+                StokdWorkPlaceholderView()
             case .feed, .dock, .customSidebar:
                 Color.clear
             }
@@ -560,6 +565,8 @@ struct RightSidebarPanelView: View {
             FeedPanelView()
         case .dock:
             dockPanel(windowAppearance: windowAppearance)
+        case .stokdWork:
+            StokdWorkPlaceholderView()
         case .customSidebar:
             EmptyView()
         }
@@ -660,6 +667,15 @@ struct RightSidebarPanelView: View {
             mode: fileExplorerState.mode,
             focusFirstItem: false,
             preferredWindow: window
+        )
+    }
+}
+
+struct StokdWorkPlaceholderView: View {
+    var body: some View {
+        ContentUnavailableView(
+            String(localized: "rightSidebar.mode.stokdWork", defaultValue: "Work"),
+            systemImage: "checklist"
         )
     }
 }

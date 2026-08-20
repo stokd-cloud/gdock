@@ -39,7 +39,7 @@ extension RightSidebarMode {
 
     func isAvailable(feedEnabled: Bool, dockEnabled: Bool) -> Bool {
         switch self {
-        case .files, .find, .sessions:
+        case .files, .find, .sessions, .stokdWork:
             return true
         case .feed:
             return feedEnabled
