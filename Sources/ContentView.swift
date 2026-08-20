@@ -1838,7 +1838,8 @@ struct ContentView: View {
         SidebarDockSeeding.seedRegistryIfEmpty(
             registry: registry,
             workspace: workspace,
-            preferredRightMode: fileExplorerState.mode
+            preferredRightMode: fileExplorerState.mode,
+            includeStokdWork: StokdRailPanelAvailability.isEnabled()
         )
         if let mode = registry.right.focusedToolMode(),
            SidebarDockPlacementMatrix.allows(mode: mode),

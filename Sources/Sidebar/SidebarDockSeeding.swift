@@ -12,9 +12,13 @@ enum SidebarDockSeeding {
     /// Canonical right-rail tool order: Files, Find, Vault (`.sessions`).
     static let canonicalRightModes: [RightSidebarMode] = [.files, .find, .sessions]
 
-    /// Build the three canonical right-rail tool panels for a workspace.
-    static func makeCanonicalRightPanels(workspace: Workspace) -> [RightSidebarToolPanel] {
-        canonicalRightModes.map { RightSidebarToolPanel(workspace: workspace, mode: $0) }
+    /// Build the canonical right-rail tool panels for a workspace.
+    static func makeCanonicalRightPanels(
+        workspace: Workspace,
+        includeStokdWork: Bool = false
+    ) -> [RightSidebarToolPanel] {
+        let modes = includeStokdWork ? canonicalRightModes + [.stokdWork] : canonicalRightModes
+        return modes.map { RightSidebarToolPanel(workspace: workspace, mode: $0) }
     }
 
     /// Seed a right rail when empty. Selects a placement-allowed preferred mode, else Files.
@@ -22,14 +26,39 @@ enum SidebarDockSeeding {
     static func seedRightIfEmpty(
         store: SidebarDockStore,
         workspace: Workspace,
-        preferredMode: RightSidebarMode?
+        preferredMode: RightSidebarMode?,
+        includeStokdWork: Bool = false
     ) -> Bool {
         guard store.edge == .right else { return false }
-        guard store.panels.isEmpty else { return false }
-        let panels = makeCanonicalRightPanels(workspace: workspace)
-        store.seedRootPanels(panels)
-        let mode = resolvedPreferredMode(preferredMode)
-        _ = store.selectToolMode(mode, focus: false)
+        if store.panels.isEmpty {
+            let panels = makeCanonicalRightPanels(
+                workspace: workspace,
+                includeStokdWork: includeStokdWork
+            )
+            store.seedRootPanels(panels)
+            let mode = resolvedPreferredMode(preferredMode)
+            _ = store.selectToolMode(mode, focus: false)
+            return true
+        }
+
+        guard includeStokdWork else { return false }
+        let modes = orderedRightModes(in: store)
+        guard !modes.contains(.stokdWork),
+              let toolsPane = store.orderedSectionPaneIds().first else {
+            return false
+        }
+        let previouslySelectedMode = store.focusedToolMode()
+        if let lastTab = store.bonsplitController.tabs(inPane: toolsPane).last {
+            store.bonsplitController.selectTab(lastTab.id)
+        }
+        let work = RightSidebarToolPanel(workspace: workspace, mode: .stokdWork)
+        guard store.attachPanel(work, inPane: toolsPane, select: false) != nil else {
+            logger.error("sidebar-dock: failed to append Stokd Work panel window=\(store.windowId.uuidString, privacy: .public)")
+            return false
+        }
+        if let previouslySelectedMode {
+            _ = store.selectToolMode(previouslySelectedMode, focus: false)
+        }
         return true
     }
 
@@ -75,13 +104,15 @@ enum SidebarDockSeeding {
     static func seedRegistryIfEmpty(
         registry: SidebarDockStoreRegistry,
         workspace: Workspace,
-        preferredRightMode: RightSidebarMode?
+        preferredRightMode: RightSidebarMode?,
+        includeStokdWork: Bool = false
     ) {
         _ = seedLeftIfEmpty(store: registry.left, workspace: workspace)
         _ = seedRightIfEmpty(
             store: registry.right,
             workspace: workspace,
-            preferredMode: preferredRightMode
+            preferredMode: preferredRightMode,
+            includeStokdWork: includeStokdWork
         )
     }
 

@@ -345,7 +345,8 @@ struct RightSidebarPanelView: View {
         SidebarDockSeeding.seedRegistryIfEmpty(
             registry: registry,
             workspace: workspace,
-            preferredRightMode: fileExplorerState.mode
+            preferredRightMode: fileExplorerState.mode,
+            includeStokdWork: StokdRailPanelAvailability.isEnabled()
         )
         // Seed no-op (already populated): re-drive selection through the store so
         // Bonsplit callbacks refresh a stale scalar without a competing write.
