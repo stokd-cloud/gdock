@@ -9,19 +9,47 @@ import CmuxCanvasUI
 @testable import cmux
 #endif
 
-/// VAL-CANVAS-001: generic CanvasPaneContentMount drives any Dockable for
-/// terminal, browser, and markdown (mount / render / unmount).
+/// VAL-CANVAS-001: `CanvasPaneContentMount` drives the pane content lifecycle
+/// (mount / render / unmount) for terminal, browser, and markdown panels.
+///
+/// These tests were originally written against a `CanvasPaneContentMount(dockable:)`
+/// initializer that stored `any Dockable`. The mount now takes an explicit
+/// ``CanvasPaneContent`` (terminal surfaces are hosted directly; every other
+/// panel goes through an `NSHostingView`) plus the pane's attention color, so
+/// the calls below construct content the way `WorkspaceCanvasHostView` does.
+/// The former `testMountStoresAnyDockableNotContentEnum` asserted the erased-
+/// storage design that this change replaced; it is superseded by
+/// `testTerminalMountUsesTerminalContent`, which pins the behavior that
+/// actually holds — the terminal path hosts the panel's own view rather than a
+/// SwiftUI wrapper.
 @MainActor
 final class CanvasDockableMountLifecycleTests: XCTestCase {
+    private func makeHostedContent(
+        panel: any Panel,
+        container: NSView,
+        onFocus: @escaping @MainActor (UUID) -> Void = { _ in }
+    ) -> CanvasPaneContent {
+        let presentation = CanvasHostedPanelPresentation(
+            isFocused: false,
+            allowsPointerInput: true,
+            pointerInputOwner: container
+        )
+        let hosted = panel.makeDockContentView(
+            context: DockableMountContext(container: container, onFocus: onFocus)
+        )
+        return .hosted(panel, hosted, presentation)
+    }
+
     func testTerminalMountRenderUnmountViaDockable() {
         let panel = TerminalPanel(workspaceId: UUID())
         let container = NSView(frame: NSRect(x: 0, y: 0, width: 640, height: 480))
         var focused: UUID?
 
         let mount = CanvasPaneContentMount(
-            dockable: panel,
+            content: .terminal(panel, .disabled),
             panelId: panel.id,
             container: container,
+            workspaceAttentionColor: WorkspaceAttentionColor(configuredHex: nil),
             onFocusPanel: { focused = $0 },
             makeTerminalVisible: { _ in }
         )
@@ -44,9 +72,10 @@ final class CanvasDockableMountLifecycleTests: XCTestCase {
 
         // No canvas host environment → makeDockContentView still sets mount flags.
         let mount = CanvasPaneContentMount(
-            dockable: panel,
+            content: makeHostedContent(panel: panel, container: container),
             panelId: panel.id,
             container: container,
+            workspaceAttentionColor: WorkspaceAttentionColor(configuredHex: nil),
             onFocusPanel: { _ in }
         )
         XCTAssertTrue(panel.canvasInlineHostingActive)
@@ -75,9 +104,10 @@ final class CanvasDockableMountLifecycleTests: XCTestCase {
         let container = NSView(frame: NSRect(x: 0, y: 0, width: 640, height: 480))
 
         let mount = CanvasPaneContentMount(
-            dockable: panel,
+            content: makeHostedContent(panel: panel, container: container),
             panelId: panel.id,
             container: container,
+            workspaceAttentionColor: WorkspaceAttentionColor(configuredHex: nil),
             onFocusPanel: { _ in }
         )
         XCTAssertTrue(mount is CanvasPaneContentMounting)
@@ -90,18 +120,22 @@ final class CanvasDockableMountLifecycleTests: XCTestCase {
         XCTAssertTrue(container.subviews.isEmpty)
     }
 
-    func testMountStoresAnyDockableNotContentEnum() {
+    func testTerminalMountUsesTerminalContent() {
         let panel = TerminalPanel(workspaceId: UUID())
         let container = NSView(frame: NSRect(x: 0, y: 0, width: 100, height: 100))
         let mount = CanvasPaneContentMount(
-            dockable: panel,
+            content: .terminal(panel, .disabled),
             panelId: panel.id,
             container: container,
+            workspaceAttentionColor: WorkspaceAttentionColor(configuredHex: nil),
             onFocusPanel: { _ in },
             makeTerminalVisible: { _ in }
         )
-        XCTAssertEqual(mount.dockable.dockableKind, .terminal)
-        XCTAssertTrue(mount.dockable is TerminalPanel)
+        XCTAssertEqual(mount.panelId, panel.id)
+        // The terminal path attaches the panel's own hosted view — not a
+        // SwiftUI hosting wrapper — which is what lets the canvas crop it.
+        XCTAssertTrue(container.subviews.contains { $0 === panel.hostedView })
         mount.unmount()
+        XCTAssertNil(panel.hostedView.superview)
     }
 }
