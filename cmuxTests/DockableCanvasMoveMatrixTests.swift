@@ -93,19 +93,25 @@ final class DockableCanvasMoveMatrixTests: XCTestCase {
             // Current canvas content mount path.
             let container = NSView(frame: NSRect(x: 0, y: 0, width: 320, height: 240))
             var focusedFromMount: UUID?
-            let content: CanvasPaneContent
+            let mountContent: CanvasPaneContent
             if let terminal = panel as? TerminalPanel {
-                content = .terminal(terminal, .disabled)
+                mountContent = .terminal(terminal, .disabled)
             } else {
                 let presentation = CanvasHostedPanelPresentation(
                     isFocused: false,
                     allowsPointerInput: true,
                     pointerInputOwner: container
                 )
-                content = .hosted(panel, NSView(frame: container.bounds), presentation)
+                let hosted = panel.makeDockContentView(
+                    context: DockableMountContext(
+                        container: container,
+                        onFocus: { focusedFromMount = $0 }
+                    )
+                )
+                mountContent = .hosted(panel, hosted, presentation)
             }
             let mount = CanvasPaneContentMount(
-                content: content,
+                content: mountContent,
                 panelId: panelId,
                 container: container,
                 workspaceAttentionColor: WorkspaceAttentionColor(configuredHex: nil),
@@ -117,6 +123,7 @@ final class DockableCanvasMoveMatrixTests: XCTestCase {
             let mountOK = !container.subviews.isEmpty
                 || (panel as? TerminalPanel)?.hostedView.superview === container
             XCTAssertTrue(mountOK, "mount should attach content for \(kind.rawValue)")
+            XCTAssertEqual(mount.panelId, panelId)
 
             // Focus proof 2: host focusPanel after mount (panel is bonsplit-bound).
             // openNewCanvasPane already focused; move focus away if possible, then re-focus.
