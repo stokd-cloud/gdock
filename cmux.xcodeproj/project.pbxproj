@@ -2275,6 +2275,7 @@ BE7A0010SIDEBARDOCKLIVE02 /* SidebarDockLiveSectionSemanticsTests.swift in Sourc
 		493EEFD00000000000000203 /* StokdWorkModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000103 /* StokdWorkModels.swift */; };
 		493EEFD00000000000000012 /* StokdWorkPanelIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000011 /* StokdWorkPanelIntegrationTests.swift */; };
 		493EEFD00000000000000002 /* StokdWorkPanelKindTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000001 /* StokdWorkPanelKindTests.swift */; };
+		493EEFD00000000000000016 /* StokdWorkPanelSeedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000015 /* StokdWorkPanelSeedTests.swift */; };
 		493EEFD00000000000000206 /* StokdWorkPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000106 /* StokdWorkPanelView.swift */; };
 		493EEFD00000000000000205 /* StokdWorkPanelViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000105 /* StokdWorkPanelViewModel.swift */; };
 		493EEFD00000000000000010 /* StokdWorkPanelViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000009 /* StokdWorkPanelViewModelTests.swift */; };
@@ -5137,6 +5138,7 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 		493EEFD00000000000000103 /* StokdWorkModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkModels.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000011 /* StokdWorkPanelIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelIntegrationTests.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000001 /* StokdWorkPanelKindTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelKindTests.swift; sourceTree = "<group>"; };
+		493EEFD00000000000000015 /* StokdWorkPanelSeedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelSeedTests.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000106 /* StokdWorkPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelView.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000105 /* StokdWorkPanelViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelViewModel.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000009 /* StokdWorkPanelViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelViewModelTests.swift; sourceTree = "<group>"; };
@@ -8491,6 +8493,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				493EEFD00000000000000009 /* StokdWorkPanelViewModelTests.swift */,
 				493EEFD00000000000000011 /* StokdWorkPanelIntegrationTests.swift */,
 				493EEFD00000000000000013 /* StokdWorkPanelViewTests.swift */,
+				493EEFD00000000000000015 /* StokdWorkPanelSeedTests.swift */,
 				0AA39C1B63CA20A58D275AD0 /* SidebarDockStoreTests.swift */,
 								91E934E3EB9C45478D1A3EDA /* QuadSplitActionTests.swift */,
 				682F73FA96A248028EC8CDBD /* QuadSplitButtonTests.swift */,
@@ -11935,6 +11938,7 @@ BE7A0010SIDEBARDOCKBEHAV02 /* SidebarDockBehaviorTests.swift in Sources */,
 				493EEFD00000000000000008 /* StokdWorkAPIClientTests.swift in Sources */,
 				493EEFD00000000000000012 /* StokdWorkPanelIntegrationTests.swift in Sources */,
 				493EEFD00000000000000002 /* StokdWorkPanelKindTests.swift in Sources */,
+				493EEFD00000000000000016 /* StokdWorkPanelSeedTests.swift in Sources */,
 				493EEFD00000000000000010 /* StokdWorkPanelViewModelTests.swift in Sources */,
 				493EEFD00000000000000014 /* StokdWorkPanelViewTests.swift in Sources */,
 				842300000000000000000007 /* SurfaceResumeAgentBindingGenerationTests.swift in Sources */,
