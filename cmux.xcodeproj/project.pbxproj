@@ -2274,6 +2274,7 @@ BE7A0010SIDEBARDOCKLIVE02 /* SidebarDockLiveSectionSemanticsTests.swift in Sourc
 		493EEFD00000000000000008 /* StokdWorkAPIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000007 /* StokdWorkAPIClientTests.swift */; };
 		493EEFD00000000000000203 /* StokdWorkModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000103 /* StokdWorkModels.swift */; };
 		493EEFD00000000000000002 /* StokdWorkPanelKindTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000001 /* StokdWorkPanelKindTests.swift */; };
+		493EEFD00000000000000010 /* StokdWorkPanelViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000009 /* StokdWorkPanelViewModelTests.swift */; };
 		C0DE70530000000000000002 /* submit-cmux-profile in Copy CLI */ = {isa = PBXBuildFile; fileRef = C0DE70530000000000000001 /* submit-cmux-profile */; };
 		D7AB00000000000000B041 /* SupersededPhoneDismissBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AB00000000000000B040 /* SupersededPhoneDismissBuffer.swift */; };
 		875200000000000000000014 /* SurfacePaneMovement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 875200000000000000000004 /* SurfacePaneMovement.swift */; };
@@ -5131,6 +5132,7 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 		493EEFD00000000000000007 /* StokdWorkAPIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkAPIClientTests.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000103 /* StokdWorkModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkModels.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000001 /* StokdWorkPanelKindTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelKindTests.swift; sourceTree = "<group>"; };
+		493EEFD00000000000000009 /* StokdWorkPanelViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelViewModelTests.swift; sourceTree = "<group>"; };
 		C0DE70530000000000000001 /* submit-cmux-profile */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "Resources/bin/submit-cmux-profile"; sourceTree = SOURCE_ROOT; };
 		D7AB00000000000000B040 /* SupersededPhoneDismissBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupersededPhoneDismissBuffer.swift; sourceTree = "<group>"; };
 		875200000000000000000004 /* SurfacePaneMovement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurfacePaneMovement.swift; sourceTree = "<group>"; };
@@ -8476,6 +8478,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				493EEFD00000000000000003 /* StokdRailPanelFlagTests.swift */,
 				493EEFD00000000000000005 /* StokdCLIRunnerTests.swift */,
 				493EEFD00000000000000007 /* StokdWorkAPIClientTests.swift */,
+				493EEFD00000000000000009 /* StokdWorkPanelViewModelTests.swift */,
 				0AA39C1B63CA20A58D275AD0 /* SidebarDockStoreTests.swift */,
 								91E934E3EB9C45478D1A3EDA /* QuadSplitActionTests.swift */,
 				682F73FA96A248028EC8CDBD /* QuadSplitButtonTests.swift */,
@@ -11917,6 +11920,7 @@ BE7A0010SIDEBARDOCKBEHAV02 /* SidebarDockBehaviorTests.swift in Sources */,
 				493EEFD00000000000000004 /* StokdRailPanelFlagTests.swift in Sources */,
 				493EEFD00000000000000008 /* StokdWorkAPIClientTests.swift in Sources */,
 				493EEFD00000000000000002 /* StokdWorkPanelKindTests.swift in Sources */,
+				493EEFD00000000000000010 /* StokdWorkPanelViewModelTests.swift in Sources */,
 				842300000000000000000007 /* SurfaceResumeAgentBindingGenerationTests.swift in Sources */,
 				F6572012A1B2C3D4E5F60718 /* SurfaceResumeBindingCodexUpdateCheckTests.swift in Sources */,
 				842300000000000000000001 /* SurfaceResumeExitedAgentLivenessTests.swift in Sources */,
