@@ -70,6 +70,24 @@ struct StokdWorkAPIClientTests {
         #expect(StokdWorkAPIClient.defaultBaseURL.absoluteString == "http://localhost:8167")
     }
 
+    @Test func userFacingFailureMessagesUseTheLocalizationBoundary() {
+        let messages = [
+            StokdWorkAPIErrorMessage.invalidURL,
+            StokdWorkAPIErrorMessage.nonHTTPResponse,
+            StokdWorkAPIErrorMessage.httpStatus(503),
+            StokdWorkAPIErrorMessage.decoding("fixture detail"),
+            StokdWorkAPIErrorMessage.cancelled,
+            StokdWorkAPIErrorMessage.timeout,
+            StokdWorkAPIErrorMessage.connection,
+            StokdWorkAPIErrorMessage.connection("fixture detail"),
+        ]
+
+        #expect(messages.allSatisfy { !$0.isEmpty })
+        #expect(messages[2].contains("503"))
+        #expect(messages[3].contains("fixture detail"))
+        #expect(messages[7].contains("fixture detail"))
+    }
+
     private func makeClient(baseURL: URL) -> StokdWorkAPIClient {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [StokdWorkFixtureURLProtocol.self]
