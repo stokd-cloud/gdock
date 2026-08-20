@@ -2270,7 +2270,9 @@ BE7A0010SIDEBARDOCKLIVE02 /* SidebarDockLiveSectionSemanticsTests.swift in Sourc
 		493EEFD00000000000000006 /* StokdCLIRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000005 /* StokdCLIRunnerTests.swift */; };
 		493EEFD00000000000000201 /* StokdExecutableResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000101 /* StokdExecutableResolver.swift */; };
 		493EEFD00000000000000004 /* StokdRailPanelFlagTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000003 /* StokdRailPanelFlagTests.swift */; };
+		493EEFD00000000000000204 /* StokdWorkAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000104 /* StokdWorkAPIClient.swift */; };
 		493EEFD00000000000000008 /* StokdWorkAPIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000007 /* StokdWorkAPIClientTests.swift */; };
+		493EEFD00000000000000203 /* StokdWorkModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000103 /* StokdWorkModels.swift */; };
 		493EEFD00000000000000002 /* StokdWorkPanelKindTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000001 /* StokdWorkPanelKindTests.swift */; };
 		C0DE70530000000000000002 /* submit-cmux-profile in Copy CLI */ = {isa = PBXBuildFile; fileRef = C0DE70530000000000000001 /* submit-cmux-profile */; };
 		D7AB00000000000000B041 /* SupersededPhoneDismissBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AB00000000000000B040 /* SupersededPhoneDismissBuffer.swift */; };
@@ -5125,7 +5127,9 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 		493EEFD00000000000000005 /* StokdCLIRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdCLIRunnerTests.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000101 /* StokdExecutableResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdExecutableResolver.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000003 /* StokdRailPanelFlagTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdRailPanelFlagTests.swift; sourceTree = "<group>"; };
+		493EEFD00000000000000104 /* StokdWorkAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkAPIClient.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000007 /* StokdWorkAPIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkAPIClientTests.swift; sourceTree = "<group>"; };
+		493EEFD00000000000000103 /* StokdWorkModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkModels.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000001 /* StokdWorkPanelKindTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelKindTests.swift; sourceTree = "<group>"; };
 		C0DE70530000000000000001 /* submit-cmux-profile */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "Resources/bin/submit-cmux-profile"; sourceTree = SOURCE_ROOT; };
 		D7AB00000000000000B040 /* SupersededPhoneDismissBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupersededPhoneDismissBuffer.swift; sourceTree = "<group>"; };
@@ -7824,6 +7828,8 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 			children = (
 				493EEFD00000000000000101 /* StokdExecutableResolver.swift */,
 				493EEFD00000000000000102 /* StokdCLIRunner.swift */,
+				493EEFD00000000000000103 /* StokdWorkModels.swift */,
+				493EEFD00000000000000104 /* StokdWorkAPIClient.swift */,
 			);
 			path = Stokd;
 			sourceTree = "<group>";
@@ -10603,6 +10609,8 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				D35B71010000000000000001 /* StartupBreadcrumbLog.swift in Sources */,
 				493EEFD00000000000000202 /* StokdCLIRunner.swift in Sources */,
 				493EEFD00000000000000201 /* StokdExecutableResolver.swift in Sources */,
+				493EEFD00000000000000204 /* StokdWorkAPIClient.swift in Sources */,
+				493EEFD00000000000000203 /* StokdWorkModels.swift in Sources */,
 				D7AB00000000000000B041 /* SupersededPhoneDismissBuffer.swift in Sources */,
 				875200000000000000000014 /* SurfacePaneMovement.swift in Sources */,
 				883700000000000000000003 /* SurfaceResumeApprovalLookup.swift in Sources */,
