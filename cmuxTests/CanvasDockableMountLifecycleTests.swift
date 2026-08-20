@@ -13,15 +13,16 @@ import CmuxCanvasUI
 /// terminal, browser, and markdown (mount / render / unmount).
 @MainActor
 final class CanvasDockableMountLifecycleTests: XCTestCase {
-    func testTerminalMountRenderUnmountViaDockable() {
+    func testTerminalMountRenderUnmountViaContent() {
         let panel = TerminalPanel(workspaceId: UUID())
         let container = NSView(frame: NSRect(x: 0, y: 0, width: 640, height: 480))
         var focused: UUID?
 
         let mount = CanvasPaneContentMount(
-            dockable: panel,
+            content: .terminal(panel, .disabled),
             panelId: panel.id,
             container: container,
+            workspaceAttentionColor: WorkspaceAttentionColor(configuredHex: nil),
             onFocusPanel: { focused = $0 },
             makeTerminalVisible: { _ in }
         )
@@ -38,15 +39,20 @@ final class CanvasDockableMountLifecycleTests: XCTestCase {
         _ = focused
     }
 
-    func testBrowserMountRenderUnmountViaDockable() {
+    func testBrowserMountRenderUnmountViaContent() {
         let panel = BrowserPanel(workspaceId: UUID(), renderInitialNavigation: false)
         let container = NSView(frame: NSRect(x: 0, y: 0, width: 640, height: 480))
+        let presentation = CanvasHostedPanelPresentation(
+            isFocused: false,
+            allowsPointerInput: true,
+            pointerInputOwner: container
+        )
 
-        // No canvas host environment → makeDockContentView still sets mount flags.
         let mount = CanvasPaneContentMount(
-            dockable: panel,
+            content: .hosted(panel, NSView(frame: container.bounds), presentation),
             panelId: panel.id,
             container: container,
+            workspaceAttentionColor: WorkspaceAttentionColor(configuredHex: nil),
             onFocusPanel: { _ in }
         )
         XCTAssertTrue(panel.canvasInlineHostingActive)
@@ -65,7 +71,7 @@ final class CanvasDockableMountLifecycleTests: XCTestCase {
         panel.close()
     }
 
-    func testMarkdownMountRenderUnmountViaDockable() throws {
+    func testMarkdownMountRenderUnmountViaContent() throws {
         let fileURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("canvas-mount-\(UUID().uuidString).md")
         try "# mount\n".write(to: fileURL, atomically: true, encoding: .utf8)
@@ -73,11 +79,17 @@ final class CanvasDockableMountLifecycleTests: XCTestCase {
 
         let panel = MarkdownPanel(workspaceId: UUID(), filePath: fileURL.path)
         let container = NSView(frame: NSRect(x: 0, y: 0, width: 640, height: 480))
+        let presentation = CanvasHostedPanelPresentation(
+            isFocused: false,
+            allowsPointerInput: true,
+            pointerInputOwner: container
+        )
 
         let mount = CanvasPaneContentMount(
-            dockable: panel,
+            content: .hosted(panel, NSView(frame: container.bounds), presentation),
             panelId: panel.id,
             container: container,
+            workspaceAttentionColor: WorkspaceAttentionColor(configuredHex: nil),
             onFocusPanel: { _ in }
         )
         XCTAssertTrue(mount is CanvasPaneContentMounting)
@@ -90,18 +102,18 @@ final class CanvasDockableMountLifecycleTests: XCTestCase {
         XCTAssertTrue(container.subviews.isEmpty)
     }
 
-    func testMountStoresAnyDockableNotContentEnum() {
+    func testMountExposesTerminalPanel() {
         let panel = TerminalPanel(workspaceId: UUID())
         let container = NSView(frame: NSRect(x: 0, y: 0, width: 100, height: 100))
         let mount = CanvasPaneContentMount(
-            dockable: panel,
+            content: .terminal(panel, .disabled),
             panelId: panel.id,
             container: container,
+            workspaceAttentionColor: WorkspaceAttentionColor(configuredHex: nil),
             onFocusPanel: { _ in },
             makeTerminalVisible: { _ in }
         )
-        XCTAssertEqual(mount.dockable.dockableKind, .terminal)
-        XCTAssertTrue(mount.dockable is TerminalPanel)
+        XCTAssertTrue(mount.terminalPanel === panel)
         mount.unmount()
     }
 }

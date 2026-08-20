@@ -1,7 +1,11 @@
 import Foundation
 import Testing
 
+#if canImport(cmux_DEV)
+@testable import cmux_DEV
+#else
 @testable import cmux
+#endif
 
 struct GhosttyDockCLIInstallerTests {
     @Test func defaultDestinationIsGdock() {
