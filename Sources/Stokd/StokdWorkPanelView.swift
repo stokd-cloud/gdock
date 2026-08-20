@@ -1,4 +1,50 @@
+import CmuxFoundation
+import Foundation
 import SwiftUI
+
+@MainActor
+enum StokdWorkPresentation {
+    private static let iso8601Formatter = ISO8601DateFormatter()
+    private static let fractionalISO8601Formatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
+    static func statusText(_ rawValue: String, locale: Locale = .current) -> String {
+        switch rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+        case "pending":
+            return String(localized: "stokdWork.status.pending", defaultValue: "Pending", locale: locale)
+        case "in_progress":
+            return String(localized: "stokdWork.status.inProgress", defaultValue: "In progress", locale: locale)
+        case "completed":
+            return String(localized: "stokdWork.status.completed", defaultValue: "Completed", locale: locale)
+        case "failed":
+            return String(localized: "stokdWork.status.failed", defaultValue: "Failed", locale: locale)
+        case "blocked":
+            return String(localized: "stokdWork.status.blocked", defaultValue: "Blocked", locale: locale)
+        case "cancelled":
+            return String(localized: "stokdWork.status.cancelled", defaultValue: "Cancelled", locale: locale)
+        case "creating":
+            return String(localized: "stokdWork.status.creating", defaultValue: "Creating", locale: locale)
+        case "active":
+            return String(localized: "stokdWork.status.active", defaultValue: "Active", locale: locale)
+        case "executing":
+            return String(localized: "stokdWork.status.executing", defaultValue: "Executing", locale: locale)
+        default:
+            return rawValue.replacingOccurrences(of: "_", with: " ")
+        }
+    }
+
+    static func updatedAtText(_ rawValue: String, locale: Locale = .current) -> String {
+        guard let date = fractionalISO8601Formatter.date(from: rawValue)
+            ?? iso8601Formatter.date(from: rawValue)
+        else { return rawValue }
+        return date.formatted(
+            Date.FormatStyle(date: .abbreviated, time: .shortened).locale(locale)
+        )
+    }
+}
 
 struct StokdWorkPanelView: View {
     @ObservedObject var model: StokdWorkPanelViewModel
@@ -6,10 +52,10 @@ struct StokdWorkPanelView: View {
     var body: some View {
         VStack(spacing: 0) {
             toolbar
-            Divider()
             content
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .cmuxFontMagnificationEnvironment()
         .accessibilityIdentifier("stokdWork.panel")
     }
 
@@ -43,8 +89,8 @@ struct StokdWorkPanelView: View {
             .accessibilityIdentifier("stokdWork.refresh")
             .disabled(model.repoSlug == nil || model.state == .loading)
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
+        .rightSidebarChromeBar()
+        .rightSidebarChromeBottomBorder()
     }
 
     private var content: AnyView {
@@ -61,7 +107,7 @@ struct StokdWorkPanelView: View {
             .accessibilityIdentifier("stokdWork.list"))
         case .loading:
             return AnyView(StokdWorkStateView(
-                title: model.state.message,
+                title: model.stateMessage,
                 symbol: "arrow.trianglehead.2.clockwise.rotate.90",
                 showsProgress: true,
                 actionTitle: nil,
@@ -70,7 +116,7 @@ struct StokdWorkPanelView: View {
             .accessibilityIdentifier("stokdWork.state.loading"))
         case .idle:
             return AnyView(StokdWorkStateView(
-                title: model.state.message,
+                title: model.stateMessage,
                 symbol: "checklist",
                 showsProgress: false,
                 actionTitle: nil,
@@ -79,7 +125,7 @@ struct StokdWorkPanelView: View {
             .accessibilityIdentifier("stokdWork.state.idle"))
         case .empty:
             return AnyView(StokdWorkStateView(
-                title: model.state.message,
+                title: model.stateMessage,
                 symbol: "tray",
                 showsProgress: false,
                 actionTitle: nil,
@@ -108,19 +154,19 @@ private struct StokdWorkRowView: View {
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             Image(systemName: row.kind == .task ? "checkmark.circle" : "folder")
-                .font(.system(size: 13, weight: .medium))
+                .cmuxFont(size: 13, weight: .medium)
                 .foregroundStyle(row.kind == .task ? Color.accentColor : Color.secondary)
                 .frame(width: 18, height: 18)
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(row.title)
-                        .font(.system(size: 12, weight: .medium))
+                        .cmuxFont(size: 12, weight: .medium)
                         .lineLimit(2)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
-                    Text(row.status.replacingOccurrences(of: "_", with: " "))
-                        .font(.system(size: 9, weight: .semibold))
+                    Text(StokdWorkPresentation.statusText(row.status))
+                        .cmuxFont(size: 9, weight: .semibold)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .padding(.horizontal, 5)
@@ -130,7 +176,7 @@ private struct StokdWorkRowView: View {
 
                 if !row.detail.isEmpty {
                     Text(row.detail)
-                        .font(.system(size: 11))
+                        .cmuxFont(size: 11)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                 }
@@ -139,9 +185,9 @@ private struct StokdWorkRowView: View {
                     Text(row.kind == .task
                          ? String(localized: "stokdWork.kind.task", defaultValue: "Task")
                          : String(localized: "stokdWork.kind.project", defaultValue: "Project"))
-                    Text(row.updatedAt)
+                    Text(StokdWorkPresentation.updatedAtText(row.updatedAt))
                 }
-                .font(.system(size: 9, design: .monospaced))
+                .cmuxFont(size: 9, design: .monospaced)
                 .foregroundStyle(.tertiary)
                 .lineLimit(1)
             }
@@ -168,12 +214,12 @@ private struct StokdWorkStateView: View {
                     .controlSize(.small)
             } else {
                 Image(systemName: symbol)
-                    .font(.system(size: 24, weight: .regular))
+                    .cmuxFont(size: 24)
                     .foregroundStyle(.secondary)
             }
 
             Text(title)
-                .font(.system(size: 12, weight: .medium))
+                .cmuxFont(size: 12, weight: .medium)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 260)

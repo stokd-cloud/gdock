@@ -68,6 +68,11 @@ extension RightSidebarMode {
             return false
         }
     }
+
+    func resolvedAfterSidebarDockGateChange(isEnabled: Bool) -> RightSidebarMode {
+        guard self == .stokdWork, !isEnabled else { return self }
+        return .files
+    }
 }
 
 enum RightSidebarKeyboardNavigation {

@@ -235,6 +235,7 @@ struct RightSidebarPanelView: View {
         .onChange(of: feedEnabled) { _, _ in refreshModeAvailabilityAndFocusIfNeeded() }
         .onChange(of: dockEnabled) { _, _ in refreshModeAvailabilityAndFocusIfNeeded() }
         .onChange(of: sidebarDockEnabled) { _, enabled in
+            refreshModeAvailabilityAndFocusIfNeeded()
             if enabled {
                 seedDockRailsIfNeeded()
             }

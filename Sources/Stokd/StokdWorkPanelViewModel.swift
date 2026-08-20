@@ -80,6 +80,18 @@ final class StokdWorkPanelViewModel: ObservableObject {
     @Published private(set) var repoSlug: String?
     @Published private(set) var filter: Filter = .all
 
+    var stateMessage: String {
+        guard state == .empty else { return state.message }
+        switch filter {
+        case .all:
+            return state.message
+        case .tasks:
+            return String(localized: "stokdWork.state.empty.tasks", defaultValue: "No tasks found")
+        case .projects:
+            return String(localized: "stokdWork.state.empty.projects", defaultValue: "No projects found")
+        }
+    }
+
     private let loader: any StokdWorkLoading
     private var allRows: [RowSnapshot] = []
     private var requestGeneration: UInt64 = 0
