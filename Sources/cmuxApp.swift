@@ -60,6 +60,9 @@ struct cmuxApp: App {
     @StateObject var closedItemHistoryStore: ClosedItemHistoryStore
     @StateObject private var sidebarState: SidebarState
     @State private var keyboardShortcutSettingsObserver = KeyboardShortcutSettingsObserver.shared
+    /// Drives the Window menu's "Keep Window on Top" check state; the state
+    /// object only republishes what GdockPipFloatingWindowController owns.
+    @State private var pipFloatingWindowMenuState = GdockPipFloatingWindowMenuState.shared
     @AppStorage(AppearanceSettings.appearanceModeKey) private var appearanceMode = AppearanceSettings.defaultMode.rawValue
     @AppStorage(TitlebarControlsStyle.storageKey) private var titlebarControlsStyle = TitlebarControlsStyle.defaultRawValue
     @AppStorage(DevBuildBannerDebugSettings.sidebarBannerVisibleKey)
@@ -922,6 +925,18 @@ struct cmuxApp: App {
     @CommandsBuilder
     private var windowAndViewCommands: some Commands {
         CommandGroup(after: .windowArrangement) {
+            // gdock PIP: pin the focused window above other apps and show it on
+            // every Space. Routes through the shared controller path the
+            // command palette also uses.
+            Toggle(
+                String(localized: "menu.window.gdock.keepOnTop", defaultValue: "Keep Window on Top"),
+                isOn: Binding(
+                    get: { pipFloatingWindowMenuState.isFocusedWindowPinned },
+                    set: { _ in pipFloatingWindowMenuState.toggleFocusedWindow() }
+                )
+            )
+            .disabled(!pipFloatingWindowMenuState.canToggle)
+
             Button(String(localized: "menu.window.taskManager", defaultValue: "Task Manager...")) {
                 TaskManagerWindowController.shared.show()
             }
