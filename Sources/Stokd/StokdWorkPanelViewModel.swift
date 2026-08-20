@@ -122,6 +122,10 @@ final class StokdWorkPanelViewModel: ObservableObject {
         applyFilter()
     }
 
+    func refreshCurrentRepository() {
+        refresh(repoSlug: repoSlug)
+    }
+
     private func apply(_ payload: StokdWorkPayload) {
         guard let error = payload.error else {
             allRows = Self.sortedRows(tasks: payload.tasks, projects: payload.projects)

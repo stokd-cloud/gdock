@@ -1,5 +1,6 @@
 import AppKit
 import Combine
+import CmuxGit
 import SwiftUI
 
 @MainActor
@@ -21,11 +22,24 @@ final class RightSidebarToolPanel: Panel, ObservableObject {
     private var fileExplorerStoreStorage: FileExplorerStore?
     private var fileExplorerStateStorage: FileExplorerState?
     private var sessionIndexStoreStorage: SessionIndexStore?
+    private var stokdWorkViewModelStorage: StokdWorkPanelViewModel?
     private var workspaceObservationCancellable: AnyCancellable?
+    private let stokdLoader: any StokdWorkLoading
+    private let stokdRepositoryDiscovering: any GitRepositoryDiscovering
+    private var stokdRepositoryResolutionTask: Task<Void, Never>?
+    private var stokdRepositoryResolutionGeneration: UInt64 = 0
+    private var stokdResolvedDirectory: String?
 
-    init(workspace: Workspace, mode: RightSidebarMode) {
+    init(
+        workspace: Workspace,
+        mode: RightSidebarMode,
+        stokdLoader: any StokdWorkLoading = StokdWorkAPIClient(),
+        stokdRepositoryDiscovering: any GitRepositoryDiscovering = GitMetadataService()
+    ) {
         self.id = UUID()
         self.mode = mode
+        self.stokdLoader = stokdLoader
+        self.stokdRepositoryDiscovering = stokdRepositoryDiscovering
         reattach(to: workspace)
     }
 
@@ -61,6 +75,16 @@ final class RightSidebarToolPanel: Panel, ObservableObject {
         return store
     }
 
+    var stokdWorkViewModel: StokdWorkPanelViewModel {
+        if let model = stokdWorkViewModelStorage { return model }
+        let model = StokdWorkPanelViewModel(loader: stokdLoader)
+        stokdWorkViewModelStorage = model
+        if let workspace {
+            syncStokdWorkRepository(from: workspace)
+        }
+        return model
+    }
+
     var displayTitle: String { mode.label }
     var displayIcon: String? { mode.symbolName }
 
@@ -86,7 +110,10 @@ final class RightSidebarToolPanel: Panel, ObservableObject {
         case .sessions:
             guard let store = sessionIndexStoreStorage else { return }
             syncSessionIndexRoot(from: workspace, store: store)
-        case .feed, .dock, .stokdWork, .customSidebar:
+        case .stokdWork:
+            guard stokdWorkViewModelStorage != nil else { return }
+            syncStokdWorkRepository(from: workspace)
+        case .feed, .dock, .customSidebar:
             break
         }
     }
@@ -131,6 +158,7 @@ final class RightSidebarToolPanel: Panel, ObservableObject {
         sessionIndexFocusAnchorView = nil
         fileExplorerStoreStorage?.applyWorkspaceRoot(.none)
         sessionIndexStoreStorage?.setCurrentDirectoryIfChanged(nil)
+        stokdRepositoryResolutionTask?.cancel()
         workspaceObservationCancellable = nil
     }
 
@@ -238,6 +266,32 @@ final class RightSidebarToolPanel: Panel, ObservableObject {
         let directory = workspace.currentDirectory.trimmingCharacters(in: .whitespacesAndNewlines)
         store.setCurrentDirectoryIfChanged(directory.isEmpty ? nil : directory)
     }
+
+    private func syncStokdWorkRepository(from workspace: Workspace) {
+        guard let model = stokdWorkViewModelStorage else { return }
+        let directory = workspace.usesRemoteDirectoryProvenance
+            ? ""
+            : workspace.currentDirectory.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard directory != stokdResolvedDirectory else { return }
+        stokdResolvedDirectory = directory
+        stokdRepositoryResolutionGeneration &+= 1
+        let generation = stokdRepositoryResolutionGeneration
+        stokdRepositoryResolutionTask?.cancel()
+
+        guard !directory.isEmpty else {
+            model.refresh(repoSlug: nil)
+            return
+        }
+
+        let repositoryDiscovering = stokdRepositoryDiscovering
+        stokdRepositoryResolutionTask = Task { [weak self, weak model] in
+            let repoSlug = await repositoryDiscovering.repositorySlugs(forDirectory: directory).first
+            guard let self,
+                  let model,
+                  self.stokdRepositoryResolutionGeneration == generation else { return }
+            model.refresh(repoSlug: repoSlug)
+        }
+    }
 }
 
 struct RightSidebarToolPanelView: View {
@@ -299,7 +353,7 @@ struct RightSidebarToolPanelView: View {
                     .frame(width: 0, height: 0)
             )
         case .stokdWork:
-            StokdWorkPlaceholderView()
+            StokdWorkPanelView(model: panel.stokdWorkViewModel)
         case .feed, .dock, .customSidebar:
             EmptyView()
         }

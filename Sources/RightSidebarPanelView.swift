@@ -316,7 +316,7 @@ struct RightSidebarPanelView: View {
                         sessionIndexStore.setCurrentDirectoryIfChanged(sessionIndexDirectory)
                     }
             case .stokdWork:
-                StokdWorkPlaceholderView()
+                StokdWorkPanelView(model: tool.stokdWorkViewModel)
             case .feed, .dock, .customSidebar:
                 Color.clear
             }

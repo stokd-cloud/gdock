@@ -27,12 +27,12 @@ struct StokdWorkPanelIntegrationTests {
 
         let firstModel = panel.stokdWorkViewModel
         #expect(firstModel === panel.stokdWorkViewModel)
-        await waitUntil { firstModel.repoSlug == "owner/first" }
+        await waitUntil { firstModel.repoSlug == "owner/first" && firstModel.state == .empty }
         #expect(await loader.requestedRepoSlugs() == ["owner/first"])
 
         workspace.currentDirectory = "/repos/second"
         panel.syncWorkspaceRoot(from: workspace)
-        await waitUntil { firstModel.repoSlug == "owner/second" }
+        await waitUntil { firstModel.repoSlug == "owner/second" && firstModel.state == .empty }
 
         #expect(firstModel === panel.stokdWorkViewModel)
         #expect(await loader.requestedRepoSlugs() == ["owner/first", "owner/second"])
