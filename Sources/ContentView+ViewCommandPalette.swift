@@ -21,6 +21,29 @@ extension ContentView {
                 keywords: ["task", "manager", "process", "cpu", "memory", "kill"]
             ),
             CommandPaletteCommandContribution(
+                commandId: GdockPipFloatingWindowController.commandId,
+                title: constant(String(
+                    localized: "command.gdock.pipFloatingWindow.title",
+                    defaultValue: "Keep Window on Top"
+                )),
+                subtitle: constant(String(
+                    localized: "command.closeWindow.subtitle",
+                    defaultValue: "Window"
+                )),
+                keywords: [
+                    "gdock",
+                    "pip",
+                    "picture in picture",
+                    "float",
+                    "floating",
+                    "always on top",
+                    "keep on top",
+                    "pin",
+                    "monitor",
+                    "spaces",
+                ]
+            ),
+            CommandPaletteCommandContribution(
                 commandId: "palette.sleepyMode",
                 title: constant(String(localized: "command.sleepyMode.title", defaultValue: "Sleepy Mode")),
                 subtitle: constant(String(localized: "command.sleepyMode.subtitle", defaultValue: "View")),
@@ -80,6 +103,10 @@ extension ContentView {
         }
         registry.register(commandId: "palette.sleepyMode") {
             SleepyModeController.shared.activate()
+        }
+        registry.register(commandId: GdockPipFloatingWindowController.commandId) {
+            // Shared action path: the Window menu item runs the same call.
+            GdockPipFloatingWindowMenuState.shared.toggleFocusedWindow()
         }
     }
 }

@@ -9598,6 +9598,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                     workspaceIds: manager.tabs.map { $0.id }
                 )
             }
+            // The persisted "pinned" flag deliberately survives a close so the
+            // window comes back pinned; only the in-process level/behavior
+            // snapshot is dropped here.
+            GdockPipFloatingWindowController.shared.forgetSnapshot(windowId: windowId)
             self.mainWindowControllers.removeAll(where: { $0 === controller })
         }
         controller.shouldClose = { [weak self] in
@@ -9615,6 +9619,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             fileExplorerState: fileExplorerState,
             cmuxConfigStore: cmuxConfigStore
         )
+        // gdock PIP: a window the user pinned "keep on top" comes back pinned.
+        GdockPipFloatingWindowController.shared.applyPersistedState(to: window, windowId: windowId)
         restoreWindowDockSessionSnapshot(forWindowId: windowId, from: sessionWindowSnapshot, excludingStableIdentities: excludingStableIdentitiesFromSessionSnapshot)
         publishCmuxWindowLifecycle(name: "window.created", windowId: windowId, origin: "create")
         installFileDropOverlay(on: window, tabManager: tabManager)
