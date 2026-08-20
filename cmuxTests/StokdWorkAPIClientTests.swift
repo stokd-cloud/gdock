@@ -106,7 +106,10 @@ private final class StokdWorkFixtureURLProtocol: URLProtocol, @unchecked Sendabl
         let body: Data
         let total: String
 
-        if url.host == "decode-error.local" {
+        if url.host == "http-error.local" {
+            body = Data("[]".utf8)
+            total = "0"
+        } else if url.host == "decode-error.local" {
             body = Data("not-json".utf8)
             total = "0"
         } else if url.host == "empty.local" {
