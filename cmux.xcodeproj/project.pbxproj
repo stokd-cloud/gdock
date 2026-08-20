@@ -1187,11 +1187,11 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		F17F00000000000000000001 /* FullWidthTabPersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F17F00000000000000000002 /* FullWidthTabPersistenceTests.swift */; };
 		B900000BA1B2C3D4E5F60719 /* gdock in Copy CLI */ = {isa = PBXBuildFile; fileRef = B9000004A1B2C3D4E5F60719 /* gdock */; };
 		GDOCKAWSG00000000000004 /* GdockAutoWorkspaceGroupModeSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000003 /* GdockAutoWorkspaceGroupModeSettings.swift */; };
-		GDOCKAWSG00000000000004 /* GdockAutoWorkspaceGroupModeSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000003 /* GdockAutoWorkspaceGroupModeSettings.swift */; };
-		GDOCKAWSG00000000000002 /* GdockAutoWorkspaceGroupReconciler.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */; };
 		GDOCKAWSG00000000000002 /* GdockAutoWorkspaceGroupReconciler.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */; };
 		GDOCKAWSG00000000000008 /* GdockAutoWorkspaceGroupReconcilerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000007 /* GdockAutoWorkspaceGroupReconcilerTests.swift */; };
-		GDOCKAWSG00000000000008 /* GdockAutoWorkspaceGroupReconcilerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000007 /* GdockAutoWorkspaceGroupReconcilerTests.swift */; };
+		GDOCKPIP000000000000004 /* GdockPipFloatingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPIP000000000000003 /* GdockPipFloatingWindowController.swift */; };
+		GDOCKPIP000000000000002 /* GdockPipFloatingWindowPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPIP000000000000001 /* GdockPipFloatingWindowPolicy.swift */; };
+		GDOCKPIP000000000000006 /* GdockPipFloatingWindowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPIP000000000000005 /* GdockPipFloatingWindowTests.swift */; };
 		85510001A1B2C3D4E5F60001 /* GhosttyApp+ChildExitPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85510002A1B2C3D4E5F60001 /* GhosttyApp+ChildExitPolicy.swift */; };
 		B88357000000000000000011 /* GhosttyApp+RuntimeClipboardRead.swift in Sources */ = {isa = PBXBuildFile; fileRef = B88357000000000000000012 /* GhosttyApp+RuntimeClipboardRead.swift */; };
 		D0B10012A1B2C3D4E5F60001 /* GhosttyApp+SurfaceConfigurationReload.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B10013A1B2C3D4E5F60001 /* GhosttyApp+SurfaceConfigurationReload.swift */; };
@@ -2304,7 +2304,6 @@ BE7A0010SIDEBARDOCKLIVE02 /* SidebarDockLiveSectionSemanticsTests.swift in Sourc
 		D86840000000000000000015 /* TabManager+DockSessionRestore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D86840000000000000000016 /* TabManager+DockSessionRestore.swift */; };
 		E3309A03 /* TabManager+EqualizeSplits.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3309A04 /* TabManager+EqualizeSplits.swift */; };
 		E3B7A400000000000000000B /* TabManager+FocusHistoryHosting.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B7A400000000000000000C /* TabManager+FocusHistoryHosting.swift */; };
-		GDOCKAWSG00000000000006 /* TabManager+GdockAutoWorkspaceGroups.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000005 /* TabManager+GdockAutoWorkspaceGroups.swift */; };
 		GDOCKAWSG00000000000006 /* TabManager+GdockAutoWorkspaceGroups.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000005 /* TabManager+GdockAutoWorkspaceGroups.swift */; };
 		737100000000000000000001 /* TabManager+NonInteractiveClose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 737100000000000000000002 /* TabManager+NonInteractiveClose.swift */; };
 		E3B7A4000000000000000009 /* TabManager+NotificationDismissalHosting.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B7A400000000000000000A /* TabManager+NotificationDismissalHosting.swift */; };
@@ -4053,11 +4052,11 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		F17F00000000000000000002 /* FullWidthTabPersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullWidthTabPersistenceTests.swift; sourceTree = "<group>"; };
 		B9000004A1B2C3D4E5F60719 /* gdock */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = gdock; sourceTree = BUILT_PRODUCTS_DIR; };
 		GDOCKAWSG00000000000003 /* GdockAutoWorkspaceGroupModeSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupModeSettings.swift; sourceTree = "<group>"; };
-		GDOCKAWSG00000000000003 /* GdockAutoWorkspaceGroupModeSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupModeSettings.swift; sourceTree = "<group>"; };
-		GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupReconciler.swift; sourceTree = "<group>"; };
 		GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupReconciler.swift; sourceTree = "<group>"; };
 		GDOCKAWSG00000000000007 /* GdockAutoWorkspaceGroupReconcilerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupReconcilerTests.swift; sourceTree = "<group>"; };
-		GDOCKAWSG00000000000007 /* GdockAutoWorkspaceGroupReconcilerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupReconcilerTests.swift; sourceTree = "<group>"; };
+		GDOCKPIP000000000000003 /* GdockPipFloatingWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPipFloatingWindowController.swift; sourceTree = "<group>"; };
+		GDOCKPIP000000000000001 /* GdockPipFloatingWindowPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPipFloatingWindowPolicy.swift; sourceTree = "<group>"; };
+		GDOCKPIP000000000000005 /* GdockPipFloatingWindowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPipFloatingWindowTests.swift; sourceTree = "<group>"; };
 		A5001017 /* ghostty.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ghostty.h; sourceTree = "<group>"; };
 		85510002A1B2C3D4E5F60001 /* GhosttyApp+ChildExitPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GhosttyApp+ChildExitPolicy.swift"; sourceTree = "<group>"; };
 		B88357000000000000000012 /* GhosttyApp+RuntimeClipboardRead.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GhosttyApp+RuntimeClipboardRead.swift"; sourceTree = "<group>"; };
@@ -5153,7 +5152,6 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 		D86840000000000000000016 /* TabManager+DockSessionRestore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TabManager+DockSessionRestore.swift"; sourceTree = "<group>"; };
 		E3309A04 /* TabManager+EqualizeSplits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TabManager+EqualizeSplits.swift"; sourceTree = "<group>"; };
 		E3B7A400000000000000000C /* TabManager+FocusHistoryHosting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TabManager+FocusHistoryHosting.swift"; sourceTree = "<group>"; };
-		GDOCKAWSG00000000000005 /* TabManager+GdockAutoWorkspaceGroups.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TabManager+GdockAutoWorkspaceGroups.swift"; sourceTree = "<group>"; };
 		GDOCKAWSG00000000000005 /* TabManager+GdockAutoWorkspaceGroups.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TabManager+GdockAutoWorkspaceGroups.swift"; sourceTree = "<group>"; };
 		737100000000000000000002 /* TabManager+NonInteractiveClose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TabManager+NonInteractiveClose.swift"; sourceTree = "<group>"; };
 		E3B7A400000000000000000A /* TabManager+NotificationDismissalHosting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TabManager+NotificationDismissalHosting.swift"; sourceTree = "<group>"; };
@@ -6607,6 +6605,8 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 				604500100000000000000008 /* TabManager+WindowTitle.swift */,
 				GDOCKAWSG00000000000005 /* TabManager+GdockAutoWorkspaceGroups.swift */,
 				GDOCKAWSG00000000000003 /* GdockAutoWorkspaceGroupModeSettings.swift */,
+				GDOCKPIP000000000000001 /* GdockPipFloatingWindowPolicy.swift */,
+				GDOCKPIP000000000000003 /* GdockPipFloatingWindowController.swift */,
 				GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */,
 				01BAA63BCC864AB59E2E8A8D /* QuadSplitAction.swift */,
 				E2167180241244A596651E6D /* QuadSplitPlanner.swift */,
@@ -8427,6 +8427,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				C0DE48000000000000000002 /* SidebarProviderMenuRegressionTests.swift */,
 				C0DEF4120000000000000002 /* CommandPaletteSettingsToggleTests.swift */,
 				GDOCKAWSG00000000000007 /* GdockAutoWorkspaceGroupReconcilerTests.swift */,
+				GDOCKPIP000000000000005 /* GdockPipFloatingWindowTests.swift */,
 				606500010000000000000002 /* MenuBarOnlyActivationPolicyTests.swift */,
 				B37A0000000000000000000C /* FileExplorerStateModePersistenceTests.swift */,
 				BC39DE4B96D1931C52AF7D68 /* SidebarOrderingTests.swift */,
@@ -9865,9 +9866,9 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 					C0DEFB100000000000000001 /* FocusSurfaceBroadcaster.swift in Sources */,
 				AA5269A0C0DE0002FACE0002 /* ForeignFirstResponderPolicy.swift in Sources */,
 				GDOCKAWSG00000000000004 /* GdockAutoWorkspaceGroupModeSettings.swift in Sources */,
-				GDOCKAWSG00000000000004 /* GdockAutoWorkspaceGroupModeSettings.swift in Sources */,
 				GDOCKAWSG00000000000002 /* GdockAutoWorkspaceGroupReconciler.swift in Sources */,
-				GDOCKAWSG00000000000002 /* GdockAutoWorkspaceGroupReconciler.swift in Sources */,
+				GDOCKPIP000000000000004 /* GdockPipFloatingWindowController.swift in Sources */,
+				GDOCKPIP000000000000002 /* GdockPipFloatingWindowPolicy.swift in Sources */,
 				85510001A1B2C3D4E5F60001 /* GhosttyApp+ChildExitPolicy.swift in Sources */,
 				B88357000000000000000011 /* GhosttyApp+RuntimeClipboardRead.swift in Sources */,
 				D0B10012A1B2C3D4E5F60001 /* GhosttyApp+SurfaceConfigurationReload.swift in Sources */,
@@ -10607,7 +10608,6 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				D86840000000000000000015 /* TabManager+DockSessionRestore.swift in Sources */,
 				E3309A03 /* TabManager+EqualizeSplits.swift in Sources */,
 				E3B7A400000000000000000B /* TabManager+FocusHistoryHosting.swift in Sources */,
-				GDOCKAWSG00000000000006 /* TabManager+GdockAutoWorkspaceGroups.swift in Sources */,
 				GDOCKAWSG00000000000006 /* TabManager+GdockAutoWorkspaceGroups.swift in Sources */,
 				737100000000000000000001 /* TabManager+NonInteractiveClose.swift in Sources */,
 				E3B7A4000000000000000009 /* TabManager+NotificationDismissalHosting.swift in Sources */,
@@ -11568,7 +11568,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				F17F00000000000000000003 /* FullWidthTabCommandTests.swift in Sources */,
 				F17F00000000000000000001 /* FullWidthTabPersistenceTests.swift in Sources */,
 				GDOCKAWSG00000000000008 /* GdockAutoWorkspaceGroupReconcilerTests.swift in Sources */,
-				GDOCKAWSG00000000000008 /* GdockAutoWorkspaceGroupReconcilerTests.swift in Sources */,
+				GDOCKPIP000000000000006 /* GdockPipFloatingWindowTests.swift in Sources */,
 				1718C0DE1718C0DE17180002 /* GhosttyCommandShiftForwardingTests.swift in Sources */,
 				A11EB0000000000000000000 /* GhosttyConfigPathResolverTests.swift in Sources */,
 				F4000000A1B2C3D4E5F60718 /* GhosttyConfigTests.swift in Sources */,
