@@ -172,12 +172,12 @@ final class CanvasPaneContentMount: CanvasPaneContentMounting {
     func unmount() {
         switch content {
         case .terminal(let panel, _):
-            let hostedView = panel.hostedView
-            hostedView.setActive(false)
-            hostedView.setFocusHandler(nil)
-            hostedView.setInactiveOverlay(color: .clear, opacity: 0, visible: false)
-            panel.surface.setOcclusion(true)
-            hostedView.removeFromSuperview()
+            // Shared teardown path: `tearDownDockMount()` performs the same
+            // deactivate / clear-focus / occlude / detach sequence AND bumps
+            // `viewReattachToken`, which is what makes the split-layout
+            // representable rebind the portal on its next update. Duplicating
+            // the sequence here silently dropped that bump.
+            panel.tearDownDockMount()
         case .hosted(let panel, let view, _):
             if let simulatorPanel = panel as? SimulatorPanel {
                 simulatorPanel.setVisibleInUI(false)
