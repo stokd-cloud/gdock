@@ -149723,6 +149723,142 @@
         }
       }
     },
+    "stokdWork.error.cancelled": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Stokd API request was cancelled"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stokd API リクエストがキャンセルされました"
+          }
+        }
+      }
+    },
+    "stokdWork.error.connection": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to connect to the Stokd API"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stokd API に接続できません"
+          }
+        }
+      }
+    },
+    "stokdWork.error.connectionDetail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to connect to the Stokd API: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stokd API に接続できません: %@"
+          }
+        }
+      }
+    },
+    "stokdWork.error.decoding": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to read the Stokd API response: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stokd API の応答を読み取れません: %@"
+          }
+        }
+      }
+    },
+    "stokdWork.error.httpStatus": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Stokd API returned HTTP %lld"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stokd API から HTTP %lld が返されました"
+          }
+        }
+      }
+    },
+    "stokdWork.error.invalidURL": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Stokd API URL is invalid"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stokd API の URL が無効です"
+          }
+        }
+      }
+    },
+    "stokdWork.error.nonHTTPResponse": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Stokd API returned a non-HTTP response"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stokd API から HTTP 以外の応答が返されました"
+          }
+        }
+      }
+    },
+    "stokdWork.error.timeout": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Stokd API request timed out"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stokd API リクエストがタイムアウトしました"
+          }
+        }
+      }
+    },
     "stokdWork.filter.all": {
       "extractionState": "manual",
       "localizations": {

@@ -1,5 +1,51 @@
 import Foundation
 
+enum StokdWorkAPIErrorMessage {
+    static var invalidURL: String {
+        String(localized: "stokdWork.error.invalidURL", defaultValue: "The Stokd API URL is invalid")
+    }
+
+    static var nonHTTPResponse: String {
+        String(
+            localized: "stokdWork.error.nonHTTPResponse",
+            defaultValue: "The Stokd API returned a non-HTTP response"
+        )
+    }
+
+    static func httpStatus(_ statusCode: Int) -> String {
+        String(
+            localized: "stokdWork.error.httpStatus",
+            defaultValue: "The Stokd API returned HTTP \(statusCode)"
+        )
+    }
+
+    static func decoding(_ detail: String) -> String {
+        String(
+            localized: "stokdWork.error.decoding",
+            defaultValue: "Unable to read the Stokd API response: \(detail)"
+        )
+    }
+
+    static var cancelled: String {
+        String(localized: "stokdWork.error.cancelled", defaultValue: "The Stokd API request was cancelled")
+    }
+
+    static var timeout: String {
+        String(localized: "stokdWork.error.timeout", defaultValue: "The Stokd API request timed out")
+    }
+
+    static var connection: String {
+        String(localized: "stokdWork.error.connection", defaultValue: "Unable to connect to the Stokd API")
+    }
+
+    static func connection(_ detail: String) -> String {
+        String(
+            localized: "stokdWork.error.connectionDetail",
+            defaultValue: "Unable to connect to the Stokd API: \(detail)"
+        )
+    }
+}
+
 actor StokdWorkAPIClient {
     static let defaultBaseURL: URL = {
         var components = URLComponents()
@@ -41,7 +87,7 @@ actor StokdWorkAPIClient {
     ) async -> StokdPageResult<Item> {
         _ = itemType
         guard let url = requestURL(path: path, query: query) else {
-            return failure(query: query, kind: .invalidURL, message: "Invalid Stokd API URL")
+            return failure(query: query, kind: .invalidURL, message: StokdWorkAPIErrorMessage.invalidURL)
         }
 
         var request = URLRequest(url: url)
@@ -55,14 +101,14 @@ actor StokdWorkAPIClient {
                 return failure(
                     query: query,
                     kind: .nonHTTPResponse,
-                    message: "Stokd API returned a non-HTTP response"
+                    message: StokdWorkAPIErrorMessage.nonHTTPResponse
                 )
             }
             guard (200..<300).contains(response.statusCode) else {
                 return failure(
                     query: query,
                     kind: .httpStatus(response.statusCode),
-                    message: "Stokd API returned HTTP \(response.statusCode)"
+                    message: StokdWorkAPIErrorMessage.httpStatus(response.statusCode)
                 )
             }
 
@@ -89,22 +135,22 @@ actor StokdWorkAPIClient {
                 return failure(
                     query: query,
                     kind: .decoding,
-                    message: "Unable to decode the Stokd API response: \(error.localizedDescription)"
+                    message: StokdWorkAPIErrorMessage.decoding(error.localizedDescription)
                 )
             }
         } catch is CancellationError {
-            return failure(query: query, kind: .cancelled, message: "Stokd API request was cancelled")
+            return failure(query: query, kind: .cancelled, message: StokdWorkAPIErrorMessage.cancelled)
         } catch let error as URLError {
             let kind: StokdWorkAPIError.Kind = error.code == .timedOut ? .timeout : .connection
             let message = kind == .timeout
-                ? "Stokd API request timed out"
-                : "Unable to connect to the Stokd API"
+                ? StokdWorkAPIErrorMessage.timeout
+                : StokdWorkAPIErrorMessage.connection
             return failure(query: query, kind: kind, message: message)
         } catch {
             return failure(
                 query: query,
                 kind: .connection,
-                message: "Unable to connect to the Stokd API: \(error.localizedDescription)"
+                message: StokdWorkAPIErrorMessage.connection(error.localizedDescription)
             )
         }
     }
