@@ -32,4 +32,19 @@ struct StokdRailPanelFlagTests {
         )
         #expect(StokdRailPanelAvailability.settingKey == "sidebar.beta.dock.enabled")
     }
+
+    @Test func disablingDockGateClampsSelectedWorkMode() {
+        #expect(
+            RightSidebarMode.stokdWork.resolvedAfterSidebarDockGateChange(isEnabled: false)
+                == .files
+        )
+        #expect(
+            RightSidebarMode.stokdWork.resolvedAfterSidebarDockGateChange(isEnabled: true)
+                == .stokdWork
+        )
+        #expect(
+            RightSidebarMode.find.resolvedAfterSidebarDockGateChange(isEnabled: false)
+                == .find
+        )
+    }
 }

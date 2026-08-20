@@ -80,4 +80,22 @@ struct StokdWorkPanelPersistenceTests {
         #expect(snapshot.rightRail == nil)
         #expect(SessionSnapshotSchema.currentVersion == 1)
     }
+
+    @Test func malformedOptionalRailDoesNotInvalidateWindowSnapshot() throws {
+        let data = try #require("""
+        {
+          "tabManager": { "workspaces": [] },
+          "sidebar": { "isVisible": true, "selection": "tabs" },
+          "leftRail": { "sections": "corrupt" },
+          "rightRail": 42
+        }
+        """.data(using: .utf8))
+
+        let snapshot = try JSONDecoder().decode(SessionWindowSnapshot.self, from: data)
+
+        #expect(snapshot.tabManager.workspaces.isEmpty)
+        #expect(snapshot.leftRail == nil)
+        #expect(snapshot.rightRail == nil)
+        #expect(SessionSnapshotSchema.currentVersion == 1)
+    }
 }

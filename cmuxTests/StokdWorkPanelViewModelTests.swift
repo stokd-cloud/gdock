@@ -92,6 +92,44 @@ struct StokdWorkPanelViewModelTests {
         #expect(failure.state.message == "Service unavailable")
     }
 
+    @Test func filteredEmptyStateNamesTheRequestedWorkKind() async {
+        let projectsOnly = StokdWorkPanelViewModel(loader: ImmediateStokdWorkLoader(
+            payload: StokdWorkPayload(
+                tasks: [],
+                projects: [project(id: "project", title: "Project", updatedAt: "2026-08-20T11:00:00Z")],
+                error: nil
+            )
+        ))
+        projectsOnly.refresh(repoSlug: "owner/repo")
+        await waitUntil { projectsOnly.state == .populated }
+
+        projectsOnly.setFilter(.tasks)
+
+        #expect(projectsOnly.state == .empty)
+        #expect(projectsOnly.stateMessage == String(
+            localized: "stokdWork.state.empty.tasks",
+            defaultValue: "No tasks found"
+        ))
+
+        let tasksOnly = StokdWorkPanelViewModel(loader: ImmediateStokdWorkLoader(
+            payload: StokdWorkPayload(
+                tasks: [task(id: "task", title: "Task", updatedAt: "2026-08-20T11:00:00Z")],
+                projects: [],
+                error: nil
+            )
+        ))
+        tasksOnly.refresh(repoSlug: "owner/repo")
+        await waitUntil { tasksOnly.state == .populated }
+
+        tasksOnly.setFilter(.projects)
+
+        #expect(tasksOnly.state == .empty)
+        #expect(tasksOnly.stateMessage == String(
+            localized: "stokdWork.state.empty.projects",
+            defaultValue: "No projects found"
+        ))
+    }
+
     private func waitUntil(
         attempts: Int = 200,
         _ condition: @escaping @MainActor () -> Bool

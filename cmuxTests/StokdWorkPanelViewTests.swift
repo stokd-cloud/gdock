@@ -29,4 +29,25 @@ struct StokdWorkPanelViewTests {
         ))
         #expect(store.focusedToolMode() == .stokdWork)
     }
+
+    @Test func presentationLocalizesKnownStatusesAndFormatsTimestamps() {
+        let japanese = Locale(identifier: "ja")
+
+        #expect(
+            StokdWorkPresentation.statusText("in_progress", locale: japanese)
+                == String(
+                    localized: "stokdWork.status.inProgress",
+                    defaultValue: "In progress",
+                    locale: japanese
+                )
+        )
+        #expect(StokdWorkPresentation.statusText("future_state", locale: japanese) == "future state")
+        #expect(
+            StokdWorkPresentation.updatedAtText(
+                "2026-08-20T11:00:00Z",
+                locale: japanese
+            ) != "2026-08-20T11:00:00Z"
+        )
+        #expect(StokdWorkPresentation.updatedAtText("not-a-date", locale: japanese) == "not-a-date")
+    }
 }
