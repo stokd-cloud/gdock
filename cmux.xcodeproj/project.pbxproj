@@ -2266,7 +2266,9 @@ BE7A0010SIDEBARDOCKLIVE02 /* SidebarDockLiveSectionSemanticsTests.swift in Sourc
 		F20F85FC5900550685FA33AD /* StackAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A8BD195031FC4B82B4354297 /* StackAuth */; };
 		C0DE70500000000000000002 /* start-cmux-profiling in Copy CLI */ = {isa = PBXBuildFile; fileRef = C0DE70500000000000000001 /* start-cmux-profiling */; };
 		D35B71010000000000000001 /* StartupBreadcrumbLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35B71010000000000000002 /* StartupBreadcrumbLog.swift */; };
+		493EEFD00000000000000202 /* StokdCLIRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000102 /* StokdCLIRunner.swift */; };
 		493EEFD00000000000000006 /* StokdCLIRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000005 /* StokdCLIRunnerTests.swift */; };
+		493EEFD00000000000000201 /* StokdExecutableResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000101 /* StokdExecutableResolver.swift */; };
 		493EEFD00000000000000004 /* StokdRailPanelFlagTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000003 /* StokdRailPanelFlagTests.swift */; };
 		493EEFD00000000000000002 /* StokdWorkPanelKindTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000001 /* StokdWorkPanelKindTests.swift */; };
 		C0DE70530000000000000002 /* submit-cmux-profile in Copy CLI */ = {isa = PBXBuildFile; fileRef = C0DE70530000000000000001 /* submit-cmux-profile */; };
@@ -5118,7 +5120,9 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 		A5C017000000000000000006 /* StackAccountAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StackAccountAvatarView.swift; sourceTree = "<group>"; };
 		C0DE70500000000000000001 /* start-cmux-profiling */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "Resources/bin/start-cmux-profiling"; sourceTree = SOURCE_ROOT; };
 		D35B71010000000000000002 /* StartupBreadcrumbLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/StartupBreadcrumbLog.swift; sourceTree = "<group>"; };
+		493EEFD00000000000000102 /* StokdCLIRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdCLIRunner.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000005 /* StokdCLIRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdCLIRunnerTests.swift; sourceTree = "<group>"; };
+		493EEFD00000000000000101 /* StokdExecutableResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdExecutableResolver.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000003 /* StokdRailPanelFlagTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdRailPanelFlagTests.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000001 /* StokdWorkPanelKindTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelKindTests.swift; sourceTree = "<group>"; };
 		C0DE70530000000000000001 /* submit-cmux-profile */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "Resources/bin/submit-cmux-profile"; sourceTree = SOURCE_ROOT; };
@@ -7799,6 +7803,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				C51A7300000000000000000C /* TerminalController+ControlSimulatorOperations.swift */,
 				C51A74000000000000000002 /* TerminalController+ControlSimulatorOperationPayloads.swift */,
 				C51A7300000000000000000E /* TerminalController+ControlSimulatorCameraPayloads.swift */,
+				493EEFD00000000000000100 /* Stokd */,
 				105D8421DF4E2E09D255D785 /* Auth */,
 				590E4F5F342E5B27010ECC8D /* Cloud */,
 				FEED0000000000000000F003 /* Feed */,
@@ -7810,6 +7815,15 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				31B04B98376C9BA8B9E44DCB /* TerminalViewportUITestRecorder.swift */,
 			);
 			path = Sources;
+			sourceTree = "<group>";
+		};
+		493EEFD00000000000000100 /* Stokd */ = {
+			isa = PBXGroup;
+			children = (
+				493EEFD00000000000000101 /* StokdExecutableResolver.swift */,
+				493EEFD00000000000000102 /* StokdCLIRunner.swift */,
+			);
+			path = Stokd;
 			sourceTree = "<group>";
 		};
 		CA52D0010000000000000000 /* Canvas */ = {
@@ -10584,6 +10598,8 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 					E30780000000000000000012 /* SSHPTYAttachStartupCommandBuilder.swift in Sources */,
 				A5C017000000000000000005 /* StackAccountAvatarView.swift in Sources */,
 				D35B71010000000000000001 /* StartupBreadcrumbLog.swift in Sources */,
+				493EEFD00000000000000202 /* StokdCLIRunner.swift in Sources */,
+				493EEFD00000000000000201 /* StokdExecutableResolver.swift in Sources */,
 				D7AB00000000000000B041 /* SupersededPhoneDismissBuffer.swift in Sources */,
 				875200000000000000000014 /* SurfacePaneMovement.swift in Sources */,
 				883700000000000000000003 /* SurfaceResumeApprovalLookup.swift in Sources */,
