@@ -158,7 +158,11 @@ struct RightSidebarPanelView: View {
     }
 
     private var availableModes: [RightSidebarMode] {
-        RightSidebarMode.availableModes(feedEnabled: feedEnabled, dockEnabled: dockEnabled)
+        RightSidebarMode.availableModes(
+            feedEnabled: feedEnabled,
+            dockEnabled: dockEnabled,
+            sidebarDockEnabled: sidebarDockEnabled
+        )
     }
 
     private var modeBarItems: [RightSidebarModeBarItem] {
