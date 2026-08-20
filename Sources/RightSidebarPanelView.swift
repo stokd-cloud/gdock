@@ -342,6 +342,13 @@ struct RightSidebarPanelView: View {
         // Wire mirror before seed so selectToolMode → didSelectTab owns the
         // derived legacy mode write (VAL-RAIL-009). Never assign mode here.
         wireMirror(store: registry.right)
+        AppDelegate.shared?.mainWindowContexts.values
+            .first(where: { $0.windowId == registry.windowId })?
+            .restorePendingSidebarDockSnapshots(
+                into: registry,
+                workspace: workspace,
+                includeStokdWork: StokdRailPanelAvailability.isEnabled()
+            )
         SidebarDockSeeding.seedRegistryIfEmpty(
             registry: registry,
             workspace: workspace,

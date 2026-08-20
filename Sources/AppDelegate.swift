@@ -624,6 +624,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         /// Per-window left/right rail stores (flag-on dock spaces).
         var sidebarDockRegistry: SidebarDockStoreRegistry?
+        var pendingLeftRailSnapshot: SessionSidebarRailSnapshot?
+        var pendingRightRailSnapshot: SessionSidebarRailSnapshot?
 
         init(
             windowId: UUID,
@@ -3816,6 +3818,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             snapshot,
             notificationStore: notificationStore
         )
+        // The SwiftUI rail registry is created after this restore pass. Hold the
+        // additive snapshots until either rail host attaches that registry.
+        context.pendingLeftRailSnapshot = snapshot.leftRail
+        context.pendingRightRailSnapshot = snapshot.rightRail
         // Seed restored per-config frames for later configuration switches.
         if let configFrames = snapshot.configFrames {
             windowConfigFrames[context.windowId] = SessionConfigFrameRing(entries: configFrames)
@@ -4837,7 +4843,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 width: SessionPersistencePolicy.sanitizedSidebarWidth(Double(context.sidebarState.persistedWidth))
             ),
             configFrames: windowConfigFrames[context.windowId]?.entries,
-            dock: context.windowDockSessionSnapshot(includeScrollback: includeScrollback, restorableAgentIndex: restorableAgentIndex, surfaceResumeBindingIndex: surfaceResumeBindingIndex)
+            dock: context.windowDockSessionSnapshot(includeScrollback: includeScrollback, restorableAgentIndex: restorableAgentIndex, surfaceResumeBindingIndex: surfaceResumeBindingIndex),
+            leftRail: context.sidebarDockRegistry.flatMap {
+                SidebarDockSessionPersistence.capture(store: $0.left)
+            },
+            rightRail: context.sidebarDockRegistry.flatMap {
+                SidebarDockSessionPersistence.capture(store: $0.right)
+            }
         )
     }
 

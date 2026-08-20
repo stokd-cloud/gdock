@@ -2031,6 +2031,7 @@ BE7A0010SIDEBARDOCKLIVE02 /* SidebarDockLiveSectionSemanticsTests.swift in Sourc
 		BE7A0010SIDEBARDOCKREORD02 /* SidebarDockSectionReorderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKREORD01 /* SidebarDockSectionReorderTests.swift */; };
 		D12D1A0C9197E6BF7103AC91 /* SidebarDockSectionSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61540E9435CC2456E50DF37B /* SidebarDockSectionSnapshot.swift */; };
 		A1B2C3D4E5F60001SEED02 /* SidebarDockSeeding.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60001SEED01 /* SidebarDockSeeding.swift */; };
+		493EEFD00000000000000207 /* SidebarDockSessionPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000107 /* SidebarDockSessionPersistence.swift */; };
 		DE71819B93DB3088830F6D5A /* SidebarDockSplitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEEB7752CAC925C78C086B09 /* SidebarDockSplitTests.swift */; };
 		32CEA94EE1B11663B06DC28B /* SidebarDockStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43CEFB99077EE7C26BBF16F6 /* SidebarDockStore.swift */; };
 		020BE9C292B1DB871773E378 /* SidebarDockStoreRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 380356E52D476EE585AD02CE /* SidebarDockStoreRegistry.swift */; };
@@ -4902,6 +4903,7 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 		BE7A0010SIDEBARDOCKREORD01 /* SidebarDockSectionReorderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockSectionReorderTests.swift; sourceTree = "<group>"; };
 		61540E9435CC2456E50DF37B /* SidebarDockSectionSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockSectionSnapshot.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60001SEED01 /* SidebarDockSeeding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockSeeding.swift; sourceTree = "<group>"; };
+		493EEFD00000000000000107 /* SidebarDockSessionPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockSessionPersistence.swift; sourceTree = "<group>"; };
 		DEEB7752CAC925C78C086B09 /* SidebarDockSplitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockSplitTests.swift; sourceTree = "<group>"; };
 		43CEFB99077EE7C26BBF16F6 /* SidebarDockStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockStore.swift; sourceTree = "<group>"; };
 		380356E52D476EE585AD02CE /* SidebarDockStoreRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockStoreRegistry.swift; sourceTree = "<group>"; };
@@ -6488,6 +6490,7 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 				43CEFB99077EE7C26BBF16F6 /* SidebarDockStore.swift */,
 				A1B2C3D4E5F60001ROUT01 /* RightSidebarSelectionRouter.swift */,
 				A1B2C3D4E5F60001SEED01 /* SidebarDockSeeding.swift */,
+				493EEFD00000000000000107 /* SidebarDockSessionPersistence.swift */,
 				380356E52D476EE585AD02CE /* SidebarDockStoreRegistry.swift */,
 				5B0C00010000000000000002 /* SidebarResizerOcclusionResolver.swift */,
 				C0DEFF200000000000000002 /* CommandPaletteOverlay.swift */,
@@ -10468,6 +10471,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				C91868CD33B35D75282CB53E /* SidebarDockSectionPosition.swift in Sources */,
 				D12D1A0C9197E6BF7103AC91 /* SidebarDockSectionSnapshot.swift in Sources */,
 				A1B2C3D4E5F60001SEED02 /* SidebarDockSeeding.swift in Sources */,
+				493EEFD00000000000000207 /* SidebarDockSessionPersistence.swift in Sources */,
 				32CEA94EE1B11663B06DC28B /* SidebarDockStore.swift in Sources */,
 				020BE9C292B1DB871773E378 /* SidebarDockStoreRegistry.swift in Sources */,
 				BE7A0010SIDEBARDOCKXFER02 /* SidebarDockTransfer.swift in Sources */,

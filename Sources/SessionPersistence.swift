@@ -1918,6 +1918,9 @@ struct SessionWindowSnapshot: Codable, Sendable {
     /// additive so older persisted snapshots decode unchanged.
     var configFrames: [SessionConfigFrameEntry]? = nil
     var dock: SessionSplitContainerSnapshot? = nil // Missing legacy fields continue to seed from dock.json.
+    /// Optional rail layouts are additive; missing legacy state seeds defaults.
+    var leftRail: SessionSidebarRailSnapshot? = nil
+    var rightRail: SessionSidebarRailSnapshot? = nil
 }
 struct AppSessionSnapshot: Codable, Sendable {
     var version: Int
