@@ -770,8 +770,10 @@ final class MainWindowFocusController {
             return fileExplorerHost?.focusOutline() == true
         case .find:
             return fileSearchHost?.focusSearchField() == true
-        case .sessions, .stokdWork, .customSidebar:
-            return mode == .customSidebar ? focusFallbackRightSidebarHost() : false
+        case .sessions:
+            return false
+        case .stokdWork, .customSidebar:
+            return focusFallbackRightSidebarHost()
         case .feed:
             if target == .firstItem {
                 feedHost?.focusFirstItemFromCoordinator()

@@ -18,6 +18,7 @@ struct StokdWorkPanelViewTests {
         _ = try #require(store.attachPanel(files, select: true))
         _ = try #require(store.attachPanel(work, select: false))
 
+        #expect(store.selectToolMode(.files, focus: true))
         #expect(store.focusedToolMode() == .files)
         #expect(SidebarDockCommand.showStokdWork == "palette.gdock.showStokdWork")
         #expect(SidebarDockActionInvoker.perform(

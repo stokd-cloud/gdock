@@ -203,6 +203,28 @@ extension ContentView {
         }
         let source = RightSidebarSelectionRouter.paletteSource(for: mode)
         let window = observedWindow ?? NSApp.keyWindow ?? NSApp.mainWindow
+        if mode == .stokdWork,
+           RightSidebarBetaFeatureSettings.isSidebarDockEnabled()
+        {
+            if !fileExplorerState.isVisible {
+                fileExplorerState.setVisible(true)
+            }
+            if SidebarDockActionInvoker.performFocused(
+                commandId: SidebarDockCommand.showStokdWork,
+                windowId: windowId,
+                preferredWindow: window,
+                preferredEdge: .right
+            ) {
+                _ = AppDelegate.shared?.focusRightSidebarInActiveMainWindow(
+                    mode: .stokdWork,
+                    focusFirstItem: false,
+                    preferredWindow: window
+                )
+                return
+            }
+            NSSound.beep()
+            return
+        }
         // Dock rails: single selection seam (VAL-RAIL-009).
         if RightSidebarBetaFeatureSettings.isSidebarDockEnabled(),
            let app = AppDelegate.shared {

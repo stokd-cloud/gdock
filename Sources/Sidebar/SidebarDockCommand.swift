@@ -3,6 +3,7 @@ import Foundation
 
 /// Shared command identifiers and mutation path for rail context menus and the command palette.
 enum SidebarDockCommand {
+    static let showStokdWork = "palette.gdock.showStokdWork"
     static let moveTabToNewSectionTop = "sidebarDock.moveTabToNewSection.top"
     static let moveTabToNewSectionBottom = "sidebarDock.moveTabToNewSection.bottom"
     static let collapseSection = "sidebarDock.section.collapse"
@@ -274,6 +275,10 @@ enum SidebarDockCommand {
         tabId: TabID?,
         paneId: PaneID?
     ) -> Bool {
+        if commandId == showStokdWork {
+            return store.selectToolMode(.stokdWork, focus: true)
+        }
+
         // Refuse unsafe invocations even if a caller skips the menu enablement gate.
         let gate = eligibility(store: store, tabId: tabId, paneId: paneId)
         guard gate.isAvailable(commandId) else { return false }
