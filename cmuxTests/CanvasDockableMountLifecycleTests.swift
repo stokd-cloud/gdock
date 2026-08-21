@@ -9,8 +9,46 @@ import CmuxCanvasUI
 @testable import cmux
 #endif
 
-/// VAL-CANVAS-001: generic CanvasPaneContentMount drives any Dockable for
-/// terminal, browser, and markdown (mount / render / unmount).
+/// Builds a ``CanvasPaneContentMount`` the way ``WorkspaceCanvasHostView`` does,
+/// with the smallest content the mount's own contract needs: terminals mount
+/// their real hosted view, and every other panel kind mounts through a plain
+/// hosted `NSView`, because the mount drives panel-level lifecycle rather than
+/// anything about the hosted view's identity.
+@MainActor
+func makeCanvasPaneContentMountForTesting(
+    panel: any Panel,
+    container: NSView,
+    onFocusPanel: @escaping (UUID) -> Void = { _ in },
+    makeTerminalVisible: @escaping @MainActor (GhosttySurfaceScrollView) -> Void = { $0.setVisibleInUI(true) }
+) -> CanvasPaneContentMount {
+    let workspaceAttentionColor = WorkspaceAttentionColor(configuredHex: nil)
+    let content: CanvasPaneContent
+    if let terminalPanel = panel as? TerminalPanel {
+        content = .terminal(terminalPanel, .disabled)
+    } else {
+        content = .hosted(
+            panel,
+            NSView(frame: container.bounds),
+            CanvasHostedPanelPresentation(
+                isFocused: false,
+                allowsPointerInput: true,
+                pointerInputOwner: container,
+                workspaceAttentionColor: workspaceAttentionColor
+            )
+        )
+    }
+    return CanvasPaneContentMount(
+        content: content,
+        panelId: panel.id,
+        container: container,
+        workspaceAttentionColor: workspaceAttentionColor,
+        onFocusPanel: onFocusPanel,
+        makeTerminalVisible: makeTerminalVisible
+    )
+}
+
+/// VAL-CANVAS-001: CanvasPaneContentMount drives any panel for terminal,
+/// browser, and markdown (mount / render / unmount).
 @MainActor
 final class CanvasDockableMountLifecycleTests: XCTestCase {
     func testTerminalMountRenderUnmountViaDockable() {
@@ -18,14 +56,12 @@ final class CanvasDockableMountLifecycleTests: XCTestCase {
         let container = NSView(frame: NSRect(x: 0, y: 0, width: 640, height: 480))
         var focused: UUID?
 
-        let mount = CanvasPaneContentMount(
-            dockable: panel,
-            panelId: panel.id,
+        let mount = makeCanvasPaneContentMountForTesting(
+            panel: panel,
             container: container,
             onFocusPanel: { focused = $0 },
             makeTerminalVisible: { _ in }
         )
-        XCTAssertTrue(mount is CanvasPaneContentMounting)
         XCTAssertEqual(panel.hostedView.superview, container)
 
         mount.setRendering(false)
@@ -42,12 +78,10 @@ final class CanvasDockableMountLifecycleTests: XCTestCase {
         let panel = BrowserPanel(workspaceId: UUID(), renderInitialNavigation: false)
         let container = NSView(frame: NSRect(x: 0, y: 0, width: 640, height: 480))
 
-        // No canvas host environment → makeDockContentView still sets mount flags.
-        let mount = CanvasPaneContentMount(
-            dockable: panel,
-            panelId: panel.id,
-            container: container,
-            onFocusPanel: { _ in }
+        // No canvas host environment → mounting still sets panel mount flags.
+        let mount = makeCanvasPaneContentMountForTesting(
+            panel: panel,
+            container: container
         )
         XCTAssertTrue(panel.canvasInlineHostingActive)
         XCTAssertEqual(panel.webViewLastVisibilityChangeReason, "canvas.mount")
@@ -74,13 +108,10 @@ final class CanvasDockableMountLifecycleTests: XCTestCase {
         let panel = MarkdownPanel(workspaceId: UUID(), filePath: fileURL.path)
         let container = NSView(frame: NSRect(x: 0, y: 0, width: 640, height: 480))
 
-        let mount = CanvasPaneContentMount(
-            dockable: panel,
-            panelId: panel.id,
-            container: container,
-            onFocusPanel: { _ in }
+        let mount = makeCanvasPaneContentMountForTesting(
+            panel: panel,
+            container: container
         )
-        XCTAssertTrue(mount is CanvasPaneContentMounting)
         // Hosted path pins a content subview.
         XCTAssertFalse(container.subviews.isEmpty)
 
@@ -90,18 +121,23 @@ final class CanvasDockableMountLifecycleTests: XCTestCase {
         XCTAssertTrue(container.subviews.isEmpty)
     }
 
-    func testMountStoresAnyDockableNotContentEnum() {
+    /// The canvas drives content only through the package-owned
+    /// ``CanvasPaneContentMounting`` seam, so a panel's dockable identity stays
+    /// on the panel and never leaks into `CmuxCanvasUI`.
+    func testMountDrivesPanelThroughGenericMountingSeam() {
         let panel = TerminalPanel(workspaceId: UUID())
         let container = NSView(frame: NSRect(x: 0, y: 0, width: 100, height: 100))
-        let mount = CanvasPaneContentMount(
-            dockable: panel,
-            panelId: panel.id,
+        let mount = makeCanvasPaneContentMountForTesting(
+            panel: panel,
             container: container,
-            onFocusPanel: { _ in },
             makeTerminalVisible: { _ in }
         )
-        XCTAssertEqual(mount.dockable.dockableKind, .terminal)
-        XCTAssertTrue(mount.dockable is TerminalPanel)
-        mount.unmount()
+        // The canvas package only ever sees the protocol, never the panel type.
+        let mounting: any CanvasPaneContentMounting = mount
+        XCTAssertEqual(mount.panelId, panel.id)
+        XCTAssertEqual(panel.dockableKind, .terminal)
+        XCTAssertEqual(panel.hostedView.superview, container)
+        mounting.unmount()
+        XCTAssertNil(panel.hostedView.superview)
     }
 }

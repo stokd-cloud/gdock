@@ -1,4 +1,5 @@
 import XCTest
+import CmuxBrowser
 import CmuxDockable
 import Foundation
 
@@ -218,7 +219,7 @@ final class DockableSnapshotTests: XCTestCase {
             workspaceId: workspace.id,
             initialURL: URL(string: "https://example.com/payload"),
             renderInitialNavigation: false,
-            omnibarVisible: false,
+            chromeVisibility: BrowserChromeVisibility(omnibarVisible: false),
             transparentBackground: true
         )
         let markdown = MarkdownPanel(workspaceId: workspace.id, filePath: fileURL.path)
