@@ -4,6 +4,10 @@ import Foundation
 ///
 /// Only tool panels and the workspace selector may occupy a rail section.
 /// Terminal, browser, markdown, feed/dock modes, and custom sidebars are refused.
+///
+/// Stokd kinds (fork-only) are edge-restricted:
+/// - ``RightSidebarMode/stokdWork`` → right rail only
+/// - worktrees / global config / usage → left rail only
 enum SidebarDockPlacementMatrix {
     /// Panel types allowed to occupy a rail section.
     static let allowedPanelTypes: Set<PanelType> = [
@@ -12,12 +16,16 @@ enum SidebarDockPlacementMatrix {
     ]
 
     /// Right-sidebar modes that may live in a rail section when the panel is a tool.
-    /// Vault is the user-facing name for `.sessions`.
+    /// Vault is the user-facing name for `.sessions`. Includes stokd kinds that are
+    /// rail-placeable on at least one edge (see ``allows(mode:on:)``).
     static let allowedRightSidebarModes: Set<RightSidebarMode> = [
         .files,
         .find,
         .sessions,
         .stokdWork,
+        .stokdWorktrees,
+        .stokdGlobalConfig,
+        .stokdUsage,
     ]
 
     static func allows(panelType: PanelType) -> Bool {
@@ -26,25 +34,36 @@ enum SidebarDockPlacementMatrix {
 
     @MainActor
     static func allows(panel: any Panel) -> Bool {
-        guard allows(panelType: panel.panelType) else { return false }
-        if let tool = panel as? RightSidebarToolPanel {
-            return allowedRightSidebarModes.contains(tool.mode)
-        }
-        return true
+        allows(panel: panel, on: nil)
     }
 
+    /// Edge-aware panel allowlist. When `edge` is nil, only type/mode membership is checked.
     @MainActor
-    static func allows(panel: any Panel, on edge: SidebarDockEdge) -> Bool {
-        guard allows(panel: panel) else { return false }
+    static func allows(panel: any Panel, on edge: SidebarDockEdge?) -> Bool {
+        guard allows(panelType: panel.panelType) else { return false }
         guard let tool = panel as? RightSidebarToolPanel else { return true }
-        return allows(mode: tool.mode, on: edge)
+        if let edge {
+            return allows(mode: tool.mode, on: edge)
+        }
+        return allows(mode: tool.mode)
     }
 
     static func allows(mode: RightSidebarMode) -> Bool {
         allowedRightSidebarModes.contains(mode)
     }
 
+    /// Edge-aware mode placement. Legacy Files/Find/Vault remain dual-edge capable;
+    /// stokd kinds are fixed to the §0 layout edges (Work → right, the rest → left).
     static func allows(mode: RightSidebarMode, on edge: SidebarDockEdge) -> Bool {
-        allows(mode: mode) && (mode != .stokdWork || edge == .right)
+        guard allows(mode: mode) else { return false }
+        if let kind = StokdRailPanelKind(rightSidebarMode: mode) {
+            return kind.preferredEdge == edge
+        }
+        // Non-stokd allowed modes (files/find/sessions) may occupy either rail.
+        return true
+    }
+
+    static func allows(kind: StokdRailPanelKind, on edge: SidebarDockEdge) -> Bool {
+        kind.preferredEdge == edge
     }
 }

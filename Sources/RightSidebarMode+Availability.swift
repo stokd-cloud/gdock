@@ -22,7 +22,8 @@ extension RightSidebarMode {
     static func availableModes(defaults: UserDefaults = .standard) -> [RightSidebarMode] {
         availableModes(
             feedEnabled: RightSidebarBetaFeatureSettings.isFeedEnabled(defaults: defaults),
-            dockEnabled: RightSidebarBetaFeatureSettings.isDockEnabled(defaults: defaults)
+            dockEnabled: RightSidebarBetaFeatureSettings.isDockEnabled(defaults: defaults),
+            stokdPanelsEnabled: StokdRailPanelFeatureSettings.isEnabled(defaults: defaults)
         )
     }
 
@@ -30,19 +31,37 @@ extension RightSidebarMode {
         feedEnabled: Bool,
         dockEnabled: Bool
     ) -> [RightSidebarMode] {
-        allCases.filter {
-            $0 != .customSidebar
-                && $0.isAvailable(
-                    feedEnabled: feedEnabled,
-                    dockEnabled: dockEnabled
-                )
+        availableModes(
+            feedEnabled: feedEnabled,
+            dockEnabled: dockEnabled,
+            stokdPanelsEnabled: StokdRailPanelFeatureSettings.isEnabled()
+        )
+    }
+
+    static func availableModes(
+        feedEnabled: Bool,
+        dockEnabled: Bool,
+        stokdPanelsEnabled: Bool
+    ) -> [RightSidebarMode] {
+        // Right mode bar / palette: exclude left-rail-only stokd kinds.
+        allCases.filter { mode in
+            guard mode != .customSidebar else { return false }
+            if let kind = StokdRailPanelKind(rightSidebarMode: mode), kind.preferredEdge != .right {
+                return false
+            }
+            return mode.isAvailable(
+                feedEnabled: feedEnabled,
+                dockEnabled: dockEnabled,
+                stokdPanelsEnabled: stokdPanelsEnabled
+            )
         }
     }
 
     func isAvailable(defaults: UserDefaults = .standard) -> Bool {
         isAvailable(
             feedEnabled: RightSidebarBetaFeatureSettings.isFeedEnabled(defaults: defaults),
-            dockEnabled: RightSidebarBetaFeatureSettings.isDockEnabled(defaults: defaults)
+            dockEnabled: RightSidebarBetaFeatureSettings.isDockEnabled(defaults: defaults),
+            stokdPanelsEnabled: StokdRailPanelFeatureSettings.isEnabled(defaults: defaults)
         )
     }
 
@@ -53,6 +72,14 @@ extension RightSidebarMode {
         feedEnabled: Bool,
         dockEnabled: Bool
     ) -> Bool {
+        isAvailable(
+            feedEnabled: feedEnabled,
+            dockEnabled: dockEnabled,
+            stokdPanelsEnabled: StokdRailPanelFeatureSettings.isEnabled()
+        )
+    }
+
+    func isAvailable(feedEnabled: Bool, dockEnabled: Bool, stokdPanelsEnabled: Bool) -> Bool {
         switch self {
         case .files, .find, .sessions, .stokdWork:
             return true
@@ -62,6 +89,10 @@ extension RightSidebarMode {
             return dockEnabled
         case .customSidebar:
             return false
+        case .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+            // Option A: the not-yet-shipped stokd rail sections are only offered
+            // while the shared rails beta gate is on. Work is ungated (above).
+            return stokdPanelsEnabled && SidebarDockPlacementMatrix.allows(mode: self)
         }
     }
 }

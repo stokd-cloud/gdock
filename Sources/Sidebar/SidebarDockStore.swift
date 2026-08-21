@@ -417,7 +417,7 @@ final class SidebarDockStore: BonsplitDelegate {
         }
         guard let panelId = surfaceIdToPanelId[tabId],
               let panel = panels[panelId],
-              SidebarDockPlacementMatrix.allows(panel: panel) else {
+              SidebarDockPlacementMatrix.allows(panel: panel, on: edge) else {
             return false
         }
 

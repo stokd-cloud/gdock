@@ -127,7 +127,8 @@ final class MainWindowFocusController {
             fileExplorerHost = host
         case .find:
             fileSearchHost = host
-        case .sessions, .feed, .dock, .stokdWork, .customSidebar:
+        case .sessions, .feed, .dock, .stokdWork, .customSidebar,
+             .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
             break
         }
         focusRegisteredRightSidebarEndpointIfNeeded(mode: mode)
@@ -752,7 +753,8 @@ final class MainWindowFocusController {
             return .outline
         case .find:
             return .searchField
-        case .sessions, .stokdWork, .customSidebar:
+        case .sessions, .stokdWork, .customSidebar,
+             .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
             return .host
         case .feed:
             return focusFirstItem ? .firstItem : .host
@@ -772,7 +774,8 @@ final class MainWindowFocusController {
             return fileSearchHost?.focusSearchField() == true
         case .sessions:
             return false
-        case .stokdWork, .customSidebar:
+        case .stokdWork, .customSidebar,
+             .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
             return focusFallbackRightSidebarHost()
         case .feed:
             if target == .firstItem {
