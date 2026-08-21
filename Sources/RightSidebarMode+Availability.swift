@@ -27,17 +27,33 @@ extension RightSidebarMode {
     }
 
     static func availableModes(feedEnabled: Bool, dockEnabled: Bool) -> [RightSidebarMode] {
-        allCases.filter { $0 != .customSidebar && $0.isAvailable(feedEnabled: feedEnabled, dockEnabled: dockEnabled) }
+        // Right mode bar / palette: exclude left-rail-only stokd kinds.
+        allCases.filter { mode in
+            guard mode != .customSidebar else { return false }
+            if let kind = StokdRailPanelKind(rightSidebarMode: mode), kind.preferredEdge != .right {
+                return false
+            }
+            return mode.isAvailable(feedEnabled: feedEnabled, dockEnabled: dockEnabled)
+        }
     }
 
     func isAvailable(defaults: UserDefaults = .standard) -> Bool {
         isAvailable(
             feedEnabled: RightSidebarBetaFeatureSettings.isFeedEnabled(defaults: defaults),
-            dockEnabled: RightSidebarBetaFeatureSettings.isDockEnabled(defaults: defaults)
+            dockEnabled: RightSidebarBetaFeatureSettings.isDockEnabled(defaults: defaults),
+            stokdPanelsEnabled: StokdRailPanelFeatureSettings.isEnabled(defaults: defaults)
         )
     }
 
     func isAvailable(feedEnabled: Bool, dockEnabled: Bool) -> Bool {
+        isAvailable(
+            feedEnabled: feedEnabled,
+            dockEnabled: dockEnabled,
+            stokdPanelsEnabled: StokdRailPanelFeatureSettings.isEnabled()
+        )
+    }
+
+    func isAvailable(feedEnabled: Bool, dockEnabled: Bool, stokdPanelsEnabled: Bool) -> Bool {
         switch self {
         case .files, .find, .sessions:
             return true
@@ -47,6 +63,9 @@ extension RightSidebarMode {
             return dockEnabled
         case .customSidebar:
             return false
+        case .stokdWork, .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+            // Option A: only offered while the shared rails beta gate is on.
+            return stokdPanelsEnabled && SidebarDockPlacementMatrix.allows(mode: self)
         }
     }
 }

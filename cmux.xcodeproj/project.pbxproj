@@ -1488,6 +1488,7 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		B7F9A604B7F9A604B7F9A604 /* RightSidebarChromeStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7F9A605B7F9A605B7F9A605 /* RightSidebarChromeStyle.swift */; };
 		C3408A000000000000000003 /* RightSidebarCommandPaletteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3408A000000000000000004 /* RightSidebarCommandPaletteTests.swift */; };
 		B37A00000000000000000003 /* RightSidebarMode+Availability.swift in Sources */ = {isa = PBXBuildFile; fileRef = B37A00000000000000000004 /* RightSidebarMode+Availability.swift */; };
+		D62E5F334F3AA6126B0559CF /* StokdRailPanelKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = C51D4E223E2995015A9448BE /* StokdRailPanelKind.swift */; };
 		46814000000000000000000D /* RightSidebarModeShortcutEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46814000000000000000000E /* RightSidebarModeShortcutEntry.swift */; };
 		468110000000000000000005 /* RightSidebarModeShortcutMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 468110000000000000000006 /* RightSidebarModeShortcutMatcher.swift */; };
 		FE003103 /* RightSidebarPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE003003 /* RightSidebarPanelView.swift */; };
@@ -1633,6 +1634,8 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		9332702A430BAF9135E6390D /* SidebarDockEdge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 156D1E279B1C300527680DE8 /* SidebarDockEdge.swift */; };
 		BE7A0010SIDEBARDOCKBAND02 /* SidebarDockEdgeBand.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKBAND01 /* SidebarDockEdgeBand.swift */; };
 		68EDDFB05A6D52FDBE0EC8E2 /* SidebarDockFlagTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4E70E924295D338E336569 /* SidebarDockFlagTests.swift */; };
+		1CFC10511B7D471698AE352A /* StokdRailPanelFlagTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA7F00708EF0445EAB7411D7 /* StokdRailPanelFlagTests.swift */; };
+		B2C77181CC59348F2B8AA5FA /* StokdRailPanelKindTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A41C3B112D1884F0498337AD /* StokdRailPanelKindTests.swift */; };
 		BE7A0010SIDEBARDOCKINSP02 /* SidebarDockInspectSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKINSP01 /* SidebarDockInspectSnapshot.swift */; };
 BE7A0010SIDEBARDOCKLIVE02 /* SidebarDockLiveSectionSemanticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */; };
 		A1B2C3D4E5F60001MNT02 /* SidebarDockMountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60001MNT01 /* SidebarDockMountTests.swift */; };
@@ -3772,6 +3775,7 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		B7F9A605B7F9A605B7F9A605 /* RightSidebarChromeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RightSidebarChromeStyle.swift; sourceTree = "<group>"; };
 		C3408A000000000000000004 /* RightSidebarCommandPaletteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RightSidebarCommandPaletteTests.swift; sourceTree = "<group>"; };
 		B37A00000000000000000004 /* RightSidebarMode+Availability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RightSidebarMode+Availability.swift"; sourceTree = "<group>"; };
+		C51D4E223E2995015A9448BE /* StokdRailPanelKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdRailPanelKind.swift; sourceTree = "<group>"; };
 		46814000000000000000000E /* RightSidebarModeShortcutEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RightSidebarModeShortcutEntry.swift; sourceTree = "<group>"; };
 		468110000000000000000006 /* RightSidebarModeShortcutMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RightSidebarModeShortcutMatcher.swift; sourceTree = "<group>"; };
 		FE003003 /* RightSidebarPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RightSidebarPanelView.swift; sourceTree = "<group>"; };
@@ -3913,6 +3917,8 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		156D1E279B1C300527680DE8 /* SidebarDockEdge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockEdge.swift; sourceTree = "<group>"; };
 		BE7A0010SIDEBARDOCKBAND01 /* SidebarDockEdgeBand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockEdgeBand.swift; sourceTree = "<group>"; };
 		1F4E70E924295D338E336569 /* SidebarDockFlagTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockFlagTests.swift; sourceTree = "<group>"; };
+		EA7F00708EF0445EAB7411D7 /* StokdRailPanelFlagTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdRailPanelFlagTests.swift; sourceTree = "<group>"; };
+		A41C3B112D1884F0498337AD /* StokdRailPanelKindTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdRailPanelKindTests.swift; sourceTree = "<group>"; };
 		BE7A0010SIDEBARDOCKINSP01 /* SidebarDockInspectSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar/SidebarDockInspectSnapshot.swift; sourceTree = "<group>"; };
 BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockLiveSectionSemanticsTests.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60001MNT01 /* SidebarDockMountTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDockMountTests.swift; sourceTree = "<group>"; };
@@ -6181,6 +6187,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				B7F9A605B7F9A605B7F9A605 /* RightSidebarChromeStyle.swift */,
 				B7F9A603B7F9A603B7F9A603 /* WindowChromeMetrics.swift */,
 				B37A00000000000000000004 /* RightSidebarMode+Availability.swift */,
+				C51D4E223E2995015A9448BE /* StokdRailPanelKind.swift */,
 				B37A0000000000000000000E /* RightSidebarRemoteCommand.swift */,
 				FE003003 /* RightSidebarPanelView.swift */,
 				46814000000000000000000E /* RightSidebarModeShortcutEntry.swift */,
@@ -6759,6 +6766,8 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				C06552030000000000000002 /* TabManagerTitleUpdateStalenessTests.swift */,
 				C06552020000000000000002 /* TabManagerTitleUpdateTests.swift */,
 				1F4E70E924295D338E336569 /* SidebarDockFlagTests.swift */,
+				EA7F00708EF0445EAB7411D7 /* StokdRailPanelFlagTests.swift */,
+				A41C3B112D1884F0498337AD /* StokdRailPanelKindTests.swift */,
 				0AA39C1B63CA20A58D275AD0 /* SidebarDockStoreTests.swift */,
 								91E934E3EB9C45478D1A3EDA /* QuadSplitActionTests.swift */,
 				682F73FA96A248028EC8CDBD /* QuadSplitButtonTests.swift */,
@@ -8324,6 +8333,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				B7F9A600B7F9A600B7F9A600 /* RightSidebarChromeGeometryReporting.swift in Sources */,
 				B7F9A604B7F9A604B7F9A604 /* RightSidebarChromeStyle.swift in Sources */,
 				B37A00000000000000000003 /* RightSidebarMode+Availability.swift in Sources */,
+				D62E5F334F3AA6126B0559CF /* StokdRailPanelKind.swift in Sources */,
 				46814000000000000000000D /* RightSidebarModeShortcutEntry.swift in Sources */,
 				468110000000000000000005 /* RightSidebarModeShortcutMatcher.swift in Sources */,
 				FE003103 /* RightSidebarPanelView.swift in Sources */,
@@ -9527,6 +9537,8 @@ BE7A0010SIDEBARDOCKBEHAV02 /* SidebarDockBehaviorTests.swift in Sources */,
 				BE7A0010SIDEBARDOCKXTEST02 /* SidebarDockCrossRailTests.swift in Sources */,
 				BE7A0010SIDEBARDOCKDIV02 /* SidebarDockDividerLifecycleTests.swift in Sources */,
 				68EDDFB05A6D52FDBE0EC8E2 /* SidebarDockFlagTests.swift in Sources */,
+				1CFC10511B7D471698AE352A /* StokdRailPanelFlagTests.swift in Sources */,
+				B2C77181CC59348F2B8AA5FA /* StokdRailPanelKindTests.swift in Sources */,
 				BE7A0010SIDEBARDOCKLIVE02 /* SidebarDockLiveSectionSemanticsTests.swift in Sources */,
 				A1B2C3D4E5F60001MNT02 /* SidebarDockMountTests.swift in Sources */,
 				BE7A0010SIDEBARDOCKREORD02 /* SidebarDockSectionReorderTests.swift in Sources */,

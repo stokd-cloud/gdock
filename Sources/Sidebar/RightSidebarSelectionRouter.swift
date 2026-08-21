@@ -186,6 +186,10 @@ enum RightSidebarSelectionRouter {
         case .feed: return .paletteFeed
         case .dock: return .paletteDock
         case .customSidebar: return .paletteDock
+        // Stokd kinds share the files palette source token for inventory; seed/selection
+        // is rail-command driven rather than legacy mode-bar only.
+        case .stokdWork, .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+            return .paletteFiles
         }
     }
 

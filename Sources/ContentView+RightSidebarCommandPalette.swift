@@ -150,6 +150,14 @@ extension ContentView {
             return "palette.showRightSidebarDock"
         case .customSidebar:
             return "palette.showRightSidebarCustomSidebar"
+        case .stokdWork:
+            return "palette.gdock.showStokdWork"
+        case .stokdWorktrees:
+            return "palette.gdock.showStokdWorktrees"
+        case .stokdGlobalConfig:
+            return "palette.gdock.showStokdGlobalConfig"
+        case .stokdUsage:
+            return "palette.gdock.showStokdUsage"
         }
     }
 
@@ -171,7 +179,8 @@ extension ContentView {
             return "palette.openFindPane"
         case .sessions:
             return "palette.openVaultPane"
-        case .feed, .dock, .customSidebar:
+        case .feed, .dock, .customSidebar,
+             .stokdWork, .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
             return nil
         }
     }
@@ -184,7 +193,8 @@ extension ContentView {
             return String(localized: "command.openFindPane.title", defaultValue: "Open Find as Pane")
         case .sessions:
             return String(localized: "command.openVaultPane.title", defaultValue: "Open Vault as Pane")
-        case .feed, .dock, .customSidebar:
+        case .feed, .dock, .customSidebar,
+             .stokdWork, .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
             return nil
         }
     }

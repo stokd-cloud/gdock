@@ -20,6 +20,14 @@ enum RightSidebarMode: String, CaseIterable, Codable, Sendable {
     case feed
     case dock
     case customSidebar = "custom-sidebar"
+    /// Stokd Work — right-rail tool tab (raw value stable for persistence).
+    case stokdWork
+    /// Stokd Worktrees — left-rail section.
+    case stokdWorktrees
+    /// Stokd Global Config — left-rail section.
+    case stokdGlobalConfig
+    /// Stokd Usage — left-rail section.
+    case stokdUsage
 
     var label: String {
         switch self {
@@ -29,6 +37,9 @@ enum RightSidebarMode: String, CaseIterable, Codable, Sendable {
         case .feed: return String(localized: "rightSidebar.mode.feed", defaultValue: "Feed")
         case .dock: return String(localized: "rightSidebar.mode.dock", defaultValue: "Dock")
         case .customSidebar: return String(localized: "rightSidebar.mode.customSidebar", defaultValue: "Custom")
+        case .stokdWork, .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+            return StokdRailPanelKind(rightSidebarMode: self)?.displayTitle
+                ?? rawValue
         }
     }
 
@@ -40,6 +51,8 @@ enum RightSidebarMode: String, CaseIterable, Codable, Sendable {
         case .feed: return "dot.radiowaves.left.and.right"
         case .dock: return "dock.rectangle"
         case .customSidebar: return "wand.and.stars"
+        case .stokdWork, .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+            return StokdRailPanelKind(rightSidebarMode: self)?.symbolName ?? "square.grid.2x2"
         }
     }
 
@@ -50,7 +63,8 @@ enum RightSidebarMode: String, CaseIterable, Codable, Sendable {
         case .sessions: return .switchRightSidebarToSessions
         case .feed: return .switchRightSidebarToFeed
         case .dock: return .switchRightSidebarToDock
-        case .customSidebar: return nil
+        case .customSidebar, .stokdWork, .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+            return nil
         }
     }
 }
@@ -75,7 +89,8 @@ enum FileExplorerRootSyncPolicy {
         switch mode {
         case .files, .find:
             return true
-        case .sessions, .feed, .dock, .customSidebar:
+        case .sessions, .feed, .dock, .customSidebar,
+             .stokdWork, .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
             return false
         }
     }
@@ -301,6 +316,12 @@ struct RightSidebarPanelView: View {
                     .onAppear {
                         sessionIndexStore.setCurrentDirectoryIfChanged(sessionIndexDirectory)
                     }
+            case .stokdWork, .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+                if let kind = StokdRailPanelKind(rightSidebarMode: tool.mode) {
+                    StokdRailPanelPlaceholderView(kind: kind)
+                } else {
+                    Color.clear
+                }
             case .feed, .dock, .customSidebar:
                 Color.clear
             }
@@ -533,6 +554,12 @@ struct RightSidebarPanelView: View {
                 FeedPanelView()
             case .dock:
                 dockPanel(windowAppearance: windowAppearance)
+            case .stokdWork, .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+                if let kind = StokdRailPanelKind(rightSidebarMode: fileExplorerState.mode) {
+                    StokdRailPanelPlaceholderView(kind: kind)
+                } else {
+                    EmptyView()
+                }
             case .customSidebar:
                 EmptyView()
             }
