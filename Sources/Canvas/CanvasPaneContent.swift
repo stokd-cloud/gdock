@@ -172,12 +172,11 @@ final class CanvasPaneContentMount: CanvasPaneContentMounting {
     func unmount() {
         switch content {
         case .terminal(let panel, _):
-            let hostedView = panel.hostedView
-            hostedView.setActive(false)
-            hostedView.setFocusHandler(nil)
-            hostedView.setInactiveOverlay(color: .clear, opacity: 0, visible: false)
-            panel.surface.setOcclusion(true)
-            hostedView.removeFromSuperview()
+            // One handoff path, owned by the panel: it also bumps
+            // `viewReattachToken`, which is what makes the split-layout
+            // representable rebind the portal on its next update. Inlining the
+            // steps here dropped that bump and left the portal unbound.
+            panel.reattachContentToPortal(panel.hostedView)
         case .hosted(let panel, let view, _):
             if let simulatorPanel = panel as? SimulatorPanel {
                 simulatorPanel.setVisibleInUI(false)
