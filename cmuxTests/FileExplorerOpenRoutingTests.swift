@@ -65,6 +65,44 @@ struct FileExplorerOpenRoutingTests {
     }
 }
 
+/// The app spawns its own bundled CLI to reach the Monaco editor, and this fork
+/// ships that binary as `bin/gdock`. A spawn that probes only the upstream
+/// `bin/cmux` name resolves to nothing, so the feature silently does nothing.
+@Suite("Bundled CLI resolution")
+struct BundledCLIExecutableResolutionTests {
+    private func resolve(executablePaths: Set<String>) -> URL? {
+        CmuxCLIPathInstaller.bundledCLIExecutableURL(
+            bundle: .main,
+            isExecutable: { executablePaths.contains(($0 as NSString).lastPathComponent) }
+        )
+    }
+
+    @Test("the fork's bin/gdock is preferred")
+    func prefersForkBundledCLIName() {
+        let url = resolve(executablePaths: ["gdock", "cmux"])
+        #expect(url?.lastPathComponent == "gdock")
+    }
+
+    @Test("bin/cmux still resolves for bundles that ship the upstream name")
+    func fallsBackToUpstreamBundledCLIName() {
+        let url = resolve(executablePaths: ["cmux"])
+        #expect(url?.lastPathComponent == "cmux")
+    }
+
+    @Test("no executable candidate resolves to nil")
+    func missingBundledCLIResolvesToNil() {
+        #expect(resolve(executablePaths: []) == nil)
+    }
+
+    @Test("the fork name leads the candidate list")
+    func candidateOrderPutsForkNameFirst() {
+        #expect(CmuxCLIPathInstaller.bundledCLIResourceRelativePathCandidates == [
+            "bin/gdock",
+            "bin/cmux",
+        ])
+    }
+}
+
 @Suite("FileExplorerOpenRouting editor command")
 struct FileExplorerOpenRoutingEditorCommandTests {
     private let workspaceId = UUID(uuidString: "11111111-2222-3333-4444-555555555555")!

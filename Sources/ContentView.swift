@@ -2538,35 +2538,18 @@ struct ContentView: View {
         }
     }
 
+    /// Opens a file activated in the right sidebar's Files tree or Find results.
+    ///
+    /// The open path itself lives in ``FileExplorerFileOpenCoordinator`` so both
+    /// file-explorer hosts (this sidebar and `RightSidebarToolPanel`) share one
+    /// behavior.
     private func openFilePreviewFromSidebar(filePath: String) {
         guard let workspace = tabManager.selectedWorkspace else { return }
-        guard let paneId = workspace.bonsplitController.focusedPaneId ?? workspace.bonsplitController.allPaneIds.first else {
-            return
-        }
-
         sidebarSelectionState.selection = .tabs
-        if workspace.isRemoteWorkspace {
-            Task { [weak workspace, fileExplorerStore] in
-                guard let workspace else { return }
-                do {
-                    let localURL = try await fileExplorerStore.materializeRemoteFileForPreview(path: filePath)
-                    _ = workspace.openFileSurfaces(
-                        inPane: paneId,
-                        filePaths: [localURL.path],
-                        focus: true,
-                        reuseExisting: true
-                    )
-                } catch {
-                    NSSound.beep()
-                }
-            }
-            return
-        }
-        _ = workspace.openFileSurfaces(
-            inPane: paneId,
-            filePaths: [filePath],
-            focus: true,
-            reuseExisting: true
+        FileExplorerFileOpenCoordinator.shared.open(
+            filePath: filePath,
+            in: workspace,
+            remoteMaterializationStore: fileExplorerStore
         )
     }
 

@@ -32,9 +32,23 @@ enum FileExplorerOpenRouting {
         isRemoteWorkspace: Bool,
         isEditorCommandAvailable: Bool
     ) -> FileExplorerOpenTarget {
-        // Placeholder: implemented in the follow-up commit so the acceptance
-        // tests are observed red first.
-        .filePreview
+        // Rendered markdown and Xcode projects are deliberate surfaces of their
+        // own, so they win regardless of whether the editor is reachable.
+        let pathExtension = (filePath as NSString).pathExtension.lowercased()
+        if pathExtension == "xcodeproj" || pathExtension == "xcworkspace" {
+            return .project
+        }
+        if MarkdownPanelFileLinkResolver.isMarkdownPathLike(filePath) {
+            return .markdown
+        }
+        // A remote open materializes a temporary local copy, and the editor's
+        // save capability writes the path it was opened with — that copy, not
+        // the remote file. Keep the read-oriented preview panel there rather
+        // than offering a save that silently goes nowhere.
+        guard !isRemoteWorkspace, isEditorCommandAvailable else {
+            return .filePreview
+        }
+        return .monacoEditor
     }
 
     /// Builds the bundled-CLI argument vector that opens `filePath` in the
@@ -52,7 +66,15 @@ enum FileExplorerOpenRouting {
         workspaceId: UUID,
         surfaceId: UUID?
     ) -> [String] {
-        // Placeholder: implemented in the follow-up commit.
-        []
+        var arguments = [
+            "--socket", socketPath,
+            "edit", filePath,
+            "--workspace", workspaceId.uuidString,
+        ]
+        if let surfaceId {
+            arguments.append(contentsOf: ["--surface", surfaceId.uuidString])
+        }
+        arguments.append("--focus")
+        return arguments
     }
 }

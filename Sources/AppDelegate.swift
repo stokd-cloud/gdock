@@ -6471,8 +6471,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
 #endif
         guard let workspace = tabManager?.selectedWorkspace,
-              let cliURL = Bundle.main.resourceURL?.appendingPathComponent("bin/cmux"),
-              FileManager.default.isExecutableFile(atPath: cliURL.path) else {
+              let cliURL = CmuxCLIPathInstaller.bundledCLIExecutableURL() else {
             return false
         }
         let socketPath = TerminalController.shared.activeSocketPath(
