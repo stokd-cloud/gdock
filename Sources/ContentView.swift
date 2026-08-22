@@ -1820,7 +1820,8 @@ struct ContentView: View {
             registry = created
         }
         // Attach registry to window context for selection router / socket targeting.
-        if let context = AppDelegate.shared?.mainWindowContexts.values.first(where: { $0.windowId == windowId }) {
+        let windowContext = AppDelegate.shared?.mainWindowContexts.values.first(where: { $0.windowId == windowId })
+        if let context = windowContext {
             context.sidebarDockRegistry = registry
         }
         guard sidebarDockEnabled,
@@ -1835,10 +1836,16 @@ struct ContentView: View {
                 fileExplorerState.mode = mode
             }
         }
+        windowContext?.restorePendingSidebarDockSnapshots(
+            into: registry,
+            workspace: workspace,
+            includeStokdWork: StokdRailPanelAvailability.isEnabled()
+        )
         SidebarDockSeeding.seedRegistryIfEmpty(
             registry: registry,
             workspace: workspace,
-            preferredRightMode: fileExplorerState.mode
+            preferredRightMode: fileExplorerState.mode,
+            includeStokdWork: StokdRailPanelAvailability.isEnabled()
         )
         if let mode = registry.right.focusedToolMode(),
            SidebarDockPlacementMatrix.allows(mode: mode),

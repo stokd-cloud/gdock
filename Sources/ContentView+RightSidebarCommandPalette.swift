@@ -153,6 +153,8 @@ extension ContentView {
             return "palette.showRightSidebarFeed"
         case .dock:
             return "palette.showRightSidebarDock"
+        case .stokdWork:
+            return "palette.gdock.showStokdWork"
         case .customSidebar:
             return "palette.showRightSidebarCustomSidebar"
         }
@@ -176,7 +178,7 @@ extension ContentView {
             return "palette.openFindPane"
         case .sessions:
             return "palette.openVaultPane"
-        case .feed, .dock, .customSidebar:
+        case .feed, .dock, .stokdWork, .customSidebar:
             return nil
         }
     }
@@ -189,7 +191,7 @@ extension ContentView {
             return String(localized: "command.openFindPane.title", defaultValue: "Open Find as Pane")
         case .sessions:
             return String(localized: "command.openVaultPane.title", defaultValue: "Open Vault as Pane")
-        case .feed, .dock, .customSidebar:
+        case .feed, .dock, .stokdWork, .customSidebar:
             return nil
         }
     }
@@ -201,6 +203,28 @@ extension ContentView {
         }
         let source = RightSidebarSelectionRouter.paletteSource(for: mode)
         let window = observedWindow ?? NSApp.keyWindow ?? NSApp.mainWindow
+        if mode == .stokdWork,
+           RightSidebarBetaFeatureSettings.isSidebarDockEnabled()
+        {
+            if !fileExplorerState.isVisible {
+                fileExplorerState.setVisible(true)
+            }
+            if SidebarDockActionInvoker.performFocused(
+                commandId: SidebarDockCommand.showStokdWork,
+                windowId: windowId,
+                preferredWindow: window,
+                preferredEdge: .right
+            ) {
+                _ = AppDelegate.shared?.focusRightSidebarInActiveMainWindow(
+                    mode: .stokdWork,
+                    focusFirstItem: false,
+                    preferredWindow: window
+                )
+                return
+            }
+            NSSound.beep()
+            return
+        }
         // Dock rails: single selection seam (VAL-RAIL-009).
         if RightSidebarBetaFeatureSettings.isSidebarDockEnabled(),
            let app = AppDelegate.shared {

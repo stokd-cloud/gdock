@@ -286,7 +286,7 @@ final class SidebarDockStore: BonsplitDelegate {
         inPane paneId: PaneID? = nil,
         select: Bool = true
     ) -> TabID? {
-        guard SidebarDockPlacementMatrix.allows(panel: panel) else {
+        guard SidebarDockPlacementMatrix.allows(panel: panel, on: edge) else {
             Self.logger.warning("sidebar-dock: refused attach of panel type \(panel.panelType.rawValue, privacy: .public) on \(self.edge.rawValue, privacy: .public)")
             return nil
         }

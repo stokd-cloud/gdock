@@ -1918,7 +1918,38 @@ struct SessionWindowSnapshot: Codable, Sendable {
     /// additive so older persisted snapshots decode unchanged.
     var configFrames: [SessionConfigFrameEntry]? = nil
     var dock: SessionSplitContainerSnapshot? = nil // Missing legacy fields continue to seed from dock.json.
+    /// Optional rail layouts are additive; missing legacy state seeds defaults.
+    var leftRail: SessionSidebarRailSnapshot? = nil
+    var rightRail: SessionSidebarRailSnapshot? = nil
 }
+
+extension SessionWindowSnapshot {
+    private enum CodingKeys: String, CodingKey {
+        case windowId
+        case frame
+        case display
+        case tabManager
+        case sidebar
+        case configFrames
+        case dock
+        case leftRail
+        case rightRail
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        windowId = try container.decodeIfPresent(UUID.self, forKey: .windowId)
+        frame = try container.decodeIfPresent(SessionRectSnapshot.self, forKey: .frame)
+        display = try container.decodeIfPresent(SessionDisplaySnapshot.self, forKey: .display)
+        tabManager = try container.decode(SessionTabManagerSnapshot.self, forKey: .tabManager)
+        sidebar = try container.decode(SessionSidebarSnapshot.self, forKey: .sidebar)
+        configFrames = try container.decodeIfPresent([SessionConfigFrameEntry].self, forKey: .configFrames)
+        dock = try container.decodeIfPresent(SessionSplitContainerSnapshot.self, forKey: .dock)
+        leftRail = try? container.decodeIfPresent(SessionSidebarRailSnapshot.self, forKey: .leftRail)
+        rightRail = try? container.decodeIfPresent(SessionSidebarRailSnapshot.self, forKey: .rightRail)
+    }
+}
+
 struct AppSessionSnapshot: Codable, Sendable {
     var version: Int
     var createdAt: TimeInterval

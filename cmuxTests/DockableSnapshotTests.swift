@@ -218,7 +218,7 @@ final class DockableSnapshotTests: XCTestCase {
             workspaceId: workspace.id,
             initialURL: URL(string: "https://example.com/payload"),
             renderInitialNavigation: false,
-            omnibarVisible: false,
+            chromeVisibility: .hidden,
             transparentBackground: true
         )
         let markdown = MarkdownPanel(workspaceId: workspace.id, filePath: fileURL.path)

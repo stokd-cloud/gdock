@@ -88,7 +88,7 @@ enum SidebarDockTransfer {
               let sourceTabId = source.surfaceId(forPanelId: panelId) else {
             return .refused(.missingSource)
         }
-        guard SidebarDockPlacementMatrix.allows(panel: panel) else {
+        guard SidebarDockPlacementMatrix.allows(panel: panel, on: destEdge) else {
             return losslessRefuse(source: source, dest: dest, before: (sourceBefore, destBefore), reason: .placement)
         }
         if source.wouldEmptyRail(removing: sourceTabId) {
@@ -180,7 +180,7 @@ enum SidebarDockTransfer {
         }
         // Placement: every panel must be allowed on a rail.
         for panel in capture.panels {
-            guard SidebarDockPlacementMatrix.allows(panel: panel) else {
+            guard SidebarDockPlacementMatrix.allows(panel: panel, on: destEdge) else {
                 return losslessRefuse(source: source, dest: dest, before: (sourceBefore, destBefore), reason: .placement)
             }
         }
