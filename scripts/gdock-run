@@ -1,5 +1,18 @@
 #!/usr/bin/env bash
 # gdock-run — build or launch the ghostty-dock main app (or a tagged/debug variant).
+#
+# THIS FILE IS THE SOURCE OF TRUTH. It is installed to ~/.local/bin/gdock-build by
+# scripts/install-gdock-build.sh; never hand-edit the installed host copy.
+#
+# Probes the worktree's scripts/reload.sh and adapts:
+#   fork (rc1): --release/--debug, optional --tag, names gdock.app / gdock DBG.app
+#   upstream:   always --tag (default gdock), Debug only, names cmux DEV <tag>.app
+#
+# Untagged Release builds ("main app" mode) are installed to $GDOCK_INSTALL_DIR
+# (default /Applications) so the installed app stays runnable while a new build
+# compiles. Replacing a RUNNING installed app requires consent, and a declined
+# build is recorded as a pending install rather than discarded. See
+# AX-GDOCK-INSTALLED-APP-SWAP-GATE and docs/gdock-agent-conventions.md.
 set -euo pipefail
 
 SKIP_ZIG="${GDOCK_SKIP_ZIG:-1}"
@@ -7,6 +20,23 @@ STATE_DIR="${GDOCK_STATE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/gdock}"
 WORKTREE_OVERRIDE="${GDOCK_WORKTREE:-}"
 DERIVED_DATA_OVERRIDE="${GDOCK_DERIVED_DATA:-}"
 APP_OVERRIDE="${GDOCK_APP:-}"
+UPSTREAM_DEFAULT_TAG="${GDOCK_UPSTREAM_TAG:-gdock}"
+
+# --- installed main app ---------------------------------------------------
+INSTALL_DIR="${GDOCK_INSTALL_DIR:-/Applications}"
+INSTALLED_APP_BASENAME="gdock.app"
+MAIN_APP_BUNDLE_ID="cloud.stokd.ghostty-dock"
+# auto = replace without asking, ask = prompt when running, never = never replace.
+INSTALL_MODE="${GDOCK_INSTALL:-ask}"
+PROMPT_TIMEOUT="${GDOCK_PROMPT_TIMEOUT:-60}"
+# Seams: absolute by default, overridable so the swap gate is testable without a
+# real /Applications write, a real launch, or real process signalling.
+OPEN_CMD="${GDOCK_OPEN:-/usr/bin/open}"
+OSASCRIPT_CMD="${GDOCK_OSASCRIPT:-/usr/bin/osascript}"
+PS_CMD="${GDOCK_PS:-/bin/ps}"
+KILL_CMD="${GDOCK_KILL:-/bin/kill}"
+ASSUME_TTY="${GDOCK_ASSUME_TTY:-}"
+LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 
 LAST_RUN_LOG="${STATE_DIR}/last-run.log"
 LAST_RUN_META="${STATE_DIR}/last-run.meta"
@@ -19,27 +49,52 @@ PATH_ONLY=0
 SHOW_LAST_RUN=0
 USER_TAG=""
 WANT_DEBUG=0
+INSTALLED_PATH_ONLY=0
+RUN_INSTALLED_ONLY=0
+# fork | upstream. Set after resolve_repo_root via reload.sh --help.
+RELOAD_DIALECT="fork"
 
 usage() {
   cat <<'USAGE'
-gdock-run — build or launch gdock
+gdock-build — build or launch gdock
 
-Naming (matches reload.sh):
-  gdock-run                         Release → gdock.app              (main app)
-  gdock-run --tag <name>            Release → gdock <name>.app
-  gdock-run --debug                 Debug   → gdock DBG.app
-  gdock-run --debug --tag <name>    Debug   → gdock DBG <name>.app
+Fork reload.sh (has --release):
+  gdock-build                         Release → gdock.app              (main app)
+  gdock-build --tag <name>            Release → gdock <name>.app
+  gdock-build --debug                 Debug   → gdock DBG.app
+  gdock-build --debug --tag <name>    Debug   → gdock DBG <name>.app
+
+Upstream reload.sh (no --release; --tag required):
+  gdock-build                         Debug   → cmux DEV gdock.app
+  gdock-build --tag <name>            Debug   → cmux DEV <name>.app
+  gdock-build --debug                 no-op note; same as untagged
+  gdock-build --debug --tag <name>    no-op note; same as --tag <name>
 
 Usage:
-  gdock-run              Build the main Release app when sources change; then launch.
-  gdock-run --build      Force a rebuild; then launch.
-  gdock-run --build-only Force a rebuild; do not launch.
-  gdock-run --no-launch  Build only when needed; do not launch.
-  gdock-run --tag <name> Parallel dogfood instance (appends tag to the name).
-  gdock-run --debug      Debug configuration (-Onone); names use "DBG".
-  gdock-run --path       Print the selected app path (or last launched app).
-  gdock-run --last-run   Print the path and contents of the last saved run transcript.
-  gdock-run --help
+  gdock-build              Build the main app when sources change; then launch.
+  gdock-build --build      Force a rebuild; then launch.
+  gdock-build --build-only Force a rebuild; do not launch.
+  gdock-build --no-launch  Build only when needed; do not launch.
+  gdock-build --tag <name> Parallel dogfood instance (appends tag to the name).
+  gdock-build --debug      Debug configuration on fork trees; no-op on upstream.
+  gdock-build --path       Print the selected app path (or last launched app).
+  gdock-build --last-run   Print the path and contents of the last saved run transcript.
+  gdock-build --help
+
+Installed main app (untagged Release only; tagged and --debug never touch it):
+  The built bundle is installed to $GDOCK_INSTALL_DIR/gdock.app (default
+  /Applications), so the installed app keeps working while a new build compiles.
+  When the installed app is NOT running it is replaced silently. When it IS
+  running you are asked first, because replacing it means quitting it. Declining
+  (or a timeout, a non-tty stdin, --no-install, or GDOCK_INSTALL=never) leaves the
+  installed app untouched and records the build as a PENDING install; the next run
+  re-checks with no rebuild and installs it once the app is closed.
+
+  gdock-build --force-install   Quit the running installed app and replace it,
+                                without asking.
+  gdock-build --no-install      Leave the installed app alone; record pending.
+  gdock-build --run-installed   Launch the installed app now. No build, no install.
+  gdock-build --installed-path  Print the installed app path.
 
 Every run (except --help / --last-run) is saved to:
   $GDOCK_STATE_DIR/last-run.log   full stdout+stderr transcript
@@ -47,7 +102,7 @@ Every run (except --help / --last-run) is saved to:
 Previous run is rotated to last-run.log.prev / last-run.meta.prev.
 
 Inside a ghostty-dock worktree, gdock fingerprints HEAD plus tracked,
-untracked, and submodule state. Cache keys include config + tag mode.
+untracked, and submodule state. Cache keys include dialect + config + tag.
 Outside ghostty-dock, gdock opens the last app it launched.
 
 Environment overrides:
@@ -56,8 +111,14 @@ Environment overrides:
   GDOCK_APP            Fallback app outside a repo when no last app exists.
   GDOCK_STATE_DIR      Cache root (default: $XDG_CACHE_HOME/gdock or ~/.cache/gdock).
   GDOCK_SKIP_ZIG       Default: 1; set 0 to run Ghostty zig build phases.
+  GDOCK_UPSTREAM_TAG   Default --tag on upstream trees with no --tag (default: gdock).
+  GDOCK_INSTALL_DIR    Installed main app directory (default: /Applications).
+  GDOCK_INSTALL        auto | ask | never (default: ask).
+  GDOCK_PROMPT_TIMEOUT Seconds to wait for the replace answer (default: 60).
+  GDOCK_OPEN, GDOCK_OSASCRIPT, GDOCK_PS, GDOCK_KILL, GDOCK_ASSUME_TTY
+                       Test seams for the installed-app swap gate.
 
-Tagged CLI usage (when --tag is set):
+Tagged CLI usage (when a tag is in effect):
   CMUX_TAG=<tag> scripts/cmux-debug-cli.sh …
 USAGE
 }
@@ -187,6 +248,22 @@ while [[ $# -gt 0 ]]; do
       PATH_ONLY=1
       shift
       ;;
+    --installed-path)
+      INSTALLED_PATH_ONLY=1
+      shift
+      ;;
+    --run-installed)
+      RUN_INSTALLED_ONLY=1
+      shift
+      ;;
+    --force-install)
+      INSTALL_MODE="auto"
+      shift
+      ;;
+    --no-install)
+      INSTALL_MODE="never"
+      shift
+      ;;
     --build|-b)
       FORCE_BUILD=1
       shift
@@ -297,8 +374,37 @@ sanitize_tag_part() {
   printf '%s\n' "${value:-tag}"
 }
 
-# Cache/build identity for this invocation (config + optional tag).
+# fork: reload.sh accepts --release/--debug. upstream: --tag required, Debug only.
+detect_reload_dialect() {
+  local root="$1"
+  local help
+  help="$("$root/scripts/reload.sh" --help 2>&1 || true)"
+  if printf '%s\n' "$help" | grep -q -- '--release'; then
+    printf 'fork\n'
+  else
+    printf 'upstream\n'
+  fi
+}
+
+# Tag passed to upstream reload.sh. Fork untagged builds stay untagged.
+effective_tag() {
+  if [[ -n "$USER_TAG" ]]; then
+    printf '%s\n' "$USER_TAG"
+    return
+  fi
+  if [[ "$RELOAD_DIALECT" == "upstream" ]]; then
+    printf '%s\n' "$UPSTREAM_DEFAULT_TAG"
+  fi
+}
+
+# Cache/build identity for this invocation (dialect + config + optional tag).
 build_mode_key() {
+  local tag
+  if [[ "$RELOAD_DIALECT" == "upstream" ]]; then
+    tag="$(effective_tag)"
+    printf 'upstream:%s\n' "$(sanitize_tag_part "$tag")"
+    return
+  fi
   local mode="release"
   if [[ "$WANT_DEBUG" -eq 1 ]]; then
     mode="debug"
@@ -310,8 +416,14 @@ build_mode_key() {
   fi
 }
 
-# Expected staged app name (must match reload.sh).
+# Expected staged app name (must match the worktree's reload.sh).
 app_display_name() {
+  local tag
+  if [[ "$RELOAD_DIALECT" == "upstream" ]]; then
+    tag="$(sanitize_tag_part "$(effective_tag)")"
+    printf 'cmux DEV %s\n' "$tag"
+    return
+  fi
   if [[ "$WANT_DEBUG" -eq 1 ]]; then
     if [[ -n "$USER_TAG" ]]; then
       printf 'gdock DBG %s\n' "$(sanitize_tag_part "$USER_TAG")"
@@ -403,11 +515,14 @@ expected_app_path() {
   local dd_slug="gdock"
   local app_name
   app_name="$(app_display_name)"
-  if [[ "$WANT_DEBUG" -eq 1 ]]; then
+  if [[ "$RELOAD_DIALECT" == "upstream" ]]; then
+    config="Debug"
+    dd_slug="$(sanitize_tag_part "$(effective_tag)")"
+  elif [[ "$WANT_DEBUG" -eq 1 ]]; then
     config="Debug"
     dd_slug="gdock-dbg"
   fi
-  if [[ -n "$USER_TAG" ]]; then
+  if [[ "$RELOAD_DIALECT" != "upstream" && -n "$USER_TAG" ]]; then
     dd_slug="$(sanitize_tag_part "$USER_TAG")"
   fi
   if [[ -n "$DERIVED_DATA_OVERRIDE" ]]; then
@@ -425,8 +540,227 @@ launch_app() {
     return 1
   }
   echo "gdock: opening $app" >&2
-  open -a "$app"
+  "$OPEN_CMD" -a "$app"
   write_atomic_line "$STATE_DIR/last-app" "$app"
+}
+
+# --- installed main app: swap gate ----------------------------------------
+# Only untagged Release builds on a fork tree own $INSTALL_DIR/gdock.app. Tagged
+# and --debug variants stay in DerivedData and must never reach this code.
+is_main_app_mode() {
+  [[ "$RELOAD_DIALECT" != "upstream" ]] || return 1
+  [[ -z "$USER_TAG" ]] || return 1
+  [[ "$WANT_DEBUG" -eq 0 ]] || return 1
+  return 0
+}
+
+installed_app_path() {
+  printf '%s/%s\n' "${INSTALL_DIR%/}" "$INSTALLED_APP_BASENAME"
+}
+
+installed_executable_path() {
+  printf '%s/Contents/MacOS/gdock\n' "$(installed_app_path)"
+}
+
+# Pids whose process executable is EXACTLY the installed app's binary.
+# Never match on the full command line: that would signal unrelated processes
+# whose argv merely mentions this path (see AX-GDOCK-INSTALLED-APP-SWAP-GATE).
+installed_running_pids() {
+  local exe
+  exe="$(installed_executable_path)"
+  "$PS_CMD" -axo pid=,comm= 2>/dev/null | awk -v exe="$exe" '
+    {
+      pid = $1
+      if (pid !~ /^[0-9]+$/) next
+      $1 = ""
+      sub(/^[[:space:]]+/, "")
+      if ($0 == exe) print pid
+    }
+  '
+}
+
+quit_installed_app() {
+  local pids attempt pid
+  echo "gdock: quitting the running installed app..." >&2
+  "$OSASCRIPT_CMD" -e "tell application id \"${MAIN_APP_BUNDLE_ID}\" to quit" >/dev/null 2>&1 || true
+  for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
+    pids="$(installed_running_pids)"
+    [[ -z "$pids" ]] && return 0
+    sleep 0.25
+  done
+  # Still alive: signal the exact pids we resolved, one at a time.
+  pids="$(installed_running_pids)"
+  for pid in $pids; do
+    echo "gdock: signalling pid $pid" >&2
+    "$KILL_CMD" "$pid" 2>/dev/null || true
+  done
+  for attempt in 1 2 3 4 5 6 7 8; do
+    pids="$(installed_running_pids)"
+    [[ -z "$pids" ]] && return 0
+    sleep 0.25
+  done
+  echo "gdock: the installed app is still running; refusing to replace it" >&2
+  return 1
+}
+
+# Same-filesystem staged rename, so the installed bundle is never half-written.
+install_main_app() {
+  local src="$1"
+  local dst staging previous
+  dst="$(installed_app_path)"
+  staging="${INSTALL_DIR%/}/.gdock.install-$$.app"
+  previous="${INSTALL_DIR%/}/.gdock.previous-$$.app"
+
+  [[ -d "$src" ]] || {
+    echo "gdock: cannot install a missing bundle: $src" >&2
+    return 1
+  }
+  mkdir -p "$INSTALL_DIR" || {
+    echo "gdock: cannot create the install directory: $INSTALL_DIR" >&2
+    return 1
+  }
+
+  rm -rf "$staging" "$previous"
+  if command -v ditto >/dev/null 2>&1; then
+    ditto "$src" "$staging" || { rm -rf "$staging"; return 1; }
+  else
+    cp -R "$src" "$staging" || { rm -rf "$staging"; return 1; }
+  fi
+
+  if [[ -d "$dst" ]]; then
+    mv "$dst" "$previous" || {
+      echo "gdock: cannot move the current installed app aside: $dst" >&2
+      rm -rf "$staging"
+      return 1
+    }
+  fi
+  if ! mv "$staging" "$dst"; then
+    echo "gdock: install failed; restoring the previous app" >&2
+    [[ -d "$previous" ]] && mv "$previous" "$dst"
+    rm -rf "$staging"
+    return 1
+  fi
+  rm -rf "$previous"
+
+  # Best effort: let Dock/Spotlight see the replaced bundle.
+  [[ -x "$LSREGISTER" ]] && "$LSREGISTER" -f "$dst" >/dev/null 2>&1 || true
+
+  echo "gdock: installed $dst" >&2
+  return 0
+}
+
+pending_record_path() {
+  printf '%s/pending-install\n' "$1"
+}
+
+record_pending_install() {
+  # record_pending_install <state-dir> <app> <fingerprint>
+  local record
+  record="$(pending_record_path "$1")"
+  mkdir -p "$1"
+  {
+    printf 'app=%s\n' "$2"
+    printf 'fingerprint=%s\n' "$3"
+    printf 'recorded_at=%s\n' "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  } > "$record"
+}
+
+clear_pending_install() {
+  rm -f "$(pending_record_path "$1")"
+}
+
+read_pending_field() {
+  # read_pending_field <state-dir> <key>
+  local record
+  record="$(pending_record_path "$1")"
+  [[ -f "$record" ]] || return 1
+  sed -n "s/^$2=//p" "$record" | tail -1
+}
+
+can_prompt() {
+  [[ -n "$ASSUME_TTY" ]] && return 0
+  [[ -t 0 ]]
+}
+
+prompt_replace_installed() {
+  local pids="$1" reply=""
+  printf 'gdock: the installed app is running (pid %s).\n' "$(printf '%s' "$pids" | tr '\n' ' ')" >&2
+  printf 'gdock: replace it with the new build? This quits the running app. [y/N] ' >&2
+  if ! IFS= read -r -t "$PROMPT_TIMEOUT" reply; then
+    printf '\ngdock: no answer within %ss\n' "$PROMPT_TIMEOUT" >&2
+    return 1
+  fi
+  case "$reply" in
+    y|Y|yes|YES|Yes) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+defer_install() {
+  # defer_install <state-dir> <app> <fingerprint> <reason>
+  record_pending_install "$1" "$2" "$3"
+  echo "gdock: kept the running installed app; new build is PENDING ($4)" >&2
+  echo "gdock: install it later with: gdock-build            (once the app is closed)" >&2
+  echo "gdock:                    or: gdock-build --force-install" >&2
+}
+
+# Decide whether $2 replaces the installed app, and do it. Never fails the run:
+# a refusal or an unusable install is reported and the old app keeps running.
+resolve_installed_app() {
+  local state_dir="$1" candidate="$2" candidate_fingerprint="$3"
+  local installed installed_source pids
+  installed="$(installed_app_path)"
+  installed_source="$(read_first_line "$state_dir/installed-fingerprint" 2>/dev/null || true)"
+
+  if [[ -d "$installed" && -n "$candidate_fingerprint" && "$installed_source" == "$candidate_fingerprint" ]]; then
+    clear_pending_install "$state_dir"
+    return 0
+  fi
+
+  if [[ "$INSTALL_MODE" == "never" ]]; then
+    defer_install "$state_dir" "$candidate" "$candidate_fingerprint" "--no-install"
+    return 0
+  fi
+
+  pids="$(installed_running_pids)"
+  if [[ -z "$pids" ]]; then
+    if install_main_app "$candidate"; then
+      write_atomic_line "$state_dir/installed-fingerprint" "$candidate_fingerprint"
+      clear_pending_install "$state_dir"
+    else
+      record_pending_install "$state_dir" "$candidate" "$candidate_fingerprint"
+      echo "gdock: install failed; the build stays PENDING" >&2
+    fi
+    return 0
+  fi
+
+  if [[ "$INSTALL_MODE" != "auto" ]]; then
+    if [[ "$LAUNCH" -eq 0 ]]; then
+      defer_install "$state_dir" "$candidate" "$candidate_fingerprint" "no launch requested"
+      return 0
+    fi
+    if ! can_prompt; then
+      defer_install "$state_dir" "$candidate" "$candidate_fingerprint" "not an interactive terminal"
+      return 0
+    fi
+    if ! prompt_replace_installed "$pids"; then
+      defer_install "$state_dir" "$candidate" "$candidate_fingerprint" "declined"
+      return 0
+    fi
+  fi
+
+  if ! quit_installed_app; then
+    defer_install "$state_dir" "$candidate" "$candidate_fingerprint" "could not quit the running app"
+    return 0
+  fi
+  if install_main_app "$candidate"; then
+    write_atomic_line "$state_dir/installed-fingerprint" "$candidate_fingerprint"
+    clear_pending_install "$state_dir"
+  else
+    record_pending_install "$state_dir" "$candidate" "$candidate_fingerprint"
+    echo "gdock: install failed; the build stays PENDING" >&2
+  fi
+  return 0
 }
 
 last_app_path() {
@@ -439,6 +773,24 @@ last_app_path() {
   printf '%s\n' "$app"
 }
 
+
+# Fresh worktrees often have empty submodule dirs (no ghostty.h). Init them
+# here so `gdock-build` works without a separate ./scripts/setup.sh.
+ensure_worktree_ready() {
+  local root="$1"
+  if [[ -f "$root/ghostty/include/ghostty.h" ]]; then
+    return 0
+  fi
+  echo "gdock: ghostty submodule incomplete; initializing submodules..." >&2
+  git -C "$root" submodule update --init --recursive
+  if [[ ! -f "$root/ghostty/include/ghostty.h" ]]; then
+    echo "gdock: ghostty/include/ghostty.h still missing after submodule init" >&2
+    echo "gdock: try: git -C \"$root\" submodule update --init --recursive" >&2
+    return 1
+  fi
+  echo "gdock: submodules ready" >&2
+}
+
 build_app() {
   local root="$1"
   local state_dir="$2"
@@ -447,28 +799,34 @@ build_app() {
   local -a reload_args
   local reload_status=0
 
+  ensure_worktree_ready "$root"
+
   output_file="$(mktemp "${TMPDIR:-/tmp}/gdock-reload.XXXXXX")"
   trap 'rm -f "$output_file"' RETURN
   reload_args=()
-  if [[ "$WANT_DEBUG" -eq 1 ]]; then
-    reload_args+=(--debug)
+  if [[ "$RELOAD_DIALECT" == "upstream" ]]; then
+    reload_args+=(--tag "$(effective_tag)")
+    reload_log_key="$(sanitize_tag_part "$(effective_tag)")"
   else
-    reload_args+=(--release)
-  fi
-  if [[ -n "$USER_TAG" ]]; then
-    reload_args+=(--tag "$USER_TAG")
+    if [[ "$WANT_DEBUG" -eq 1 ]]; then
+      reload_args+=(--debug)
+    else
+      reload_args+=(--release)
+    fi
+    if [[ -n "$USER_TAG" ]]; then
+      reload_args+=(--tag "$USER_TAG")
+    fi
+    if [[ -n "$USER_TAG" ]]; then
+      reload_log_key="$(sanitize_tag_part "$USER_TAG")"
+    else
+      reload_log_key="main"
+    fi
   fi
   if [[ -n "$DERIVED_DATA_OVERRIDE" ]]; then
     reload_args+=(--derived-data "$DERIVED_DATA_OVERRIDE")
   fi
 
-  if [[ -n "$USER_TAG" ]]; then
-    reload_log_key="$(sanitize_tag_part "$USER_TAG")"
-  else
-    reload_log_key="main"
-  fi
-
-  echo "gdock: building mode=$mode_key worktree=$root" >&2
+  echo "gdock: building mode=$mode_key worktree=$root reload=./scripts/reload.sh ${reload_args[*]}" >&2
   set +e
   (
     cd "$root"
@@ -524,6 +882,30 @@ build_app() {
   printf '%s\n' "$app"
 }
 
+case "$INSTALL_MODE" in
+  auto|ask|never) ;;
+  *)
+    echo "gdock: GDOCK_INSTALL must be auto, ask, or never (got: $INSTALL_MODE)" >&2
+    exit 2
+    ;;
+esac
+
+# These two never build and never install, so they work outside a worktree too.
+if [[ "$INSTALLED_PATH_ONLY" -eq 1 ]]; then
+  installed_app_path
+  exit 0
+fi
+if [[ "$RUN_INSTALLED_ONLY" -eq 1 ]]; then
+  installed_app="$(installed_app_path)"
+  if [[ ! -d "$installed_app" ]]; then
+    echo "gdock: no installed app at $installed_app" >&2
+    echo "gdock: build and install one with: gdock-build" >&2
+    exit 1
+  fi
+  launch_app "$installed_app"
+  exit 0
+fi
+
 repo_root=""
 resolve_status=0
 repo_root="$(resolve_repo_root)" || resolve_status=$?
@@ -551,6 +933,16 @@ if [[ -z "$repo_root" ]]; then
 fi
 
 branch="$(branch_name "$repo_root")"
+RELOAD_DIALECT="$(detect_reload_dialect "$repo_root")"
+if [[ "$PATH_ONLY" -ne 1 && "$RELOAD_DIALECT" == "upstream" ]]; then
+  echo "gdock: reload.sh dialect=upstream (no --release/--debug; --tag required)" >&2
+  if [[ -z "$USER_TAG" ]]; then
+    echo "gdock: using --tag $UPSTREAM_DEFAULT_TAG" >&2
+  fi
+  if [[ "$WANT_DEBUG" -eq 1 ]]; then
+    echo "gdock: --debug is a no-op on this worktree (Debug-only)" >&2
+  fi
+fi
 mode_key="$(build_mode_key)"
 repo_key="$(repo_identity "$repo_root")"
 mode_hash="$(hash_text "$mode_key")"
@@ -592,10 +984,46 @@ else
   echo "gdock: unchanged; reusing $app" >&2
 fi
 
-echo "gdock: branch=$branch mode=$mode_key name=$(app_display_name)" >&2
-if [[ -n "$USER_TAG" ]]; then
-  echo "gdock: CLI: CMUX_TAG=$USER_TAG scripts/cmux-debug-cli.sh …" >&2
+echo "gdock: branch=$branch dialect=$RELOAD_DIALECT mode=$mode_key name=$(app_display_name)" >&2
+cli_tag="$(effective_tag)"
+if [[ -n "$cli_tag" ]]; then
+  echo "gdock: CLI: CMUX_TAG=$cli_tag scripts/cmux-debug-cli.sh …" >&2
 fi
+
+# Main app mode owns $INSTALL_DIR/gdock.app. Decide what belongs there before
+# launching, so a launch never foregrounds a stale process by bundle id.
+launch_path="$app"
+if is_main_app_mode; then
+  install_candidate=""
+  candidate_fingerprint=""
+  if [[ "$needs_build" -eq 1 ]]; then
+    install_candidate="$app"
+    candidate_fingerprint="$fingerprint"
+  else
+    pending_app="$(read_pending_field "$state_dir" app || true)"
+    if [[ -n "$pending_app" && -d "$pending_app" ]]; then
+      install_candidate="$pending_app"
+      candidate_fingerprint="$(read_pending_field "$state_dir" fingerprint || true)"
+      echo "gdock: a previous build is pending install" >&2
+    elif [[ -n "$pending_app" ]]; then
+      echo "gdock: dropping a pending install whose bundle is gone: $pending_app" >&2
+      clear_pending_install "$state_dir"
+    fi
+    # First run after adopting the installed layout: nothing installed yet.
+    if [[ -z "$install_candidate" && ! -d "$(installed_app_path)" && -d "$app" ]]; then
+      install_candidate="$app"
+      candidate_fingerprint="$fingerprint"
+    fi
+  fi
+
+  if [[ -n "$install_candidate" ]]; then
+    resolve_installed_app "$state_dir" "$install_candidate" "$candidate_fingerprint"
+  fi
+  if [[ -d "$(installed_app_path)" ]]; then
+    launch_path="$(installed_app_path)"
+  fi
+fi
+
 if [[ "$LAUNCH" -eq 1 ]]; then
-  launch_app "$app"
+  launch_app "$launch_path"
 fi
