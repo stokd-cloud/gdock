@@ -32,3 +32,68 @@
 - When on: non-anchor workspaces whose cwd is inside a GitHub-remote repo are placed in a workspace group named `owner/repo` (primary remote: upstream → origin → others). Group anchors are not auto-moved.
 
 Also listed in `Agents.md` so every agent session loads it.
+
+## The gdock launcher and the installed main app
+
+`scripts/gdock-run` is the **source of truth** for the `gdock-build` launcher. The
+host copy at `~/.local/bin/gdock-build` is generated — install it with
+`scripts/install-gdock-build.sh` and never hand-edit it. `--check` reports drift.
+
+### Installed app location
+
+Untagged Release builds ("main app" mode) are installed to
+`$GDOCK_INSTALL_DIR/gdock.app`, default `/Applications/gdock.app`, by a
+same-filesystem staged rename. That stable path is what `gdock-build` launches, so
+the installed app keeps working while a new build compiles in DerivedData.
+
+**Tagged builds (`--tag`) and `--debug` builds never write to the install
+directory.** They stay in DerivedData exactly as before. Agent dogfood builds are
+always tagged, so agents never touch `/Applications`.
+
+### The swap gate
+
+Replacing the installed app is gated on whether it is running:
+
+| Installed app | Result |
+|---------------|--------|
+| Not running | Replaced silently, then launched. |
+| Running, interactive terminal | Prompted (`[y/N]`, `GDOCK_PROMPT_TIMEOUT`, default 60s). |
+| Running, answer yes / `--force-install` / `GDOCK_INSTALL=auto` | Quit first, then replace, then launch the new app. |
+| Running, declined / timed out / no tty / `--no-install` / `GDOCK_INSTALL=never` | Left untouched; the build is recorded as a **pending install**. |
+
+A pending install is retried on the next run in that mode with **no rebuild**: once
+the app is closed it installs and launches; while it is still running you are asked
+again. A pending record is dropped only when its bundle is gone or a newer
+successful build supersedes it.
+
+The quit must precede the launch. The installed bundle and the DerivedData bundle
+share bundle id `cloud.stokd.ghostty-dock`, so `open -a` against a running
+instance foregrounds the **old** process — "launched the new build" would be a lie.
+
+### Never match processes by command line
+
+Running-app detection resolves pids whose process executable is exactly
+`$GDOCK_INSTALL_DIR/gdock.app/Contents/MacOS/gdock` (via `ps -axo pid=,comm=`), and
+termination signals those pids individually. Do not reintroduce `pkill`/`pgrep`
+command-line matching here: it signals every process whose argv merely mentions
+the path, which has killed live sibling agent sessions.
+
+### Flags and environment
+
+| Flag | Effect |
+|------|--------|
+| `--force-install` | Quit the running installed app and replace it without asking. |
+| `--no-install` | Leave the installed app alone; record a pending install. |
+| `--run-installed` | Launch the installed app now. No build, no install. |
+| `--installed-path` | Print the installed app path. |
+
+`GDOCK_INSTALL_DIR` (default `/Applications`), `GDOCK_INSTALL` (`auto`/`ask`/`never`,
+default `ask`), and `GDOCK_PROMPT_TIMEOUT` configure the gate. `GDOCK_OPEN`,
+`GDOCK_OSASCRIPT`, `GDOCK_PS`, `GDOCK_KILL`, and `GDOCK_ASSUME_TTY` are test seams
+used by `tests/test_gdock_install_applications.sh`, which covers the whole gate
+without Xcode, a real `/Applications` write, or real signalling.
+
+`--path` still prints the DerivedData build path; use `--installed-path` for the
+installed one.
+
+Contract: `AX-GDOCK-INSTALLED-APP-SWAP-GATE`.
