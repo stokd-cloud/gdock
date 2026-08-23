@@ -924,6 +924,10 @@ struct ContentView: View {
     @StateObject private var fullscreenControlsViewModel = TitlebarControlsViewModel()
     @StateObject private var fileExplorerStore = FileExplorerStore()
     @StateObject private var sessionIndexStore = SessionIndexStore()
+    /// Work model + repo binder for the legacy (non-rail) right sidebar. The dock
+    /// rails use per-``RightSidebarToolPanel`` models instead.
+    @StateObject private var stokdWorkViewModel = StokdWorkPanelViewModel()
+    @State private var stokdWorkRepositoryBinder = StokdWorkRepositoryBinder()
     /// Per-window left/right dock rails (created once; seeded when flag is on).
     @State private var sidebarDockRegistry: SidebarDockStoreRegistry?
     @AppStorage(RightSidebarBetaFeatureSettings.sidebarDockEnabledKey)
@@ -1839,13 +1843,13 @@ struct ContentView: View {
         windowContext?.restorePendingSidebarDockSnapshots(
             into: registry,
             workspace: workspace,
-            includeStokdWork: StokdRailPanelAvailability.isEnabled()
+            includeStokdWork: true
         )
         SidebarDockSeeding.seedRegistryIfEmpty(
             registry: registry,
             workspace: workspace,
             preferredRightMode: fileExplorerState.mode,
-            includeStokdWork: StokdRailPanelAvailability.isEnabled()
+            includeStokdWork: true
         )
         if let mode = registry.right.focusedToolMode(),
            SidebarDockPlacementMatrix.allows(mode: mode),
@@ -2072,6 +2076,8 @@ struct ContentView: View {
             fileExplorerStore: fileExplorerStore,
             fileExplorerState: fileExplorerState,
             sessionIndexStore: sessionIndexStore,
+            stokdWorkViewModel: stokdWorkViewModel,
+            onSyncStokdWorkRepository: { syncStokdWorkRepository() },
             titlebarHeight: RightSidebarChromeMetrics.titlebarHeight,
             windowAppearance: appearance,
             workspaceId: tabManager.selectedTabId,
@@ -2577,7 +2583,28 @@ struct ContentView: View {
         )
     }
 
+    /// The local checkout used to scope repo-aware panels, or `""` when the
+    /// selection has no local cwd (no selection, a remote workspace, or an empty
+    /// directory). One resolution shared by every Work bind site.
+    private var stokdWorkScopeDirectory: String {
+        guard let selectedId = tabManager.selectedTabId,
+              let tab = tabManager.tabs.first(where: { $0.id == selectedId }),
+              !tab.usesRemoteDirectoryProvenance else { return "" }
+        return tab.currentDirectory
+    }
+
+    /// Scopes the legacy right sidebar's Work panel to the selected workspace.
+    /// Called from the directory sync and from the panel's own `onAppear`, since
+    /// `onChange` does not fire for a mode restored at launch.
+    private func syncStokdWorkRepository() {
+        stokdWorkRepositoryBinder.bind(
+            directory: stokdWorkScopeDirectory,
+            to: stokdWorkViewModel
+        )
+    }
+
     private func syncFileExplorerDirectory() {
+        syncStokdWorkRepository()
         guard let selectedId = tabManager.selectedTabId,
               let tab = tabManager.tabs.first(where: { $0.id == selectedId }) else {
             // No selection means we have no local cwd to scope by; clear so the

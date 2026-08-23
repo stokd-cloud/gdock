@@ -504,14 +504,6 @@ enum RightSidebarBetaFeatureSettings {
     }
 }
 
-enum StokdRailPanelAvailability {
-    static let settingKey = RightSidebarBetaFeatureSettings.sidebarDockEnabledKey
-
-    nonisolated static func isEnabled(defaults: UserDefaults = .standard) -> Bool {
-        RightSidebarBetaFeatureSettings.isSidebarDockEnabled(defaults: defaults)
-    }
-}
-
 enum UITestLaunchManifest {
     static let argumentName = "-cmuxUITestLaunchManifest"
 

@@ -22,22 +22,19 @@ extension RightSidebarMode {
     static func availableModes(defaults: UserDefaults = .standard) -> [RightSidebarMode] {
         availableModes(
             feedEnabled: RightSidebarBetaFeatureSettings.isFeedEnabled(defaults: defaults),
-            dockEnabled: RightSidebarBetaFeatureSettings.isDockEnabled(defaults: defaults),
-            sidebarDockEnabled: StokdRailPanelAvailability.isEnabled(defaults: defaults)
+            dockEnabled: RightSidebarBetaFeatureSettings.isDockEnabled(defaults: defaults)
         )
     }
 
     static func availableModes(
         feedEnabled: Bool,
-        dockEnabled: Bool,
-        sidebarDockEnabled: Bool = false
+        dockEnabled: Bool
     ) -> [RightSidebarMode] {
         allCases.filter {
             $0 != .customSidebar
                 && $0.isAvailable(
                     feedEnabled: feedEnabled,
-                    dockEnabled: dockEnabled,
-                    sidebarDockEnabled: sidebarDockEnabled
+                    dockEnabled: dockEnabled
                 )
         }
     }
@@ -45,21 +42,20 @@ extension RightSidebarMode {
     func isAvailable(defaults: UserDefaults = .standard) -> Bool {
         isAvailable(
             feedEnabled: RightSidebarBetaFeatureSettings.isFeedEnabled(defaults: defaults),
-            dockEnabled: RightSidebarBetaFeatureSettings.isDockEnabled(defaults: defaults),
-            sidebarDockEnabled: StokdRailPanelAvailability.isEnabled(defaults: defaults)
+            dockEnabled: RightSidebarBetaFeatureSettings.isDockEnabled(defaults: defaults)
         )
     }
 
+    /// Stokd Work is a first-class default tool alongside Files/Find/Vault: it is
+    /// available on both the legacy mode bar and the dock rails, and is gated by
+    /// no beta flag. Only Feed and Dock remain flag-gated betas.
     func isAvailable(
         feedEnabled: Bool,
-        dockEnabled: Bool,
-        sidebarDockEnabled: Bool = false
+        dockEnabled: Bool
     ) -> Bool {
         switch self {
-        case .files, .find, .sessions:
+        case .files, .find, .sessions, .stokdWork:
             return true
-        case .stokdWork:
-            return sidebarDockEnabled
         case .feed:
             return feedEnabled
         case .dock:
@@ -67,11 +63,6 @@ extension RightSidebarMode {
         case .customSidebar:
             return false
         }
-    }
-
-    func resolvedAfterSidebarDockGateChange(isEnabled: Bool) -> RightSidebarMode {
-        guard self == .stokdWork, !isEnabled else { return self }
-        return .files
     }
 }
 

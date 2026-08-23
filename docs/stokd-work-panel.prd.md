@@ -9,6 +9,15 @@
 **Repository:** `stokd-cloud/ghostty-dock` (fork of `manaflow-ai/cmux`), branch `main`
 **Landing:** fork-only on `main`
 
+> **Superseded decision (2026-08-22): Work is no longer beta-gated.** As
+> originally shipped, Work was available only when `sidebar.beta.dock.enabled`
+> was on, and the legacy (non-rail) right sidebar rendered a placeholder. Work is
+> now a **default tool on both hosts**, gated by no flag, and takes the mode-bar
+> slot the Dock beta occupied: Files / Find / Vault / Work. `sidebar.beta.dock.enabled`
+> still gates the **rails** themselves, and Feed/Dock remain betas. Later stokd
+> panels that say they "reuse the prerequisite's gate" should decide their own
+> gating rather than inherit a gate Work no longer has.
+
 ### Summary
 
 Port the **Work** surface from the stokd VS Code extension into gdock as a **right-rail tool tab** beside Files / Find / Vault, hosted on the existing rail system (N collapsible, resizable sections behind `sidebar.beta.dock.enabled`). Work lists the active workspace's stokd **tasks and projects** from the local stokd API.

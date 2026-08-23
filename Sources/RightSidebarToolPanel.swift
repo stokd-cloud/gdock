@@ -25,10 +25,7 @@ final class RightSidebarToolPanel: Panel, ObservableObject {
     private var stokdWorkViewModelStorage: StokdWorkPanelViewModel?
     private var workspaceObservationCancellable: AnyCancellable?
     private let stokdLoader: any StokdWorkLoading
-    private let stokdRepositoryDiscovering: any GitRepositoryDiscovering
-    private var stokdRepositoryResolutionTask: Task<Void, Never>?
-    private var stokdRepositoryResolutionGeneration: UInt64 = 0
-    private var stokdResolvedDirectory: String?
+    private let stokdRepositoryBinder: StokdWorkRepositoryBinder
 
     init(
         workspace: Workspace,
@@ -39,7 +36,9 @@ final class RightSidebarToolPanel: Panel, ObservableObject {
         self.id = UUID()
         self.mode = mode
         self.stokdLoader = stokdLoader
-        self.stokdRepositoryDiscovering = stokdRepositoryDiscovering
+        self.stokdRepositoryBinder = StokdWorkRepositoryBinder(
+            discovering: stokdRepositoryDiscovering
+        )
         reattach(to: workspace)
     }
 
@@ -158,7 +157,7 @@ final class RightSidebarToolPanel: Panel, ObservableObject {
         sessionIndexFocusAnchorView = nil
         fileExplorerStoreStorage?.applyWorkspaceRoot(.none)
         sessionIndexStoreStorage?.setCurrentDirectoryIfChanged(nil)
-        stokdRepositoryResolutionTask?.cancel()
+        stokdRepositoryBinder.cancel()
         workspaceObservationCancellable = nil
     }
 
@@ -271,26 +270,8 @@ final class RightSidebarToolPanel: Panel, ObservableObject {
         guard let model = stokdWorkViewModelStorage else { return }
         let directory = workspace.usesRemoteDirectoryProvenance
             ? ""
-            : workspace.currentDirectory.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard directory != stokdResolvedDirectory else { return }
-        stokdResolvedDirectory = directory
-        stokdRepositoryResolutionGeneration &+= 1
-        let generation = stokdRepositoryResolutionGeneration
-        stokdRepositoryResolutionTask?.cancel()
-
-        guard !directory.isEmpty else {
-            model.refresh(repoSlug: nil)
-            return
-        }
-
-        let repositoryDiscovering = stokdRepositoryDiscovering
-        stokdRepositoryResolutionTask = Task { [weak self, weak model] in
-            let repoSlug = await repositoryDiscovering.repositorySlugs(forDirectory: directory).first
-            guard let self,
-                  let model,
-                  self.stokdRepositoryResolutionGeneration == generation else { return }
-            model.refresh(repoSlug: repoSlug)
-        }
+            : workspace.currentDirectory
+        stokdRepositoryBinder.bind(directory: directory, to: model)
     }
 }
 
