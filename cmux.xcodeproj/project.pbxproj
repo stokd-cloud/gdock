@@ -2280,8 +2280,10 @@ BE7A0010SIDEBARDOCKLIVE02 /* SidebarDockLiveSectionSemanticsTests.swift in Sourc
 		493EEFD00000000000000016 /* StokdWorkPanelSeedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000015 /* StokdWorkPanelSeedTests.swift */; };
 		493EEFD00000000000000206 /* StokdWorkPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000106 /* StokdWorkPanelView.swift */; };
 		493EEFD00000000000000205 /* StokdWorkPanelViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000105 /* StokdWorkPanelViewModel.swift */; };
+		493EEFD000000000000000A2 /* StokdWorkRepositoryBinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD000000000000000A1 /* StokdWorkRepositoryBinder.swift */; };
 		493EEFD00000000000000010 /* StokdWorkPanelViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000009 /* StokdWorkPanelViewModelTests.swift */; };
 		493EEFD00000000000000014 /* StokdWorkPanelViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000013 /* StokdWorkPanelViewTests.swift */; };
+		493EEFD000000000000000A4 /* StokdWorkRepositoryBinderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD000000000000000A3 /* StokdWorkRepositoryBinderTests.swift */; };
 		C0DE70530000000000000002 /* submit-cmux-profile in Copy CLI */ = {isa = PBXBuildFile; fileRef = C0DE70530000000000000001 /* submit-cmux-profile */; };
 		D7AB00000000000000B041 /* SupersededPhoneDismissBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AB00000000000000B040 /* SupersededPhoneDismissBuffer.swift */; };
 		875200000000000000000014 /* SurfacePaneMovement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 875200000000000000000004 /* SurfacePaneMovement.swift */; };
@@ -5145,8 +5147,10 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 		493EEFD00000000000000015 /* StokdWorkPanelSeedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelSeedTests.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000106 /* StokdWorkPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelView.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000105 /* StokdWorkPanelViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelViewModel.swift; sourceTree = "<group>"; };
+		493EEFD000000000000000A1 /* StokdWorkRepositoryBinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkRepositoryBinder.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000009 /* StokdWorkPanelViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelViewModelTests.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000013 /* StokdWorkPanelViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelViewTests.swift; sourceTree = "<group>"; };
+		493EEFD000000000000000A3 /* StokdWorkRepositoryBinderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkRepositoryBinderTests.swift; sourceTree = "<group>"; };
 		C0DE70530000000000000001 /* submit-cmux-profile */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "Resources/bin/submit-cmux-profile"; sourceTree = SOURCE_ROOT; };
 		D7AB00000000000000B040 /* SupersededPhoneDismissBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupersededPhoneDismissBuffer.swift; sourceTree = "<group>"; };
 		875200000000000000000004 /* SurfacePaneMovement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurfacePaneMovement.swift; sourceTree = "<group>"; };
@@ -7849,6 +7853,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				493EEFD00000000000000104 /* StokdWorkAPIClient.swift */,
 				493EEFD00000000000000105 /* StokdWorkPanelViewModel.swift */,
 				493EEFD00000000000000106 /* StokdWorkPanelView.swift */,
+				493EEFD000000000000000A1 /* StokdWorkRepositoryBinder.swift */,
 			);
 			path = Stokd;
 			sourceTree = "<group>";
@@ -8498,6 +8503,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				493EEFD00000000000000009 /* StokdWorkPanelViewModelTests.swift */,
 				493EEFD00000000000000011 /* StokdWorkPanelIntegrationTests.swift */,
 				493EEFD00000000000000013 /* StokdWorkPanelViewTests.swift */,
+				493EEFD000000000000000A3 /* StokdWorkRepositoryBinderTests.swift */,
 				493EEFD00000000000000015 /* StokdWorkPanelSeedTests.swift */,
 				493EEFD00000000000000017 /* StokdWorkPanelPersistenceTests.swift */,
 				0AA39C1B63CA20A58D275AD0 /* SidebarDockStoreTests.swift */,
@@ -10638,6 +10644,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				493EEFD00000000000000203 /* StokdWorkModels.swift in Sources */,
 				493EEFD00000000000000206 /* StokdWorkPanelView.swift in Sources */,
 				493EEFD00000000000000205 /* StokdWorkPanelViewModel.swift in Sources */,
+				493EEFD000000000000000A2 /* StokdWorkRepositoryBinder.swift in Sources */,
 				D7AB00000000000000B041 /* SupersededPhoneDismissBuffer.swift in Sources */,
 				875200000000000000000014 /* SurfacePaneMovement.swift in Sources */,
 				883700000000000000000003 /* SurfaceResumeApprovalLookup.swift in Sources */,
@@ -11949,6 +11956,7 @@ BE7A0010SIDEBARDOCKBEHAV02 /* SidebarDockBehaviorTests.swift in Sources */,
 				493EEFD00000000000000016 /* StokdWorkPanelSeedTests.swift in Sources */,
 				493EEFD00000000000000010 /* StokdWorkPanelViewModelTests.swift in Sources */,
 				493EEFD00000000000000014 /* StokdWorkPanelViewTests.swift in Sources */,
+				493EEFD000000000000000A4 /* StokdWorkRepositoryBinderTests.swift in Sources */,
 				842300000000000000000007 /* SurfaceResumeAgentBindingGenerationTests.swift in Sources */,
 				F6572012A1B2C3D4E5F60718 /* SurfaceResumeBindingCodexUpdateCheckTests.swift in Sources */,
 				842300000000000000000001 /* SurfaceResumeExitedAgentLivenessTests.swift in Sources */,
