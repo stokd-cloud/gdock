@@ -86,6 +86,57 @@ struct AgentSessionAutoResumeSwiftTests {
         #expect(restored.bonsplitController.tab(restoredTabID)?.title == genuineTitle)
     }
 
+    @MainActor
+    @Test func installedGdockRestoreUsesBundledCLIPathInsteadOfAmbientCmux() throws {
+        let defaultsName = "gdock-installed-cli-restore-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: defaultsName))
+        defer { defaults.removePersistentDomain(forName: defaultsName) }
+        defaults.set(true, forKey: AgentSessionAutoResumeSettings.autoResumeAgentSessionsKey)
+
+        let bundledCLIPath = "/Applications/gdock.app/Contents/Resources/bin/gdock"
+        let previousBundledCLIPath = getenv("CMUX_TEST_BUNDLED_CLI_PATH").map { String(cString: $0) }
+        setenv("CMUX_TEST_BUNDLED_CLI_PATH", bundledCLIPath, 1)
+        defer {
+            if let previousBundledCLIPath {
+                setenv("CMUX_TEST_BUNDLED_CLI_PATH", previousBundledCLIPath, 1)
+            } else {
+                unsetenv("CMUX_TEST_BUNDLED_CLI_PATH")
+            }
+        }
+
+        let checkpointID = "019fce9e-8619-7a11-8e20-123456789abc"
+        let source = Workspace(agentSessionAutoResumeDefaults: defaults)
+        defer { source.teardownAllPanels() }
+        let sourcePanelID = try #require(source.focusedPanelId)
+
+        var snapshot = source.sessionSnapshot(includeScrollback: false)
+        let panelIndex = try #require(snapshot.panels.firstIndex { $0.id == sourcePanelID })
+        var terminalSnapshot = try #require(snapshot.panels[panelIndex].terminal)
+        terminalSnapshot.resumeBinding = SurfaceResumeBindingSnapshot(
+            name: "Grok",
+            kind: "grok",
+            command: "grok --resume \(checkpointID)",
+            cwd: source.currentDirectory,
+            checkpointId: checkpointID,
+            source: "agent-hook",
+            autoResume: true,
+            updatedAt: 1_777_777_777
+        )
+        terminalSnapshot.wasAgentRunning = true
+        snapshot.panels[panelIndex].terminal = terminalSnapshot
+
+        let restored = Workspace(agentSessionAutoResumeDefaults: defaults)
+        defer { restored.teardownAllPanels() }
+        let restoredPanelIDs = restored.restoreSessionSnapshot(snapshot)
+        let restoredPanelID = try #require(restoredPanelIDs[sourcePanelID])
+        let restoredPanel = try #require(restored.terminalPanel(for: restoredPanelID))
+
+        #expect(
+            restoredPanel.surface.debugInitialInputForTesting()
+                == " '\(bundledCLIPath)' restore grok \(checkpointID)\n"
+        )
+    }
+
     /// The same restore-title boundary applies to an ordinary shell with no
     /// agent bootstrap. Startup's generic shell title stays hidden until a real
     /// post-prompt command begins, after which normal title updates resume.
