@@ -1,4 +1,6 @@
+import CMUXAgentLaunch
 import CmuxFoundation
+import Darwin
 import Foundation
 
 struct CmuxCLIPathInstaller {
@@ -343,6 +345,50 @@ struct CmuxCLIPathInstaller {
         }
 
         return false
+    }
+}
+
+enum AgentRestoreCLIStartupExecutable {
+    private static let testBundledCLIPathEnvironmentKey = "CMUX_TEST_BUNDLED_CLI_PATH"
+
+    static func token(bundle: Bundle = .main, fileManager: FileManager = .default) -> String {
+        if let override = testBundledCLIPathOverride() {
+            return AgentRestoreLaunch.restoreCLIStartupExecutableToken(bundledCLIPath: override)
+        }
+        if isRunningUnderXCTest() {
+            return AgentRestoreLaunch.cliStartupExecutableToken
+        }
+
+        let candidateRelativePaths = [
+            CmuxCLIPathInstaller.bundledCLIResourceRelativePath,
+            "bin/cmux",
+        ]
+        for relativePath in candidateRelativePaths {
+            guard let url = bundle.resourceURL?.appendingPathComponent(relativePath, isDirectory: false),
+                  isExecutableFile(atPath: url.path, fileManager: fileManager) else {
+                continue
+            }
+            return AgentRestoreLaunch.restoreCLIStartupExecutableToken(bundledCLIPath: url.path)
+        }
+
+        return AgentRestoreLaunch.cliStartupExecutableToken
+    }
+
+    private static func testBundledCLIPathOverride() -> String? {
+        getenv(testBundledCLIPathEnvironmentKey).map { String(cString: $0) }
+    }
+
+    private static func isRunningUnderXCTest() -> Bool {
+        getenv("XCTestConfigurationFilePath") != nil
+    }
+
+    private static func isExecutableFile(atPath path: String, fileManager: FileManager) -> Bool {
+        var isDirectory: ObjCBool = false
+        guard fileManager.fileExists(atPath: path, isDirectory: &isDirectory),
+              !isDirectory.boolValue else {
+            return false
+        }
+        return fileManager.isExecutableFile(atPath: path)
     }
 }
 

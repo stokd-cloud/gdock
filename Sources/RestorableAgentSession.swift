@@ -804,7 +804,7 @@ struct SessionRestorableAgentSnapshot: Codable, Sendable {
         restoringWorkingDirectory: String? = nil
     ) -> String? {
         if useLocalRestoreVerb {
-            let executable = AgentRestoreLaunch.cliStartupExecutableToken
+            let executable = AgentRestoreCLIStartupExecutable.token()
             guard AgentRestoreCLIArgument(rawValue: kind.rawValue) != nil,
                   AgentRestoreCLIArgument(rawValue: sessionId) != nil else {
                 return " \(executable) restore --surface\n"
