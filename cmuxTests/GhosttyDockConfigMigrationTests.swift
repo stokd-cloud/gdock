@@ -4,7 +4,7 @@ import Testing
 
 #if canImport(cmux_DEV)
 @testable import cmux_DEV
-#else
+#elseif canImport(cmux)
 @testable import cmux
 #endif
 
@@ -23,9 +23,11 @@ struct GhosttyDockConfigMigrationTests {
         try sample.write(to: loc.legacyDirectory.appendingPathComponent("cmux.json"), atomically: true, encoding: .utf8)
         try "dock".write(to: loc.legacyDirectory.appendingPathComponent("dock.json"), atomically: true, encoding: .utf8)
 
-        let defaultsSuite = "gdock.mig.\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: defaultsSuite)!
-        defer { defaults.removePersistentDomain(forName: defaultsSuite) }
+        // UserDefaults exposes no `suiteName` accessor; keep the name we created
+        // it with so the suite can be torn down.
+        let suiteName = "gdock.mig.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
 
         let didMigrate = GhosttyDockConfigMigration.migrateConfigDirectoryIfNeeded(
             locations: loc,
@@ -63,9 +65,11 @@ struct GhosttyDockConfigMigrationTests {
         let home = root.appendingPathComponent("home", isDirectory: true)
         try FileManager.default.createDirectory(at: home, withIntermediateDirectories: true)
         let loc = CmuxConfigLocation(home: home)
-        let defaultsSuite = "gdock.mig.empty.\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: defaultsSuite)!
-        defer { defaults.removePersistentDomain(forName: defaultsSuite) }
+        // UserDefaults exposes no `suiteName` accessor; keep the name we created
+        // it with so the suite can be torn down.
+        let suiteName = "gdock.mig.empty.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
 
         let didMigrate = GhosttyDockConfigMigration.migrateConfigDirectoryIfNeeded(
             locations: loc,

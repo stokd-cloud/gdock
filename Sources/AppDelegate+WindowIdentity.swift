@@ -16,6 +16,18 @@ extension AppDelegate {
         return NSApp.windows.first(where: { $0.identifier?.rawValue == expectedIdentifier })
     }
 
+    /// The stable window id for a main window: the registered context when the
+    /// window is known, otherwise the id encoded in its `cmux.main.<uuid>`
+    /// identifier. Returns nil for anything that is not a cmux main window.
+    func registeredMainWindowId(for window: NSWindow) -> UUID? {
+        if let context = mainWindowContexts[ObjectIdentifier(window)] {
+            return context.windowId
+        }
+        guard let raw = window.identifier?.rawValue,
+              raw.hasPrefix("cmux.main.") else { return nil }
+        return UUID(uuidString: String(raw.dropFirst("cmux.main.".count)))
+    }
+
     func startupPrimaryWindowIdForInitialMainWindow() -> UUID? {
         guard !didAttemptStartupSessionRestore else { return nil }
         guard !didHandleExplicitOpenIntentAtStartup else { return nil }
