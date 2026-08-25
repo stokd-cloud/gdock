@@ -72,6 +72,26 @@ import Testing
         #expect(AgentRestoreLaunch.cliStartupExecutableToken == "cmux")
     }
 
+    @Test func startupTokenUsesShellQuotedBundledCLIWhenAvailable() {
+        let bundledCLIPath = "/Applications/gdock.app/Contents/Resources/bin/gdock"
+
+        #expect(
+            AgentRestoreLaunch.restoreCLIStartupExecutableToken(
+                bundledCLIPath: bundledCLIPath
+            ) == "'\(bundledCLIPath)'"
+        )
+        #expect(
+            AgentRestoreLaunch.restoreCLIStartupExecutableToken(
+                bundledCLIPath: nil
+            ) == AgentRestoreLaunch.cliStartupExecutableToken
+        )
+        #expect(
+            AgentRestoreLaunch.restoreCLIStartupExecutableToken(
+                bundledCLIPath: "  "
+            ) == AgentRestoreLaunch.cliStartupExecutableToken
+        )
+    }
+
     @Test func structuredCodexRestorePlansDirectArgvEnvironmentAndCwd() throws {
         let workingDirectory = "/tmp/项目 with 'quotes'"
         let capturedWorkingDirectory = "/tmp/old project"

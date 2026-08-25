@@ -12,12 +12,23 @@ import Foundation
 /// let startupInput = launch?.authorizing(leadingShell: "", routedCommand: resumeCommand)
 /// ```
 public struct AgentRestoreLaunch: Sendable {
-    /// The readable restore executable typed into cmux-owned terminals.
-    ///
-    /// ``TerminalSurface`` prepends the owning app's bundled `Resources/bin`
-    /// directory to the terminal environment before the login shell starts, so
-    /// this resolves to the same build while keeping restored scrollback useful.
+    /// Fallback restore executable typed into cmux-owned terminals when the app
+    /// cannot resolve its bundled CLI path.
     public static let cliStartupExecutableToken = "cmux"
+
+    /// Returns the executable token used for app-generated restore startup input.
+    ///
+    /// Installed gdock restores must not depend on the user's `PATH`: login shell
+    /// startup files can resolve an old `cmux` shim before the app's environment
+    /// additions. When the app supplies its bundled CLI path, use that exact
+    /// executable; otherwise preserve the historical readable fallback.
+    public static func restoreCLIStartupExecutableToken(bundledCLIPath: String?) -> String {
+        guard let bundledCLIPath = bundledCLIPath?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !bundledCLIPath.isEmpty else {
+            return cliStartupExecutableToken
+        }
+        return shellSingleQuoted(bundledCLIPath)
+    }
 
     private enum Provider: String, Sendable {
         case claude
@@ -128,5 +139,9 @@ public struct AgentRestoreLaunch: Sendable {
         case .hermesAgent:
             AgentRestoreCLIArgument(rawValue: sessionID) != nil
         }
+    }
+
+    private static func shellSingleQuoted(_ value: String) -> String {
+        "'" + value.replacingOccurrences(of: "'", with: "'\\''") + "'"
     }
 }
