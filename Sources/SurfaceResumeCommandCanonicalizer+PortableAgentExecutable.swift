@@ -62,7 +62,7 @@ extension SurfaceResumeBindingSnapshot {
     }
 
     private var localRestoreCLIInput: String {
-        let executable = AgentRestoreLaunch.cliStartupExecutableToken
+        let executable = AgentRestoreCLIStartupExecutable.token()
         if let kind = Self.restoreCLIArgument(kind),
            let checkpointId = Self.restoreCLIArgument(checkpointId) {
             return " \(executable) restore \(kind) \(checkpointId)\n"

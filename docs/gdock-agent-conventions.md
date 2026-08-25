@@ -32,3 +32,26 @@
 - When on: non-anchor workspaces whose cwd is inside a GitHub-remote repo are placed in a workspace group named `owner/repo` (primary remote: upstream → origin → others). Group anchors are not auto-moved.
 
 Also listed in `Agents.md` so every agent session loads it.
+
+## AX-GDOCK-INSTALLED-CLI-RESOLUTION
+
+Installed gdock app restore startup input must invoke the bundled CLI from the
+running app bundle, not an ambient `cmux` command resolved through the user's
+login shell.
+
+### Why
+
+- `/Applications/gdock.app/Contents/Resources/bin/gdock` is the installed
+  app's matching restore CLI.
+- User shell startup files can resolve stale or development `cmux` shims before
+  gdock's managed terminal environment is applied.
+- Agent session auto-resume must survive app close/reopen without depending on
+  the user's current `PATH` state.
+
+### Acceptance checks
+
+- Restored local agent startup input uses a shell-quoted bundled gdock CLI path
+  when the bundle contains one.
+- Startup input falls back to `cmux` only when no bundled CLI can be resolved.
+- The restore token behavior is covered in `CMUXAgentLaunchTests` and the app
+  auto-resume integration path is covered in `cmuxTests`.
