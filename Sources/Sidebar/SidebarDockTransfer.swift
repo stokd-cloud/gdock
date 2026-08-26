@@ -178,7 +178,7 @@ enum SidebarDockTransfer {
         guard let capture = source.captureSectionForCrossRailTransfer(sectionId: sectionId) else {
             return .refused(.missingSource)
         }
-        // Placement: every panel must be allowed on a rail.
+        // Placement: every panel must be allowed on the destination edge.
         for panel in capture.panels {
             guard SidebarDockPlacementMatrix.allows(panel: panel, on: destEdge) else {
                 return losslessRefuse(source: source, dest: dest, before: (sourceBefore, destBefore), reason: .placement)

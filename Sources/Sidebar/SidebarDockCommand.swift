@@ -169,8 +169,11 @@ enum SidebarDockCommand {
         let canCrossRailTab: Bool = {
             guard let resolvedTab,
                   let panelId = store.surfaceIdToPanelId[resolvedTab],
-                  let panel = store.panels[panelId],
-                  SidebarDockPlacementMatrix.allows(panel: panel) else {
+                  let panel = store.panels[panelId] else {
+                return false
+            }
+            let destEdge: SidebarDockEdge = store.edge == .left ? .right : .left
+            guard SidebarDockPlacementMatrix.allows(panel: panel, on: destEdge) else {
                 return false
             }
             return !store.wouldEmptyRail(removing: resolvedTab)

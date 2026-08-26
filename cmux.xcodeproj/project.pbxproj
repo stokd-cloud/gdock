@@ -2271,6 +2271,8 @@ BE7A0010SIDEBARDOCKLIVE02 /* SidebarDockLiveSectionSemanticsTests.swift in Sourc
 		493EEFD00000000000000006 /* StokdCLIRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000005 /* StokdCLIRunnerTests.swift */; };
 		493EEFD00000000000000201 /* StokdExecutableResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000101 /* StokdExecutableResolver.swift */; };
 		493EEFD00000000000000004 /* StokdRailPanelFlagTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000003 /* StokdRailPanelFlagTests.swift */; };
+		D62E5F334F3AA6126B0559CF /* StokdRailPanelKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = C51D4E223E2995015A9448BE /* StokdRailPanelKind.swift */; };
+		B2C77181CC59348F2B8AA5FA /* StokdRailPanelKindTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A41C3B112D1884F0498337AD /* StokdRailPanelKindTests.swift */; };
 		493EEFD00000000000000204 /* StokdWorkAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000104 /* StokdWorkAPIClient.swift */; };
 		493EEFD00000000000000008 /* StokdWorkAPIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000007 /* StokdWorkAPIClientTests.swift */; };
 		493EEFD00000000000000203 /* StokdWorkModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000103 /* StokdWorkModels.swift */; };
@@ -2280,9 +2282,9 @@ BE7A0010SIDEBARDOCKLIVE02 /* SidebarDockLiveSectionSemanticsTests.swift in Sourc
 		493EEFD00000000000000016 /* StokdWorkPanelSeedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000015 /* StokdWorkPanelSeedTests.swift */; };
 		493EEFD00000000000000206 /* StokdWorkPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000106 /* StokdWorkPanelView.swift */; };
 		493EEFD00000000000000205 /* StokdWorkPanelViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000105 /* StokdWorkPanelViewModel.swift */; };
-		493EEFD000000000000000A2 /* StokdWorkRepositoryBinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD000000000000000A1 /* StokdWorkRepositoryBinder.swift */; };
 		493EEFD00000000000000010 /* StokdWorkPanelViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000009 /* StokdWorkPanelViewModelTests.swift */; };
 		493EEFD00000000000000014 /* StokdWorkPanelViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000013 /* StokdWorkPanelViewTests.swift */; };
+		493EEFD000000000000000A2 /* StokdWorkRepositoryBinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD000000000000000A1 /* StokdWorkRepositoryBinder.swift */; };
 		493EEFD000000000000000A4 /* StokdWorkRepositoryBinderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD000000000000000A3 /* StokdWorkRepositoryBinderTests.swift */; };
 		C0DE70530000000000000002 /* submit-cmux-profile in Copy CLI */ = {isa = PBXBuildFile; fileRef = C0DE70530000000000000001 /* submit-cmux-profile */; };
 		D7AB00000000000000B041 /* SupersededPhoneDismissBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AB00000000000000B040 /* SupersededPhoneDismissBuffer.swift */; };
@@ -5137,6 +5139,8 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 		493EEFD00000000000000005 /* StokdCLIRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdCLIRunnerTests.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000101 /* StokdExecutableResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdExecutableResolver.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000003 /* StokdRailPanelFlagTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdRailPanelFlagTests.swift; sourceTree = "<group>"; };
+		C51D4E223E2995015A9448BE /* StokdRailPanelKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdRailPanelKind.swift; sourceTree = "<group>"; };
+		A41C3B112D1884F0498337AD /* StokdRailPanelKindTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdRailPanelKindTests.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000104 /* StokdWorkAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkAPIClient.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000007 /* StokdWorkAPIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkAPIClientTests.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000103 /* StokdWorkModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkModels.swift; sourceTree = "<group>"; };
@@ -5146,9 +5150,9 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 		493EEFD00000000000000015 /* StokdWorkPanelSeedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelSeedTests.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000106 /* StokdWorkPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelView.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000105 /* StokdWorkPanelViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelViewModel.swift; sourceTree = "<group>"; };
-		493EEFD000000000000000A1 /* StokdWorkRepositoryBinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkRepositoryBinder.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000009 /* StokdWorkPanelViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelViewModelTests.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000013 /* StokdWorkPanelViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelViewTests.swift; sourceTree = "<group>"; };
+		493EEFD000000000000000A1 /* StokdWorkRepositoryBinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkRepositoryBinder.swift; sourceTree = "<group>"; };
 		493EEFD000000000000000A3 /* StokdWorkRepositoryBinderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkRepositoryBinderTests.swift; sourceTree = "<group>"; };
 		C0DE70530000000000000001 /* submit-cmux-profile */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "Resources/bin/submit-cmux-profile"; sourceTree = SOURCE_ROOT; };
 		D7AB00000000000000B040 /* SupersededPhoneDismissBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupersededPhoneDismissBuffer.swift; sourceTree = "<group>"; };
@@ -7765,6 +7769,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				B7F9A605B7F9A605B7F9A605 /* RightSidebarChromeStyle.swift */,
 				B7F9A603B7F9A603B7F9A603 /* WindowChromeMetrics.swift */,
 				B37A00000000000000000004 /* RightSidebarMode+Availability.swift */,
+				C51D4E223E2995015A9448BE /* StokdRailPanelKind.swift */,
 				B37A0000000000000000000E /* RightSidebarRemoteCommand.swift */,
 				FE003003 /* RightSidebarPanelView.swift */,
 				1632F4382FDF42DAA2027717 /* RightSidebarSectionDropDelegate.swift */,
@@ -8507,6 +8512,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				493EEFD000000000000000A3 /* StokdWorkRepositoryBinderTests.swift */,
 				493EEFD00000000000000015 /* StokdWorkPanelSeedTests.swift */,
 				493EEFD00000000000000017 /* StokdWorkPanelPersistenceTests.swift */,
+				A41C3B112D1884F0498337AD /* StokdRailPanelKindTests.swift */,
 				0AA39C1B63CA20A58D275AD0 /* SidebarDockStoreTests.swift */,
 								91E934E3EB9C45478D1A3EDA /* QuadSplitActionTests.swift */,
 				682F73FA96A248028EC8CDBD /* QuadSplitButtonTests.swift */,
@@ -10641,6 +10647,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				D35B71010000000000000001 /* StartupBreadcrumbLog.swift in Sources */,
 				493EEFD00000000000000202 /* StokdCLIRunner.swift in Sources */,
 				493EEFD00000000000000201 /* StokdExecutableResolver.swift in Sources */,
+				D62E5F334F3AA6126B0559CF /* StokdRailPanelKind.swift in Sources */,
 				493EEFD00000000000000204 /* StokdWorkAPIClient.swift in Sources */,
 				493EEFD00000000000000203 /* StokdWorkModels.swift in Sources */,
 				493EEFD00000000000000206 /* StokdWorkPanelView.swift in Sources */,
@@ -11949,6 +11956,7 @@ BE7A0010SIDEBARDOCKBEHAV02 /* SidebarDockBehaviorTests.swift in Sources */,
 				F6355600A1B2C3D4E5F60718 /* SSHStartupSignalLifecycleTests.swift in Sources */,
 				493EEFD00000000000000006 /* StokdCLIRunnerTests.swift in Sources */,
 				493EEFD00000000000000004 /* StokdRailPanelFlagTests.swift in Sources */,
+				B2C77181CC59348F2B8AA5FA /* StokdRailPanelKindTests.swift in Sources */,
 				493EEFD00000000000000008 /* StokdWorkAPIClientTests.swift in Sources */,
 				493EEFD00000000000000012 /* StokdWorkPanelIntegrationTests.swift in Sources */,
 				493EEFD00000000000000002 /* StokdWorkPanelKindTests.swift in Sources */,

@@ -70,7 +70,7 @@ enum SidebarDockDropHandler {
               let panel = store.panels[panelId] else {
             return .refused(reason: .missingTab)
         }
-        guard SidebarDockPlacementMatrix.allows(panel: panel) else {
+        guard SidebarDockPlacementMatrix.allows(panel: panel, on: store.edge) else {
             return .refused(reason: .disallowedPanel)
         }
 
