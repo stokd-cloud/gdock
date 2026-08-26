@@ -623,15 +623,40 @@ should_skip_ghostty_cli_helper_zig_build() {
   return 1
 }
 
+# An installed app bundle and the CLI inside it share a name, and that name
+# changed when this fork renamed cmux to gdock. Pairing one era's bundle with
+# the other era's binary — /Applications/cmux.app/.../bin/gdock — names a file
+# that exists under neither installation; that mispairing is what made a bare
+# `cmux` unresolvable in installed-app terminals.
+INSTALLED_APP_CLI_NAMES=("gdock" "cmux")
+
+# Correctly-paired installed-CLI candidates, preferred name first. Emit all of
+# them and let the shim pick at run time rather than resolving here: a shim
+# outlives the reload that wrote it, so the app may be installed, renamed, or
+# replaced long after this ran.
+installed_app_cli_candidates() {
+  local name=""
+  for name in "${INSTALLED_APP_CLI_NAMES[@]}"; do
+    printf '/Applications/%s.app/Contents/Resources/bin/%s\n' "$name" "$name"
+  done
+}
+
 write_dev_cli_shim() {
   local target="$1"
-  local fallback_bin="$2"
+  # Newline-separated fallback candidates, tried in order at run time.
+  local fallback_bins="$2"
   local cli_path_file="${3:-/tmp/cmux-last-cli-path}"
   local cli_path_file_literal=""
+  local fallback_bin_literals=""
+  local fallback_bin=""
   local fallback_bin_literal=""
   local socket_probe_function=""
   printf -v cli_path_file_literal '%q' "$cli_path_file"
-  printf -v fallback_bin_literal '%q' "$fallback_bin"
+  while IFS= read -r fallback_bin; do
+    [[ -n "$fallback_bin" ]] || continue
+    printf -v fallback_bin_literal '%q' "$fallback_bin"
+    fallback_bin_literals+="${fallback_bin_literals:+ }$fallback_bin_literal"
+  done <<< "$fallback_bins"
   socket_probe_function="$(declare -f reload_socket_is_live)"
   socket_probe_function="${socket_probe_function/reload_socket_is_live/socket_is_live}"
   mkdir -p "$(dirname "$target")"
@@ -781,9 +806,11 @@ if [[ "\$HAS_EXPLICIT_SOCKET" == "0" && -r "\$CLI_PATH_FILE" ]] && [[ ! -L "\$CL
   fi
 fi
 
-if [[ -x ${fallback_bin_literal} ]]; then
-  exec ${fallback_bin_literal} "\$@"
-fi
+for FALLBACK_BIN in ${fallback_bin_literals}; do
+  if [[ -x "\$FALLBACK_BIN" ]]; then
+    exec "\$FALLBACK_BIN" "\$@"
+  fi
+done
 
 echo "error: no reload-selected dev cmux CLI found. Run ./scripts/reload.sh --tag <name> first." >&2
 exit 1
@@ -791,8 +818,21 @@ EOF
   chmod +x "$target"
 }
 
+# True when a PATH entry is an installed bundle's own CLI directory. The shim
+# scan must stop at one: writing a shim there would shadow the app's bundled CLI
+# with a script that delegates back to it, and would break the code signature.
+is_installed_app_cli_dir() {
+  local path_entry="$1"
+  local name=""
+  for name in "${INSTALLED_APP_CLI_NAMES[@]}"; do
+    if [[ "$path_entry" == "/Applications/${name}.app/Contents/Resources/bin" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 select_cmux_shim_target() {
-  local app_cli_dir="/Applications/cmux.app/Contents/Resources/bin"
   local marker="cmux dev shim (managed by scripts/reload.sh)"
   local target=""
   local path_entry=""
@@ -804,7 +844,7 @@ select_cmux_shim_target() {
     if [[ "$path_entry" == "~/"* ]]; then
       path_entry="$HOME/${path_entry#~/}"
     fi
-    if [[ "$path_entry" == "$app_cli_dir" ]]; then
+    if is_installed_app_cli_dir "$path_entry"; then
       break
     fi
     [[ -d "$path_entry" && -w "$path_entry" ]] || continue
@@ -853,12 +893,15 @@ publish_reload_cli_links() {
   ln -sfn "$cli_path" /tmp/cmux-cli || true
 
   # Stable shim that always follows the last reload-selected dev CLI.
+  local installed_cli_candidates=""
+  installed_cli_candidates="$(installed_app_cli_candidates)"
+
   DEV_CLI_SHIM="$HOME/.local/bin/cmux-dev"
-  write_dev_cli_shim "$DEV_CLI_SHIM" "/Applications/cmux.app/Contents/Resources/bin/gdock"
+  write_dev_cli_shim "$DEV_CLI_SHIM" "$installed_cli_candidates"
 
   CMUX_SHIM_TARGET="$(select_cmux_shim_target || true)"
   if [[ -n "${CMUX_SHIM_TARGET:-}" ]]; then
-    write_dev_cli_shim "$CMUX_SHIM_TARGET" "/Applications/cmux.app/Contents/Resources/bin/gdock"
+    write_dev_cli_shim "$CMUX_SHIM_TARGET" "$installed_cli_candidates"
   fi
 }
 
