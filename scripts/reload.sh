@@ -1241,6 +1241,13 @@ print_tag_cleanup_reminder() {
   echo "  rm -f \"$HOME/Library/Application Support/cmux/cmuxd-dev-${current_slug}.sock\""
 }
 
+# Sourcing this script defines its helpers without running a build, so tests can
+# exercise shim generation directly. Executing it — the normal path — falls
+# through to the argument parser below.
+if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
+  return 0
+fi
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --tag)
