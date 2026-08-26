@@ -116,6 +116,13 @@ struct RightSidebarPanelView: View {
     @ObservedObject var fileExplorerStore: FileExplorerStore
     @ObservedObject var fileExplorerState: FileExplorerState
     @ObservedObject var sessionIndexStore: SessionIndexStore
+    /// Window-scoped Work model for the legacy mode-bar path. The dock rails use
+    /// each ``RightSidebarToolPanel``'s own model instead.
+    @ObservedObject var stokdWorkViewModel: StokdWorkPanelViewModel
+    /// Re-scopes ``stokdWorkViewModel`` to the selected workspace. Invoked when the
+    /// legacy Work panel appears, because a mode restored at launch never fires an
+    /// `onChange` in the host.
+    let onSyncStokdWorkRepository: () -> Void
     let titlebarHeight: CGFloat
     let windowAppearance: WindowAppearanceSnapshot
     let workspaceId: UUID?
@@ -160,8 +167,7 @@ struct RightSidebarPanelView: View {
     private var availableModes: [RightSidebarMode] {
         RightSidebarMode.availableModes(
             feedEnabled: feedEnabled,
-            dockEnabled: dockEnabled,
-            sidebarDockEnabled: sidebarDockEnabled
+            dockEnabled: dockEnabled
         )
     }
 
@@ -348,13 +354,13 @@ struct RightSidebarPanelView: View {
             .restorePendingSidebarDockSnapshots(
                 into: registry,
                 workspace: workspace,
-                includeStokdWork: StokdRailPanelAvailability.isEnabled()
+                includeStokdWork: true
             )
         SidebarDockSeeding.seedRegistryIfEmpty(
             registry: registry,
             workspace: workspace,
             preferredRightMode: fileExplorerState.mode,
-            includeStokdWork: StokdRailPanelAvailability.isEnabled()
+            includeStokdWork: true
         )
         // Seed no-op (already populated): re-drive selection through the store so
         // Bonsplit callbacks refresh a stale scalar without a competing write.
@@ -579,7 +585,8 @@ struct RightSidebarPanelView: View {
         case .dock:
             dockPanel(windowAppearance: windowAppearance)
         case .stokdWork:
-            StokdWorkPlaceholderView()
+            StokdWorkPanelView(model: stokdWorkViewModel)
+                .onAppear { onSyncStokdWorkRepository() }
         case .customSidebar:
             EmptyView()
         }
@@ -680,15 +687,6 @@ struct RightSidebarPanelView: View {
             mode: fileExplorerState.mode,
             focusFirstItem: false,
             preferredWindow: window
-        )
-    }
-}
-
-struct StokdWorkPlaceholderView: View {
-    var body: some View {
-        ContentUnavailableView(
-            String(localized: "rightSidebar.mode.stokdWork", defaultValue: "Work"),
-            systemImage: "checklist"
         )
     }
 }

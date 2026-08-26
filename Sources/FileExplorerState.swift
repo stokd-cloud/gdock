@@ -118,9 +118,6 @@ final class FileExplorerState: ObservableObject {
         if mode == .customSidebar {
             return .files
         }
-        let resolvedMode = mode.resolvedAfterSidebarDockGateChange(
-            isEnabled: StokdRailPanelAvailability.isEnabled(defaults: defaults)
-        )
-        return resolvedMode.isAvailable(defaults: defaults) ? resolvedMode : .files
+        return mode.isAvailable(defaults: defaults) ? mode : .files
     }
 }
