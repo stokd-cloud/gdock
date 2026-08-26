@@ -515,3 +515,71 @@ test("reload shim keeps an explicit --socket pinned even when the pointer target
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+function publishLinksSource() {
+  const source = fs.readFileSync(reloadScript, "utf8");
+  const start = source.indexOf("publish_reload_cli_links() {");
+  const end = source.indexOf("\n}\n\npublish_reload_cli_path", start);
+  assert.notEqual(start, -1, "reload.sh must contain the CLI link publisher");
+  assert.notEqual(end, -1, "reload.sh link publisher must end before the pointer publisher");
+  return source.slice(start, end + 2);
+}
+
+function generateShimWithFallbacks(target, fallbacks, pointerPath) {
+  const script = `${shimWriterSource()}\nwrite_dev_cli_shim "$@"\n`;
+  const result = spawnSync(
+    "bash",
+    ["-c", script, "reload-shim-test", target, fallbacks[0], pointerPath, ...fallbacks.slice(1)],
+    { cwd: repoRoot, encoding: "utf8" },
+  );
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+}
+
+test("reload shim tries each stable fallback CLI in order", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cmux-reload-shim-multi-"));
+  try {
+    const pointer = path.join(root, "last-cli-path");
+    const shim = path.join(root, "cmux");
+    const missingFallback = path.join(root, "missing-gdock-cli");
+    const presentFallback = path.join(root, "stable-cmux");
+    writeExecutable(presentFallback, "#!/bin/sh\nprintf 'second-fallback\\n'\n");
+    generateShimWithFallbacks(shim, [missingFallback, presentFallback], pointer);
+
+    const result = runShim(shim, cleanEnvironment(root));
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.trim(), "second-fallback");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("reload shim prefers the first stable fallback CLI when it exists", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cmux-reload-shim-multi-first-"));
+  try {
+    const pointer = path.join(root, "last-cli-path");
+    const shim = path.join(root, "cmux");
+    const firstFallback = path.join(root, "gdock-cli");
+    const secondFallback = path.join(root, "stable-cmux");
+    writeExecutable(firstFallback, "#!/bin/sh\nprintf 'first-fallback\\n'\n");
+    writeExecutable(secondFallback, "#!/bin/sh\nprintf 'second-fallback\\n'\n");
+    generateShimWithFallbacks(shim, [firstFallback, secondFallback], pointer);
+
+    const result = runShim(shim, cleanEnvironment(root));
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.trim(), "first-fallback");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("published shims fall back to the installed gdock.app CLI before cmux.app", () => {
+  // The fork installs its main app as /Applications/gdock.app; a shim whose
+  // only stable fallback is the upstream cmux.app path leaves bare `cmux`
+  // unresolvable in installed-app terminals (agent restore, hooks).
+  const source = publishLinksSource();
+  const gdockIndex = source.indexOf("/Applications/gdock.app/Contents/Resources/bin/gdock");
+  const cmuxIndex = source.indexOf("/Applications/cmux.app/Contents/Resources/bin/gdock");
+  assert.notEqual(gdockIndex, -1, "publish_reload_cli_links must offer the installed gdock.app CLI as a shim fallback");
+  assert.notEqual(cmuxIndex, -1, "publish_reload_cli_links must keep the upstream cmux.app CLI as a secondary fallback");
+  assert.ok(gdockIndex < cmuxIndex, "the installed gdock.app CLI must be preferred over the upstream cmux.app path");
+});
