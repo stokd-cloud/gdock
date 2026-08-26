@@ -515,3 +515,175 @@ test("reload shim keeps an explicit --socket pinned even when the pointer target
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+function publishLinksSource() {
+  const source = fs.readFileSync(reloadScript, "utf8");
+  const start = source.indexOf("publish_reload_cli_links() {");
+  const end = source.indexOf("\n}\n\npublish_reload_cli_path", start);
+  assert.notEqual(start, -1, "reload.sh must contain the CLI link publisher");
+  assert.notEqual(end, -1, "reload.sh link publisher must end before the pointer publisher");
+  return source.slice(start, end + 2);
+}
+
+function generateShimWithFallbacks(target, fallbacks, pointerPath) {
+  const script = `${shimWriterSource()}\nwrite_dev_cli_shim "$@"\n`;
+  const result = spawnSync(
+    "bash",
+    ["-c", script, "reload-shim-test", target, fallbacks[0], pointerPath, ...fallbacks.slice(1)],
+    { cwd: repoRoot, encoding: "utf8" },
+  );
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+}
+
+test("reload shim tries each stable fallback CLI in order", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cmux-reload-shim-multi-"));
+  try {
+    const pointer = path.join(root, "last-cli-path");
+    const shim = path.join(root, "cmux");
+    const missingFallback = path.join(root, "missing-gdock-cli");
+    const presentFallback = path.join(root, "stable-cmux");
+    writeExecutable(presentFallback, "#!/bin/sh\nprintf 'second-fallback\\n'\n");
+    generateShimWithFallbacks(shim, [missingFallback, presentFallback], pointer);
+
+    const result = runShim(shim, cleanEnvironment(root));
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.trim(), "second-fallback");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("reload shim prefers the first stable fallback CLI when it exists", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cmux-reload-shim-multi-first-"));
+  try {
+    const pointer = path.join(root, "last-cli-path");
+    const shim = path.join(root, "cmux");
+    const firstFallback = path.join(root, "gdock-cli");
+    const secondFallback = path.join(root, "stable-cmux");
+    writeExecutable(firstFallback, "#!/bin/sh\nprintf 'first-fallback\\n'\n");
+    writeExecutable(secondFallback, "#!/bin/sh\nprintf 'second-fallback\\n'\n");
+    generateShimWithFallbacks(shim, [firstFallback, secondFallback], pointer);
+
+    const result = runShim(shim, cleanEnvironment(root));
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.trim(), "first-fallback");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+function installedCandidatesSource() {
+  const source = fs.readFileSync(reloadScript, "utf8");
+  const start = source.indexOf("INSTALLED_APP_CLI_NAMES=(");
+  const end = source.indexOf("\n}\n\nwrite_dev_cli_shim", start);
+  assert.notEqual(start, -1, "reload.sh must name the installed app CLI bundles");
+  assert.notEqual(end, -1, "installed-CLI candidates must end before the shim writer");
+  return source.slice(start, end + 2);
+}
+
+// The selector delegates its bundle check to is_installed_app_cli_dir, which in
+// turn reads INSTALLED_APP_CLI_NAMES, so the extracted fixture has to carry all
+// three. Slicing out select_cmux_shim_target alone leaves the guard as an
+// undefined command, which exits non-zero and reads as "not a bundle dir" —
+// the fixture would then pass the very scan it is meant to catch.
+function shimTargetSelectorSource() {
+  const source = fs.readFileSync(reloadScript, "utf8");
+  const start = source.indexOf("is_installed_app_cli_dir() {");
+  const end = source.indexOf("\n}\n\npublish_reload_cli_links", start);
+  assert.notEqual(start, -1, "reload.sh must contain the installed-bundle CLI dir check");
+  assert.notEqual(end, -1, "reload.sh target selector must end before the link publisher");
+  assert.ok(
+    source.indexOf("select_cmux_shim_target() {", start) < end,
+    "reload.sh shim target selector must follow the installed-bundle CLI dir check",
+  );
+  return `${installedCandidatesSource()}\n${source.slice(start, end + 2)}`;
+}
+
+// PATH is the input under test, so it cannot also be what locates the shell:
+// spawn bash by absolute path and let the fixture own PATH entirely.
+function selectShimTarget(pathEntries, home, source = shimTargetSelectorSource()) {
+  const script = `${source}\nselect_cmux_shim_target\n`;
+  return spawnSync("/bin/bash", ["-c", script, "reload-shim-target-test"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    env: { HOME: home, PATH: pathEntries.join(":") },
+  });
+}
+
+// /Applications/gdock.app/Contents/Resources/bin sits near the front of PATH on
+// an installed machine and is user-writable, and after the rename it holds no
+// `cmux` entry at all. A scan that only recognized the pre-rename bundle walked
+// straight into it and claimed the free `cmux` name inside the app bundle —
+// writing a shim into signed bundle contents. It must stop there instead.
+test("shim target selection refuses to write inside an installed app bundle", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cmux-shim-target-bundle-"));
+  try {
+    for (const appName of ["gdock", "cmux"]) {
+      const bundleBin = path.join(root, "Applications", `${appName}.app`, "Contents", "Resources", "bin");
+      fs.mkdirSync(bundleBin, { recursive: true });
+      const writable = path.join(root, `writable-${appName}`);
+      fs.mkdirSync(writable, { recursive: true });
+
+      // The real bundle check hardcodes /Applications; rewrite it onto the fixture.
+      const source = shimTargetSelectorSource().replaceAll("/Applications/", `${root}/Applications/`);
+      const result = selectShimTarget([bundleBin, writable], root, source);
+      const chosen = result.stdout.trim();
+      assert.ok(
+        !chosen.startsWith(path.join(root, "Applications")),
+        `selector must not target inside ${appName}.app, got: ${chosen}`,
+      );
+    }
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("shim target selection still picks an ordinary writable PATH entry", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cmux-shim-target-plain-"));
+  try {
+    const writable = path.join(root, "bin");
+    fs.mkdirSync(writable, { recursive: true });
+    const result = selectShimTarget([writable], root);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.trim(), path.join(writable, "cmux"));
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("published shims fall back to the installed gdock.app CLI before cmux.app", () => {
+  // The fork installs its main app as /Applications/gdock.app; a shim whose
+  // only stable fallback is the upstream cmux.app path leaves bare `cmux`
+  // unresolvable in installed-app terminals (agent restore, hooks).
+  //
+  // Each bundle must be paired with the binary it actually ships: cmux.app
+  // ships bin/cmux and gdock.app ships bin/gdock, so the hybrid
+  // cmux.app/Contents/Resources/bin/gdock names a file that exists under
+  // neither installation — that mispairing is the bug under test, not the fix.
+  const result = spawnSync(
+    "bash",
+    ["-c", `${installedCandidatesSource()}\ninstalled_app_cli_candidates\n`, "reload-candidates-test"],
+    { cwd: repoRoot, encoding: "utf8" },
+  );
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const candidates = result.stdout.split("\n").filter(Boolean);
+
+  const gdockIndex = candidates.indexOf("/Applications/gdock.app/Contents/Resources/bin/gdock");
+  const cmuxIndex = candidates.indexOf("/Applications/cmux.app/Contents/Resources/bin/cmux");
+  assert.notEqual(gdockIndex, -1, "shim fallbacks must offer the installed gdock.app CLI");
+  assert.notEqual(cmuxIndex, -1, "shim fallbacks must keep the upstream cmux.app CLI as a secondary fallback");
+  assert.ok(gdockIndex < cmuxIndex, "the installed gdock.app CLI must be preferred over the upstream cmux.app CLI");
+
+  for (const candidate of candidates) {
+    const bundle = candidate.replace("/Applications/", "").replace(/\.app\/.*$/, "");
+    const binary = candidate.slice(candidate.lastIndexOf("/") + 1);
+    assert.equal(binary, bundle, `candidate mispairs ${bundle}.app with bin/${binary}: ${candidate}`);
+  }
+
+  // ...and publish_reload_cli_links must actually hand those candidates to the
+  // shim writer, rather than baking in a literal of its own.
+  assert.ok(
+    publishLinksSource().includes("installed_app_cli_candidates"),
+    "publish_reload_cli_links must source its stable fallbacks from installed_app_cli_candidates",
+  );
+});
