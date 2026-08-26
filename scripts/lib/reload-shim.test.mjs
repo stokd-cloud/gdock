@@ -581,6 +581,76 @@ function installedCandidatesSource() {
   return source.slice(start, end + 2);
 }
 
+// The selector delegates its bundle check to is_installed_app_cli_dir, which in
+// turn reads INSTALLED_APP_CLI_NAMES, so the extracted fixture has to carry all
+// three. Slicing out select_cmux_shim_target alone leaves the guard as an
+// undefined command, which exits non-zero and reads as "not a bundle dir" —
+// the fixture would then pass the very scan it is meant to catch.
+function shimTargetSelectorSource() {
+  const source = fs.readFileSync(reloadScript, "utf8");
+  const start = source.indexOf("is_installed_app_cli_dir() {");
+  const end = source.indexOf("\n}\n\npublish_reload_cli_links", start);
+  assert.notEqual(start, -1, "reload.sh must contain the installed-bundle CLI dir check");
+  assert.notEqual(end, -1, "reload.sh target selector must end before the link publisher");
+  assert.ok(
+    source.indexOf("select_cmux_shim_target() {", start) < end,
+    "reload.sh shim target selector must follow the installed-bundle CLI dir check",
+  );
+  return `${installedCandidatesSource()}\n${source.slice(start, end + 2)}`;
+}
+
+// PATH is the input under test, so it cannot also be what locates the shell:
+// spawn bash by absolute path and let the fixture own PATH entirely.
+function selectShimTarget(pathEntries, home, source = shimTargetSelectorSource()) {
+  const script = `${source}\nselect_cmux_shim_target\n`;
+  return spawnSync("/bin/bash", ["-c", script, "reload-shim-target-test"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    env: { HOME: home, PATH: pathEntries.join(":") },
+  });
+}
+
+// /Applications/gdock.app/Contents/Resources/bin sits near the front of PATH on
+// an installed machine and is user-writable, and after the rename it holds no
+// `cmux` entry at all. A scan that only recognized the pre-rename bundle walked
+// straight into it and claimed the free `cmux` name inside the app bundle —
+// writing a shim into signed bundle contents. It must stop there instead.
+test("shim target selection refuses to write inside an installed app bundle", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cmux-shim-target-bundle-"));
+  try {
+    for (const appName of ["gdock", "cmux"]) {
+      const bundleBin = path.join(root, "Applications", `${appName}.app`, "Contents", "Resources", "bin");
+      fs.mkdirSync(bundleBin, { recursive: true });
+      const writable = path.join(root, `writable-${appName}`);
+      fs.mkdirSync(writable, { recursive: true });
+
+      // The real bundle check hardcodes /Applications; rewrite it onto the fixture.
+      const source = shimTargetSelectorSource().replaceAll("/Applications/", `${root}/Applications/`);
+      const result = selectShimTarget([bundleBin, writable], root, source);
+      const chosen = result.stdout.trim();
+      assert.ok(
+        !chosen.startsWith(path.join(root, "Applications")),
+        `selector must not target inside ${appName}.app, got: ${chosen}`,
+      );
+    }
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("shim target selection still picks an ordinary writable PATH entry", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cmux-shim-target-plain-"));
+  try {
+    const writable = path.join(root, "bin");
+    fs.mkdirSync(writable, { recursive: true });
+    const result = selectShimTarget([writable], root);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.trim(), path.join(writable, "cmux"));
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("published shims fall back to the installed gdock.app CLI before cmux.app", () => {
   // The fork installs its main app as /Applications/gdock.app; a shim whose
   // only stable fallback is the upstream cmux.app path leaves bare `cmux`
