@@ -248,7 +248,9 @@ extension AppDelegate {
             return nil
         }
         let store = context.sidebarDockRegistry?.right
-        let isDock = RightSidebarBetaFeatureSettings.isSidebarDockEnabled()
+        let isDock =
+            RightSidebarBetaFeatureSettings.isSidebarDockEnabled()
+            && RightSidebarDockPresentationSettings.isStackedTabsEnabled()
         let windowIdResolved = context.windowId
         return RightSidebarSelectionContext(
             windowId: windowIdResolved,

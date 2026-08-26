@@ -178417,6 +178417,22 @@
         }
       }
     },
+    "settings.gdock.rightSidebarStackedTabs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stack Right Sidebar Tabs"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "右サイドバーのタブをスタック表示"
+          }
+        }
+      }
+    },
     "settings.globalHotkey.enable": {
       "extractionState": "manual",
       "localizations": {

@@ -760,6 +760,36 @@ enum CommandPaletteSettingsToggleCommands {
                 }
             ),
             CommandPaletteSettingToggleDescriptor(
+                commandId: RightSidebarDockPresentationSettings.commandId,
+                settingsKey: RightSidebarDockPresentationSettings.settingsKey,
+                title: {
+                    String(
+                        localized: "settings.gdock.rightSidebarStackedTabs",
+                        defaultValue: "Stack Right Sidebar Tabs"
+                    )
+                },
+                sectionTitle: gdock,
+                keywords: [
+                    "gdock.rightSidebarStackedTabs",
+                    "gdock",
+                    "right",
+                    "sidebar",
+                    "tabs",
+                    "stack",
+                    "dock",
+                    "spaces",
+                    "rail",
+                ],
+                defaultValue: RightSidebarDockPresentationSettings.defaultEnabled,
+                defaultsKey: RightSidebarDockPresentationSettings.userDefaultsKey,
+                didSet: { _, _, notificationCenter in
+                    notificationCenter.post(
+                        name: RightSidebarDockPresentationSettings.didChangeNotification,
+                        object: nil
+                    )
+                }
+            ),
+            CommandPaletteSettingToggleDescriptor(
                 commandId: commandIdPrefix + "rightSidebarFeed",
                 settingsKey: "betaFeatures.feed",
                 title: {

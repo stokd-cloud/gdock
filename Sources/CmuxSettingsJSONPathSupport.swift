@@ -454,6 +454,7 @@ extension CmuxSettingsFileStore {
         "sidebar.beta.workspaceTodos.controls.enabled",
         "sidebar.beta.workspaceTodos.checklistStyle",
         "gdock.autoWorkspaceGroupMode",
+        "gdock.rightSidebarStackedTabs",
         "sidebar.branchLayout",
         "sidebar.stackBranchDirectory",
         "sidebar.pathLastSegmentOnly",
