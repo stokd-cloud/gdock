@@ -56,6 +56,50 @@ login shell.
 - The restore token behavior is covered in `CMUXAgentLaunchTests` and the app
   auto-resume integration path is covered in `cmuxTests`.
 
+## AX-GDOCK-REPO-COMMAND-SURFACE
+
+A gdock workspace group that names a repository is a command surface for that
+repository. A group that does not name one is inert.
+
+Repo-only affordances — accordion focus behavior, the GitHub and stokd
+repo-detail launchers, the stokd quad launch, and repo-scoped work metadata —
+attach to a workspace group **if and only if** that group's name resolves to a
+GitHub `owner/repo` slug through the single shared identity resolver
+(`GdockRepoWorkspaceGroupIdentity`). Hand-named groups keep exactly the upstream
+cmux behavior they have today.
+
+The user's focus is never relocated by an automatic re-grouping unless the
+surface being relocated is the one the user is currently working in.
+
+### Why
+
+- A group named `Scratch` is a user's filing choice, not a repository. Giving it
+  a "open on GitHub" button or silently collapsing it is a guess about intent.
+- Parsing `owner/repo` in each surface that wants it drifts: one surface accepts
+  `owner/repo/extra`, the next does not, and the affordances disagree about what
+  a repo is.
+- Auto-grouping runs off a debounced cwd notification. Moving a workspace the
+  user is not looking at is housekeeping; moving the one they are typing in and
+  leaving their focus behind is data loss of attention.
+
+### Acceptance checks
+
+- **AC-A (single resolver).** Exactly one code path decides repo-group identity,
+  and every repo-only affordance consumes it. A second inline `owner/repo` parse
+  in a sidebar, quad, or stokd surface is a violation.
+- **AC-B (inert by default).** For a group whose name does not resolve to a slug,
+  every repo-only affordance is absent — zero trailing repo buttons, zero
+  accordion mutations, zero quad plans. Each affordance carries a negative test
+  proving this.
+- **AC-C (focus follows intent).** An automatic workspace/panel relocation moves
+  user focus only when the relocated surface is the focused one. Every other
+  relocation is focus-neutral and window-activation-neutral, and both directions
+  are tested.
+- **AC-D (one shared action path).** Each repo-only affordance is implemented
+  once and reached identically from the AppKit sidebar list, the SwiftUI sidebar
+  fallback, and the command palette, per `skills/cmux-shared-behavior`. No
+  per-surface duplicate of the behavior.
+
 ## The gdock launcher and the installed main app
 
 `scripts/gdock-run` is the **source of truth** for the `gdock-build` launcher. The
