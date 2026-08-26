@@ -7088,7 +7088,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
                 source: source,
                 windowId: context?.windowId ?? target.windowId
             )
-            if RightSidebarBetaFeatureSettings.isSidebarDockEnabled() {
+            if RightSidebarBetaFeatureSettings.isSidebarDockEnabled(),
+               RightSidebarDockPresentationSettings.isStackedTabsEnabled() {
                 let route = routeRightSidebarSelection(request)
                 if route == .rejected {
                     // Fall back to legacy host paths when registry is not yet wired.
@@ -7372,7 +7373,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         // Dock rail: establish selected-tab authority before keyboard focus so
         // mode focus cannot land as a scalar-only write (VAL-RAIL-007/009, D-32).
         // `focus: false` here avoids re-entering this method via the router.
-        if RightSidebarBetaFeatureSettings.isSidebarDockEnabled() {
+        if RightSidebarBetaFeatureSettings.isSidebarDockEnabled(),
+           RightSidebarDockPresentationSettings.isStackedTabsEnabled() {
             let modeForRail = requestedMode
                 ?? context.fileExplorerState?.mode
                 ?? fileExplorerState?.mode
@@ -7412,7 +7414,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         source: RightSidebarSelectionSource,
         windowId: UUID? = nil
     ) -> RightSidebarSelectionRoute {
-        guard RightSidebarBetaFeatureSettings.isSidebarDockEnabled() else { return .rejected }
+        guard RightSidebarBetaFeatureSettings.isSidebarDockEnabled(),
+              RightSidebarDockPresentationSettings.isStackedTabsEnabled()
+        else { return .rejected }
         guard SidebarDockPlacementMatrix.allows(mode: mode) else { return .rejected }
         return routeRightSidebarSelection(
             RightSidebarSelectionRequest(
@@ -7501,6 +7505,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         if state?.isVisible == true {
             // Shortcut / show path: selection authority first when dock rails are on.
             if RightSidebarBetaFeatureSettings.isSidebarDockEnabled(),
+               RightSidebarDockPresentationSettings.isStackedTabsEnabled(),
                SidebarDockPlacementMatrix.allows(mode: mode) {
                 _ = ensureRightSidebarRailSelection(
                     mode: mode,
@@ -7606,6 +7611,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         // Dock rail tools: route selection so selected_tab_id / focused_tool_mode
         // update; mirror owns the legacy scalar. Flag-off / non-rail still write mode.
         if RightSidebarBetaFeatureSettings.isSidebarDockEnabled(),
+           RightSidebarDockPresentationSettings.isStackedTabsEnabled(),
            SidebarDockPlacementMatrix.allows(mode: mode) {
             _ = ensureRightSidebarRailSelection(
                 mode: mode,

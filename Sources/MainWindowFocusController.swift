@@ -533,6 +533,7 @@ final class MainWindowFocusController {
         // Rail tab authority + legacy mirror come from selectToolMode → Bonsplit
         // didSelectTab/didFocusPane only (VAL-RAIL-009 / D-32).
         let dockRailMode = RightSidebarBetaFeatureSettings.isSidebarDockEnabled()
+            && RightSidebarDockPresentationSettings.isStackedTabsEnabled()
             && SidebarDockPlacementMatrix.allows(mode: mode)
         if !dockRailMode, state.mode != mode {
             state.mode = mode

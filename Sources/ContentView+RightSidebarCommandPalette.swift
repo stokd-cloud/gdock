@@ -211,8 +211,11 @@ extension ContentView {
         }
         let source = RightSidebarSelectionRouter.paletteSource(for: mode)
         let window = observedWindow ?? NSApp.keyWindow ?? NSApp.mainWindow
+        let usesStackedRightSidebarTabs =
+            RightSidebarBetaFeatureSettings.isSidebarDockEnabled()
+            && RightSidebarDockPresentationSettings.isStackedTabsEnabled()
         if mode == .stokdWork,
-           RightSidebarBetaFeatureSettings.isSidebarDockEnabled()
+           usesStackedRightSidebarTabs
         {
             if !fileExplorerState.isVisible {
                 fileExplorerState.setVisible(true)
@@ -234,7 +237,7 @@ extension ContentView {
             return
         }
         // Dock rails: single selection seam (VAL-RAIL-009).
-        if RightSidebarBetaFeatureSettings.isSidebarDockEnabled(),
+        if usesStackedRightSidebarTabs,
            let app = AppDelegate.shared {
             let route = app.routeRightSidebarSelection(
                 RightSidebarSelectionRequest(mode: mode, focus: true, source: source)

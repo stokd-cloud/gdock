@@ -85,6 +85,16 @@ enum RightSidebarContentMountPolicy {
     }
 }
 
+enum RightSidebarDockPresentationPolicy {
+    static func usesStackedTabs(
+        sidebarDockSpacesEnabled: Bool,
+        stackedTabsEnabled: Bool,
+        hasDockRegistry: Bool
+    ) -> Bool {
+        sidebarDockSpacesEnabled && stackedTabsEnabled && hasDockRegistry
+    }
+}
+
 enum FileExplorerRootSyncPolicy {
     static func shouldSyncFileExplorerStore(isRightSidebarVisible: Bool, mode: RightSidebarMode) -> Bool {
         guard isRightSidebarVisible else { return false }
@@ -170,6 +180,8 @@ struct RightSidebarPanelView: View {
     private var dockEnabled = RightSidebarBetaFeatureSettings.defaultDockEnabled
     @AppStorage(RightSidebarBetaFeatureSettings.sidebarDockEnabledKey)
     private var sidebarDockEnabled = RightSidebarBetaFeatureSettings.defaultSidebarDockEnabled
+    @AppStorage(RightSidebarDockPresentationSettings.userDefaultsKey)
+    private var rightSidebarStackedTabsEnabled = RightSidebarDockPresentationSettings.defaultEnabled
 
     // Re-reading the observable store inside modeBar causes SwiftUI to
     // track the pending count so the badge updates live when hooks push
@@ -209,13 +221,17 @@ struct RightSidebarPanelView: View {
         closeShortcutHintMonitor.stop()
     }
 
-    private var isSidebarDockSpacesEnabled: Bool {
-        sidebarDockEnabled
+    private var usesStackedTabsPresentation: Bool {
+        RightSidebarDockPresentationPolicy.usesStackedTabs(
+            sidebarDockSpacesEnabled: sidebarDockEnabled,
+            stackedTabsEnabled: rightSidebarStackedTabsEnabled,
+            hasDockRegistry: dockRegistry != nil
+        )
     }
 
     var body: some View {
         Group {
-            if isSidebarDockSpacesEnabled, let registry = dockRegistry {
+            if usesStackedTabsPresentation, let registry = dockRegistry {
                 dockRailBody(registry: registry)
             } else {
                 legacyModeBarBody
@@ -256,13 +272,19 @@ struct RightSidebarPanelView: View {
         .onChange(of: dockEnabled) { _, _ in refreshModeAvailabilityAndFocusIfNeeded() }
         .onChange(of: sidebarDockEnabled) { _, enabled in
             refreshModeAvailabilityAndFocusIfNeeded()
+            if enabled, usesStackedTabsPresentation {
+                seedDockRailsIfNeeded()
+            }
+        }
+        .onChange(of: rightSidebarStackedTabsEnabled) { _, enabled in
+            refreshModeAvailabilityAndFocusIfNeeded()
             if enabled {
                 seedDockRailsIfNeeded()
             }
         }
     }
 
-    /// Flag-off path: legacy mode bar + single content host (VAL-FLAG-002).
+    /// Classic path: legacy mode bar + single content host (VAL-FLAG-002).
     @ViewBuilder
     private var legacyModeBarBody: some View {
         VStack(spacing: 0) {
@@ -277,7 +299,7 @@ struct RightSidebarPanelView: View {
         }
     }
 
-    /// Flag-on path: dock rail for tools; feed/dock keep non-rail content.
+    /// Stacked-tabs path: dock rail for tools; feed/dock keep non-rail content.
     @ViewBuilder
     private func dockRailBody(registry: SidebarDockStoreRegistry) -> some View {
         let store = registry.right
@@ -363,7 +385,7 @@ struct RightSidebarPanelView: View {
     }
 
     private func seedDockRailsIfNeeded() {
-        guard isSidebarDockSpacesEnabled, let registry = dockRegistry else { return }
+        guard usesStackedTabsPresentation, let registry = dockRegistry else { return }
         guard let workspace = tabManager.selectedWorkspace
                 ?? tabManager.tabs.first else { return }
         // Wire mirror before seed so selectToolMode → didSelectTab owns the
@@ -668,7 +690,7 @@ struct RightSidebarPanelView: View {
 
     private func selectMode(_ mode: RightSidebarMode) {
         // Single window-scoped selection seam (VAL-RAIL-009).
-        if let registry = dockRegistry, isSidebarDockSpacesEnabled {
+        if let registry = dockRegistry, usesStackedTabsPresentation {
             var context = RightSidebarSelectionContext(
                 windowId: registry.windowId,
                 fileExplorerState: fileExplorerState,
