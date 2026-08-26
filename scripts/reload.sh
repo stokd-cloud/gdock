@@ -627,11 +627,22 @@ write_dev_cli_shim() {
   local target="$1"
   local fallback_bin="$2"
   local cli_path_file="${3:-/tmp/cmux-last-cli-path}"
+  # Any further arguments are additional stable fallbacks, tried in order after
+  # $2. An installed bundle and the CLI inside it share a name, and that name
+  # changed when the fork renamed cmux to gdock — so one baked-in literal cannot
+  # cover both installations, and the shim outlives the reload that wrote it.
+  # Carrying every candidate lets resolution happen when the shim actually runs.
+  local -a fallback_bins=("$fallback_bin" "${@:4}")
   local cli_path_file_literal=""
+  local fallback_bin_literals=""
   local fallback_bin_literal=""
   local socket_probe_function=""
   printf -v cli_path_file_literal '%q' "$cli_path_file"
-  printf -v fallback_bin_literal '%q' "$fallback_bin"
+  for fallback_bin in "${fallback_bins[@]}"; do
+    [[ -n "$fallback_bin" ]] || continue
+    printf -v fallback_bin_literal '%q' "$fallback_bin"
+    fallback_bin_literals+="${fallback_bin_literals:+ }$fallback_bin_literal"
+  done
   socket_probe_function="$(declare -f reload_socket_is_live)"
   socket_probe_function="${socket_probe_function/reload_socket_is_live/socket_is_live}"
   mkdir -p "$(dirname "$target")"
@@ -781,9 +792,11 @@ if [[ "\$HAS_EXPLICIT_SOCKET" == "0" && -r "\$CLI_PATH_FILE" ]] && [[ ! -L "\$CL
   fi
 fi
 
-if [[ -x ${fallback_bin_literal} ]]; then
-  exec ${fallback_bin_literal} "\$@"
-fi
+for FALLBACK_BIN in ${fallback_bin_literals}; do
+  if [[ -x "\$FALLBACK_BIN" ]]; then
+    exec "\$FALLBACK_BIN" "\$@"
+  fi
+done
 
 echo "error: no reload-selected dev cmux CLI found. Run ./scripts/reload.sh --tag <name> first." >&2
 exit 1
@@ -792,11 +805,21 @@ EOF
 }
 
 select_cmux_shim_target() {
-  local app_cli_dir="/Applications/cmux.app/Contents/Resources/bin"
+  # Both installed bundle names, for the same reason the shim carries both
+  # fallbacks: the scan must stop at whichever one is on PATH, since writing
+  # into a bundle's own CLI directory shadows its binary and breaks its
+  # signature. Naming only the pre-rename bundle walked straight past
+  # gdock.app's directory.
+  local app_cli_dirs=(
+    "/Applications/gdock.app/Contents/Resources/bin"
+    "/Applications/cmux.app/Contents/Resources/bin"
+  )
   local marker="cmux dev shim (managed by scripts/reload.sh)"
   local target=""
   local path_entry=""
   local candidate=""
+  local app_cli_dir=""
+  local at_app_cli_dir=0
 
   IFS=':' read -r -a path_entries <<< "${PATH:-}"
   for path_entry in "${path_entries[@]}"; do
@@ -804,7 +827,14 @@ select_cmux_shim_target() {
     if [[ "$path_entry" == "~/"* ]]; then
       path_entry="$HOME/${path_entry#~/}"
     fi
-    if [[ "$path_entry" == "$app_cli_dir" ]]; then
+    at_app_cli_dir=0
+    for app_cli_dir in "${app_cli_dirs[@]}"; do
+      if [[ "$path_entry" == "$app_cli_dir" ]]; then
+        at_app_cli_dir=1
+        break
+      fi
+    done
+    if [[ "$at_app_cli_dir" == "1" ]]; then
       break
     fi
     [[ -d "$path_entry" && -w "$path_entry" ]] || continue
@@ -852,13 +882,20 @@ publish_reload_cli_links() {
 
   ln -sfn "$cli_path" /tmp/cmux-cli || true
 
+  # Last-resort fallbacks for a bare `cmux` typed in an installed-app terminal
+  # (agent restore, hooks) when no dev pointer above them is live. The fork
+  # installs its main app as gdock.app, so that CLI comes first; the upstream
+  # cmux.app path stays behind it so an upstream install keeps working.
+  local installed_cli="/Applications/gdock.app/Contents/Resources/bin/gdock"
+  local upstream_cli="/Applications/cmux.app/Contents/Resources/bin/gdock"
+
   # Stable shim that always follows the last reload-selected dev CLI.
   DEV_CLI_SHIM="$HOME/.local/bin/cmux-dev"
-  write_dev_cli_shim "$DEV_CLI_SHIM" "/Applications/cmux.app/Contents/Resources/bin/gdock"
+  write_dev_cli_shim "$DEV_CLI_SHIM" "$installed_cli" "" "$upstream_cli"
 
   CMUX_SHIM_TARGET="$(select_cmux_shim_target || true)"
   if [[ -n "${CMUX_SHIM_TARGET:-}" ]]; then
-    write_dev_cli_shim "$CMUX_SHIM_TARGET" "/Applications/cmux.app/Contents/Resources/bin/gdock"
+    write_dev_cli_shim "$CMUX_SHIM_TARGET" "$installed_cli" "" "$upstream_cli"
   fi
 }
 
