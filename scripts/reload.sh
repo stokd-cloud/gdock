@@ -643,7 +643,13 @@ installed_app_cli_candidates() {
 
 write_dev_cli_shim() {
   local target="$1"
-  # Newline-separated fallback candidates, tried in order at run time.
+  # Stable fallback candidates, tried in order when the shim runs. Two forms are
+  # accepted and concatenated: $2 may carry several newline-separated paths, and
+  # every argument after $3 is one more candidate. Either way the candidates are
+  # baked in as a list instead of being resolved here — an installed bundle and
+  # the CLI inside it share a name, that name changed when this fork renamed
+  # cmux to gdock, and a shim outlives the reload that wrote it, so the app can
+  # be installed, renamed, or replaced long afterwards.
   local fallback_bins="$2"
   local cli_path_file="${3:-/tmp/cmux-last-cli-path}"
   local cli_path_file_literal=""
@@ -657,6 +663,11 @@ write_dev_cli_shim() {
     printf -v fallback_bin_literal '%q' "$fallback_bin"
     fallback_bin_literals+="${fallback_bin_literals:+ }$fallback_bin_literal"
   done <<< "$fallback_bins"
+  for fallback_bin in "${@:4}"; do
+    [[ -n "$fallback_bin" ]] || continue
+    printf -v fallback_bin_literal '%q' "$fallback_bin"
+    fallback_bin_literals+="${fallback_bin_literals:+ }$fallback_bin_literal"
+  done
   socket_probe_function="$(declare -f reload_socket_is_live)"
   socket_probe_function="${socket_probe_function/reload_socket_is_live/socket_is_live}"
   mkdir -p "$(dirname "$target")"
@@ -818,9 +829,11 @@ EOF
   chmod +x "$target"
 }
 
-# True when a PATH entry is an installed bundle's own CLI directory. The shim
-# scan must stop at one: writing a shim there would shadow the app's bundled CLI
-# with a script that delegates back to it, and would break the code signature.
+# True when a PATH entry is an installed bundle's own CLI directory, for either
+# bundle name. The shim scan must stop at whichever one is on PATH: writing a
+# shim into a bundle's own CLI directory shadows its binary with a script that
+# delegates back to it, and breaks the code signature. Recognizing only the
+# pre-rename bundle walked straight past gdock.app's directory.
 is_installed_app_cli_dir() {
   local path_entry="$1"
   local name=""
@@ -892,10 +905,16 @@ publish_reload_cli_links() {
 
   ln -sfn "$cli_path" /tmp/cmux-cli || true
 
-  # Stable shim that always follows the last reload-selected dev CLI.
+  # Last-resort fallbacks for a bare `cmux` typed in an installed-app terminal
+  # (agent restore, hooks) when no dev pointer above them is live. This fork
+  # installs its main app as gdock.app, so that CLI comes first; the upstream
+  # cmux.app CLI stays behind it so an upstream install keeps working. Each
+  # bundle is paired with the binary it actually ships — see
+  # installed_app_cli_candidates.
   local installed_cli_candidates=""
   installed_cli_candidates="$(installed_app_cli_candidates)"
 
+  # Stable shim that always follows the last reload-selected dev CLI.
   DEV_CLI_SHIM="$HOME/.local/bin/cmux-dev"
   write_dev_cli_shim "$DEV_CLI_SHIM" "$installed_cli_candidates"
 

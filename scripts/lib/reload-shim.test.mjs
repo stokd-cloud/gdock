@@ -572,14 +572,48 @@ test("reload shim prefers the first stable fallback CLI when it exists", () => {
   }
 });
 
+function installedCandidatesSource() {
+  const source = fs.readFileSync(reloadScript, "utf8");
+  const start = source.indexOf("INSTALLED_APP_CLI_NAMES=(");
+  const end = source.indexOf("\n}\n\nwrite_dev_cli_shim", start);
+  assert.notEqual(start, -1, "reload.sh must name the installed app CLI bundles");
+  assert.notEqual(end, -1, "installed-CLI candidates must end before the shim writer");
+  return source.slice(start, end + 2);
+}
+
 test("published shims fall back to the installed gdock.app CLI before cmux.app", () => {
   // The fork installs its main app as /Applications/gdock.app; a shim whose
   // only stable fallback is the upstream cmux.app path leaves bare `cmux`
   // unresolvable in installed-app terminals (agent restore, hooks).
-  const source = publishLinksSource();
-  const gdockIndex = source.indexOf("/Applications/gdock.app/Contents/Resources/bin/gdock");
-  const cmuxIndex = source.indexOf("/Applications/cmux.app/Contents/Resources/bin/gdock");
-  assert.notEqual(gdockIndex, -1, "publish_reload_cli_links must offer the installed gdock.app CLI as a shim fallback");
-  assert.notEqual(cmuxIndex, -1, "publish_reload_cli_links must keep the upstream cmux.app CLI as a secondary fallback");
-  assert.ok(gdockIndex < cmuxIndex, "the installed gdock.app CLI must be preferred over the upstream cmux.app path");
+  //
+  // Each bundle must be paired with the binary it actually ships: cmux.app
+  // ships bin/cmux and gdock.app ships bin/gdock, so the hybrid
+  // cmux.app/Contents/Resources/bin/gdock names a file that exists under
+  // neither installation — that mispairing is the bug under test, not the fix.
+  const result = spawnSync(
+    "bash",
+    ["-c", `${installedCandidatesSource()}\ninstalled_app_cli_candidates\n`, "reload-candidates-test"],
+    { cwd: repoRoot, encoding: "utf8" },
+  );
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const candidates = result.stdout.split("\n").filter(Boolean);
+
+  const gdockIndex = candidates.indexOf("/Applications/gdock.app/Contents/Resources/bin/gdock");
+  const cmuxIndex = candidates.indexOf("/Applications/cmux.app/Contents/Resources/bin/cmux");
+  assert.notEqual(gdockIndex, -1, "shim fallbacks must offer the installed gdock.app CLI");
+  assert.notEqual(cmuxIndex, -1, "shim fallbacks must keep the upstream cmux.app CLI as a secondary fallback");
+  assert.ok(gdockIndex < cmuxIndex, "the installed gdock.app CLI must be preferred over the upstream cmux.app CLI");
+
+  for (const candidate of candidates) {
+    const bundle = candidate.replace("/Applications/", "").replace(/\.app\/.*$/, "");
+    const binary = candidate.slice(candidate.lastIndexOf("/") + 1);
+    assert.equal(binary, bundle, `candidate mispairs ${bundle}.app with bin/${binary}: ${candidate}`);
+  }
+
+  // ...and publish_reload_cli_links must actually hand those candidates to the
+  // shim writer, rather than baking in a literal of its own.
+  assert.ok(
+    publishLinksSource().includes("installed_app_cli_candidates"),
+    "publish_reload_cli_links must source its stable fallbacks from installed_app_cli_candidates",
+  );
 });
