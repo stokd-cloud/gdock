@@ -20,5 +20,23 @@ public struct GdockCatalogSection: SettingCatalogSection {
         userDefaultsKey: "gdock.rightSidebarStackedTabs"
     )
 
+    /// When enabled, selecting a workspace expands its repository group and
+    /// collapses the other repository groups, so the sidebar shows one repo's
+    /// work at a time. Hand-named and pinned groups are never touched.
+    public let repoGroupAccordion = DefaultsKey<Bool>(
+        id: "gdock.repoGroupAccordion",
+        defaultValue: true,
+        userDefaultsKey: "gdock.repoGroupAccordion"
+    )
+
+    /// The four commands a repository group's quad launch loads, in quadrant
+    /// order: top-left, top-right, bottom-left, bottom-right. An empty list
+    /// uses the built-in stokd defaults.
+    public let repoGroupQuadCommands = DefaultsKey<[String]>(
+        id: "gdock.repoGroupQuadCommands",
+        defaultValue: [],
+        userDefaultsKey: "gdock.repoGroupQuadCommands"
+    )
+
     public init() {}
 }

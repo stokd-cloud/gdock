@@ -151,15 +151,11 @@ enum GdockAutoWorkspaceGroupReconciler {
 
     /// A group name reinterpreted as an `owner/repo` slug, or `nil` when the
     /// group carries a hand-written name this feature must not reason about.
+    ///
+    /// Delegates to ``GdockRepoWorkspaceGroupIdentity`` so auto-grouping and
+    /// every other repo-only affordance agree on what counts as a repository
+    /// (AX-GDOCK-REPO-COMMAND-SURFACE, AC-A).
     static func repositorySlug(from groupName: String) -> String? {
-        let trimmed = groupName.trimmingCharacters(in: .whitespacesAndNewlines)
-        let components = trimmed.split(separator: "/", omittingEmptySubsequences: false)
-        guard components.count == 2,
-              !components[0].isEmpty,
-              !components[1].isEmpty,
-              !trimmed.contains(where: \.isWhitespace) else {
-            return nil
-        }
-        return trimmed
+        GdockRepoWorkspaceGroupIdentity.slug(forGroupName: groupName)
     }
 }
