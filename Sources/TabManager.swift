@@ -414,6 +414,13 @@ class TabManager: ObservableObject {
     var gdockAutoWorkspaceGroupReconcileWorkItem: DispatchWorkItem?
     /// Last observed `gdock.autoWorkspaceGroupMode` enablement (gates edge work).
     var lastGdockAutoWorkspaceGroupModeEnabled: Bool?
+    /// Commands a repo group's quad launch put into each anchor workspace,
+    /// keyed by workspace id. `TerminalPanel` does not retain the command it
+    /// was launched with, so this is what makes re-activating an already-quadded
+    /// group re-focus instead of dealing a second set of shells. Session-scoped
+    /// on purpose: after a restart the panes are whatever the user left, and
+    /// re-running the launch is the honest response.
+    var gdockRepoGroupQuadCommandsByWorkspaceId: [UUID: [String]] = [:]
     let nativeSSHConnectionBroker: NativeSSHConnectionBroker
     let agentChatResumeIntentRecorder: any AgentChatResumeIntentRecording
 

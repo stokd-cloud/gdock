@@ -1188,6 +1188,7 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		B900000BA1B2C3D4E5F60719 /* gdock in Copy CLI */ = {isa = PBXBuildFile; fileRef = B9000004A1B2C3D4E5F60719 /* gdock */; };
 		GDOCKAWSG00000000000004 /* GdockAutoWorkspaceGroupModeSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000003 /* GdockAutoWorkspaceGroupModeSettings.swift */; };
 		GDOCKAWSG00000000000002 /* GdockAutoWorkspaceGroupReconciler.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */; };
+		GDOCKQUAD0000000000002 /* TabManager+GdockRepoGroupQuad.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKQUAD0000000000001 /* TabManager+GdockRepoGroupQuad.swift */; };
 		GDOCKLNCH000000000000002 /* GdockRepoGroupLaunchAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKLNCH000000000000001 /* GdockRepoGroupLaunchAction.swift */; };
 		GDOCKRGAS0000000000002 /* GdockRepoGroupAccordionSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKRGAS0000000000001 /* GdockRepoGroupAccordionSettings.swift */; };
 		GDOCKRPF000000000000002 /* GdockRetargetedPanelFocusPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKRPF000000000000001 /* GdockRetargetedPanelFocusPolicy.swift */; };
@@ -4087,6 +4088,7 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		B9000004A1B2C3D4E5F60719 /* gdock */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = gdock; sourceTree = BUILT_PRODUCTS_DIR; };
 		GDOCKAWSG00000000000003 /* GdockAutoWorkspaceGroupModeSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupModeSettings.swift; sourceTree = "<group>"; };
 		GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupReconciler.swift; sourceTree = "<group>"; };
+		GDOCKQUAD0000000000001 /* TabManager+GdockRepoGroupQuad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TabManager+GdockRepoGroupQuad.swift"; sourceTree = "<group>"; };
 		GDOCKLNCH000000000000001 /* GdockRepoGroupLaunchAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRepoGroupLaunchAction.swift; sourceTree = "<group>"; };
 		GDOCKRGAS0000000000001 /* GdockRepoGroupAccordionSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRepoGroupAccordionSettings.swift; sourceTree = "<group>"; };
 		GDOCKRPF000000000000001 /* GdockRetargetedPanelFocusPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRetargetedPanelFocusPolicy.swift; sourceTree = "<group>"; };
@@ -6677,6 +6679,7 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 				GDOCKPIP000000000000001 /* GdockPipFloatingWindowPolicy.swift */,
 				GDOCKPIP000000000000003 /* GdockPipFloatingWindowController.swift */,
 				GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */,
+				GDOCKQUAD0000000000001 /* TabManager+GdockRepoGroupQuad.swift */,
 				GDOCKLNCH000000000000001 /* GdockRepoGroupLaunchAction.swift */,
 				GDOCKRGAS0000000000001 /* GdockRepoGroupAccordionSettings.swift */,
 				GDOCKRPF000000000000001 /* GdockRetargetedPanelFocusPolicy.swift */,
@@ -9977,6 +9980,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				AA5269A0C0DE0002FACE0002 /* ForeignFirstResponderPolicy.swift in Sources */,
 				GDOCKAWSG00000000000004 /* GdockAutoWorkspaceGroupModeSettings.swift in Sources */,
 				GDOCKAWSG00000000000002 /* GdockAutoWorkspaceGroupReconciler.swift in Sources */,
+				GDOCKQUAD0000000000002 /* TabManager+GdockRepoGroupQuad.swift in Sources */,
 				GDOCKLNCH000000000000002 /* GdockRepoGroupLaunchAction.swift in Sources */,
 				GDOCKRGAS0000000000002 /* GdockRepoGroupAccordionSettings.swift in Sources */,
 				GDOCKRPF000000000000002 /* GdockRetargetedPanelFocusPolicy.swift in Sources */,
