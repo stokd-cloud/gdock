@@ -624,6 +624,7 @@ struct SidebarWorkspaceTableSuspensionTests {
     ) -> SidebarGroupHeaderRowActions {
         SidebarGroupHeaderRowActions(
             onToggleCollapsed: onToggleCollapsed, onFocusAnchor: { _ in }, onTapPlus: {},
+            onLaunchRepoTarget: { _ in },
             onRunResolvedItem: { _ in }, onRename: {}, onTogglePinned: {}, onMarkRead: {},
             onMarkUnread: {}, onClearLatestNotifications: {}, onMarkAllRead: {},
             onMarkAllUnread: {}, onUngroup: {}, onDelete: {}, onEditConfig: {}, onOpenDocs: {}
