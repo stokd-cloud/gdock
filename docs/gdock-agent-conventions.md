@@ -120,3 +120,39 @@ without Xcode, a real `/Applications` write, or real signalling.
 installed one.
 
 Contract: `AX-GDOCK-INSTALLED-APP-SWAP-GATE`.
+
+## AX-GDOCK-QUAD-SHORTCUT-WORKSPACE-VISIBILITY
+
+Gdock quad shortcut actions preserve workspace visibility by filling visible
+quad panes before creating hidden pane-local tabs, then rolling over to a
+same-directory workspace once a true 2x2 quad is complete.
+
+### Why
+
+- The workflow is meant to keep active work visible in panes and workspaces,
+  instead of hiding extra sessions behind tabs inside a quad pane.
+- `gdock.*` shortcut IDs keep fork-owned behavior separate from upstream cmux
+  actions and make the Settings/config/docs surface auditable.
+- A shared action path prevents shortcut, Settings, and command-surface behavior
+  from drifting apart.
+
+### How to apply
+
+1. Use `gdock.`-prefixed shortcut action IDs for fork-owned quad workflow
+   shortcuts.
+2. Route keyboard dispatch through one shared `TabManager`-backed action path.
+3. Make `Cmd-Y` fill one-, two-, and three-pane workspaces toward a true
+   `H(V,V)` 2x2 topology; when the current workspace is already a true quad,
+   create a same-directory workspace instead of a pane-local tab.
+4. Keep Shortcut Settings, `cmux.json` schema, docs, and localization in sync
+   for every new shortcut.
+
+### Acceptance Checks
+
+- Runnable:
+  `xcodebuild -project cmux.xcodeproj -scheme cmux-unit -configuration Debug -destination 'platform=macOS' -derivedDataPath /tmp/cmux-quad-tab test -only-testing:cmuxTests/QuadSplitActionTests -only-testing:cmuxTests/QuadSplitButtonTests`
+  exits 0 and covers fill, rollover, batching, and shortcut metadata.
+- `web/data/cmux.schema.json` includes `gdock.nextQuadPane` and
+  `gdock.quadPaneWorkspaces`.
+- `Resources/Localizable.xcstrings` has English and Japanese entries for both
+  shortcut labels.

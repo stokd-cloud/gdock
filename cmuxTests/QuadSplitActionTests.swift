@@ -208,6 +208,90 @@ struct QuadSplitActionTests {
         #expect(workspace.bonsplitController.allPaneIds.count == 4)
     }
 
+    @Test("createNextQuadPane advances one pane at a time")
+    @MainActor
+    func createNextQuadPaneAdvancesOnePaneAtATime() throws {
+        let manager = TabManager()
+        let workspace = try #require(manager.selectedWorkspace)
+        #expect(workspace.bonsplitController.allPaneIds.count == 1)
+
+        #expect(manager.createNextQuadPane(focus: true))
+        #expect(workspace.bonsplitController.allPaneIds.count == 2)
+        #expect(Self.rootSplitOrientation(workspace) == "horizontal")
+
+        #expect(manager.createNextQuadPane(focus: true))
+        #expect(workspace.bonsplitController.allPaneIds.count == 3)
+
+        #expect(manager.createNextQuadPane(focus: true))
+        #expect(workspace.bonsplitController.allPaneIds.count == 4)
+        #expect(Self.isTrueTwoByTwo(workspace))
+    }
+
+    @Test("createNextQuadPane rolls over complete quad to same-directory workspace")
+    @MainActor
+    func createNextQuadPaneRollsOverCompleteQuadToSameDirectoryWorkspace() throws {
+        let manager = TabManager()
+        let workspace = try #require(manager.selectedWorkspace)
+        workspace.currentDirectory = "/tmp/gdock-quad-rollover"
+        let rootPane = try #require(workspace.bonsplitController.allPaneIds.first)
+        #expect(QuadSplitAction.perform(inPane: rootPane, workspace: workspace))
+        #expect(Self.isTrueTwoByTwo(workspace))
+
+        let countBefore = manager.tabs.count
+        #expect(manager.createNextQuadPane(focus: true))
+
+        let newWorkspace = try #require(manager.selectedWorkspace)
+        #expect(manager.tabs.count == countBefore + 1)
+        #expect(newWorkspace.id != workspace.id)
+        #expect(newWorkspace.currentDirectory == "/tmp/gdock-quad-rollover")
+        #expect(newWorkspace.bonsplitController.allPaneIds.count == 1)
+    }
+
+    @Test("createQuadPaneWorkspaces normalizes four existing panes")
+    @MainActor
+    func createQuadPaneWorkspacesNormalizesFourExistingPanes() throws {
+        let manager = TabManager()
+        let workspace = try #require(manager.selectedWorkspace)
+        let first = try #require(workspace.focusedPanelId)
+        let second = try #require(workspace.newTerminalSplit(from: first, orientation: .horizontal, focus: true))
+        _ = try #require(workspace.newTerminalSplit(from: first, orientation: .vertical, focus: true))
+        _ = try #require(workspace.newTerminalSplit(from: second.id, orientation: .horizontal, focus: true))
+        #expect(workspace.bonsplitController.allPaneIds.count == 4)
+        #expect(!Self.isTrueTwoByTwo(workspace))
+
+        #expect(manager.createQuadPaneWorkspaces(focus: true))
+
+        #expect(manager.tabs.count == 1)
+        #expect(workspace.bonsplitController.allPaneIds.count == 4)
+        #expect(Self.isTrueTwoByTwo(workspace))
+    }
+
+    @Test("createQuadPaneWorkspaces batches more than four panes without losing panels")
+    @MainActor
+    func createQuadPaneWorkspacesBatchesMoreThanFourPanesWithoutLosingPanels() throws {
+        let manager = TabManager()
+        let workspace = try #require(manager.selectedWorkspace)
+        workspace.currentDirectory = "/tmp/gdock-quad-batches"
+        let first = try #require(workspace.focusedPanelId)
+        for _ in 0..<5 {
+            _ = try #require(workspace.newTerminalSplit(from: first, orientation: .horizontal, focus: false))
+        }
+        let panelIdsBefore = Set(workspace.panels.keys)
+        #expect(panelIdsBefore.count == 6)
+
+        #expect(manager.createQuadPaneWorkspaces(focus: true))
+
+        #expect(manager.tabs.count == 2)
+        let firstWorkspace = try #require(manager.tabs.first)
+        let secondWorkspace = try #require(manager.tabs.dropFirst().first)
+        #expect(firstWorkspace.currentDirectory == "/tmp/gdock-quad-batches")
+        #expect(secondWorkspace.currentDirectory == "/tmp/gdock-quad-batches")
+        #expect(Self.isTrueTwoByTwo(firstWorkspace))
+        #expect(secondWorkspace.bonsplitController.allPaneIds.count == 2)
+        let panelIdsAfter = Set(manager.tabs.flatMap { $0.panels.keys })
+        #expect(panelIdsAfter == panelIdsBefore)
+    }
+
     // MARK: - VAL-QUAD-004: complete veto catalog (table-driven)
 
     @Test(
@@ -402,6 +486,35 @@ struct QuadSplitActionTests {
 // MARK: - Veto catalog fixtures
 
 private extension QuadSplitActionTests {
+    @MainActor
+    static func rootSplitOrientation(_ workspace: Workspace) -> String? {
+        guard case .split(let root) = workspace.bonsplitController.treeSnapshot() else {
+            return nil
+        }
+        return root.orientation
+    }
+
+    @MainActor
+    static func isTrueTwoByTwo(_ workspace: Workspace) -> Bool {
+        guard case .split(let root) = workspace.bonsplitController.treeSnapshot(),
+              root.orientation == "horizontal",
+              case .split(let left) = root.first,
+              case .split(let right) = root.second else {
+            return false
+        }
+        guard left.orientation == "vertical",
+              right.orientation == "vertical" else {
+            return false
+        }
+        guard case .pane = left.first,
+              case .pane = left.second,
+              case .pane = right.first,
+              case .pane = right.second else {
+            return false
+        }
+        return true
+    }
+
     /// Table rows: (case name, expected veto). Arguments drive one test per row.
     static var workspaceVetoCases: [(String, QuadSplitAction.Veto)] {
         [
