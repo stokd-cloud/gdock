@@ -218313,6 +218313,40 @@
         }
       }
     },
+    "shortcut.gdock.nextQuadPane.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create Next Quad Pane"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次のクアッドペインを作成"
+          }
+        }
+      }
+    },
+    "shortcut.gdock.quadPaneWorkspaces.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create Quad Pane Workspaces"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クアッドペインワークスペースを作成"
+          }
+        }
+      }
+    },
     "shortcut.splitRight.label": {
       "extractionState": "manual",
       "localizations": {

@@ -351,6 +351,8 @@ export const shortcutCategories: ShortcutCategory[] = [
       { id: "splitRight", combos: [["⌘", "D"]], description: { en: "Split right", ja: "右に分割" } },
       { id: "splitDown", combos: [["⌘", "⇧", "D"]], description: { en: "Split down", ja: "下に分割" } },
       { id: "splitQuad", combos: [], description: { en: "Split into a 2×2 terminal grid (unbound by default)", ja: "2×2のターミナルグリッドに分割（既定では未割り当て）" } },
+      { id: "gdock.nextQuadPane", combos: [["⌘", "Y"]], description: { en: "Create next quad pane", ja: "次のクアッドペインを作成" } },
+      { id: "gdock.quadPaneWorkspaces", combos: [["⌘", "⇧", "Y"]], description: { en: "Arrange workspace surfaces into quad-pane batches", ja: "ワークスペースのサーフェスをクアッドペイン単位に整列" } },
       { id: "splitBrowserRight", combos: [["⌥", "⌘", "D"]], description: { en: "Split browser right", ja: "右にブラウザ分割" } },
       { id: "splitBrowserDown", combos: [["⌥", "⌘", "⇧", "D"]], description: { en: "Split browser down", ja: "下にブラウザ分割" } },
       { id: "toggleSplitZoom", combos: [["⌘", "⇧", "↩"]], description: { en: "Toggle pane zoom", ja: "ペインズームを切り替え" } },

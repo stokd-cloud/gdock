@@ -104,6 +104,10 @@ extension ShortcutAction {
         case .splitRight: return "Split Right"
         case .splitDown: return "Split Down"
         case .splitQuad: return "Split Quad"
+        case .gdockNextQuadPane:
+            return String(localized: "shortcut.gdock.nextQuadPane.label", defaultValue: "Create Next Quad Pane")
+        case .gdockQuadPaneWorkspaces:
+            return String(localized: "shortcut.gdock.quadPaneWorkspaces.label", defaultValue: "Create Quad Pane Workspaces")
         case .toggleSplitZoom: return "Toggle Pane Zoom"
         case .increaseWorkspaceTerminalFontSize:
             return String(
