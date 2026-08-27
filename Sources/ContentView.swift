@@ -11477,6 +11477,9 @@ struct VerticalTabsSidebar: View, Equatable {
         let workspaceGroupMenuSnapshot: WorkspaceGroupMenuSnapshot
         let workspaceRenderItems: [SidebarWorkspaceRenderItem]
         let visibleWorkspaceRowIds: [UUID]
+        /// Per-pane cards for the focused workspace, keyed by pane id. Reduced
+        /// here, above the lazy-list boundary, so card rows read only values.
+        let panelCardsByPaneId: [UUID: GdockWorkspacePanelCard]
 
         var workspaceIds: [UUID] { tabIds }
     }
@@ -11571,14 +11574,50 @@ struct VerticalTabsSidebar: View, Equatable {
         let workspaceGroupMenuSnapshot = WorkspaceGroupMenuSnapshot(
             items: workspaceGroups.map { WorkspaceGroupMenuSnapshot.Item(id: $0.id, name: $0.name) }
         )
+        // Per-pane cards for the workspace the user is looking at. Reduced to
+        // values here, above the lazy-list boundary, so the card rows below it
+        // never touch the workspace object (CLAUDE.md; issue 2586).
+        let focusedWorkspaceForCards = tabManager.selectedTabId.flatMap { selectedId in
+            tabs.first { $0.id == selectedId }
+        }
+        let panelCards: [GdockWorkspacePanelCard] = focusedWorkspaceForCards.map { workspace in
+            let branch = workspace.gitBranch?.branch
+            let panes = workspace.bonsplitController.allPaneIds
+                .compactMap { paneId -> GdockWorkspacePanelCardBuilder.PaneInput? in
+                    guard let panelId = workspace.bonsplitController.selectedTab(inPane: paneId)?.id.uuid else {
+                        return nil
+                    }
+                    return GdockWorkspacePanelCardBuilder.PaneInput(
+                        paneId: paneId.id,
+                        title: workspace.panelTitles[panelId] ?? "",
+                        directory: workspace.panelDirectories[panelId] ?? "",
+                        branch: branch,
+                        sessionState: nil
+                    )
+                }
+            return GdockWorkspacePanelCardBuilder.cards(
+                panes: panes,
+                focusedPaneId: workspace.bonsplitController.focusedPaneId?.id
+            )
+        } ?? []
+        let panelCardsByPaneId = Dictionary(
+            panelCards.map { ($0.id, $0) },
+            uniquingKeysWith: { first, _ in first }
+        )
         let workspaceRenderItems = SidebarWorkspaceRenderItem.renderItems(
             tabs: tabs,
-            groupsById: workspaceGroupById
+            groupsById: workspaceGroupById,
+            focusedWorkspaceId: focusedWorkspaceForCards?.id,
+            panelCardPaneIds: panelCards.map(\.id)
         )
         let numberedWorkspaceIndexById = SidebarWorkspaceRenderItem.numberedWorkspaceIndexById(
             from: workspaceRenderItems
         )
-        let visibleWorkspaceRowIds = workspaceRenderItems.map(\.rowWorkspaceId)
+        // Cards are decoration, not rows: including them here would duplicate
+        // their workspace's id and misplace drag drop indicators.
+        let visibleWorkspaceRowIds = workspaceRenderItems
+            .filter(\.isReorderableRow)
+            .map(\.rowWorkspaceId)
         let draggedSidebarTabId = dragState.draggedTabId
         let dropIndicatorScope = dragState.dropIndicatorScope
         let sidebarReorderIds = draggedSidebarTabId.map {
@@ -11627,7 +11666,8 @@ struct VerticalTabsSidebar: View, Equatable {
             memberWorkspaceIdsByGroupId: memberWorkspaceIdsByGroupId,
             workspaceGroupMenuSnapshot: workspaceGroupMenuSnapshot,
             workspaceRenderItems: workspaceRenderItems,
-            visibleWorkspaceRowIds: visibleWorkspaceRowIds
+            visibleWorkspaceRowIds: visibleWorkspaceRowIds,
+            panelCardsByPaneId: panelCardsByPaneId
         )
         let _ = SidebarProfilingSignposts.end(signpost)
         ZStack(alignment: .bottomLeading) {
@@ -12204,8 +12244,47 @@ struct VerticalTabsSidebar: View, Equatable {
                     listSnapshot: listSnapshot,
                     renderContext: renderContext
                 )
+            case .panelCard(let workspaceId, let paneId):
+                guard let card = renderContext.panelCardsByPaneId[paneId] else { return nil }
+                return panelCardTableRowConfiguration(
+                    card: card,
+                    workspaceId: workspaceId,
+                    renderContext: renderContext
+                )
             }
         }
+    }
+
+    /// Row configuration for one per-pane card.
+    ///
+    /// Hosted through the generic `Content: View & Equatable` path, so no new
+    /// AppKit cell class is needed and the card diffs by value like every other
+    /// hosted row.
+    @MainActor
+    private func panelCardTableRowConfiguration(
+        card: GdockWorkspacePanelCard,
+        workspaceId: UUID,
+        renderContext: WorkspaceListRenderContext
+    ) -> SidebarWorkspaceTableRowConfiguration {
+        let view = GdockWorkspacePanelCardView(
+            card: card,
+            fontScale: renderContext.tabItemSettings.sidebarFontScale,
+            accentHex: renderContext.tabItemSettings.selectionColorHex
+        )
+        return SidebarWorkspaceTableRowConfiguration(
+            id: SidebarWorkspaceRenderItemID.panelCard(card.id),
+            workspaceId: workspaceId,
+            groupId: renderContext.workspaceGroupIdByWorkspaceId[workspaceId] ?? nil,
+            isGroupHeader: false,
+            isPinned: false,
+            environment: renderContext.environment,
+            equivalenceValue: view,
+            makeContent: { _, _ in
+                AnyView(
+                    view.padding(.leading, SidebarWorkspaceGroupingMetrics.memberIndent)
+                )
+            }
+        )
     }
 
         private func workspaceTableActions(
@@ -13877,6 +13956,12 @@ struct VerticalTabsSidebar: View, Equatable {
                             shouldCollectWorkspaceDropTargets: shouldCollectWorkspaceDropTargets
                         )
                     }
+                case .panelCard:
+                    // Panel cards render only through the AppKit table path,
+                    // which is the default list. The SwiftUI fallback keeps the
+                    // plain workspace list rather than growing a second, subtly
+                    // different card layout to maintain.
+                    EmptyView()
                 }
             }
         }

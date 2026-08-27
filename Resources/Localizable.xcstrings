@@ -120493,6 +120493,23 @@
         }
       }
     },
+    "gdock.panelCard.selected.a11y": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "selected pane"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択中のペイン"
+          }
+        }
+      }
+    },
     "gdock.repoGroup.openOnGitHub": {
       "extractionState": "manual",
       "localizations": {

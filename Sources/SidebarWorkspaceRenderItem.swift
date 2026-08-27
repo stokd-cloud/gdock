@@ -13,6 +13,9 @@ import Foundation
 enum SidebarWorkspaceRenderItem {
     case groupHeader(groupId: UUID, anchorWorkspaceId: UUID)
     case workspace(workspaceId: UUID)
+    /// A card for one visible pane of the focused workspace, emitted directly
+    /// beneath that workspace's own row.
+    case panelCard(workspaceId: UUID, paneId: UUID)
 
     var id: SidebarWorkspaceRenderItemID {
         switch self {
@@ -20,6 +23,8 @@ enum SidebarWorkspaceRenderItem {
             return .group(groupId)
         case .workspace(let workspaceId):
             return .workspace(workspaceId)
+        case .panelCard(_, let paneId):
+            return .panelCard(paneId)
         }
     }
 
@@ -29,7 +34,67 @@ enum SidebarWorkspaceRenderItem {
             return anchorWorkspaceId
         case .workspace(let workspaceId):
             return workspaceId
+        case .panelCard(let workspaceId, _):
+            return workspaceId
         }
+    }
+
+    /// Whether this item is a real, reorderable sidebar row.
+    ///
+    /// Panel cards are decoration attached to the focused workspace: they are
+    /// not drag sources, not drop targets, and must not appear in the reorder
+    /// id list, where their workspace id would duplicate the row they sit under
+    /// and corrupt drop-indicator placement.
+    var isReorderableRow: Bool {
+        switch self {
+        case .groupHeader, .workspace:
+            return true
+        case .panelCard:
+            return false
+        }
+    }
+
+    /// Render items with per-pane cards inserted under the focused workspace.
+    ///
+    /// Cards are additive: with `panelCardPaneIds` empty — which is what every
+    /// caller that does not opt in passes — the output is byte-identical to
+    /// ``renderItems(tabs:groupsById:)``.
+    ///
+    /// A card row is emitted after the workspace's own row, or after the group
+    /// header when the focused workspace is its group's anchor (the anchor has
+    /// no row of its own). A focused workspace hidden inside a collapsed group
+    /// contributes no cards, because there is no visible row to attach them to.
+    static func renderItems(
+        tabs: [Workspace],
+        groupsById: [UUID: WorkspaceGroup],
+        focusedWorkspaceId: UUID?,
+        panelCardPaneIds: [UUID]
+    ) -> [SidebarWorkspaceRenderItem] {
+        let base = renderItems(tabs: tabs, groupsById: groupsById)
+        guard let focusedWorkspaceId, !panelCardPaneIds.isEmpty else { return base }
+
+        let cards = panelCardPaneIds.map {
+            SidebarWorkspaceRenderItem.panelCard(workspaceId: focusedWorkspaceId, paneId: $0)
+        }
+
+        var result: [SidebarWorkspaceRenderItem] = []
+        result.reserveCapacity(base.count + cards.count)
+        var inserted = false
+        for item in base {
+            result.append(item)
+            guard !inserted else { continue }
+            switch item {
+            case .workspace(let workspaceId) where workspaceId == focusedWorkspaceId:
+                result.append(contentsOf: cards)
+                inserted = true
+            case .groupHeader(_, let anchorWorkspaceId) where anchorWorkspaceId == focusedWorkspaceId:
+                result.append(contentsOf: cards)
+                inserted = true
+            default:
+                continue
+            }
+        }
+        return result
     }
 
     static func renderItems(

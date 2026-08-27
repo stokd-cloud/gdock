@@ -209,6 +209,10 @@ struct WorkspaceGroupTests {
                 break
             case .workspace(let workspaceId):
                 visibleWorkspaceIds.append(workspaceId)
+            case .panelCard:
+                // This test builds render items without panel cards, so this
+                // case is unreachable here; it exists to keep the switch total.
+                break
             }
         }
 
