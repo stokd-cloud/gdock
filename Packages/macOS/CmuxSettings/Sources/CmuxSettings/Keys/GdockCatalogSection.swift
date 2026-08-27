@@ -38,5 +38,15 @@ public struct GdockCatalogSection: SettingCatalogSection {
         userDefaultsKey: "gdock.repoGroupQuadCommands"
     )
 
+    /// Path template for a repository's detail page in the active stokd
+    /// environment, where `{slug}` is the `owner/repo`. Templated because the
+    /// stokd web app's repo route is not fixed yet; the host comes from the
+    /// environment's base URL, not from here.
+    public let stokdRepoDetailURLTemplate = DefaultsKey<String>(
+        id: "gdock.stokdRepoDetailURLTemplate",
+        defaultValue: "/repos/{slug}",
+        userDefaultsKey: "gdock.stokdRepoDetailURLTemplate"
+    )
+
     public init() {}
 }

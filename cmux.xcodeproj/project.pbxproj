@@ -1188,12 +1188,15 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		B900000BA1B2C3D4E5F60719 /* gdock in Copy CLI */ = {isa = PBXBuildFile; fileRef = B9000004A1B2C3D4E5F60719 /* gdock */; };
 		GDOCKAWSG00000000000004 /* GdockAutoWorkspaceGroupModeSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000003 /* GdockAutoWorkspaceGroupModeSettings.swift */; };
 		GDOCKAWSG00000000000002 /* GdockAutoWorkspaceGroupReconciler.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */; };
+		GDOCKLNCH000000000000002 /* GdockRepoGroupLaunchAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKLNCH000000000000001 /* GdockRepoGroupLaunchAction.swift */; };
 		GDOCKRGAS0000000000002 /* GdockRepoGroupAccordionSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKRGAS0000000000001 /* GdockRepoGroupAccordionSettings.swift */; };
 		GDOCKRPF000000000000002 /* GdockRetargetedPanelFocusPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKRPF000000000000001 /* GdockRetargetedPanelFocusPolicy.swift */; };
 		GDOCKQPL000000000000002 /* GdockRepoGroupQuadPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKQPL000000000000001 /* GdockRepoGroupQuadPlanner.swift */; };
 		GDOCKACC000000000000002 /* GdockRepoGroupAccordionReconciler.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKACC000000000000001 /* GdockRepoGroupAccordionReconciler.swift */; };
 		GDOCKRWGI00000000000002 /* GdockRepoWorkspaceGroupIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKRWGI00000000000001 /* GdockRepoWorkspaceGroupIdentity.swift */; };
 		GDOCKAWSG00000000000008 /* GdockAutoWorkspaceGroupReconcilerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000007 /* GdockAutoWorkspaceGroupReconcilerTests.swift */; };
+		GDOCKSRDU000000000000008 /* StokdRepoDetailURLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKSRDU000000000000007 /* StokdRepoDetailURLTests.swift */; };
+		GDOCKLNCH000000000000008 /* GdockRepoGroupLaunchActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKLNCH000000000000007 /* GdockRepoGroupLaunchActionTests.swift */; };
 		GDOCKRPF000000000000008 /* GdockRetargetedPanelFocusPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKRPF000000000000007 /* GdockRetargetedPanelFocusPolicyTests.swift */; };
 		GDOCKQPL000000000000008 /* GdockRepoGroupQuadPlannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKQPL000000000000007 /* GdockRepoGroupQuadPlannerTests.swift */; };
 		GDOCKACC000000000000008 /* GdockRepoGroupAccordionReconcilerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKACC000000000000007 /* GdockRepoGroupAccordionReconcilerTests.swift */; };
@@ -2284,6 +2287,7 @@ BE7A0010SIDEBARDOCKLIVE02 /* SidebarDockLiveSectionSemanticsTests.swift in Sourc
 		D62E5F334F3AA6126B0559CF /* StokdRailPanelKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = C51D4E223E2995015A9448BE /* StokdRailPanelKind.swift */; };
 		B2C77181CC59348F2B8AA5FA /* StokdRailPanelKindTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A41C3B112D1884F0498337AD /* StokdRailPanelKindTests.swift */; };
 		493EEFD00000000000000204 /* StokdWorkAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000104 /* StokdWorkAPIClient.swift */; };
+		GDOCKSRDU000000000000002 /* StokdRepoDetailURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKSRDU000000000000001 /* StokdRepoDetailURL.swift */; };
 		493EEFD00000000000000008 /* StokdWorkAPIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000007 /* StokdWorkAPIClientTests.swift */; };
 		493EEFD00000000000000203 /* StokdWorkModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000103 /* StokdWorkModels.swift */; };
 		493EEFD00000000000000012 /* StokdWorkPanelIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000011 /* StokdWorkPanelIntegrationTests.swift */; };
@@ -4083,12 +4087,15 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		B9000004A1B2C3D4E5F60719 /* gdock */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = gdock; sourceTree = BUILT_PRODUCTS_DIR; };
 		GDOCKAWSG00000000000003 /* GdockAutoWorkspaceGroupModeSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupModeSettings.swift; sourceTree = "<group>"; };
 		GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupReconciler.swift; sourceTree = "<group>"; };
+		GDOCKLNCH000000000000001 /* GdockRepoGroupLaunchAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRepoGroupLaunchAction.swift; sourceTree = "<group>"; };
 		GDOCKRGAS0000000000001 /* GdockRepoGroupAccordionSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRepoGroupAccordionSettings.swift; sourceTree = "<group>"; };
 		GDOCKRPF000000000000001 /* GdockRetargetedPanelFocusPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRetargetedPanelFocusPolicy.swift; sourceTree = "<group>"; };
 		GDOCKQPL000000000000001 /* GdockRepoGroupQuadPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRepoGroupQuadPlanner.swift; sourceTree = "<group>"; };
 		GDOCKACC000000000000001 /* GdockRepoGroupAccordionReconciler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRepoGroupAccordionReconciler.swift; sourceTree = "<group>"; };
 		GDOCKRWGI00000000000001 /* GdockRepoWorkspaceGroupIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRepoWorkspaceGroupIdentity.swift; sourceTree = "<group>"; };
 		GDOCKAWSG00000000000007 /* GdockAutoWorkspaceGroupReconcilerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupReconcilerTests.swift; sourceTree = "<group>"; };
+		GDOCKSRDU000000000000007 /* StokdRepoDetailURLTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdRepoDetailURLTests.swift; sourceTree = "<group>"; };
+		GDOCKLNCH000000000000007 /* GdockRepoGroupLaunchActionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRepoGroupLaunchActionTests.swift; sourceTree = "<group>"; };
 		GDOCKRPF000000000000007 /* GdockRetargetedPanelFocusPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRetargetedPanelFocusPolicyTests.swift; sourceTree = "<group>"; };
 		GDOCKQPL000000000000007 /* GdockRepoGroupQuadPlannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRepoGroupQuadPlannerTests.swift; sourceTree = "<group>"; };
 		GDOCKACC000000000000007 /* GdockRepoGroupAccordionReconcilerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRepoGroupAccordionReconcilerTests.swift; sourceTree = "<group>"; };
@@ -5162,6 +5169,7 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 		C51D4E223E2995015A9448BE /* StokdRailPanelKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdRailPanelKind.swift; sourceTree = "<group>"; };
 		A41C3B112D1884F0498337AD /* StokdRailPanelKindTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdRailPanelKindTests.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000104 /* StokdWorkAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkAPIClient.swift; sourceTree = "<group>"; };
+		GDOCKSRDU000000000000001 /* StokdRepoDetailURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdRepoDetailURL.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000007 /* StokdWorkAPIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkAPIClientTests.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000103 /* StokdWorkModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkModels.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000011 /* StokdWorkPanelIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelIntegrationTests.swift; sourceTree = "<group>"; };
@@ -6669,6 +6677,7 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 				GDOCKPIP000000000000001 /* GdockPipFloatingWindowPolicy.swift */,
 				GDOCKPIP000000000000003 /* GdockPipFloatingWindowController.swift */,
 				GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */,
+				GDOCKLNCH000000000000001 /* GdockRepoGroupLaunchAction.swift */,
 				GDOCKRGAS0000000000001 /* GdockRepoGroupAccordionSettings.swift */,
 				GDOCKRPF000000000000001 /* GdockRetargetedPanelFocusPolicy.swift */,
 				GDOCKQPL000000000000001 /* GdockRepoGroupQuadPlanner.swift */,
@@ -7881,6 +7890,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				493EEFD00000000000000102 /* StokdCLIRunner.swift */,
 				493EEFD00000000000000103 /* StokdWorkModels.swift */,
 				493EEFD00000000000000104 /* StokdWorkAPIClient.swift */,
+				GDOCKSRDU000000000000001 /* StokdRepoDetailURL.swift */,
 				493EEFD00000000000000105 /* StokdWorkPanelViewModel.swift */,
 				493EEFD00000000000000106 /* StokdWorkPanelView.swift */,
 				493EEFD000000000000000A1 /* StokdWorkRepositoryBinder.swift */,
@@ -8509,6 +8519,8 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				C0DE48000000000000000002 /* SidebarProviderMenuRegressionTests.swift */,
 				C0DEF4120000000000000002 /* CommandPaletteSettingsToggleTests.swift */,
 				GDOCKAWSG00000000000007 /* GdockAutoWorkspaceGroupReconcilerTests.swift */,
+				GDOCKSRDU000000000000007 /* StokdRepoDetailURLTests.swift */,
+				GDOCKLNCH000000000000007 /* GdockRepoGroupLaunchActionTests.swift */,
 				GDOCKRPF000000000000007 /* GdockRetargetedPanelFocusPolicyTests.swift */,
 				GDOCKQPL000000000000007 /* GdockRepoGroupQuadPlannerTests.swift */,
 				GDOCKACC000000000000007 /* GdockRepoGroupAccordionReconcilerTests.swift */,
@@ -9965,6 +9977,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				AA5269A0C0DE0002FACE0002 /* ForeignFirstResponderPolicy.swift in Sources */,
 				GDOCKAWSG00000000000004 /* GdockAutoWorkspaceGroupModeSettings.swift in Sources */,
 				GDOCKAWSG00000000000002 /* GdockAutoWorkspaceGroupReconciler.swift in Sources */,
+				GDOCKLNCH000000000000002 /* GdockRepoGroupLaunchAction.swift in Sources */,
 				GDOCKRGAS0000000000002 /* GdockRepoGroupAccordionSettings.swift in Sources */,
 				GDOCKRPF000000000000002 /* GdockRetargetedPanelFocusPolicy.swift in Sources */,
 				GDOCKQPL000000000000002 /* GdockRepoGroupQuadPlanner.swift in Sources */,
@@ -10684,6 +10697,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				493EEFD00000000000000201 /* StokdExecutableResolver.swift in Sources */,
 				D62E5F334F3AA6126B0559CF /* StokdRailPanelKind.swift in Sources */,
 				493EEFD00000000000000204 /* StokdWorkAPIClient.swift in Sources */,
+				GDOCKSRDU000000000000002 /* StokdRepoDetailURL.swift in Sources */,
 				493EEFD00000000000000203 /* StokdWorkModels.swift in Sources */,
 				493EEFD00000000000000206 /* StokdWorkPanelView.swift in Sources */,
 				493EEFD00000000000000205 /* StokdWorkPanelViewModel.swift in Sources */,
@@ -11680,6 +11694,8 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				F17F00000000000000000003 /* FullWidthTabCommandTests.swift in Sources */,
 				F17F00000000000000000001 /* FullWidthTabPersistenceTests.swift in Sources */,
 				GDOCKAWSG00000000000008 /* GdockAutoWorkspaceGroupReconcilerTests.swift in Sources */,
+				GDOCKSRDU000000000000008 /* StokdRepoDetailURLTests.swift in Sources */,
+				GDOCKLNCH000000000000008 /* GdockRepoGroupLaunchActionTests.swift in Sources */,
 				GDOCKRPF000000000000008 /* GdockRetargetedPanelFocusPolicyTests.swift in Sources */,
 				GDOCKQPL000000000000008 /* GdockRepoGroupQuadPlannerTests.swift in Sources */,
 				GDOCKACC000000000000008 /* GdockRepoGroupAccordionReconcilerTests.swift in Sources */,

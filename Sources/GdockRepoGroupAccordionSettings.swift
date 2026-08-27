@@ -43,3 +43,19 @@ enum GdockRepoGroupQuadCommandSettings {
         defaults.stringArray(forKey: userDefaultsKey) ?? catalogKey.defaultValue
     }
 }
+
+/// Runtime accessors for `gdock.stokdRepoDetailURLTemplate`.
+enum GdockStokdRepoDetailSettings {
+    static let catalogKey = SettingCatalog().gdock.stokdRepoDetailURLTemplate
+    static let settingsKey = catalogKey.id
+    static let userDefaultsKey = catalogKey.userDefaultsKey
+
+    /// The configured path template, falling back to the default when unset or
+    /// blanked out.
+    static func pathTemplate(defaults: UserDefaults = .standard) -> String {
+        let stored = defaults.string(forKey: userDefaultsKey)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let stored, !stored.isEmpty else { return catalogKey.defaultValue }
+        return stored
+    }
+}
