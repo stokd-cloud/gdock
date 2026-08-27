@@ -46,6 +46,9 @@ struct SidebarGroupHeaderRowActions {
     let onToggleCollapsed: () -> Void
     let onFocusAnchor: (NSEvent.ModifierFlags) -> Void
     let onTapPlus: () -> Void
+    /// Opens a repo-only launcher target. Never invoked for a hand-named group,
+    /// whose launcher buttons are hidden.
+    let onLaunchRepoTarget: (GdockRepoGroupLaunchAction.Target) -> Void
     let onRunResolvedItem: (CmuxResolvedConfigMenuAction) -> Void
     let onRename: () -> Void
     let onTogglePinned: () -> Void

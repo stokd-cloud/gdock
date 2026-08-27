@@ -134,6 +134,9 @@ extension VerticalTabsSidebar {
                     ?? UserDefaultsSettingsClient(defaults: .standard).value(for: SettingCatalog().workspaceGroups.newWorkspacePlacement)
                 _ = tabManager.createWorkspaceInGroup(groupId: groupId, placement: resolved)
             },
+            onLaunchRepoTarget: { [groupName = group.name] target in
+                GdockRepoGroupLaunchAction.open(target, groupName: groupName)
+            },
             onRunResolvedItem: { [weak tabManager, groupId = group.id] item in
                 guard let tabManager else { return }
                 SidebarWorkspaceGroupContextMenuRunner.run(

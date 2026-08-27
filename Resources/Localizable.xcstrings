@@ -120493,6 +120493,40 @@
         }
       }
     },
+    "gdock.repoGroup.openOnGitHub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open repository on GitHub"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リポジトリを GitHub で開く"
+          }
+        }
+      }
+    },
+    "gdock.repoGroup.openStokdRepoDetail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open repository in Stokd"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リポジトリを Stokd で開く"
+          }
+        }
+      }
+    },
     "ghostty.copy-mode.indicator": {
       "extractionState": "manual",
       "localizations": {
