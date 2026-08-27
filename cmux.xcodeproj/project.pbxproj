@@ -1188,8 +1188,14 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		B900000BA1B2C3D4E5F60719 /* gdock in Copy CLI */ = {isa = PBXBuildFile; fileRef = B9000004A1B2C3D4E5F60719 /* gdock */; };
 		GDOCKAWSG00000000000004 /* GdockAutoWorkspaceGroupModeSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000003 /* GdockAutoWorkspaceGroupModeSettings.swift */; };
 		GDOCKAWSG00000000000002 /* GdockAutoWorkspaceGroupReconciler.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */; };
+		GDOCKRPF000000000000002 /* GdockRetargetedPanelFocusPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKRPF000000000000001 /* GdockRetargetedPanelFocusPolicy.swift */; };
+		GDOCKQPL000000000000002 /* GdockRepoGroupQuadPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKQPL000000000000001 /* GdockRepoGroupQuadPlanner.swift */; };
+		GDOCKACC000000000000002 /* GdockRepoGroupAccordionReconciler.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKACC000000000000001 /* GdockRepoGroupAccordionReconciler.swift */; };
 		GDOCKRWGI00000000000002 /* GdockRepoWorkspaceGroupIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKRWGI00000000000001 /* GdockRepoWorkspaceGroupIdentity.swift */; };
 		GDOCKAWSG00000000000008 /* GdockAutoWorkspaceGroupReconcilerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000007 /* GdockAutoWorkspaceGroupReconcilerTests.swift */; };
+		GDOCKRPF000000000000008 /* GdockRetargetedPanelFocusPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKRPF000000000000007 /* GdockRetargetedPanelFocusPolicyTests.swift */; };
+		GDOCKQPL000000000000008 /* GdockRepoGroupQuadPlannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKQPL000000000000007 /* GdockRepoGroupQuadPlannerTests.swift */; };
+		GDOCKACC000000000000008 /* GdockRepoGroupAccordionReconcilerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKACC000000000000007 /* GdockRepoGroupAccordionReconcilerTests.swift */; };
 		GDOCKRWGI00000000000008 /* GdockRepoWorkspaceGroupIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKRWGI00000000000007 /* GdockRepoWorkspaceGroupIdentityTests.swift */; };
 		GDOCKPIP000000000000004 /* GdockPipFloatingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPIP000000000000003 /* GdockPipFloatingWindowController.swift */; };
 		GDOCKPIP000000000000002 /* GdockPipFloatingWindowPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPIP000000000000001 /* GdockPipFloatingWindowPolicy.swift */; };
@@ -4076,8 +4082,14 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		B9000004A1B2C3D4E5F60719 /* gdock */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = gdock; sourceTree = BUILT_PRODUCTS_DIR; };
 		GDOCKAWSG00000000000003 /* GdockAutoWorkspaceGroupModeSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupModeSettings.swift; sourceTree = "<group>"; };
 		GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupReconciler.swift; sourceTree = "<group>"; };
+		GDOCKRPF000000000000001 /* GdockRetargetedPanelFocusPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRetargetedPanelFocusPolicy.swift; sourceTree = "<group>"; };
+		GDOCKQPL000000000000001 /* GdockRepoGroupQuadPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRepoGroupQuadPlanner.swift; sourceTree = "<group>"; };
+		GDOCKACC000000000000001 /* GdockRepoGroupAccordionReconciler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRepoGroupAccordionReconciler.swift; sourceTree = "<group>"; };
 		GDOCKRWGI00000000000001 /* GdockRepoWorkspaceGroupIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRepoWorkspaceGroupIdentity.swift; sourceTree = "<group>"; };
 		GDOCKAWSG00000000000007 /* GdockAutoWorkspaceGroupReconcilerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupReconcilerTests.swift; sourceTree = "<group>"; };
+		GDOCKRPF000000000000007 /* GdockRetargetedPanelFocusPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRetargetedPanelFocusPolicyTests.swift; sourceTree = "<group>"; };
+		GDOCKQPL000000000000007 /* GdockRepoGroupQuadPlannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRepoGroupQuadPlannerTests.swift; sourceTree = "<group>"; };
+		GDOCKACC000000000000007 /* GdockRepoGroupAccordionReconcilerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRepoGroupAccordionReconcilerTests.swift; sourceTree = "<group>"; };
 		GDOCKRWGI00000000000007 /* GdockRepoWorkspaceGroupIdentityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRepoWorkspaceGroupIdentityTests.swift; sourceTree = "<group>"; };
 		GDOCKPIP000000000000003 /* GdockPipFloatingWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPipFloatingWindowController.swift; sourceTree = "<group>"; };
 		GDOCKPIP000000000000001 /* GdockPipFloatingWindowPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPipFloatingWindowPolicy.swift; sourceTree = "<group>"; };
@@ -6655,6 +6667,9 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 				GDOCKPIP000000000000001 /* GdockPipFloatingWindowPolicy.swift */,
 				GDOCKPIP000000000000003 /* GdockPipFloatingWindowController.swift */,
 				GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */,
+				GDOCKRPF000000000000001 /* GdockRetargetedPanelFocusPolicy.swift */,
+				GDOCKQPL000000000000001 /* GdockRepoGroupQuadPlanner.swift */,
+				GDOCKACC000000000000001 /* GdockRepoGroupAccordionReconciler.swift */,
 				GDOCKRWGI00000000000001 /* GdockRepoWorkspaceGroupIdentity.swift */,
 				01BAA63BCC864AB59E2E8A8D /* QuadSplitAction.swift */,
 				E2167180241244A596651E6D /* QuadSplitPlanner.swift */,
@@ -8491,6 +8506,9 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				C0DE48000000000000000002 /* SidebarProviderMenuRegressionTests.swift */,
 				C0DEF4120000000000000002 /* CommandPaletteSettingsToggleTests.swift */,
 				GDOCKAWSG00000000000007 /* GdockAutoWorkspaceGroupReconcilerTests.swift */,
+				GDOCKRPF000000000000007 /* GdockRetargetedPanelFocusPolicyTests.swift */,
+				GDOCKQPL000000000000007 /* GdockRepoGroupQuadPlannerTests.swift */,
+				GDOCKACC000000000000007 /* GdockRepoGroupAccordionReconcilerTests.swift */,
 				GDOCKRWGI00000000000007 /* GdockRepoWorkspaceGroupIdentityTests.swift */,
 				GDOCKPIP000000000000005 /* GdockPipFloatingWindowTests.swift */,
 				606500010000000000000002 /* MenuBarOnlyActivationPolicyTests.swift */,
@@ -9944,6 +9962,9 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				AA5269A0C0DE0002FACE0002 /* ForeignFirstResponderPolicy.swift in Sources */,
 				GDOCKAWSG00000000000004 /* GdockAutoWorkspaceGroupModeSettings.swift in Sources */,
 				GDOCKAWSG00000000000002 /* GdockAutoWorkspaceGroupReconciler.swift in Sources */,
+				GDOCKRPF000000000000002 /* GdockRetargetedPanelFocusPolicy.swift in Sources */,
+				GDOCKQPL000000000000002 /* GdockRepoGroupQuadPlanner.swift in Sources */,
+				GDOCKACC000000000000002 /* GdockRepoGroupAccordionReconciler.swift in Sources */,
 				GDOCKRWGI00000000000002 /* GdockRepoWorkspaceGroupIdentity.swift in Sources */,
 				GDOCKPIP000000000000004 /* GdockPipFloatingWindowController.swift in Sources */,
 				GDOCKPIP000000000000002 /* GdockPipFloatingWindowPolicy.swift in Sources */,
@@ -11655,6 +11676,9 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				F17F00000000000000000003 /* FullWidthTabCommandTests.swift in Sources */,
 				F17F00000000000000000001 /* FullWidthTabPersistenceTests.swift in Sources */,
 				GDOCKAWSG00000000000008 /* GdockAutoWorkspaceGroupReconcilerTests.swift in Sources */,
+				GDOCKRPF000000000000008 /* GdockRetargetedPanelFocusPolicyTests.swift in Sources */,
+				GDOCKQPL000000000000008 /* GdockRepoGroupQuadPlannerTests.swift in Sources */,
+				GDOCKACC000000000000008 /* GdockRepoGroupAccordionReconcilerTests.swift in Sources */,
 				GDOCKRWGI00000000000008 /* GdockRepoWorkspaceGroupIdentityTests.swift in Sources */,
 				GDOCKPIP000000000000006 /* GdockPipFloatingWindowTests.swift in Sources */,
 				1718C0DE1718C0DE17180002 /* GhosttyCommandShiftForwardingTests.swift in Sources */,
