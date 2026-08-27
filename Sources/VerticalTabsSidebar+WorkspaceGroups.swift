@@ -141,7 +141,7 @@ extension VerticalTabsSidebar {
                 _ = tabManager.createWorkspaceInGroup(groupId: groupId, placement: resolved)
             },
             onLaunchRepoTarget: { [groupName = group.name] target in
-                GdockRepoGroupLaunchAction.open(target, groupName: groupName)
+                GdockRepoGroupLaunchAction.openUsingActiveEnvironment(target, groupName: groupName)
             },
             onRunResolvedItem: { [weak tabManager, groupId = group.id] item in
                 guard let tabManager else { return }

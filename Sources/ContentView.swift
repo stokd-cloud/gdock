@@ -11580,6 +11580,14 @@ struct VerticalTabsSidebar: View, Equatable {
         let focusedWorkspaceForCards = tabManager.selectedTabId.flatMap { selectedId in
             tabs.first { $0.id == selectedId }
         }
+        // Resolve which stokd environment is active so repo-detail links point
+        // at it rather than at localhost. Guarded internally, so this is a
+        // cheap no-op once resolved and never runs a subprocess per render.
+        // Written as an expression because this sits in a ViewBuilder, where a
+        // bare `if` statement would be read as a view.
+        let _ = focusedWorkspaceForCards.map {
+            StokdEnvironmentStore.shared.refreshIfNeeded(directory: $0.currentDirectory)
+        }
         let panelCards: [GdockWorkspacePanelCard] = focusedWorkspaceForCards.map { workspace in
             let branch = workspace.gitBranch?.branch
             let panes = workspace.bonsplitController.allPaneIds

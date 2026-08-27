@@ -2,9 +2,12 @@ import Foundation
 
 /// Builds the active stokd environment's repo-detail URL for an `owner/repo`.
 ///
-/// The stokd web app is served from the same host as its API, so the base is
-/// taken from ``StokdWorkAPIClient/defaultBaseURL`` rather than configured
-/// twice. Only the path shape is configurable, via
+/// The base URL comes from the *active* environment — see
+/// ``StokdEnvironmentStore`` — never a hard-coded host. `local`, `stage`, and
+/// `saas` are different hosts, and assuming the local one sends a user on saas
+/// to a dead `http://localhost:8167/...` link. When the environment has not
+/// resolved yet, this returns `nil` and the caller shows no link rather than a
+/// link into the wrong environment. Only the path shape is configurable, via
 /// `gdock.stokdRepoDetailURLTemplate`.
 ///
 /// The path is templated because, at the time this shipped, the stokd web app
@@ -27,9 +30,10 @@ enum StokdRepoDetailURL {
     ///   - pathTemplate: Path containing `{slug}`.
     static func url(
         forSlug slug: String,
-        baseURL: URL = StokdWorkAPIClient.defaultBaseURL,
+        baseURL: URL?,
         pathTemplate: String = StokdRepoDetailURL.defaultPathTemplate
     ) -> URL? {
+        guard let baseURL else { return nil }
         guard let validated = GdockRepoWorkspaceGroupIdentity.slug(forGroupName: slug) else {
             return nil
         }

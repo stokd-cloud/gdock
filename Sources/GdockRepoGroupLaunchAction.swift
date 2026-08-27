@@ -45,7 +45,8 @@ enum GdockRepoGroupLaunchAction {
     static func url(
         for target: Target,
         groupName: String,
-        stokdPathTemplate: String = GdockStokdRepoDetailSettings.pathTemplate()
+        stokdPathTemplate: String = GdockStokdRepoDetailSettings.pathTemplate(),
+        stokdBaseURL: URL?
     ) -> URL? {
         guard let slug = GdockRepoWorkspaceGroupIdentity.slug(forGroupName: groupName) else {
             return nil
@@ -54,7 +55,11 @@ enum GdockRepoGroupLaunchAction {
         case .gitHub:
             return GdockRepoWorkspaceGroupIdentity.gitHubURL(forSlug: slug)
         case .stokdRepoDetail:
-            return StokdRepoDetailURL.url(forSlug: slug, pathTemplate: stokdPathTemplate)
+            return StokdRepoDetailURL.url(
+                forSlug: slug,
+                baseURL: stokdBaseURL,
+                pathTemplate: stokdPathTemplate
+            )
         }
     }
 
@@ -72,12 +77,29 @@ enum GdockRepoGroupLaunchAction {
         _ target: Target,
         groupName: String,
         stokdPathTemplate: String = GdockStokdRepoDetailSettings.pathTemplate(),
+        stokdBaseURL: URL?,
         opener: (URL) -> Void = { NSWorkspace.shared.open($0) }
     ) -> Bool {
-        guard let url = url(for: target, groupName: groupName, stokdPathTemplate: stokdPathTemplate) else {
+        guard let url = url(
+            for: target,
+            groupName: groupName,
+            stokdPathTemplate: stokdPathTemplate,
+            stokdBaseURL: stokdBaseURL
+        ) else {
             return false
         }
         opener(url)
         return true
+    }
+
+    /// UI entry point: opens the target against whatever environment is
+    /// currently active.
+    ///
+    /// The base URL is read here rather than as a default argument, because
+    /// default arguments are evaluated outside this type's actor and so cannot
+    /// touch ``StokdEnvironmentStore``.
+    @discardableResult
+    static func openUsingActiveEnvironment(_ target: Target, groupName: String) -> Bool {
+        open(target, groupName: groupName, stokdBaseURL: StokdEnvironmentStore.shared.baseURL)
     }
 }

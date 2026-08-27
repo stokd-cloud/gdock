@@ -48,5 +48,14 @@ public struct GdockCatalogSection: SettingCatalogSection {
         userDefaultsKey: "gdock.stokdRepoDetailURLTemplate"
     )
 
+    /// Explicit origin for stokd links (e.g. `https://api.stokd.cloud`). Empty
+    /// means "ask the stokd CLI which environment is active" — the env's host
+    /// differs between local, stage, and saas, so it is never hard-coded.
+    public let stokdWebBaseURL = DefaultsKey<String>(
+        id: "gdock.stokdWebBaseURL",
+        defaultValue: "",
+        userDefaultsKey: "gdock.stokdWebBaseURL"
+    )
+
     public init() {}
 }
