@@ -65,24 +65,45 @@ extension TabManager {
                 )
             case .addToGroup(let workspaceId, let groupId):
                 addWorkspaceToGroup(workspaceId: workspaceId, groupId: groupId)
-            case .extractPanel(let panelId, _, let slug):
-                extractGdockAutoWorkspaceGroupPanel(panelId: panelId, slug: slug)
+            case .extractPanel(let panelId, let fromWorkspaceId, let slug):
+                extractGdockAutoWorkspaceGroupPanel(
+                    panelId: panelId,
+                    fromWorkspaceId: fromWorkspaceId,
+                    slug: slug
+                )
             }
         }
     }
 
     /// Moves one retargeted panel into its own workspace under `slug`'s group.
     ///
-    /// Focus and window activation are deliberately suppressed: this runs off a
-    /// debounced cwd notification, and stealing focus mid-keystroke would be
-    /// worse than the mis-grouping it fixes.
-    private func extractGdockAutoWorkspaceGroupPanel(panelId: UUID, slug: String) {
+    /// Focus follows the panel only when it is the one the user is working in
+    /// (``GdockRetargetedPanelFocusPolicy``). Someone who `cd`s into another
+    /// repo is about to do something *there*, so leaving their focus behind in
+    /// the old workspace strands the next keystroke. Every other extraction —
+    /// a background pane, or any pane in a workspace the user is not currently
+    /// viewing — stays focus-neutral, because this runs off a debounced cwd
+    /// notification and stealing focus mid-keystroke would be worse than the
+    /// mis-grouping it fixes.
+    private func extractGdockAutoWorkspaceGroupPanel(
+        panelId: UUID,
+        fromWorkspaceId: UUID,
+        slug: String
+    ) {
+        let followsFocus = GdockRetargetedPanelFocusPolicy.shouldFollowFocus(
+            extractedPanelId: panelId,
+            sourceWorkspaceId: fromWorkspaceId,
+            sourceWorkspaceFocusedPanelId: tabs
+                .first(where: { $0.id == fromWorkspaceId })?
+                .focusedPanelId,
+            selectedWorkspaceId: selectedTabId
+        )
         guard let appDelegate = AppDelegate.shared,
               appDelegate.canMoveSurfaceToNewWorkspace(panelId: panelId),
               let move = appDelegate.moveSurfaceToNewWorkspace(
                   panelId: panelId,
-                  focus: false,
-                  focusWindow: false
+                  focus: followsFocus,
+                  focusWindow: followsFocus
               ) else {
             return
         }
