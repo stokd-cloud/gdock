@@ -120493,6 +120493,38 @@
         }
       }
     },
+    "gdock.gridMode.button.help": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grid Mode shape"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "グリッドモードの形状"
+          }
+        }
+      }
+    },
+    "gdock.gridMode.selector.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grid shape"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "グリッドの形状"
+          }
+        }
+      }
+    },
     "ghostty.copy-mode.indicator": {
       "extractionState": "manual",
       "localizations": {
@@ -178417,6 +178449,22 @@
         }
       }
     },
+    "settings.gdock.gridMode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grid Mode"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "グリッドモード"
+          }
+        }
+      }
+    },
     "settings.gdock.rightSidebarStackedTabs": {
       "localizations": {
         "en": {
@@ -218309,6 +218357,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "クアッド分割"
+          }
+        }
+      }
+    },
+    "shortcut.gdock.nextQuadPane.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create Next Quad Pane"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次のクアッドペインを作成"
+          }
+        }
+      }
+    },
+    "shortcut.gdock.quadPaneWorkspaces.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create Quad Pane Workspaces"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クアッドペインワークスペースを作成"
           }
         }
       }

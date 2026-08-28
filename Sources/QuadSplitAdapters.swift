@@ -110,6 +110,32 @@ enum QuadSplitAdapters {
         return tabManager?.createQuadSplit(focus: true) == true
     }
 
+    @discardableResult
+    static func performNextQuadPaneSharedFocusPath(
+        preferredWindow: NSWindow?,
+        tabManager: TabManager?
+    ) -> Bool {
+        let window = preferredWindow ?? NSApp.keyWindow ?? NSApp.mainWindow
+        if let appDelegate = AppDelegate.shared,
+           appDelegate.performNextQuadPaneShortcut(preferredWindow: window) {
+            return true
+        }
+        return tabManager?.createNextQuadPane(focus: true) == true
+    }
+
+    @discardableResult
+    static func performQuadPaneWorkspacesSharedFocusPath(
+        preferredWindow: NSWindow?,
+        tabManager: TabManager?
+    ) -> Bool {
+        let window = preferredWindow ?? NSApp.keyWindow ?? NSApp.mainWindow
+        if let appDelegate = AppDelegate.shared,
+           appDelegate.performQuadPaneWorkspacesShortcut(preferredWindow: window) {
+            return true
+        }
+        return tabManager?.createQuadPaneWorkspaces(focus: true) == true
+    }
+
     // MARK: - Earliest owner resolution (CLI / socket / explicit surface)
 
     /// Resolves the earliest window/surface owner for a quad request.
