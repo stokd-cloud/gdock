@@ -411,7 +411,7 @@ class TabManager: ObservableObject {
     let workspaceCustomizationStore: WorkspaceCustomizationStore
     private var lastFocusHistoryIncludesPanesAndTabs: Bool
     /// Debounce token for gdock Auto Workspace Group Mode reconcile.
-    var gdockAutoWorkspaceGroupReconcileWorkItem: DispatchWorkItem?
+    var gdockAutoWorkspaceGroupReconcileTask: Task<Void, Never>?
     /// Last observed `gdock.autoWorkspaceGroupMode` enablement (gates edge work).
     var lastGdockAutoWorkspaceGroupModeEnabled: Bool?
     /// Commands a repo group's quad launch put into each anchor workspace,
@@ -422,7 +422,7 @@ class TabManager: ObservableObject {
     /// re-running the launch is the honest response.
     var gdockRepoGroupQuadCommandsByWorkspaceId: [UUID: [String]] = [:]
     /// Debounce token for gdock Grid Mode shape reconcile.
-    var gdockGridModeReconcileWorkItem: DispatchWorkItem?
+    var gdockGridModeReconcileTask: Task<Void, Never>?
     /// Last observed `gdock.gridMode` enablement (gates edge work).
     var lastGdockGridModeEnabled: Bool?
     /// Last observed `gdock.gridModeShape` (gates edge work).
@@ -723,10 +723,10 @@ class TabManager: ObservableObject {
             NotificationCenter.default.removeObserver(observer)
         }
         observers.removeAll()
-        gdockAutoWorkspaceGroupReconcileWorkItem?.cancel()
-        gdockAutoWorkspaceGroupReconcileWorkItem = nil
-        gdockGridModeReconcileWorkItem?.cancel()
-        gdockGridModeReconcileWorkItem = nil
+        gdockAutoWorkspaceGroupReconcileTask?.cancel()
+        gdockAutoWorkspaceGroupReconcileTask = nil
+        gdockGridModeReconcileTask?.cancel()
+        gdockGridModeReconcileTask = nil
         workspaceCycleCooldownTask?.cancel()
         agentPIDSweepTimer?.cancel()
         // The sidebar git/PR services cancel their own poll, probe, snapshot,
