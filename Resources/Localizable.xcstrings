@@ -120918,6 +120918,38 @@
         }
       }
     },
+    "gdock.gridMode.button.help": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grid Mode shape"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "グリッドモードの形状"
+          }
+        }
+      }
+    },
+    "gdock.gridMode.selector.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grid shape"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "グリッドの形状"
+          }
+        }
+      }
+    },
     "ghostty.copy-mode.indicator": {
       "extractionState": "manual",
       "localizations": {
@@ -178872,6 +178904,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "自動ワークスペースグループモード"
+          }
+        }
+      }
+    },
+    "settings.gdock.gridMode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grid Mode"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "グリッドモード"
           }
         }
       }

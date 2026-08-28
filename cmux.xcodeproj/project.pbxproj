@@ -189,11 +189,11 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		C65930010000000000000003 /* AppDelegate+CrashSessionSnapshotRemoval.swift in Sources */ = {isa = PBXBuildFile; fileRef = C65930010000000000000004 /* AppDelegate+CrashSessionSnapshotRemoval.swift */; };
 		8777A0018777A0018777A001 /* AppDelegate+DockAttentionRouting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8777A0028777A0028777A002 /* AppDelegate+DockAttentionRouting.swift */; };
 		DCDC3000000000000000E001 /* AppDelegate+DockShortcutRouting.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCDC3000000000000000E002 /* AppDelegate+DockShortcutRouting.swift */; };
-		GDOCKCYCD000000000000002 /* AppDelegate+GdockSessionCyclerShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKCYCD000000000000001 /* AppDelegate+GdockSessionCyclerShortcut.swift */; };
 		DCDC1000000000000000C000 /* AppDelegate+DockSurfaceMove.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCDC1000000000000000C001 /* AppDelegate+DockSurfaceMove.swift */; };
 		E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */; };
 		A5F100000000000000000013 /* AppDelegate+FocusedNotificationSeam.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5F100000000000000000014 /* AppDelegate+FocusedNotificationSeam.swift */; };
 		C4160A040000000000000001 /* AppDelegate+FocusHistoryContextMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4160A040000000000000002 /* AppDelegate+FocusHistoryContextMenu.swift */; };
+		GDOCKCYCD000000000000002 /* AppDelegate+GdockSessionCyclerShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKCYCD000000000000001 /* AppDelegate+GdockSessionCyclerShortcut.swift */; };
 		3865A0063865A0063865A006 /* AppDelegate+GlobalSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3865B0063865B0063865B006 /* AppDelegate+GlobalSearch.swift */; };
 		A74770010000000000000001 /* AppDelegate+MonitorMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A74770010000000000000002 /* AppDelegate+MonitorMemory.swift */; };
 		D7AB00000000000000000001 /* AppDelegate+MoveTabToNewWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AB00000000000000000002 /* AppDelegate+MoveTabToNewWorkspace.swift */; };
@@ -1192,6 +1192,12 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		GDOCKAWSG00000000000002 /* GdockAutoWorkspaceGroupReconciler.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */; };
 		GDOCKAWSG00000000000008 /* GdockAutoWorkspaceGroupReconcilerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000007 /* GdockAutoWorkspaceGroupReconcilerTests.swift */; };
 		GDOCKCYCA000000000000002 /* GdockCycleRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKCYCA000000000000001 /* GdockCycleRing.swift */; };
+		GDOCKGRID00000000000014 /* GdockGridModeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000013 /* GdockGridModeButton.swift */; };
+		GDOCKGRID00000000000006 /* GdockGridModeSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000005 /* GdockGridModeSettings.swift */; };
+		GDOCKGRID00000000000002 /* GdockGridModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000001 /* GdockGridModeTests.swift */; };
+		GDOCKGRID00000000000004 /* GdockGridShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000003 /* GdockGridShape.swift */; };
+		GDOCKGRID00000000000010 /* GdockGridSplitAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000009 /* GdockGridSplitAction.swift */; };
+		GDOCKGRID00000000000008 /* GdockGridSplitPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000007 /* GdockGridSplitPlanner.swift */; };
 		GDOCKPIP000000000000004 /* GdockPipFloatingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPIP000000000000003 /* GdockPipFloatingWindowController.swift */; };
 		GDOCKPIP000000000000002 /* GdockPipFloatingWindowPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPIP000000000000001 /* GdockPipFloatingWindowPolicy.swift */; };
 		GDOCKPIP000000000000006 /* GdockPipFloatingWindowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPIP000000000000005 /* GdockPipFloatingWindowTests.swift */; };
@@ -2373,6 +2379,7 @@ BE7A0010SIDEBARDOCKLIVE02 /* SidebarDockLiveSectionSemanticsTests.swift in Sourc
 		E3309A03 /* TabManager+EqualizeSplits.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3309A04 /* TabManager+EqualizeSplits.swift */; };
 		E3B7A400000000000000000B /* TabManager+FocusHistoryHosting.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B7A400000000000000000C /* TabManager+FocusHistoryHosting.swift */; };
 		GDOCKAWSG00000000000006 /* TabManager+GdockAutoWorkspaceGroups.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000005 /* TabManager+GdockAutoWorkspaceGroups.swift */; };
+		GDOCKGRID00000000000012 /* TabManager+GdockGridMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000011 /* TabManager+GdockGridMode.swift */; };
 		GDOCKQUAD0000000000002 /* TabManager+GdockRepoGroupQuad.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKQUAD0000000000001 /* TabManager+GdockRepoGroupQuad.swift */; };
 		737100000000000000000001 /* TabManager+NonInteractiveClose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 737100000000000000000002 /* TabManager+NonInteractiveClose.swift */; };
 		E3B7A4000000000000000009 /* TabManager+NotificationDismissalHosting.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B7A400000000000000000A /* TabManager+NotificationDismissalHosting.swift */; };
@@ -3199,11 +3206,11 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		C65930010000000000000004 /* AppDelegate+CrashSessionSnapshotRemoval.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+CrashSessionSnapshotRemoval.swift"; sourceTree = "<group>"; };
 		8777A0028777A0028777A002 /* AppDelegate+DockAttentionRouting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+DockAttentionRouting.swift"; sourceTree = "<group>"; };
 		DCDC3000000000000000E002 /* AppDelegate+DockShortcutRouting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+DockShortcutRouting.swift"; sourceTree = "<group>"; };
-		GDOCKCYCD000000000000001 /* AppDelegate+GdockSessionCyclerShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+GdockSessionCyclerShortcut.swift"; sourceTree = "<group>"; };
 		DCDC1000000000000000C001 /* AppDelegate+DockSurfaceMove.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+DockSurfaceMove.swift"; sourceTree = "<group>"; };
 		E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+EqualizeSplitsShortcut.swift"; sourceTree = "<group>"; };
 		A5F100000000000000000014 /* AppDelegate+FocusedNotificationSeam.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+FocusedNotificationSeam.swift"; sourceTree = "<group>"; };
 		C4160A040000000000000002 /* AppDelegate+FocusHistoryContextMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+FocusHistoryContextMenu.swift"; sourceTree = "<group>"; };
+		GDOCKCYCD000000000000001 /* AppDelegate+GdockSessionCyclerShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+GdockSessionCyclerShortcut.swift"; sourceTree = "<group>"; };
 		3865B0063865B0063865B006 /* AppDelegate+GlobalSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Search/AppDelegate+GlobalSearch.swift"; sourceTree = "<group>"; };
 		A74770010000000000000002 /* AppDelegate+MonitorMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+MonitorMemory.swift"; sourceTree = "<group>"; };
 		D7AB00000000000000000002 /* AppDelegate+MoveTabToNewWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+MoveTabToNewWorkspace.swift"; sourceTree = "<group>"; };
@@ -4126,6 +4133,12 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupReconciler.swift; sourceTree = "<group>"; };
 		GDOCKAWSG00000000000007 /* GdockAutoWorkspaceGroupReconcilerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupReconcilerTests.swift; sourceTree = "<group>"; };
 		GDOCKCYCA000000000000001 /* GdockCycleRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockCycleRing.swift; sourceTree = "<group>"; };
+		GDOCKGRID00000000000013 /* GdockGridModeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridModeButton.swift; sourceTree = "<group>"; };
+		GDOCKGRID00000000000005 /* GdockGridModeSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridModeSettings.swift; sourceTree = "<group>"; };
+		GDOCKGRID00000000000001 /* GdockGridModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridModeTests.swift; sourceTree = "<group>"; };
+		GDOCKGRID00000000000003 /* GdockGridShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridShape.swift; sourceTree = "<group>"; };
+		GDOCKGRID00000000000009 /* GdockGridSplitAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridSplitAction.swift; sourceTree = "<group>"; };
+		GDOCKGRID00000000000007 /* GdockGridSplitPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridSplitPlanner.swift; sourceTree = "<group>"; };
 		GDOCKPIP000000000000003 /* GdockPipFloatingWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPipFloatingWindowController.swift; sourceTree = "<group>"; };
 		GDOCKPIP000000000000001 /* GdockPipFloatingWindowPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPipFloatingWindowPolicy.swift; sourceTree = "<group>"; };
 		GDOCKPIP000000000000005 /* GdockPipFloatingWindowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPipFloatingWindowTests.swift; sourceTree = "<group>"; };
@@ -5290,6 +5303,7 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 		E3309A04 /* TabManager+EqualizeSplits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TabManager+EqualizeSplits.swift"; sourceTree = "<group>"; };
 		E3B7A400000000000000000C /* TabManager+FocusHistoryHosting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TabManager+FocusHistoryHosting.swift"; sourceTree = "<group>"; };
 		GDOCKAWSG00000000000005 /* TabManager+GdockAutoWorkspaceGroups.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TabManager+GdockAutoWorkspaceGroups.swift"; sourceTree = "<group>"; };
+		GDOCKGRID00000000000011 /* TabManager+GdockGridMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TabManager+GdockGridMode.swift"; sourceTree = "<group>"; };
 		GDOCKQUAD0000000000001 /* TabManager+GdockRepoGroupQuad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TabManager+GdockRepoGroupQuad.swift"; sourceTree = "<group>"; };
 		737100000000000000000002 /* TabManager+NonInteractiveClose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TabManager+NonInteractiveClose.swift"; sourceTree = "<group>"; };
 		E3B7A400000000000000000A /* TabManager+NotificationDismissalHosting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TabManager+NotificationDismissalHosting.swift"; sourceTree = "<group>"; };
@@ -6765,6 +6779,12 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 				GDOCKQPL000000000000001 /* GdockRepoGroupQuadPlanner.swift */,
 				GDOCKACC000000000000001 /* GdockRepoGroupAccordionReconciler.swift */,
 				GDOCKRWGI00000000000001 /* GdockRepoWorkspaceGroupIdentity.swift */,
+				GDOCKGRID00000000000003 /* GdockGridShape.swift */,
+				GDOCKGRID00000000000005 /* GdockGridModeSettings.swift */,
+				GDOCKGRID00000000000007 /* GdockGridSplitPlanner.swift */,
+				GDOCKGRID00000000000009 /* GdockGridSplitAction.swift */,
+				GDOCKGRID00000000000011 /* TabManager+GdockGridMode.swift */,
+				GDOCKGRID00000000000013 /* GdockGridModeButton.swift */,
 				01BAA63BCC864AB59E2E8A8D /* QuadSplitAction.swift */,
 				E2167180241244A596651E6D /* QuadSplitPlanner.swift */,
 				E30750000000000000000001 /* WorkspaceTabColorResolution.swift */,
@@ -8629,6 +8649,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				GDOCKQPL000000000000007 /* GdockRepoGroupQuadPlannerTests.swift */,
 				GDOCKACC000000000000007 /* GdockRepoGroupAccordionReconcilerTests.swift */,
 				GDOCKRWGI00000000000007 /* GdockRepoWorkspaceGroupIdentityTests.swift */,
+				GDOCKGRID00000000000001 /* GdockGridModeTests.swift */,
 				GDOCKPIP000000000000005 /* GdockPipFloatingWindowTests.swift */,
 				606500010000000000000002 /* MenuBarOnlyActivationPolicyTests.swift */,
 				B37A0000000000000000000C /* FileExplorerStateModePersistenceTests.swift */,
@@ -9563,11 +9584,11 @@ BE7A0010SIDEBARDOCKBEHAV01 /* SidebarDockBehaviorTests.swift */,
 				C65930010000000000000003 /* AppDelegate+CrashSessionSnapshotRemoval.swift in Sources */,
 				8777A0018777A0018777A001 /* AppDelegate+DockAttentionRouting.swift in Sources */,
 				DCDC3000000000000000E001 /* AppDelegate+DockShortcutRouting.swift in Sources */,
-				GDOCKCYCD000000000000002 /* AppDelegate+GdockSessionCyclerShortcut.swift in Sources */,
 				DCDC1000000000000000C000 /* AppDelegate+DockSurfaceMove.swift in Sources */,
 E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				A5F100000000000000000013 /* AppDelegate+FocusedNotificationSeam.swift in Sources */,
 				C4160A040000000000000001 /* AppDelegate+FocusHistoryContextMenu.swift in Sources */,
+				GDOCKCYCD000000000000002 /* AppDelegate+GdockSessionCyclerShortcut.swift in Sources */,
 				3865A0063865A0063865A006 /* AppDelegate+GlobalSearch.swift in Sources */,
 				A74770010000000000000001 /* AppDelegate+MonitorMemory.swift in Sources */,
 				D7AB00000000000000000001 /* AppDelegate+MoveTabToNewWorkspace.swift in Sources */,
@@ -10085,6 +10106,11 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				GDOCKAWSG00000000000004 /* GdockAutoWorkspaceGroupModeSettings.swift in Sources */,
 				GDOCKAWSG00000000000002 /* GdockAutoWorkspaceGroupReconciler.swift in Sources */,
 				GDOCKCYCA000000000000002 /* GdockCycleRing.swift in Sources */,
+				GDOCKGRID00000000000014 /* GdockGridModeButton.swift in Sources */,
+				GDOCKGRID00000000000006 /* GdockGridModeSettings.swift in Sources */,
+				GDOCKGRID00000000000004 /* GdockGridShape.swift in Sources */,
+				GDOCKGRID00000000000010 /* GdockGridSplitAction.swift in Sources */,
+				GDOCKGRID00000000000008 /* GdockGridSplitPlanner.swift in Sources */,
 				GDOCKPIP000000000000004 /* GdockPipFloatingWindowController.swift in Sources */,
 				GDOCKPIP000000000000002 /* GdockPipFloatingWindowPolicy.swift in Sources */,
 				GDOCKACC000000000000002 /* GdockRepoGroupAccordionReconciler.swift in Sources */,
@@ -10862,6 +10888,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				E3309A03 /* TabManager+EqualizeSplits.swift in Sources */,
 				E3B7A400000000000000000B /* TabManager+FocusHistoryHosting.swift in Sources */,
 				GDOCKAWSG00000000000006 /* TabManager+GdockAutoWorkspaceGroups.swift in Sources */,
+				GDOCKGRID00000000000012 /* TabManager+GdockGridMode.swift in Sources */,
 				GDOCKQUAD0000000000002 /* TabManager+GdockRepoGroupQuad.swift in Sources */,
 				737100000000000000000001 /* TabManager+NonInteractiveClose.swift in Sources */,
 				E3B7A4000000000000000009 /* TabManager+NotificationDismissalHosting.swift in Sources */,
@@ -11822,6 +11849,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				F17F00000000000000000003 /* FullWidthTabCommandTests.swift in Sources */,
 				F17F00000000000000000001 /* FullWidthTabPersistenceTests.swift in Sources */,
 				GDOCKAWSG00000000000008 /* GdockAutoWorkspaceGroupReconcilerTests.swift in Sources */,
+				GDOCKGRID00000000000002 /* GdockGridModeTests.swift in Sources */,
 				GDOCKPIP000000000000006 /* GdockPipFloatingWindowTests.swift in Sources */,
 				GDOCKACC000000000000008 /* GdockRepoGroupAccordionReconcilerTests.swift in Sources */,
 				GDOCKLNCH000000000000008 /* GdockRepoGroupLaunchActionTests.swift in Sources */,
