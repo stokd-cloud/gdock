@@ -40,6 +40,9 @@ Also listed in `Agents.md` so every agent session loads it.
   restarts).
 - Palette: Enable/Disable **Grid Mode**
   (`palette.toggleSetting.gdock.gridMode`).
+- Shortcuts: **Create Next Quad Pane** (`gdock.nextQuadPane`, default
+  `Cmd+Y`) and **Create Quad Pane Workspaces**
+  (`gdock.quadPaneWorkspaces`, default `Cmd+Shift+Y`).
 - Titlebar: a grid-shape picker button (trailing edge of the workspace
   titlebar) renders while the mode is on; picking a shape re-shapes every
   workspace (`GdockGridSplitAction` + `TabManager+GdockGridMode`).

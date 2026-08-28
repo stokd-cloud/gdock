@@ -8,12 +8,12 @@ extension TabManager {
     /// this window's workspaces.
     func scheduleGdockGridModeReconcile() {
         guard GdockGridModeSettings.isEnabled() else { return }
-        gdockGridModeReconcileWorkItem?.cancel()
-        let workItem = DispatchWorkItem { [weak self] in
+        gdockGridModeReconcileTask?.cancel()
+        gdockGridModeReconcileTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 250_000_000)
+            guard !Task.isCancelled else { return }
             self?.reconcileGdockGridModeNow()
         }
-        gdockGridModeReconcileWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: workItem)
     }
 
     /// Immediately enforce the configured grid shape on every workspace.
