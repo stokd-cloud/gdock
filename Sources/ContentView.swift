@@ -2273,6 +2273,10 @@ struct ContentView: View {
 
                     Spacer()
 
+                    // gdock Grid Mode: shape picker, rendered only while the
+                    // mode is enabled (see GdockGridModeTitlebarButton).
+                    GdockGridModeTitlebarButton()
+
                 }
                 .frame(height: titlebarContentHeight)
                 .padding(.top, 2)

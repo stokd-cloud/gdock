@@ -20,5 +20,22 @@ public struct GdockCatalogSection: SettingCatalogSection {
         userDefaultsKey: "gdock.rightSidebarStackedTabs"
     )
 
+    /// When enabled, every workspace is kept in the enforced grid split shape
+    /// (`gridModeShape`); non-activated cells hold unspawned terminals and
+    /// Cmd+T fills the next free cell instead of adding a surface tab.
+    public let gridMode = DefaultsKey<Bool>(
+        id: "gdock.gridMode",
+        defaultValue: false,
+        userDefaultsKey: "gdock.gridMode"
+    )
+
+    /// The enforced grid shape while `gridMode` is on, encoded `"<rows>x<cols>"`
+    /// (e.g. `"2x2"`). The last chosen shape is remembered across restarts.
+    public let gridModeShape = DefaultsKey<String>(
+        id: "gdock.gridModeShape",
+        defaultValue: "2x2",
+        userDefaultsKey: "gdock.gridModeShape"
+    )
+
     public init() {}
 }

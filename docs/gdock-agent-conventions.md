@@ -33,6 +33,24 @@
 
 Also listed in `Agents.md` so every agent session loads it.
 
+### Feature: Grid Mode
+
+- Settings: `gdock.gridMode` (default off) and `gdock.gridModeShape`
+  (`"<rows>x<cols>"`, default `"2x2"`, clamped to 4×4; remembered across
+  restarts).
+- Palette: Enable/Disable **Grid Mode**
+  (`palette.toggleSetting.gdock.gridMode`).
+- Titlebar: a grid-shape picker button (trailing edge of the workspace
+  titlebar) renders while the mode is on; picking a shape re-shapes every
+  workspace (`GdockGridSplitAction` + `TabManager+GdockGridMode`).
+- When on: every workspace is kept in the enforced grid. Cells with no
+  surface hold **unactivated placeholder terminals**
+  (`heldForStartupRestoreAdmission` — no PTY until the cell is focused).
+  Cmd+T fills the next unactivated cell; when every cell is occupied it
+  creates a new shaped workspace (in the same workspace group, when any)
+  and navigates there. Shrinking the shape spills surplus surfaces into a
+  new workspace — Grid Mode never hides a surface behind another.
+
 ## AX-GDOCK-INSTALLED-CLI-RESOLUTION
 
 Installed gdock app restore startup input must invoke the bundled CLI from the

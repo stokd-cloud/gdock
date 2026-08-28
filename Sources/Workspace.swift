@@ -2280,6 +2280,17 @@ final class Workspace: Identifiable, ObservableObject, FilePreviewTabMetadataHos
     /// Durable canvas-layout state (pane frames, z-order). Lives on the
     /// workspace so it survives canvas view remounts and workspace switches.
     let canvasModel = CanvasModel(metricsProvider: { CanvasLayoutSettings.currentMetrics() })
+
+    /// gdock Grid Mode: panels created as unactivated grid cells. Their
+    /// terminal runtime is held (`heldForStartupRestoreAdmission`) until the
+    /// user focuses the cell or Cmd+T fills it; membership is cleared on
+    /// activation (`activateGdockGridPlaceholderIfNeeded`).
+    var gdockGridPlaceholderPanelIds: Set<UUID> = []
+
+    /// True while ``GdockGridSplitAction`` is restructuring this workspace,
+    /// so programmatic focus churn from split creation does not activate
+    /// placeholder cells.
+    var isApplyingGdockGridShape = false
     private struct SurfaceTabBarExecutableButton {
         let button: CmuxSurfaceTabBarButton
         let builtInAction: CmuxSurfaceTabBarBuiltInAction?
@@ -11613,7 +11624,8 @@ final class Workspace: Identifiable, ObservableObject, FilePreviewTabMetadataHos
         workingDirectory: String?,
         initialInput: String?,
         startupRestoreAgent: SessionRestorableAgentSnapshot? = nil,
-        remoteStartupCommand: String? = nil
+        remoteStartupCommand: String? = nil,
+        runtimeSpawnPolicy: TerminalSurfaceRuntimeSpawnPolicy = .immediate
     ) -> TerminalPanel? {
         var inheritedConfig = inheritedTerminalConfig(inPane: paneId)
         let requestedRemoteStartupCommand = remoteStartupCommand?.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -11638,7 +11650,7 @@ final class Workspace: Identifiable, ObservableObject, FilePreviewTabMetadataHos
             initialInput: initialInput,
             additionalEnvironment: effectiveStartupEnvironment,
             runtimeSpawnPolicy: terminalStartupRestoreCoordinator.runtimeSpawnPolicy(
-                requestedPolicy: .immediate,
+                requestedPolicy: runtimeSpawnPolicy,
                 willRunStartupCommand: false,
                 willRunStartupInput: startupRestoreAgent != nil && initialInput != nil
             )
@@ -12967,6 +12979,11 @@ extension Workspace: BonsplitDelegate {
         if let panelId = panelIdFromSurfaceId(tab.id),
            let terminalPanel = panels[panelId] as? TerminalPanel {
             terminalPanel.applyWindowBackgroundIfActive()
+            // gdock Grid Mode: focusing an unactivated cell starts its held
+            // terminal runtime.
+            if GdockGridModeSettings.isEnabled() {
+                activateGdockGridPlaceholderIfNeeded(panelId: panelId)
+            }
         }
     }
 
