@@ -2285,6 +2285,7 @@ BE7A0010SIDEBARDOCKLIVE02 /* SidebarDockLiveSectionSemanticsTests.swift in Sourc
 		493EEFD00000000000000205 /* StokdWorkPanelViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000105 /* StokdWorkPanelViewModel.swift */; };
 		493EEFD00000000000000010 /* StokdWorkPanelViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000009 /* StokdWorkPanelViewModelTests.swift */; };
 		493EEFD00000000000000014 /* StokdWorkPanelViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000013 /* StokdWorkPanelViewTests.swift */; };
+		493EEFD00000000000000020 /* StokdModelConfigurationModalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD00000000000000019 /* StokdModelConfigurationModalTests.swift */; };
 		493EEFD000000000000000A2 /* StokdWorkRepositoryBinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD000000000000000A1 /* StokdWorkRepositoryBinder.swift */; };
 		493EEFD000000000000000A4 /* StokdWorkRepositoryBinderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493EEFD000000000000000A3 /* StokdWorkRepositoryBinderTests.swift */; };
 		C0DE70530000000000000002 /* submit-cmux-profile in Copy CLI */ = {isa = PBXBuildFile; fileRef = C0DE70530000000000000001 /* submit-cmux-profile */; };
@@ -5154,6 +5155,7 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 		493EEFD00000000000000105 /* StokdWorkPanelViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelViewModel.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000009 /* StokdWorkPanelViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelViewModelTests.swift; sourceTree = "<group>"; };
 		493EEFD00000000000000013 /* StokdWorkPanelViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkPanelViewTests.swift; sourceTree = "<group>"; };
+		493EEFD00000000000000019 /* StokdModelConfigurationModalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdModelConfigurationModalTests.swift; sourceTree = "<group>"; };
 		493EEFD000000000000000A1 /* StokdWorkRepositoryBinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkRepositoryBinder.swift; sourceTree = "<group>"; };
 		493EEFD000000000000000A3 /* StokdWorkRepositoryBinderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StokdWorkRepositoryBinderTests.swift; sourceTree = "<group>"; };
 		C0DE70530000000000000001 /* submit-cmux-profile */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "Resources/bin/submit-cmux-profile"; sourceTree = SOURCE_ROOT; };
@@ -8512,6 +8514,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				493EEFD00000000000000009 /* StokdWorkPanelViewModelTests.swift */,
 				493EEFD00000000000000011 /* StokdWorkPanelIntegrationTests.swift */,
 				493EEFD00000000000000013 /* StokdWorkPanelViewTests.swift */,
+				493EEFD00000000000000019 /* StokdModelConfigurationModalTests.swift */,
 				493EEFD000000000000000A3 /* StokdWorkRepositoryBinderTests.swift */,
 				493EEFD00000000000000015 /* StokdWorkPanelSeedTests.swift */,
 				493EEFD00000000000000017 /* StokdWorkPanelPersistenceTests.swift */,
@@ -11963,6 +11966,7 @@ BE7A0010SIDEBARDOCKBEHAV02 /* SidebarDockBehaviorTests.swift in Sources */,
 				B2C77181CC59348F2B8AA5FA /* StokdRailPanelKindTests.swift in Sources */,
 				493EEFD00000000000000008 /* StokdWorkAPIClientTests.swift in Sources */,
 				493EEFD00000000000000012 /* StokdWorkPanelIntegrationTests.swift in Sources */,
+				493EEFD00000000000000020 /* StokdModelConfigurationModalTests.swift in Sources */,
 				493EEFD00000000000000002 /* StokdWorkPanelKindTests.swift in Sources */,
 				493EEFD00000000000000018 /* StokdWorkPanelPersistenceTests.swift in Sources */,
 				493EEFD00000000000000016 /* StokdWorkPanelSeedTests.swift in Sources */,
