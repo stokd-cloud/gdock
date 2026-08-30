@@ -168,6 +168,7 @@ struct RightSidebarPanelView: View {
     /// Empty means the sidebar renders exactly as it always has.
     @State private var sectionLayout = RightSidebarSectionLayout()
     @State private var keyboardShortcutSettingsObserver = KeyboardShortcutSettingsObserver.shared
+    @State private var stokdConfigurationModal: StokdModelConfigurationModalRequest?
     private let alwaysShowShortcutHints = ShortcutHintDebugSettings().alwaysShowHints
     private let closeShortcutHintXOffset = ShortcutHintDebugSettings.defaultRightSidebarCloseHintX
     private let closeShortcutHintYOffset = ShortcutHintDebugSettings.defaultRightSidebarCloseHintY
@@ -236,6 +237,12 @@ struct RightSidebarPanelView: View {
             } else {
                 legacyModeBarBody
             }
+        }
+        .sheet(item: $stokdConfigurationModal) { request in
+            StokdModelConfigurationModalView(
+                initialTab: request.initialTab,
+                directory: stokdModelConfigurationDirectory
+            )
         }
         .shortcutHintVisibilityAnimation(value: focusShortcutHintAnimationValue)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -456,6 +463,7 @@ struct RightSidebarPanelView: View {
                     }
                 }
                 Spacer(minLength: 0)
+                stokdModelConfigurationButtons
                 if fileExplorerState.mode.canOpenAsPane {
                     openAsPaneButton(mode: fileExplorerState.mode)
                 }
@@ -473,6 +481,28 @@ struct RightSidebarPanelView: View {
             isVisible: true,
             titlebarHeight: titlebarHeight
         )
+    }
+
+    private var stokdModelConfigurationButtons: some View {
+        HStack(spacing: RightSidebarChromeMetrics.headerControlSpacing) {
+            ForEach(StokdModelConfigurationLaunchBar.actions) { action in
+                Button {
+                    stokdConfigurationModal = StokdModelConfigurationModalRequest(initialTab: action.initialTab)
+                } label: {
+                    HeaderChromeIconStyle.symbol(action.symbolName)
+                }
+                .buttonStyle(RightSidebarHeaderIconButtonStyle(iconGeometryKeyPrefix: "rightSidebarHeader\(action.id)Icon"))
+                .frame(
+                    width: RightSidebarChromeMetrics.headerControlSize,
+                    height: RightSidebarChromeMetrics.headerControlSize
+                )
+                .rightSidebarHeaderControlAlignment()
+                .safeHelp(action.title)
+                .accessibilityLabel(action.title)
+                .accessibilityIdentifier("RightSidebar.\(action.id)")
+                .titlebarInteractiveControl()
+            }
+        }
     }
 
     private func openAsPaneButton(mode: RightSidebarMode) -> some View {
@@ -666,6 +696,12 @@ struct RightSidebarPanelView: View {
 
     private var sessionIndexDirectory: String? {
         sessionIndexStore.currentDirectory
+    }
+
+    private var stokdModelConfigurationDirectory: String {
+        sessionIndexDirectory
+            ?? tabManager.selectedWorkspace?.currentDirectory
+            ?? FileManager.default.currentDirectoryPath
     }
 
     /// Renders this window's own Dock (created lazily on first show); no
