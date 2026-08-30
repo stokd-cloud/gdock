@@ -1686,6 +1686,8 @@
               "splitRight",
               "splitDown",
               "splitQuad",
+              "gdock.nextQuadPane",
+              "gdock.quadPaneWorkspaces",
               "toggleSplitZoom",
               "increaseWorkspaceTerminalFontSize",
               "decreaseWorkspaceTerminalFontSize",

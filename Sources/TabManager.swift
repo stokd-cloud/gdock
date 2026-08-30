@@ -3984,6 +3984,310 @@ class TabManager: ObservableObject {
         return createQuadSplit(tabId: selectedTabId, surfaceId: focusedPanelId, focus: focus)
     }
 
+    /// Advance the target workspace one step toward a 2x2 terminal layout.
+    ///
+    /// This is the shared action behind gdock's Cmd-Y shortcut: a single pane
+    /// becomes a side-by-side split, each side fills vertically, and a completed
+    /// 2x2 rolls over to a fresh same-directory workspace.
+    @discardableResult
+    func createNextQuadPane(tabId: UUID, surfaceId: UUID, focus: Bool = true) -> Bool {
+        guard let workspace = tabs.first(where: { $0.id == tabId }),
+              workspace.panels[surfaceId] != nil,
+              workspace.layoutMode != .canvas else { return false }
+
+        let paneCount = workspace.bonsplitController.allPaneIds.count
+        if isTrueTwoByTwo(workspace), paneCount == 4 {
+            return createQuadRolloverWorkspace(from: workspace, focus: focus)
+        }
+        if paneCount >= 4 {
+            return createQuadPaneWorkspaces(tabId: workspace.id, focus: focus)
+        }
+
+        let targetPanelId: UUID
+        let orientation: SplitOrientation
+        if paneCount == 1 {
+            targetPanelId = surfaceId
+            orientation = .horizontal
+        } else if let completionPane = quadCompletionTargetPane(in: workspace),
+                  let panelId = selectedPanelId(inPane: completionPane, workspace: workspace) {
+            targetPanelId = panelId
+            orientation = .vertical
+        } else {
+            targetPanelId = surfaceId
+            orientation = .vertical
+        }
+
+        workspace.clearSplitZoom()
+        return workspace.newTerminalSplit(
+            from: targetPanelId,
+            orientation: orientation,
+            insertFirst: false,
+            focus: focus
+        ) != nil
+    }
+
+    /// Advance the selected workspace one step toward a 2x2 terminal layout.
+    @discardableResult
+    func createNextQuadPane(focus: Bool = true) -> Bool {
+        guard let selectedTabId,
+              let workspace = tabs.first(where: { $0.id == selectedTabId }),
+              let focusedPanelId = workspace.focusedPanelId else { return false }
+        return createNextQuadPane(tabId: selectedTabId, surfaceId: focusedPanelId, focus: focus)
+    }
+
+    /// Normalize the target workspace's existing surfaces into 2x2 batches.
+    ///
+    /// The first four surfaces stay in the current workspace. Additional
+    /// surfaces are detached into new same-directory workspaces, four at a time.
+    @discardableResult
+    func createQuadPaneWorkspaces(tabId: UUID, focus: Bool = true) -> Bool {
+        guard let workspace = tabs.first(where: { $0.id == tabId }),
+              workspace.layoutMode != .canvas else { return false }
+        let orderedPanelIds = orderedPanelIdsForQuadBatch(in: workspace)
+        guard !orderedPanelIds.isEmpty else { return false }
+
+        let sourceDirectory = preferredWorkingDirectoryForNewTab(workspace: workspace)
+        let firstBatch = Array(orderedPanelIds.prefix(4))
+        let extraPanelIds = Array(orderedPanelIds.dropFirst(4))
+        var detachedExtras: [Workspace.DetachedSurfaceTransfer] = []
+        detachedExtras.reserveCapacity(extraPanelIds.count)
+
+        for panelId in extraPanelIds {
+            guard let detached = workspace.detachSurface(panelId: panelId) else {
+                reattachDetachedSurfaces(detachedExtras, to: workspace)
+                return false
+            }
+            detachedExtras.append(detached)
+        }
+
+        guard arrangePanelsAsQuadBatch(firstBatch, in: workspace, focus: focus) else {
+            reattachDetachedSurfaces(detachedExtras, to: workspace)
+            return false
+        }
+
+        var detachedIndex = 0
+        while detachedIndex < detachedExtras.count {
+            let nextIndex = min(detachedIndex + 4, detachedExtras.count)
+            let batch = Array(detachedExtras[detachedIndex..<nextIndex])
+            let newWorkspace = addWorkspace(
+                workingDirectory: sourceDirectory,
+                inheritWorkingDirectory: false,
+                select: false,
+                autoWelcomeIfNeeded: false,
+                autoRefreshMetadata: false,
+                normalizeWorkspaceGroupsAfterInsert: false
+            )
+            guard let rootPane = newWorkspace.bonsplitController.allPaneIds.first else {
+                reattachDetachedSurfaces(batch, to: workspace)
+                return false
+            }
+            let placeholderPanelId = newWorkspace.focusedPanelId
+            var attachedPanelIds: [UUID] = []
+            attachedPanelIds.reserveCapacity(batch.count)
+            for detached in batch {
+                guard let attachedPanelId = newWorkspace.attachDetachedSurface(
+                    detached,
+                    inPane: rootPane,
+                    focus: false
+                ) else {
+                    reattachDetachedSurfaces(batch, to: workspace)
+                    return false
+                }
+                attachedPanelIds.append(attachedPanelId)
+            }
+            if let placeholderPanelId {
+                _ = newWorkspace.closePanel(placeholderPanelId, force: true)
+            }
+            guard arrangePanelsAsQuadBatch(attachedPanelIds, in: newWorkspace, focus: false) else {
+                return false
+            }
+            detachedIndex = nextIndex
+        }
+
+        if focus {
+            selectedTabId = workspace.id
+        }
+        if !workspaceGroups.isEmpty {
+            workspaces.normalizeWorkspaceGroupContiguity()
+        }
+        scheduleGdockAutoWorkspaceGroupReconcile()
+        return true
+    }
+
+    /// Normalize the selected workspace's existing surfaces into 2x2 batches.
+    @discardableResult
+    func createQuadPaneWorkspaces(focus: Bool = true) -> Bool {
+        guard let selectedTabId else { return false }
+        return createQuadPaneWorkspaces(tabId: selectedTabId, focus: focus)
+    }
+
+    private func createQuadRolloverWorkspace(from workspace: Workspace, focus: Bool) -> Bool {
+        let directory = preferredWorkingDirectoryForNewTab(workspace: workspace)
+        _ = addWorkspace(
+            workingDirectory: directory,
+            inheritWorkingDirectory: false,
+            select: focus,
+            autoWelcomeIfNeeded: false
+        )
+        return true
+    }
+
+    private func orderedPanelIdsForQuadBatch(in workspace: Workspace) -> [UUID] {
+        var orderedPanelIds: [UUID] = []
+        var seenPanelIds = Set<UUID>()
+
+        func appendPanels(from node: ExternalTreeNode) {
+            switch node {
+            case .pane(let pane):
+                guard let paneUUID = UUID(uuidString: pane.id) else { return }
+                let paneId = PaneID(id: paneUUID)
+                for tab in workspace.bonsplitController.tabs(inPane: paneId) {
+                    guard let panelId = workspace.panelIdFromSurfaceId(tab.id),
+                          workspace.panels[panelId] != nil,
+                          seenPanelIds.insert(panelId).inserted else {
+                        continue
+                    }
+                    orderedPanelIds.append(panelId)
+                }
+            case .split(let split):
+                appendPanels(from: split.first)
+                appendPanels(from: split.second)
+            }
+        }
+
+        appendPanels(from: workspace.bonsplitController.treeSnapshot())
+        for panelId in workspace.panels.keys.sorted(by: { $0.uuidString < $1.uuidString }) {
+            if seenPanelIds.insert(panelId).inserted {
+                orderedPanelIds.append(panelId)
+            }
+        }
+        return orderedPanelIds
+    }
+
+    private func arrangePanelsAsQuadBatch(
+        _ panelIds: [UUID],
+        in workspace: Workspace,
+        focus: Bool
+    ) -> Bool {
+        guard let anchorPanelId = panelIds.first,
+              panelIds.allSatisfy({ workspace.panels[$0] != nil }),
+              var anchorPane = workspace.paneId(forPanelId: anchorPanelId) else {
+            return false
+        }
+
+        workspace.clearSplitZoom()
+        for panelId in panelIds.dropFirst() {
+            guard workspace.moveSurface(panelId: panelId, toPane: anchorPane, focus: false) else {
+                return false
+            }
+        }
+        guard let resolvedAnchorPane = workspace.paneId(forPanelId: anchorPanelId) else {
+            return false
+        }
+        anchorPane = resolvedAnchorPane
+
+        var rightPane: PaneID?
+        if panelIds.count >= 2 {
+            guard let secondTabId = workspace.surfaceIdFromPanelId(panelIds[1]),
+                  let newRightPane = workspace.bonsplitController.splitPane(
+                      anchorPane,
+                      orientation: .horizontal,
+                      movingTab: secondTabId,
+                      insertFirst: false
+                  ) else {
+                return false
+            }
+            rightPane = newRightPane
+        }
+
+        if panelIds.count >= 3 {
+            guard let thirdTabId = workspace.surfaceIdFromPanelId(panelIds[2]),
+                  workspace.bonsplitController.splitPane(
+                      anchorPane,
+                      orientation: .vertical,
+                      movingTab: thirdTabId,
+                      insertFirst: false
+                  ) != nil else {
+                return false
+            }
+        }
+
+        if panelIds.count >= 4 {
+            guard let rightPane,
+                  workspace.moveSurface(panelId: panelIds[3], toPane: rightPane, focus: false),
+                  let fourthTabId = workspace.surfaceIdFromPanelId(panelIds[3]),
+                  workspace.bonsplitController.splitPane(
+                      rightPane,
+                      orientation: .vertical,
+                      movingTab: fourthTabId,
+                      insertFirst: false
+                  ) != nil else {
+                return false
+            }
+        }
+
+        if focus, let focusPanelId = panelIds.prefix(4).last {
+            workspace.focusPanel(focusPanelId)
+        } else {
+            workspace.scheduleTerminalGeometryReconcile()
+        }
+        return true
+    }
+
+    private func reattachDetachedSurfaces(
+        _ detachedSurfaces: [Workspace.DetachedSurfaceTransfer],
+        to workspace: Workspace
+    ) {
+        guard !detachedSurfaces.isEmpty,
+              let rootPane = workspace.bonsplitController.allPaneIds.first else { return }
+        for detached in detachedSurfaces {
+            _ = workspace.attachDetachedSurface(detached, inPane: rootPane, focus: false)
+        }
+    }
+
+    private func selectedPanelId(inPane paneId: PaneID, workspace: Workspace) -> UUID? {
+        let selectedTab = workspace.bonsplitController.selectedTab(inPane: paneId)
+            ?? workspace.bonsplitController.tabs(inPane: paneId).first
+        guard let selectedTab else { return nil }
+        return workspace.panelIdFromSurfaceId(selectedTab.id)
+    }
+
+    private func quadCompletionTargetPane(in workspace: Workspace) -> PaneID? {
+        guard case .split(let root) = workspace.bonsplitController.treeSnapshot(),
+              root.orientation == "horizontal" else {
+            return nil
+        }
+        switch (root.first, root.second) {
+        case (.pane(let leftPane), .split(let rightSplit)) where rightSplit.orientation == "vertical":
+            return paneId(from: leftPane)
+        case (.split(let leftSplit), .pane(let rightPane)) where leftSplit.orientation == "vertical":
+            return paneId(from: rightPane)
+        default:
+            return nil
+        }
+    }
+
+    private func isTrueTwoByTwo(_ workspace: Workspace) -> Bool {
+        guard case .split(let root) = workspace.bonsplitController.treeSnapshot(),
+              root.orientation == "horizontal",
+              case .split(let left) = root.first,
+              case .split(let right) = root.second,
+              left.orientation == "vertical",
+              right.orientation == "vertical",
+              case .pane = left.first,
+              case .pane = left.second,
+              case .pane = right.first,
+              case .pane = right.second else {
+            return false
+        }
+        return true
+    }
+
+    private func paneId(from pane: ExternalPaneNode) -> PaneID? {
+        guard let uuid = UUID(uuidString: pane.id) else { return nil }
+        return PaneID(id: uuid)
+    }
+
     /// Create a new browser split from the currently focused panel.
     @discardableResult
     func createBrowserSplit(direction: SplitDirection, url: URL? = nil) -> UUID? {
