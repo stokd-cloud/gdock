@@ -99,6 +99,10 @@ enum KeyboardShortcutSettings {
         // Navigation
         case nextSurface
         case prevSurface
+        /// Cycle forward through open agent sessions (AX-GDOCK-SESSION-CYCLER).
+        case gdockCycleSessionsNext = "gdock.cycleSessionsNext"
+        /// Cycle backward through open agent sessions.
+        case gdockCycleSessionsPrev = "gdock.cycleSessionsPrev"
         case moveSurfaceLeft, moveSurfaceRight
         case moveSurfaceToPreviousPane, moveSurfaceToNextPane
         case moveSurfaceToPaneLeft, moveSurfaceToPaneRight
@@ -250,6 +254,16 @@ enum KeyboardShortcutSettings {
             case .triggerFlash: return String(localized: "shortcut.flashFocusedPanel.label", defaultValue: "Flash Focused Panel")
             case .nextSurface: return String(localized: "shortcut.nextSurface.label", defaultValue: "Next Surface")
             case .prevSurface: return String(localized: "shortcut.previousSurface.label", defaultValue: "Previous Surface")
+            case .gdockCycleSessionsNext:
+                return String(
+                    localized: "shortcut.gdock.cycleSessionsNext.label",
+                    defaultValue: "Cycle Sessions Forward"
+                )
+            case .gdockCycleSessionsPrev:
+                return String(
+                    localized: "shortcut.gdock.cycleSessionsPrev.label",
+                    defaultValue: "Cycle Sessions Backward"
+                )
             case .moveSurfaceLeft: return String(localized: "shortcut.moveSurfaceLeft.label", defaultValue: "Reorder Surface Left")
             case .moveSurfaceRight: return String(localized: "shortcut.moveSurfaceRight.label", defaultValue: "Reorder Surface Right")
             case .moveSurfaceToPreviousPane: return SurfacePaneMovement.previous.title
@@ -562,9 +576,15 @@ enum KeyboardShortcutSettings {
                 // Unbound by default: reachable through the command palette and
                 // the canvas.* socket verbs; users opt into keys via Settings.
                 return .unbound
-            case .nextSurface:
+            case .nextSurface, .prevSurface:
+                // Ship unbound: gdock gives Cmd+Shift+[ / ] to the session
+                // cycler (AX-GDOCK-SESSION-CYCLER). Surface navigation keeps its
+                // Settings row, its palette entry, and its menu item, so a user
+                // who wants the old chord rebinds it in one place.
+                return .unbound
+            case .gdockCycleSessionsNext:
                 return StoredShortcut(key: "]", command: true, shift: true, option: false, control: false)
-            case .prevSurface:
+            case .gdockCycleSessionsPrev:
                 return StoredShortcut(key: "[", command: true, shift: true, option: false, control: false)
             case .moveSurfaceLeft: return StoredShortcut(key: "[", command: true, shift: true, option: true, control: false)
             case .moveSurfaceRight: return StoredShortcut(key: "]", command: true, shift: true, option: true, control: false)

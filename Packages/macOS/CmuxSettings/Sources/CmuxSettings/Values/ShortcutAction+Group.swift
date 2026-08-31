@@ -12,7 +12,9 @@ extension ShortcutAction {
              .switchRightSidebarToSessions, .switchRightSidebarToFeed,
              .switchRightSidebarToDock, .triggerFlash, .reopenClosedWorkspace:
             return .workspace
-        case .nextSurface, .prevSurface, .moveSurfaceLeft, .moveSurfaceRight,
+        case .nextSurface, .prevSurface,
+             .gdockCycleSessionsNext, .gdockCycleSessionsPrev,
+             .moveSurfaceLeft, .moveSurfaceRight,
              .moveSurfaceToPreviousPane, .moveSurfaceToNextPane,
              .moveSurfaceToPaneLeft, .moveSurfaceToPaneRight,
              .moveSurfaceToPaneUp, .moveSurfaceToPaneDown,

@@ -63770,6 +63770,40 @@
         }
       }
     },
+    "command.gdock.cycleSessionsNext.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cycle Sessions Forward"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "セッションを次へ切り替え"
+          }
+        }
+      }
+    },
+    "command.gdock.cycleSessionsPrev.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cycle Sessions Backward"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "セッションを前へ切り替え"
+          }
+        }
+      }
+    },
     "command.gdock.pipFloatingWindow.title": {
       "extractionState": "manual",
       "localizations": {
@@ -63783,6 +63817,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "ウインドウを常に手前に表示"
+          }
+        }
+      }
+    },
+    "command.gdock.sessionCycler.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sessions"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "セッション"
           }
         }
       }
@@ -120612,6 +120663,176 @@
         }
       }
     },
+    "gdock.sessionCycler.empty.noMatches": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No sessions match this filter"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この絞り込みに一致するセッションはありません"
+          }
+        }
+      }
+    },
+    "gdock.sessionCycler.empty.noSessions": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No agent sessions are running"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "実行中のエージェントセッションはありません"
+          }
+        }
+      }
+    },
+    "gdock.sessionCycler.entryCount": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld outcomes"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 件の成果"
+          }
+        }
+      }
+    },
+    "gdock.sessionCycler.filter.placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter sessions"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "セッションを絞り込む"
+          }
+        }
+      }
+    },
+    "gdock.sessionCycler.hint.close": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "閉じる"
+          }
+        }
+      }
+    },
+    "gdock.sessionCycler.hint.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開く"
+          }
+        }
+      }
+    },
+    "gdock.sessionCycler.hint.scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scope"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "範囲"
+          }
+        }
+      }
+    },
+    "gdock.sessionCycler.hint.select": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択"
+          }
+        }
+      }
+    },
+    "gdock.sessionCycler.scope.allSessions": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Sessions"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべてのセッション"
+          }
+        }
+      }
+    },
+    "gdock.sessionCycler.scope.currentRepo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This Repo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このリポジトリ"
+          }
+        }
+      }
+    },
     "ghostty.copy-mode.indicator": {
       "extractionState": "manual",
       "localizations": {
@@ -149872,6 +150093,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "検索"
+          }
+        }
+      }
+    },
+    "shortcut.gdock.cycleSessionsNext.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cycle Sessions Forward"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "セッションを次へ切り替え"
+          }
+        }
+      }
+    },
+    "shortcut.gdock.cycleSessionsPrev.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cycle Sessions Backward"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "セッションを前へ切り替え"
           }
         }
       }

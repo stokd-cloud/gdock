@@ -276,8 +276,10 @@ export const shortcutCategories: ShortcutCategory[] = [
     blurbKey: "surfacesBlurb",
     shortcuts: [
       { id: "newSurface", combos: [["⌘", "T"]], description: { en: "New surface", ja: "新規サーフェス" } },
-      { id: "nextSurface", combos: [["⌘", "⇧", "]"]], description: { en: "Next surface", ja: "次のサーフェス" } },
-      { id: "prevSurface", combos: [["⌘", "⇧", "["]], description: { en: "Previous surface", ja: "前のサーフェス" } },
+      { id: "nextSurface", combos: [], description: { en: "Next surface", ja: "次のサーフェス" } },
+      { id: "prevSurface", combos: [], description: { en: "Previous surface", ja: "前のサーフェス" } },
+      { id: "gdock.cycleSessionsNext", combos: [["⌘", "⇧", "]"]], description: { en: "Cycle sessions forward", ja: "セッションを次へ切り替え" } },
+      { id: "gdock.cycleSessionsPrev", combos: [["⌘", "⇧", "["]], description: { en: "Cycle sessions backward", ja: "セッションを前へ切り替え" } },
       { id: "moveSurfaceLeft", combos: [["⌥", "⌘", "⇧", "["]], description: { en: "Reorder surface left", ja: "サーフェスを左へ並べ替え" } },
       { id: "moveSurfaceRight", combos: [["⌥", "⌘", "⇧", "]"]], description: { en: "Reorder surface right", ja: "サーフェスを右へ並べ替え" } },
       { id: "moveSurfaceToPreviousPane", combos: [["⌃", "⌘", "⇧", "["]], description: { en: "Move surface to previous pane", ja: "サーフェスを前のペインへ移動" } },
