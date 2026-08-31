@@ -233,3 +233,73 @@ sidebar as an immutable value reduced above the lazy-list boundary.
   `StokdSessionOutcomesStore`.
 - `Resources/Localizable.xcstrings` has English and Japanese entries for every
   summary string.
+
+## AX-GDOCK-SESSION-CYCLER
+
+Session cycling is one ring, one model, one summary source.
+
+gdock cycles agent sessions through a single scope ring and a single pure
+selection model. The ring is modular over N scopes — today `currentRepo` and
+`allSessions` — and is never a two-way boolean toggle. The overlay renders the
+stokd outcome summary for exactly the highlighted session and a provider mark
+plus title for every other row, and it reads that summary only through the
+existing read-only consumer described in AX-GDOCK-PANEL-CARD-SESSION-SUMMARY.
+
+### Why
+
+- A boolean "current repo vs all" has to be rewritten the day a third scope
+  (current window, current machine, cloud) arrives, and every call site that
+  assumed two states becomes a bug. Modular `next`/`previous` over `allCases`
+  makes a third scope a new case and nothing else.
+- Selection, filtering, and scope must be pure value functions: the overlay
+  renders rows below a lazy container, where holding an observable store
+  reference is what reintroduced the 100%-CPU spin loop (`CLAUDE.md`; cmux issue
+  2586).
+- Re-deriving stokd's on-disk layout in a second place is how two readers
+  silently disagree after a CLI change. AX-GDOCK-PANEL-CARD-SESSION-SUMMARY
+  already fixed one derivation site; this keeps it at one.
+- Rendering a full summary on every row turns a fast cycler into a wall of
+  paragraphs. The summary earns its space only on the row the operator is on.
+
+### How
+
+1. `GdockCycleRing` steps modularly over any `CaseIterable & Equatable`;
+   `GdockSessionCycleScope.next()/previous()` are thin wrappers. No call site
+   branches on how many scopes exist.
+2. `GdockSessionCyclerModel.listing(...)` is pure over values and owns scope
+   filtering, case-insensitive query filtering, selection preservation across a
+   scope change, and clamping. `selection(movedBy:from:in:)` owns wrap-around.
+3. When grouped workspace-repo mode is off, or no `owner/repo` group resolves,
+   `currentRepo` falls back to every session rather than narrowing to nothing.
+4. A row's identity is the panel running the agent, not the workspace: two panes
+   in one directory routinely run different sessions.
+5. Provider marks resolve through `GdockSessionAgentBadge`, which joins the
+   workspace's existing agent status keys to `SessionAgent`. An unrecognized key
+   still yields a row — with no art and the key as its name — because a running
+   agent gdock cannot name is still a session worth cycling to.
+6. The keyboard chord, the command palette, and any future socket verb all call
+   `GdockSessionCyclerPresenter`; none of them re-implements cycling.
+7. Shortcut ids are `gdock.cycleSessionsNext` / `gdock.cycleSessionsPrev` and
+   palette ids are `palette.gdock.cycleSessionsNext` / `...Prev`, per the fork
+   prefix convention above.
+8. The cycler owns Cmd+Shift+] and Cmd+Shift+[. Upstream's `nextSurface` /
+   `prevSurface` ship unbound-by-default in this fork rather than sharing the
+   chord; both remain bindable in Settings and reachable from the palette.
+
+### Acceptance Checks
+
+- Runnable:
+  `./scripts/test-unit.sh test -only-testing:cmuxTests/GdockSessionCycleScopeTests -only-testing:cmuxTests/GdockSessionCyclerModelTests -only-testing:cmuxTests/GdockSessionAgentBadgeTests -only-testing:cmuxTests/GdockSessionCyclerShortcutTests`
+  exits 0 and covers modular ring stepping over a three-member fixture, scope and
+  query filtering, wrap-around selection, selection preservation across a scope
+  change, summary-on-the-highlighted-row-only, provider-mark resolution, and the
+  chord handover.
+- Ring generality: the ring tests use a three-member fixture, so an
+  implementation that flips between two states fails.
+- Single summary source: no path derivation under `~/.stokd` outside
+  `StokdWorkspaceStatePaths`, and no gdock code path opens a file there for
+  writing.
+- Chord ownership: no action other than the two cycler actions has Cmd+Shift+]
+  or Cmd+Shift+[ as its default binding.
+- `Resources/Localizable.xcstrings` has English and Japanese entries for every
+  cycler string.
