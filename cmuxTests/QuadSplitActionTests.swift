@@ -161,40 +161,51 @@ struct QuadSplitActionTests {
         #expect(workspace.bonsplitController.allPaneIds.count == 1)
     }
 
-    @Test("quad replaces only the targeted leaf in an existing topology")
+    @Test("quad flattens an existing topology without dropping panels")
     @MainActor
-    func quadReplacesOnlyTargetLeaf() throws {
+    func quadFlattensExistingTopologyWithoutDroppingPanels() throws {
         let manager = TabManager()
         let workspace = try #require(manager.selectedWorkspace)
         let leftPanelId = try #require(workspace.focusedPanelId)
-        // Build L | R first, then quad the right leaf so left branch is unrelated.
+        // Build L | R first, then quad the right leaf. The shared workspace
+        // recipe collapses existing panes and re-deals their surfaces into a
+        // flat 2x2 so every panel stays visible.
         let rightPanel = try #require(
             workspace.newTerminalSplit(from: leftPanelId, orientation: .horizontal, focus: false)
         )
         let rightPane = try #require(workspace.paneId(forPanelId: rightPanel.id))
-        let leftPane = try #require(workspace.paneId(forPanelId: leftPanelId))
-        let panesBefore = workspace.bonsplitController.allPaneIds.count
-        #expect(panesBefore == 2)
+        #expect(workspace.bonsplitController.allPaneIds.count == 2)
 
         #expect(QuadSplitAction.perform(inPane: rightPane, workspace: workspace))
-        // +3 panes from the target leaf replacement.
-        #expect(workspace.bonsplitController.allPaneIds.count == panesBefore + 3)
-        // Unrelated left leaf preserved with original content.
-        #expect(workspace.paneId(forPanelId: leftPanelId) == leftPane)
+        #expect(workspace.bonsplitController.allPaneIds.count == 4)
+        #expect(Self.isTrueTwoByTwo(workspace))
+        // Existing content survives the flatten/re-deal.
         #expect(workspace.panels[leftPanelId] != nil)
-        // Original right content still exists (top-left of the replaced subtree).
         #expect(workspace.panels[rightPanel.id] != nil)
     }
 
-    @Test("recipe source shape is pinned: three splits, no outer programmatic guard")
+    @Test("recipe source shape is pinned: flat workspace path and legacy fallback")
     func quadRecipeShapeIsPinned() throws {
         let sourceURL = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .appendingPathComponent("Sources/QuadSplitAction.swift")
         let source = try String(contentsOf: sourceURL, encoding: .utf8)
-        let splitCount = source.components(separatedBy: "splitPaneWithNewTerminal").count - 1
-        #expect(splitCount == 3)
+        let flatWorkspaceRecipe = try Self.sourceSlice(
+            in: source,
+            from: "static func performDetailed(inPane paneId: PaneID, workspace: Workspace) -> Outcome {",
+            to: "/// Legacy recipe: three new terminals split off the target leaf."
+        )
+        let realizeCount = flatWorkspaceRecipe.components(separatedBy: "realizeQuadrant(").count - 1
+        #expect(realizeCount == 3)
+
+        let legacyRecipe = try Self.sourceSlice(
+            in: source,
+            from: "private static func performLegacyNestedQuad(inPane paneId: PaneID, workspace: Workspace) -> Outcome {",
+            to: "/// Splits `sourcePane` to create one quadrant"
+        )
+        let legacySplitCount = legacyRecipe.components(separatedBy: "splitPaneWithNewTerminal").count - 1
+        #expect(legacySplitCount == 3)
         #expect(!source.contains("isProgrammaticSplit"))
     }
 
@@ -486,6 +497,12 @@ struct QuadSplitActionTests {
 // MARK: - Veto catalog fixtures
 
 private extension QuadSplitActionTests {
+    static func sourceSlice(in source: String, from startNeedle: String, to endNeedle: String) throws -> String {
+        let start = try #require(source.range(of: startNeedle)?.upperBound)
+        let end = try #require(source[start...].range(of: endNeedle)?.lowerBound)
+        return String(source[start..<end])
+    }
+
     @MainActor
     static func rootSplitOrientation(_ workspace: Workspace) -> String? {
         guard case .split(let root) = workspace.bonsplitController.treeSnapshot() else {
