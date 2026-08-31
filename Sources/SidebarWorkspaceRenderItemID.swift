@@ -17,6 +17,13 @@ struct SidebarWorkspaceRenderItemID: Hashable {
         Self(kind: 2, uuid: uuid)
     }
 
+    /// A per-pane card under the focused workspace. Keyed by pane id, which is
+    /// already unique across workspaces, so it can never collide with a
+    /// workspace or group row.
+    static func panelCard(_ paneId: UUID) -> Self {
+        Self(kind: 3, uuid: paneId)
+    }
+
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.kind == rhs.kind && lhs.uuid == rhs.uuid
     }

@@ -83,6 +83,10 @@ struct SidebarWorkspaceGroupHeaderMetrics: Equatable {
     var plusFontSize: CGFloat { Self.basePlusFontSize * fontScale }
     /// Scaled plus-button frame edge.
     var plusFrame: CGFloat { max(Self.basePlusFrame, Self.basePlusFrame * fontScale) }
+    /// Gap between adjacent trailing header controls (plus button and the
+    /// repo-only launchers). Scales with the font so the controls stay evenly
+    /// spaced as the sidebar text grows.
+    var launcherSpacing: CGFloat { max(2, 2 * fontScale) }
     /// Leading inset for a group-scoped append indicator rendered by the header.
     var groupScopedBottomDropIndicatorLeadingInset: CGFloat { Self.memberScopedDropIndicatorLeadingInset }
     /// Stable drop-hit height for the group header, without reading SwiftUI layout.

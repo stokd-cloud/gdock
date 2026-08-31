@@ -20,5 +20,42 @@ public struct GdockCatalogSection: SettingCatalogSection {
         userDefaultsKey: "gdock.rightSidebarStackedTabs"
     )
 
+    /// When enabled, selecting a workspace expands its repository group and
+    /// collapses the other repository groups, so the sidebar shows one repo's
+    /// work at a time. Hand-named and pinned groups are never touched.
+    public let repoGroupAccordion = DefaultsKey<Bool>(
+        id: "gdock.repoGroupAccordion",
+        defaultValue: true,
+        userDefaultsKey: "gdock.repoGroupAccordion"
+    )
+
+    /// The four commands a repository group's quad launch loads, in quadrant
+    /// order: top-left, top-right, bottom-left, bottom-right. An empty list
+    /// uses the built-in stokd defaults.
+    public let repoGroupQuadCommands = DefaultsKey<[String]>(
+        id: "gdock.repoGroupQuadCommands",
+        defaultValue: [],
+        userDefaultsKey: "gdock.repoGroupQuadCommands"
+    )
+
+    /// Path template for a repository's detail page in the active stokd
+    /// environment, where `{slug}` is the `owner/repo`. Templated because the
+    /// stokd web app's repo route is not fixed yet; the host comes from the
+    /// environment's base URL, not from here.
+    public let stokdRepoDetailURLTemplate = DefaultsKey<String>(
+        id: "gdock.stokdRepoDetailURLTemplate",
+        defaultValue: "/repos/{slug}",
+        userDefaultsKey: "gdock.stokdRepoDetailURLTemplate"
+    )
+
+    /// Explicit origin for stokd links (e.g. `https://api.stokd.cloud`). Empty
+    /// means "ask the stokd CLI which environment is active" — the env's host
+    /// differs between local, stage, and saas, so it is never hard-coded.
+    public let stokdWebBaseURL = DefaultsKey<String>(
+        id: "gdock.stokdWebBaseURL",
+        defaultValue: "",
+        userDefaultsKey: "gdock.stokdWebBaseURL"
+    )
+
     public init() {}
 }

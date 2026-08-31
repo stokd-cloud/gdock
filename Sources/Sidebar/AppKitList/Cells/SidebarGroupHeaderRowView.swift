@@ -22,6 +22,13 @@ final class SidebarGroupHeaderTableCellView: NSTableCellView {
     private let unreadBadgeView = SidebarRowUnreadBadgeView()
     private var unreadBadgeFont: NSFont = .systemFont(ofSize: 10, weight: .semibold)
     private let plusButton = SidebarHeaderGlyphButton()
+    /// Repo-only launchers, ordered as they appear left of the plus button.
+    /// Present for every header but hidden unless the group name resolves to an
+    /// `owner/repo` slug (AX-GDOCK-REPO-COMMAND-SURFACE, AC-B).
+    private let launcherButtons: [(target: GdockRepoGroupLaunchAction.Target, button: SidebarHeaderGlyphButton)] = [
+        (.stokdRepoDetail, SidebarHeaderGlyphButton()),
+        (.gitHub, SidebarHeaderGlyphButton()),
+    ]
     private let topDropIndicator = NSView()
     private let bottomDropIndicator = NSView()
     private let hintPill = SidebarShortcutHintPillView()
@@ -77,6 +84,11 @@ final class SidebarGroupHeaderTableCellView: NSTableCellView {
         plusButton.onClick = { [weak self] in self?.actions?.onTapPlus() }
         plusButton.menuProvider = { [weak self] in self?.makePlusMenu() }
         addSubview(plusButton)
+
+        for (target, button) in launcherButtons {
+            button.onClick = { [weak self] in self?.actions?.onLaunchRepoTarget(target) }
+            addSubview(button)
+        }
 
         topDropIndicator.wantsLayer = true
         bottomDropIndicator.wantsLayer = true
@@ -210,6 +222,21 @@ final class SidebarGroupHeaderTableCellView: NSTableCellView {
             defaultValue: "New workspace in group"
         ))
 
+        // A hand-named group is inert: its launchers are not merely disabled,
+        // they are absent, and layout() gives their slots back to the name.
+        let isRepositoryGroup = GdockRepoGroupLaunchAction.isAvailable(groupName: model.name)
+        for (target, button) in launcherButtons {
+            button.isHidden = !isRepositoryGroup
+            guard isRepositoryGroup else { continue }
+            button.glyphImage = RenderableSystemSymbol.configuredAppKitImage(
+                systemName: target.symbolName,
+                pointSize: GlobalFontMagnification.scaledSize(metrics.plusFontSize, percent: percent),
+                weight: .medium
+            )
+            button.contentTintColor = .secondaryLabelColor
+            button.setAccessibilityLabel(target.accessibilityLabel)
+        }
+
         backgroundView.layer?.cornerRadius = model.isMultiSelected && !model.isAnchorActive
             ? 6
             : 4
@@ -250,7 +277,12 @@ final class SidebarGroupHeaderTableCellView: NSTableCellView {
 
     private func updatePlusVisibility() {
         let showsHint = model?.shortcutHintText != nil
-        plusButton.setRevealed(isPointerHovering && !contextMenuVisible && !showsHint)
+        let revealed = isPointerHovering && !contextMenuVisible && !showsHint
+        plusButton.setRevealed(revealed)
+        let isRepositoryGroup = model.map { GdockRepoGroupLaunchAction.isAvailable(groupName: $0.name) } ?? false
+        for (_, button) in launcherButtons {
+            button.setRevealed(revealed && isRepositoryGroup)
+        }
     }
 
     /// Authoritative hover enforcement: the controller sweeps visible cells
@@ -331,8 +363,15 @@ final class SidebarGroupHeaderTableCellView: NSTableCellView {
     /// True when a press at this view should not repaint selection (chevron
     /// toggles collapse, plus creates a workspace — neither selects).
     func selectionPreviewShouldIgnore(_ hitView: NSView) -> Bool {
-        hitView === chevronButton || hitView.isDescendant(of: chevronButton)
-            || hitView === plusButton || hitView.isDescendant(of: plusButton)
+        if hitView === chevronButton || hitView.isDescendant(of: chevronButton)
+            || hitView === plusButton || hitView.isDescendant(of: plusButton) {
+            return true
+        }
+        // A launcher click opens a URL; it must not select the row, and it must
+        // not be read as a header activation that fires the quad launch.
+        return launcherButtons.contains {
+            hitView === $0.button || hitView.isDescendant(of: $0.button)
+        }
     }
 
     // MARK: Layout
@@ -380,6 +419,15 @@ final class SidebarGroupHeaderTableCellView: NSTableCellView {
         let plusSide = metrics.plusFrame
         plusButton.frame = NSRect(x: contentMaxX - plusSide, y: midY - plusSide / 2, width: plusSide, height: plusSide)
 
+        // Launchers stack leftward from the plus button. Hidden buttons take no
+        // space, so a hand-named header lays out exactly as it did before.
+        var trailingX = plusButton.frame.minX
+        for (_, button) in launcherButtons where !button.isHidden {
+            trailingX -= plusSide + metrics.launcherSpacing
+            button.frame = NSRect(x: trailingX, y: midY - plusSide / 2, width: plusSide, height: plusSide)
+        }
+        let trailingControlsMinX = trailingX
+
         iconImageView.frame = centered(metrics.iconFrame)
         x = iconImageView.frame.maxX + 6
 
@@ -393,7 +441,7 @@ final class SidebarGroupHeaderTableCellView: NSTableCellView {
             )
         }
 
-        let nameAvailable = max(0, (plusButton.frame.minX - 4) - x
+        let nameAvailable = max(0, (trailingControlsMinX - 4) - x
             - (badgeSize.width > 0 ? badgeSize.width + 6 : 0))
         let nameSize = nameField.attributedStringValue.size()
         // The field owns ALL remaining width (truncation only when genuinely

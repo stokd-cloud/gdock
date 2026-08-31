@@ -106,7 +106,7 @@ extension VerticalTabsSidebar {
             onToggleCollapsed: { [weak tabManager, groupId = group.id] in
                 tabManager?.toggleWorkspaceGroupCollapsed(groupId: groupId)
             },
-            onFocusAnchor: { [weak tabManager, anchorId = group.anchorWorkspaceId, selectedTabIds = $selectedTabIds, lastSidebarSelectionIndex = $lastSidebarSelectionIndex] modifiers in
+            onFocusAnchor: { [weak tabManager, anchorId = group.anchorWorkspaceId, groupId = group.id, selectedTabIds = $selectedTabIds, lastSidebarSelectionIndex = $lastSidebarSelectionIndex] modifiers in
                 guard let tabManager else { return }
                 guard let anchorTab = tabManager.tabs.first(where: { $0.id == anchorId }) else { return }
                 if modifiers.contains(.command) || modifiers.contains(.shift) {
@@ -127,12 +127,21 @@ extension VerticalTabsSidebar {
                 if let anchorIndex = tabManager.tabs.firstIndex(where: { $0.id == anchorId }) {
                     lastSidebarSelectionIndex.wrappedValue = anchorIndex
                 }
+                // A plain activation of a repository header also deals the
+                // stokd quad. Modifier-clicks are multi-selection gestures and
+                // must not launch anything.
+                if !modifiers.contains(.command), !modifiers.contains(.shift) {
+                    tabManager.launchGdockRepoGroupQuad(groupId: groupId)
+                }
             },
             onTapPlus: { [weak tabManager, groupId = group.id, placement = newWorkspacePlacement] in
                 guard let tabManager else { return }
                 let resolved = placement
                     ?? UserDefaultsSettingsClient(defaults: .standard).value(for: SettingCatalog().workspaceGroups.newWorkspacePlacement)
                 _ = tabManager.createWorkspaceInGroup(groupId: groupId, placement: resolved)
+            },
+            onLaunchRepoTarget: { [groupName = group.name] target in
+                GdockRepoGroupLaunchAction.openUsingActiveEnvironment(target, groupName: groupName)
             },
             onRunResolvedItem: { [weak tabManager, groupId = group.id] item in
                 guard let tabManager else { return }
@@ -407,7 +416,7 @@ extension VerticalTabsSidebar {
             onToggleCollapsed: { [weak tabManager, groupId = snapshot.groupId] in
                 tabManager?.toggleWorkspaceGroupCollapsed(groupId: groupId)
             },
-            onFocusAnchor: { [weak tabManager, anchorId = snapshot.anchorWorkspaceId, selectedTabIds = $selectedTabIds, lastSidebarSelectionIndex = $lastSidebarSelectionIndex] modifiers in
+            onFocusAnchor: { [weak tabManager, anchorId = snapshot.anchorWorkspaceId, groupId = snapshot.groupId, selectedTabIds = $selectedTabIds, lastSidebarSelectionIndex = $lastSidebarSelectionIndex] modifiers in
                 guard let tabManager else { return }
                 guard let anchorTab = tabManager.tabs.first(where: { $0.id == anchorId }) else { return }
                 if modifiers.contains(.command) || modifiers.contains(.shift) {
@@ -427,6 +436,12 @@ extension VerticalTabsSidebar {
                 }
                 if let anchorIndex = tabManager.tabs.firstIndex(where: { $0.id == anchorId }) {
                     lastSidebarSelectionIndex.wrappedValue = anchorIndex
+                }
+                // A plain activation of a repository header also deals the
+                // stokd quad. Modifier-clicks are multi-selection gestures and
+                // must not launch anything.
+                if !modifiers.contains(.command), !modifiers.contains(.shift) {
+                    tabManager.launchGdockRepoGroupQuad(groupId: groupId)
                 }
             },
             onTapPlus: { [weak tabManager, groupId = snapshot.groupId, placement = snapshot.newWorkspacePlacement] in
