@@ -29,6 +29,7 @@ import Testing
             countsByKind: [kind: 1],
             entryCount: 1,
             updatedAt: Date(timeIntervalSince1970: 1_788_120_000),
+            startedAt: nil,
             disposition: nil,
             isRunning: true
         )

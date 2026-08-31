@@ -107,7 +107,8 @@ enum StokdSessionOutcomesScanner {
                previousFingerprints[sessionID] == fingerprint,
                let cached = previousSummaries[sessionID],
                cached.disposition == disposition,
-               cached.isRunning == isRunning {
+               cached.isRunning == isRunning,
+               cached.startedAt == record?.startedAt {
                 // Unchanged log and unchanged session state: nothing to reparse.
                 summary = cached
             } else if fingerprint != nil,
@@ -116,7 +117,8 @@ enum StokdSessionOutcomesScanner {
                     sessionID: sessionID,
                     records: StokdSessionOutcomeLog.records(fromJSONL: text),
                     disposition: disposition,
-                    isRunning: isRunning
+                    isRunning: isRunning,
+                    startedAt: record?.startedAt
                 )
             } else {
                 summary = nil
@@ -209,12 +211,15 @@ enum StokdSessionOutcomesScanner {
         let pid: Int32
         let pgid: Int32
         let status: String
+        /// `started_at` is epoch milliseconds in stokd's runtime record.
+        let startedAt: Date?
 
         private enum CodingKeys: String, CodingKey {
             case sessionID = "session_id"
             case pid
             case pgid
             case status
+            case startedAt = "started_at"
         }
 
         init(from decoder: Decoder) throws {
@@ -223,6 +228,12 @@ enum StokdSessionOutcomesScanner {
             pid = try container.decodeIfPresent(Int32.self, forKey: .pid) ?? 0
             pgid = try container.decodeIfPresent(Int32.self, forKey: .pgid) ?? 0
             status = try container.decodeIfPresent(String.self, forKey: .status) ?? ""
+            if let milliseconds = try container.decodeIfPresent(Double.self, forKey: .startedAt),
+               milliseconds > 0 {
+                startedAt = Date(timeIntervalSince1970: milliseconds / 1000)
+            } else {
+                startedAt = nil
+            }
         }
     }
 
