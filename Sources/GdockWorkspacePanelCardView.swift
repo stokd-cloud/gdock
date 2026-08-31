@@ -123,11 +123,13 @@ struct GdockWorkspacePanelCardView: View, Equatable {
 
     /// Unknown kinds keep their raw text: the CLI may add a kind before gdock
     /// learns about it, and a blank chip is worse than an unstyled one.
-    private static func kindLabel(for rawKind: String) -> String {
+    /// Shared with the session cycler so one summary vocabulary drives both
+    /// surfaces (AX-GDOCK-SESSION-CYCLER).
+    static func kindLabel(for rawKind: String) -> String {
         rawKind.uppercased()
     }
 
-    private static func kindColor(for kind: StokdSessionOutcomeRecord.Kind?) -> Color {
+    static func kindColor(for kind: StokdSessionOutcomeRecord.Kind?) -> Color {
         switch kind {
         case .blocked: return .red
         case .needsYou: return .orange

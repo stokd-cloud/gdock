@@ -109,6 +109,9 @@ extension KeyboardShortcutSettings.Action {
              .canvasDistributeVertically,
              .toggleRightSidebar,
              .findInDirectory,
+             // App-scoped by design: the cycler lists sessions in every window,
+             // so it must not be resolved against the focused dock or pane.
+             .gdockCycleSessionsNext, .gdockCycleSessionsPrev,
              .openDiffViewer:
             .mainContainer
         }

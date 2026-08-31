@@ -38,6 +38,16 @@ extension ShortcutAction {
         case .triggerFlash: return "Flash Focused Panel"
         case .nextSurface: return "Next Surface"
         case .prevSurface: return "Previous Surface"
+        case .gdockCycleSessionsNext:
+            return String(
+                localized: "shortcut.gdock.cycleSessionsNext.label",
+                defaultValue: "Cycle Sessions Forward"
+            )
+        case .gdockCycleSessionsPrev:
+            return String(
+                localized: "shortcut.gdock.cycleSessionsPrev.label",
+                defaultValue: "Cycle Sessions Backward"
+            )
         case .moveSurfaceLeft: return String(localized: "shortcut.moveSurfaceLeft.label", defaultValue: "Reorder Surface Left")
         case .moveSurfaceRight: return String(localized: "shortcut.moveSurfaceRight.label", defaultValue: "Reorder Surface Right")
         case .moveSurfaceToPreviousPane:

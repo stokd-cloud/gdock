@@ -124,8 +124,12 @@ extension ShortcutAction {
             // Unbound by default; reachable through the command palette and
             // the canvas.* socket verbs.
             return nil
-        case .nextSurface: return ShortcutStroke(key: "]", command: true, shift: true)
-        case .prevSurface: return ShortcutStroke(key: "[", command: true, shift: true)
+        case .nextSurface, .prevSurface:
+            // Unbound in this fork: Cmd+Shift+[ / ] belong to the session cycler
+            // (AX-GDOCK-SESSION-CYCLER). Still bindable in Settings.
+            return nil
+        case .gdockCycleSessionsNext: return ShortcutStroke(key: "]", command: true, shift: true)
+        case .gdockCycleSessionsPrev: return ShortcutStroke(key: "[", command: true, shift: true)
         case .moveSurfaceLeft: return ShortcutStroke(key: "[", command: true, shift: true, option: true)
         case .moveSurfaceRight: return ShortcutStroke(key: "]", command: true, shift: true, option: true)
         case .moveSurfaceToPreviousPane:
