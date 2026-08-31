@@ -7543,6 +7543,7 @@ struct ContentView: View {
             )
         )
         contributions.append(contentsOf: Self.commandPaletteAuthCommandContributions() + Self.commandPaletteProCommandContributions())
+        contributions.append(contentsOf: Self.commandPaletteGdockSessionCyclerCommandContributions())
         contributions.append(
             CommandPaletteCommandContribution(
                 commandId: "palette.makeDefaultTerminal",
@@ -8770,6 +8771,7 @@ struct ContentView: View {
         }
         registerAuthCommandHandlers(&registry)
         registerProCommandHandlers(&registry)
+        registerGdockSessionCyclerCommandHandlers(&registry)
         registry.register(commandId: "palette.makeDefaultTerminal") {
             DefaultTerminalUserAction.setAsDefault(debugSource: "palette.makeDefaultTerminal")
         }
@@ -11117,6 +11119,10 @@ struct VerticalTabsSidebar: View, Equatable {
 
     var updateViewModel: UpdateStateModel
     @ObservedObject var fileExplorerState: FileExplorerState
+    // Observed here, above the lazy-list boundary, so a session appending a new
+    // outcome redraws its card. The store publishes only when a scan actually
+    // changed something, so this is not a timer-driven sidebar rebuild.
+    @ObservedObject var sessionOutcomesStore: StokdSessionOutcomesStore = .shared
     var featureFlags: CmuxFeatureFlags = .shared
     var isPresented: Bool = true
     let sidebarUnread: SidebarUnreadModel
@@ -11588,24 +11594,54 @@ struct VerticalTabsSidebar: View, Equatable {
         let _ = focusedWorkspaceForCards.map {
             StokdEnvironmentStore.shared.refreshIfNeeded(directory: $0.currentDirectory)
         }
+        // Whether cards carry stokd session summaries. Read once per build, so
+        // toggling the setting off makes the reduce attach nothing at all
+        // rather than merely hiding a value it still computed.
+        let panelCardSummariesEnabled = GdockPanelCardSessionSummarySettings.isEnabled()
         let panelCards: [GdockWorkspacePanelCard] = focusedWorkspaceForCards.map { workspace in
             let branch = workspace.gitBranch?.branch
+            var summariesByPaneId: [UUID: StokdSessionOutcomeSummary] = [:]
             let panes = workspace.bonsplitController.allPaneIds
                 .compactMap { paneId -> GdockWorkspacePanelCardBuilder.PaneInput? in
                     guard let panelId = workspace.bonsplitController.selectedTab(inPane: paneId)?.id.uuid else {
                         return nil
                     }
+                    let directory = workspace.panelDirectories[panelId] ?? ""
+                    // A pane is bound to its session by the agent pids the
+                    // workspace already tracks for that panel, so two panes in
+                    // one directory do not both claim the same session.
+                    var summary: StokdSessionOutcomeSummary?
+                    if panelCardSummariesEnabled, !directory.isEmpty {
+                        let agentPIDs = (workspace.agentPIDKeysByPanelId[panelId] ?? [])
+                            .compactMap { workspace.agentPIDs[$0] }
+                        summary = sessionOutcomesStore.summary(
+                            forDirectory: directory,
+                            agentPIDs: agentPIDs
+                        )
+                        if let summary {
+                            summariesByPaneId[paneId.id] = summary
+                        }
+                    }
                     return GdockWorkspacePanelCardBuilder.PaneInput(
                         paneId: paneId.id,
                         title: workspace.panelTitles[panelId] ?? "",
-                        directory: workspace.panelDirectories[panelId] ?? "",
+                        directory: directory,
                         branch: branch,
-                        sessionState: nil
+                        sessionState: summary.flatMap(Self.panelCardSessionState(for:))
                     )
                 }
+            // Reads above used the last published snapshot; this feeds the next
+            // build. All filesystem work happens off the main thread inside the
+            // store, and the interval guard collapses repeat calls.
+            if panelCardSummariesEnabled {
+                sessionOutcomesStore.refreshIfNeeded(
+                    directories: panes.map(\.directory).filter { !$0.isEmpty }
+                )
+            }
             return GdockWorkspacePanelCardBuilder.cards(
                 panes: panes,
-                focusedPaneId: workspace.bonsplitController.focusedPaneId?.id
+                focusedPaneId: workspace.bonsplitController.focusedPaneId?.id,
+                summariesByPaneId: summariesByPaneId
             )
         } ?? []
         let panelCardsByPaneId = Dictionary(
@@ -12261,6 +12297,21 @@ struct VerticalTabsSidebar: View, Equatable {
                 )
             }
         }
+    }
+
+    /// Short state badge for a pane card: the session's terminal disposition
+    /// once it declared one, otherwise "running" while it is live.
+    ///
+    /// The disposition is a stokd identifier (`dev_complete`, `blocked`) and is
+    /// shown verbatim rather than translated — it is the same token the CLI
+    /// prints, and matching it is the point.
+    static func panelCardSessionState(for summary: StokdSessionOutcomeSummary) -> String? {
+        if let disposition = summary.disposition { return disposition }
+        guard summary.isRunning else { return nil }
+        return String(
+            localized: "gdock.panelCard.summary.state.running",
+            defaultValue: "running"
+        )
     }
 
     /// Row configuration for one per-pane card.

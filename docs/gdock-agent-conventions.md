@@ -156,3 +156,150 @@ same-directory workspace once a true 2x2 quad is complete.
   `gdock.quadPaneWorkspaces`.
 - `Resources/Localizable.xcstrings` has English and Japanese entries for both
   shortcut labels.
+
+## AX-GDOCK-PANEL-CARD-SESSION-SUMMARY
+
+Gdock consumes stokd's per-session outcome log read-only, binds each pane to a
+session by process identity before recency, and delivers the result to the
+sidebar as an immutable value reduced above the lazy-list boundary.
+
+### Why
+
+- The summaries are written by the stokd CLI, not by gdock. Writing, locking,
+  truncating, or migrating anything under `~/.stokd` would corrupt state whose
+  only owner is another process.
+- The state directory is named by a hash of the canonical workspace root, so two
+  worktrees of one repository do not collide. That name cannot be reconstructed
+  by convention — it has to be derived, in one place, from the same algorithm
+  the CLI uses (`apps/cli/src/state_paths.rs` in stokd-cloud/mono).
+- A workspace usually holds several sessions, most of them finished. "Newest
+  file wins" alone would show one pane's work on another pane's card, which is
+  worse than showing nothing.
+- The sidebar list path is the one place in this app where holding an observable
+  reference below a lazy container reintroduces a 100%-CPU relayout loop
+  (`CLAUDE.md`; issue 2586). Cards are decoration on that path, so they get the
+  value-snapshot treatment, not a live store.
+
+### How to apply
+
+1. Derive every path through `StokdWorkspaceStatePaths`. Never string-build a
+   workspace directory name, and never write to one.
+2. Read the log tolerantly. The writer appends and fsyncs per entry, so a
+   blank, malformed, or half-written trailing line is expected: skip it and keep
+   the records around it.
+3. Enumerate the **union** of `runtime/sessions/*.runtime.json` and
+   `runtime/*.outcomes.jsonl`. The two do not track each other: stokd prunes a
+   session's runtime record when the session ends but keeps its log, so a
+   record-driven scan hides every finished session — the completed work most
+   worth showing. A freshly started session is the mirror case: record, no log
+   yet. A session missing its record contributes no process identity (pid and
+   pgid stay 0, which never matches) and competes only on recency.
+4. Do all filesystem work off the main thread, behind a per-directory minimum
+   interval and a per-session (mtime, size) short-circuit — a directory mtime
+   does not change when a session appends to an existing log. The render path
+   reads only the last published snapshot: no IO, no subprocess.
+5. Bind a pane to a session in this order and no other: exact pid match against
+   the pane's own agent pids; then process-group match; then the most recently
+   active running session in that workspace; then the most recently active
+   session. Keep the selection a pure function over injected descriptors so the
+   precedence is testable without a filesystem or live processes. Return nil
+   rather than inventing a session.
+6. Reduce to `GdockWorkspacePanelCard` above the lazy-list boundary. A card view
+   holds no store reference and reads no observable state.
+7. Derive the displayed line; never render raw entry text. First sentence,
+   whitespace-collapsed, capped with an ellipsis, trailing period stripped.
+   Counts and disposition are voiced in the accessibility label rather than
+   drawn, so a card stays one line.
+8. Preserve unknown kinds. gdock ships on its own cadence; a kind the CLI adds
+   later must still display, not vanish.
+9. Gate the surface on `gdock.panelCardSessionSummaries`. With it off the
+   reduce attaches nothing at all, rather than computing a value it then hides.
+
+### Acceptance Checks
+
+- Runnable:
+  `xcodebuild test -project cmux.xcodeproj -scheme cmux -destination 'platform=macOS' -only-testing:cmuxTests/StokdWorkspaceStatePathsTests -only-testing:cmuxTests/StokdSessionOutcomeSummarizerTests -only-testing:cmuxTests/StokdSessionOutcomesScannerTests -only-testing:cmuxTests/StokdSessionOutcomesLocatorTests -only-testing:cmuxTests/GdockWorkspacePanelCardBuilderTests`
+  exits 0 and covers key derivation, tolerant decoding, the record/log union,
+  headline derivation, pane-to-session precedence, and card attachment.
+- Storage design: `StokdWorkspaceStatePaths.workspaceKey` reproduces the CLI's
+  key for known roots, and no gdock code path opens a file under `~/.stokd` for
+  writing.
+- Pane-to-session selection: each of the four precedence tiers has a test that
+  fails if the tier above it is removed, and an empty descriptor list yields
+  nil.
+- Display model: `GdockWorkspacePanelCardBuilder.cards` called without
+  `summariesByPaneId` is byte-identical to its pre-summary output, and no view
+  under the sidebar's lazy container references
+  `StokdSessionOutcomesStore`.
+- `Resources/Localizable.xcstrings` has English and Japanese entries for every
+  summary string.
+
+## AX-GDOCK-SESSION-CYCLER
+
+Session cycling is one ring, one model, one summary source.
+
+gdock cycles agent sessions through a single scope ring and a single pure
+selection model. The ring is modular over N scopes — today `currentRepo` and
+`allSessions` — and is never a two-way boolean toggle. The overlay renders the
+stokd outcome summary for exactly the highlighted session and a provider mark
+plus title for every other row, and it reads that summary only through the
+existing read-only consumer described in AX-GDOCK-PANEL-CARD-SESSION-SUMMARY.
+
+### Why
+
+- A boolean "current repo vs all" has to be rewritten the day a third scope
+  (current window, current machine, cloud) arrives, and every call site that
+  assumed two states becomes a bug. Modular `next`/`previous` over `allCases`
+  makes a third scope a new case and nothing else.
+- Selection, filtering, and scope must be pure value functions: the overlay
+  renders rows below a lazy container, where holding an observable store
+  reference is what reintroduced the 100%-CPU spin loop (`CLAUDE.md`; cmux issue
+  2586).
+- Re-deriving stokd's on-disk layout in a second place is how two readers
+  silently disagree after a CLI change. AX-GDOCK-PANEL-CARD-SESSION-SUMMARY
+  already fixed one derivation site; this keeps it at one.
+- Rendering a full summary on every row turns a fast cycler into a wall of
+  paragraphs. The summary earns its space only on the row the operator is on.
+
+### How
+
+1. `GdockCycleRing` steps modularly over any `CaseIterable & Equatable`;
+   `GdockSessionCycleScope.next()/previous()` are thin wrappers. No call site
+   branches on how many scopes exist.
+2. `GdockSessionCyclerModel.listing(...)` is pure over values and owns scope
+   filtering, case-insensitive query filtering, selection preservation across a
+   scope change, and clamping. `selection(movedBy:from:in:)` owns wrap-around.
+3. When grouped workspace-repo mode is off, or no `owner/repo` group resolves,
+   `currentRepo` falls back to every session rather than narrowing to nothing.
+4. A row's identity is the panel running the agent, not the workspace: two panes
+   in one directory routinely run different sessions.
+5. Provider marks resolve through `GdockSessionAgentBadge`, which joins the
+   workspace's existing agent status keys to `SessionAgent`. An unrecognized key
+   still yields a row — with no art and the key as its name — because a running
+   agent gdock cannot name is still a session worth cycling to.
+6. The keyboard chord, the command palette, and any future socket verb all call
+   `GdockSessionCyclerPresenter`; none of them re-implements cycling.
+7. Shortcut ids are `gdock.cycleSessionsNext` / `gdock.cycleSessionsPrev` and
+   palette ids are `palette.gdock.cycleSessionsNext` / `...Prev`, per the fork
+   prefix convention above.
+8. The cycler owns Cmd+Shift+] and Cmd+Shift+[. Upstream's `nextSurface` /
+   `prevSurface` ship unbound-by-default in this fork rather than sharing the
+   chord; both remain bindable in Settings and reachable from the palette.
+
+### Acceptance Checks
+
+- Runnable:
+  `./scripts/test-unit.sh test -only-testing:cmuxTests/GdockSessionCycleScopeTests -only-testing:cmuxTests/GdockSessionCyclerModelTests -only-testing:cmuxTests/GdockSessionAgentBadgeTests -only-testing:cmuxTests/GdockSessionCyclerShortcutTests`
+  exits 0 and covers modular ring stepping over a three-member fixture, scope and
+  query filtering, wrap-around selection, selection preservation across a scope
+  change, summary-on-the-highlighted-row-only, provider-mark resolution, and the
+  chord handover.
+- Ring generality: the ring tests use a three-member fixture, so an
+  implementation that flips between two states fails.
+- Single summary source: no path derivation under `~/.stokd` outside
+  `StokdWorkspaceStatePaths`, and no gdock code path opens a file there for
+  writing.
+- Chord ownership: no action other than the two cycler actions has Cmd+Shift+]
+  or Cmd+Shift+[ as its default binding.
+- `Resources/Localizable.xcstrings` has English and Japanese entries for every
+  cycler string.

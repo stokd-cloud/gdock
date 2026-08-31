@@ -1633,6 +1633,8 @@
               "triggerFlash",
               "nextSurface",
               "prevSurface",
+              "gdock.cycleSessionsNext",
+              "gdock.cycleSessionsPrev",
               "moveSurfaceLeft",
               "moveSurfaceRight",
               "moveSurfaceToPreviousPane",

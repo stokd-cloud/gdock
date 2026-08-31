@@ -44,6 +44,10 @@ public enum ShortcutAction: String, CaseIterable, Sendable, Hashable, SettingCod
     // MARK: Navigation
     case nextSurface
     case prevSurface
+    /// Cycles forward through open agent sessions (AX-GDOCK-SESSION-CYCLER).
+    case gdockCycleSessionsNext = "gdock.cycleSessionsNext"
+    /// Cycles backward through open agent sessions.
+    case gdockCycleSessionsPrev = "gdock.cycleSessionsPrev"
     /// Moves the selected surface one position left.
     case moveSurfaceLeft
     /// Moves the selected surface one position right.

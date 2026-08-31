@@ -14458,6 +14458,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             return true
         }
 
+        // Ahead of adjacent navigation: the cycler now owns the bracket chords
+        // that surface navigation used to hold (AX-GDOCK-SESSION-CYCLER).
+        if handleGdockSessionCyclerShortcut(event: event) { return true }
+
         if handleAdjacentNavigationShortcut(event: event) { return true }
 
         if matchConfiguredShortcut(event: event, action: .toggleTerminalCopyMode) {

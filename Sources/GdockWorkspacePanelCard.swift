@@ -49,6 +49,32 @@ struct GdockWorkspacePanelCard: Equatable, Identifiable, Sendable {
     let sessionState: String?
     /// The stokd work item this pane's repository is working on.
     let workItem: WorkItem?
+    /// What this pane's stokd session has been doing, reduced from the
+    /// session's append-only outcome log
+    /// (AX-GDOCK-PANEL-CARD-SESSION-SUMMARY).
+    let sessionSummary: StokdSessionOutcomeSummary?
+
+    init(
+        id: UUID,
+        index: Int,
+        title: String,
+        directory: String,
+        branch: String?,
+        isSelected: Bool,
+        sessionState: String?,
+        workItem: WorkItem?,
+        sessionSummary: StokdSessionOutcomeSummary? = nil
+    ) {
+        self.id = id
+        self.index = index
+        self.title = title
+        self.directory = directory
+        self.branch = branch
+        self.isSelected = isSelected
+        self.sessionState = sessionState
+        self.workItem = workItem
+        self.sessionSummary = sessionSummary
+    }
 }
 
 /// Reduces live workspace state into ``GdockWorkspacePanelCard`` values.
@@ -88,13 +114,19 @@ enum GdockWorkspacePanelCardBuilder {
     ///   - focusedPaneId: The workspace's focused pane.
     ///   - workItemsByDirectory: Resolved stokd work items keyed by the pane
     ///     directory they belong to.
+    ///   - summariesByPaneId: Session outcome summaries keyed by the pane whose
+    ///     session they describe. Two panes in one directory can be running
+    ///     different sessions, so these are keyed by pane rather than by
+    ///     directory. Empty — the default — reproduces the pre-summary output
+    ///     exactly.
     /// - Returns: One card per pane, in order. At most one card is selected —
     ///   when `focusedPaneId` names no visible pane, the first card is selected
     ///   so the sidebar never shows a workspace with nothing highlighted.
     static func cards(
         panes: [PaneInput],
         focusedPaneId: UUID?,
-        workItemsByDirectory: [String: GdockWorkspacePanelCard.WorkItem] = [:]
+        workItemsByDirectory: [String: GdockWorkspacePanelCard.WorkItem] = [:],
+        summariesByPaneId: [UUID: StokdSessionOutcomeSummary] = [:]
     ) -> [GdockWorkspacePanelCard] {
         guard !panes.isEmpty else { return [] }
 
@@ -114,7 +146,8 @@ enum GdockWorkspacePanelCardBuilder {
                 branch: pane.branch,
                 isSelected: pane.paneId == selectedPaneId,
                 sessionState: pane.sessionState,
-                workItem: workItemsByDirectory[pane.directory]
+                workItem: workItemsByDirectory[pane.directory],
+                sessionSummary: summariesByPaneId[pane.paneId]
             )
         }
     }
