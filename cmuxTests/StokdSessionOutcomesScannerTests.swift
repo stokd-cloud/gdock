@@ -197,6 +197,7 @@ import Testing
             countsByKind: ["fixed": 1],
             entryCount: 1,
             updatedAt: Date(timeIntervalSince1970: 0),
+            startedAt: nil,
             disposition: nil,
             isRunning: false
         )

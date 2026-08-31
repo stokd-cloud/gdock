@@ -11606,14 +11606,25 @@ struct VerticalTabsSidebar: View, Equatable {
                     guard let panelId = workspace.bonsplitController.selectedTab(inPane: paneId)?.id.uuid else {
                         return nil
                     }
-                    let directory = workspace.panelDirectories[panelId] ?? ""
+                    // Resolve through the workspace's own accessors, not the
+                    // raw reporting maps: `panelDirectories` / `panelTitles`
+                    // are only populated once a pane reports via shell
+                    // integration, so reading them directly left the card
+                    // blank and skipped the summary lookup entirely.
+                    let directory = workspace.effectivePanelDirectory(
+                        panelId: panelId,
+                        localFallback: workspace.currentDirectory
+                    ) ?? ""
+                    // Only panes actually running an agent get a card; the
+                    // agent kind also selects the card's glyph.
+                    let agentPIDKeys = workspace.agentPIDKeysByPanelId[panelId] ?? []
+                    let agentKindRaw = Self.panelCardAgentKindRaw(fromAgentPIDKeys: agentPIDKeys)
                     // A pane is bound to its session by the agent pids the
                     // workspace already tracks for that panel, so two panes in
                     // one directory do not both claim the same session.
                     var summary: StokdSessionOutcomeSummary?
-                    if panelCardSummariesEnabled, !directory.isEmpty {
-                        let agentPIDs = (workspace.agentPIDKeysByPanelId[panelId] ?? [])
-                            .compactMap { workspace.agentPIDs[$0] }
+                    if panelCardSummariesEnabled, agentKindRaw != nil, !directory.isEmpty {
+                        let agentPIDs = agentPIDKeys.compactMap { workspace.agentPIDs[$0] }
                         summary = sessionOutcomesStore.summary(
                             forDirectory: directory,
                             agentPIDs: agentPIDs
@@ -11624,9 +11635,13 @@ struct VerticalTabsSidebar: View, Equatable {
                     }
                     return GdockWorkspacePanelCardBuilder.PaneInput(
                         paneId: paneId.id,
-                        title: workspace.panelTitles[panelId] ?? "",
+                        title: workspace.resolvedPanelTitle(
+                            panelId: panelId,
+                            fallback: workspace.panelTitles[panelId] ?? ""
+                        ),
                         directory: directory,
                         branch: branch,
+                        agentKindRaw: agentKindRaw,
                         sessionState: summary.flatMap(Self.panelCardSessionState(for:))
                     )
                 }
@@ -11635,7 +11650,10 @@ struct VerticalTabsSidebar: View, Equatable {
             // store, and the interval guard collapses repeat calls.
             if panelCardSummariesEnabled {
                 sessionOutcomesStore.refreshIfNeeded(
-                    directories: panes.map(\.directory).filter { !$0.isEmpty }
+                    directories: panes
+                        .filter { $0.agentKindRaw != nil }
+                        .map(\.directory)
+                        .filter { !$0.isEmpty }
                 )
             }
             return GdockWorkspacePanelCardBuilder.cards(
@@ -12288,15 +12306,32 @@ struct VerticalTabsSidebar: View, Equatable {
                     listSnapshot: listSnapshot,
                     renderContext: renderContext
                 )
-            case .panelCard(let workspaceId, let paneId):
-                guard let card = renderContext.panelCardsByPaneId[paneId] else { return nil }
-                return panelCardTableRowConfiguration(
-                    card: card,
+            case .panelCardStack(let workspaceId, let paneIds):
+                let cards = paneIds.compactMap { renderContext.panelCardsByPaneId[$0] }
+                guard !cards.isEmpty else { return nil }
+                return panelCardStackTableRowConfiguration(
+                    cards: cards,
                     workspaceId: workspaceId,
                     renderContext: renderContext
                 )
             }
         }
+    }
+
+    /// Agent kind recorded on a pane's agent PID keys, or nil when the pane
+    /// runs no agent.
+    ///
+    /// Keys are `"<kind>.<sessionId>"` (`Workspace+PanelLifecycle`), so the
+    /// kind is the segment before the first dot. Sorted first so a pane holding
+    /// several agent generations resolves deterministically instead of
+    /// flickering between them as the set reorders.
+    static func panelCardAgentKindRaw(fromAgentPIDKeys keys: Set<String>) -> String? {
+        for key in keys.sorted() {
+            let kind = key.split(separator: ".", maxSplits: 1).first.map(String.init) ?? ""
+            let trimmed = kind.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { return trimmed }
+        }
+        return nil
     }
 
     /// Short state badge for a pane card: the session's terminal disposition
@@ -12320,18 +12355,19 @@ struct VerticalTabsSidebar: View, Equatable {
     /// AppKit cell class is needed and the card diffs by value like every other
     /// hosted row.
     @MainActor
-    private func panelCardTableRowConfiguration(
-        card: GdockWorkspacePanelCard,
+    private func panelCardStackTableRowConfiguration(
+        cards: [GdockWorkspacePanelCard],
         workspaceId: UUID,
         renderContext: WorkspaceListRenderContext
     ) -> SidebarWorkspaceTableRowConfiguration {
-        let view = GdockWorkspacePanelCardView(
-            card: card,
+        let view = GdockWorkspacePanelCardStackView(
+            cards: cards,
             fontScale: renderContext.tabItemSettings.sidebarFontScale,
-            accentHex: renderContext.tabItemSettings.selectionColorHex
+            accentHex: renderContext.tabItemSettings.selectionColorHex,
+            isWorkspaceSelected: true
         )
         return SidebarWorkspaceTableRowConfiguration(
-            id: SidebarWorkspaceRenderItemID.panelCard(card.id),
+            id: SidebarWorkspaceRenderItemID.panelCardStack(workspaceId),
             workspaceId: workspaceId,
             groupId: renderContext.workspaceGroupIdByWorkspaceId[workspaceId] ?? nil,
             isGroupHeader: false,
@@ -14015,7 +14051,7 @@ struct VerticalTabsSidebar: View, Equatable {
                             shouldCollectWorkspaceDropTargets: shouldCollectWorkspaceDropTargets
                         )
                     }
-                case .panelCard:
+                case .panelCardStack:
                     // Panel cards render only through the AppKit table path,
                     // which is the default list. The SwiftUI fallback keeps the
                     // plain workspace list rather than growing a second, subtly

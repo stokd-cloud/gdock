@@ -150,6 +150,9 @@ struct StokdSessionOutcomeSummary: Equatable, Sendable {
     let countsByKind: [String: Int]
     let entryCount: Int
     let updatedAt: Date
+    /// When the session started, from its runtime record. Nil once stokd has
+    /// pruned that record, which it does when the session ends.
+    let startedAt: Date?
     /// Terminal disposition once the session declared one (`dev_complete`,
     /// `blocked`, …), otherwise nil.
     let disposition: String?
@@ -209,7 +212,8 @@ enum StokdSessionOutcomeSummarizer {
         sessionID: String,
         records: [StokdSessionOutcomeRecord],
         disposition: String? = nil,
-        isRunning: Bool = false
+        isRunning: Bool = false,
+        startedAt: Date? = nil
     ) -> StokdSessionOutcomeSummary? {
         guard let latest = records.max(by: { $0.timestamp < $1.timestamp }) else { return nil }
 
@@ -225,6 +229,7 @@ enum StokdSessionOutcomeSummarizer {
             countsByKind: counts,
             entryCount: records.count,
             updatedAt: latest.timestamp,
+            startedAt: startedAt,
             disposition: disposition?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty,
             isRunning: isRunning
         )

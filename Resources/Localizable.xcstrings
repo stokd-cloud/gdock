@@ -120561,6 +120561,91 @@
         }
       }
     },
+    "gdock.panelCard.meta.last": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "last %@ ago"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最終 %@ 前"
+          }
+        }
+      }
+    },
+    "gdock.panelCard.meta.ran": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ran %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "実行時間 %@"
+          }
+        }
+      }
+    },
+    "gdock.panelCard.meta.running": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "running %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "実行中 %@"
+          }
+        }
+      }
+    },
+    "gdock.panelCard.meta.runningNoStart": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "running"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "実行中"
+          }
+        }
+      }
+    },
+    "gdock.panelCard.noOutcomesYet": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No outcomes recorded yet"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成果はまだ記録されていません"
+          }
+        }
+      }
+    },
     "gdock.panelCard.summary.disposition.a11y": {
       "extractionState": "manual",
       "localizations": {

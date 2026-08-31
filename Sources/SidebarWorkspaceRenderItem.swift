@@ -13,9 +13,13 @@ import Foundation
 enum SidebarWorkspaceRenderItem {
     case groupHeader(groupId: UUID, anchorWorkspaceId: UUID)
     case workspace(workspaceId: UUID)
-    /// A card for one visible pane of the focused workspace, emitted directly
-    /// beneath that workspace's own row.
-    case panelCard(workspaceId: UUID, paneId: UUID)
+    /// The focused workspace's agent-session cards, as one selection-ringed
+    /// stack that stands in for that workspace's ordinary row.
+    ///
+    /// It replaces the row rather than sitting beneath it: the mockup shows one
+    /// ringed container of cards where the workspace row used to be, and
+    /// drawing both would show the same workspace twice.
+    case panelCardStack(workspaceId: UUID, paneIds: [UUID])
 
     var id: SidebarWorkspaceRenderItemID {
         switch self {
@@ -23,8 +27,8 @@ enum SidebarWorkspaceRenderItem {
             return .group(groupId)
         case .workspace(let workspaceId):
             return .workspace(workspaceId)
-        case .panelCard(_, let paneId):
-            return .panelCard(paneId)
+        case .panelCardStack(let workspaceId, _):
+            return .panelCardStack(workspaceId)
         }
     }
 
@@ -34,23 +38,30 @@ enum SidebarWorkspaceRenderItem {
             return anchorWorkspaceId
         case .workspace(let workspaceId):
             return workspaceId
-        case .panelCard(let workspaceId, _):
+        case .panelCardStack(let workspaceId, _):
             return workspaceId
         }
     }
 
     /// Whether this item is a real, reorderable sidebar row.
     ///
-    /// Panel cards are decoration attached to the focused workspace: they are
-    /// not drag sources, not drop targets, and must not appear in the reorder
-    /// id list, where their workspace id would duplicate the row they sit under
-    /// and corrupt drop-indicator placement.
+    /// The card stack counts: it *is* the focused workspace's row, so keeping it
+    /// in the reorder id list is what preserves drop-indicator placement and
+    /// workspace numbering. Excluding it would silently renumber every
+    /// workspace after it and shift Cmd-N shortcuts.
     var isReorderableRow: Bool {
+        true
+    }
+
+    /// The workspace this item numbers, if it is a numbered workspace row.
+    var numberedWorkspaceId: UUID? {
         switch self {
-        case .groupHeader, .workspace:
-            return true
-        case .panelCard:
-            return false
+        case .workspace(let workspaceId):
+            return workspaceId
+        case .panelCardStack(let workspaceId, _):
+            return workspaceId
+        case .groupHeader:
+            return nil
         }
     }
 
@@ -73,28 +84,34 @@ enum SidebarWorkspaceRenderItem {
         let base = renderItems(tabs: tabs, groupsById: groupsById)
         guard let focusedWorkspaceId, !panelCardPaneIds.isEmpty else { return base }
 
-        let cards = panelCardPaneIds.map {
-            SidebarWorkspaceRenderItem.panelCard(workspaceId: focusedWorkspaceId, paneId: $0)
-        }
+        let stack = SidebarWorkspaceRenderItem.panelCardStack(
+            workspaceId: focusedWorkspaceId,
+            paneIds: panelCardPaneIds
+        )
 
         var result: [SidebarWorkspaceRenderItem] = []
-        result.reserveCapacity(base.count + cards.count)
-        var inserted = false
+        result.reserveCapacity(base.count + 1)
+        var placed = false
         for item in base {
-            result.append(item)
-            guard !inserted else { continue }
             switch item {
-            case .workspace(let workspaceId) where workspaceId == focusedWorkspaceId:
-                result.append(contentsOf: cards)
-                inserted = true
-            case .groupHeader(_, let anchorWorkspaceId) where anchorWorkspaceId == focusedWorkspaceId:
-                result.append(contentsOf: cards)
-                inserted = true
+            case .workspace(let workspaceId) where workspaceId == focusedWorkspaceId && !placed:
+                // The stack takes the row's place; the workspace is not drawn
+                // twice.
+                result.append(stack)
+                placed = true
+            case .groupHeader(_, let anchorWorkspaceId) where anchorWorkspaceId == focusedWorkspaceId && !placed:
+                // A group anchor has no row of its own, so the stack follows
+                // the header instead of replacing anything.
+                result.append(item)
+                result.append(stack)
+                placed = true
             default:
-                continue
+                result.append(item)
             }
         }
-        return result
+        // A focused workspace hidden inside a collapsed group has no visible
+        // row to stand in for, so it contributes no stack.
+        return placed ? result : base
     }
 
     static func renderItems(
@@ -145,10 +162,7 @@ enum SidebarWorkspaceRenderItem {
     static func numberedWorkspaceIds(
         from renderItems: [SidebarWorkspaceRenderItem]
     ) -> [UUID] {
-        renderItems.compactMap { item in
-            guard case .workspace(let workspaceId) = item else { return nil }
-            return workspaceId
-        }
+        renderItems.compactMap(\.numberedWorkspaceId)
     }
 
     static func numberedWorkspaceIndexById(
@@ -157,7 +171,7 @@ enum SidebarWorkspaceRenderItem {
         var result: [UUID: Int] = [:]
         result.reserveCapacity(renderItems.count)
         for item in renderItems {
-            guard case .workspace(let workspaceId) = item else { continue }
+            guard let workspaceId = item.numberedWorkspaceId else { continue }
             result[workspaceId] = result.count
         }
         return result
