@@ -120510,6 +120510,74 @@
         }
       }
     },
+    "gdock.panelCard.summary.disposition.a11y": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "disposition %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "処理結果 %@"
+          }
+        }
+      }
+    },
+    "gdock.panelCard.summary.entries.a11y": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld outcome entries"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 件の成果エントリ"
+          }
+        }
+      }
+    },
+    "gdock.panelCard.summary.running.a11y": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "session running"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "セッション実行中"
+          }
+        }
+      }
+    },
+    "gdock.panelCard.summary.state.running": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "running"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "実行中"
+          }
+        }
+      }
+    },
     "gdock.repoGroup.openOnGitHub": {
       "extractionState": "manual",
       "localizations": {

@@ -38,6 +38,16 @@ public struct GdockCatalogSection: SettingCatalogSection {
         userDefaultsKey: "gdock.repoGroupQuadCommands"
     )
 
+    /// When enabled, each focused-workspace pane card shows a summary of what
+    /// that pane's stokd agent session has been doing, read from the session's
+    /// append-only outcome log. Off makes the cards render exactly as they did
+    /// before summaries existed.
+    public let panelCardSessionSummaries = DefaultsKey<Bool>(
+        id: "gdock.panelCardSessionSummaries",
+        defaultValue: true,
+        userDefaultsKey: "gdock.panelCardSessionSummaries"
+    )
+
     /// Path template for a repository's detail page in the active stokd
     /// environment, where `{slug}` is the `owner/repo`. Templated because the
     /// stokd web app's repo route is not fixed yet; the host comes from the

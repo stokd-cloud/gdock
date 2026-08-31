@@ -96,4 +96,87 @@ import Testing
         #expect(cards[0].sessionState == "Running")
         #expect(cards[0].directory == "/opt/gdock")
     }
+
+    // MARK: - Session summaries (AC6)
+
+    private func summary(_ sessionID: String, kind: String = "fixed") -> StokdSessionOutcomeSummary {
+        StokdSessionOutcomeSummary(
+            sessionID: sessionID,
+            latestKindRaw: kind,
+            headline: "Did the thing",
+            countsByKind: [kind: 1],
+            entryCount: 1,
+            updatedAt: Date(timeIntervalSince1970: 1_788_000_000),
+            disposition: nil,
+            isRunning: true
+        )
+    }
+
+    /// Summaries are keyed by pane, not by directory: two panes in one
+    /// directory routinely run different sessions.
+    @Test func attachesTheSummaryToTheKeyedPaneOnly() {
+        let withSession = pane("claude", directory: "/opt/gdock")
+        let plainShell = pane("zsh", directory: "/opt/gdock")
+        let expected = summary("interactive-claude-1-2")
+
+        let cards = Builder.cards(
+            panes: [withSession, plainShell],
+            focusedPaneId: withSession.paneId,
+            summariesByPaneId: [withSession.paneId: expected]
+        )
+
+        #expect(cards[0].sessionSummary == expected)
+        #expect(cards[1].sessionSummary == nil)
+    }
+
+    /// The gate-off path and every pre-existing call site go through this
+    /// default, so it must reproduce the old output exactly.
+    @Test func withoutSummariesTheOutputIsUnchanged() {
+        let panes = [pane("a"), pane("b"), pane("c")]
+
+        let cards = Builder.cards(panes: panes, focusedPaneId: panes[1].paneId)
+
+        #expect(cards.allSatisfy { $0.sessionSummary == nil })
+        #expect(cards == Builder.cards(
+            panes: panes,
+            focusedPaneId: panes[1].paneId,
+            summariesByPaneId: [:]
+        ))
+    }
+
+    /// A summary keyed to a pane that is not visible must not leak onto some
+    /// other card.
+    @Test func aSummaryForAnAbsentPaneIsIgnored() {
+        let visible = pane("claude")
+
+        let cards = Builder.cards(
+            panes: [visible],
+            focusedPaneId: visible.paneId,
+            summariesByPaneId: [UUID(): summary("stranger")]
+        )
+
+        #expect(cards.count == 1)
+        #expect(cards[0].sessionSummary == nil)
+    }
+
+    @Test func summariesAndWorkItemsCoexistOnOneCard() {
+        let only = pane("claude", directory: "/opt/gdock")
+        let item = GdockWorkspacePanelCard.WorkItem(
+            kind: .task,
+            title: "Panel card summaries",
+            status: "in_progress",
+            hashShort: "635127d"
+        )
+        let expected = summary("interactive-claude-3-4", kind: "blocked")
+
+        let cards = Builder.cards(
+            panes: [only],
+            focusedPaneId: only.paneId,
+            workItemsByDirectory: ["/opt/gdock": item],
+            summariesByPaneId: [only.paneId: expected]
+        )
+
+        #expect(cards[0].workItem == item)
+        #expect(cards[0].sessionSummary?.latestKindRaw == "blocked")
+    }
 }

@@ -30,6 +30,32 @@ enum GdockRepoGroupAccordionSettings {
     }
 }
 
+/// Runtime accessors for `gdock.panelCardSessionSummaries`.
+enum GdockPanelCardSessionSummarySettings {
+    static let catalogKey = SettingCatalog().gdock.panelCardSessionSummaries
+    static let settingsKey = catalogKey.id
+    static let userDefaultsKey = catalogKey.userDefaultsKey
+    static let defaultEnabled = catalogKey.defaultValue
+    static let commandId = "palette.toggleSetting.gdock.panelCardSessionSummaries"
+    static let didChangeNotification = Notification.Name("gdock.panelCardSessionSummaries.didChange")
+
+    static func isEnabled(defaults: UserDefaults = .standard) -> Bool {
+        if defaults.object(forKey: userDefaultsKey) == nil {
+            return defaultEnabled
+        }
+        return defaults.bool(forKey: userDefaultsKey)
+    }
+
+    static func setEnabled(
+        _ enabled: Bool,
+        defaults: UserDefaults = .standard,
+        notificationCenter: NotificationCenter = .default
+    ) {
+        defaults.set(enabled, forKey: userDefaultsKey)
+        notificationCenter.post(name: didChangeNotification, object: nil)
+    }
+}
+
 /// Runtime accessors for `gdock.repoGroupQuadCommands`.
 enum GdockRepoGroupQuadCommandSettings {
     static let catalogKey = SettingCatalog().gdock.repoGroupQuadCommands
