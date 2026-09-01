@@ -93,12 +93,39 @@ struct StokdModelConfigurationCatalogModel: Equatable, Identifiable, Sendable {
 struct StokdModelConfigurationWorkload: Equatable, Identifiable, Sendable {
     let slug: String
     let models: [String]
+    let inheritsDefault: Bool
 
     var id: String { slug }
+}
+
+struct StokdModelConfigurationProviderEntry: Equatable, Identifiable, Sendable {
+    struct Field: Equatable, Sendable {
+        enum Value: Equatable, Sendable {
+            case string(String)
+            case int(Int)
+            case double(Double)
+            case bool(Bool)
+            case null
+        }
+
+        let key: String
+        let value: Value
+    }
+
+    let name: String
+    let objectFields: [Field]?
+
+    init(name: String, objectFields: [Field]? = nil) {
+        self.name = name
+        self.objectFields = objectFields
+    }
+
+    var id: String { name }
 }
 
 struct StokdModelConfigurationSnapshot: Equatable, Sendable {
     let catalog: [StokdModelConfigurationCatalogModel]
     let defaults: [String]
     let workloads: [StokdModelConfigurationWorkload]
+    let providers: [StokdModelConfigurationProviderEntry]
 }
