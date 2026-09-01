@@ -24,6 +24,11 @@ protocol StokdModelConfigurationLoading: Sendable {
         scope: StokdModelConfigurationWriteScope,
         directory: String
     ) async throws
+    func applyProviders(
+        _ providers: [StokdModelConfigurationProviderEntry],
+        scope: StokdModelConfigurationWriteScope,
+        directory: String
+    ) async throws
 }
 
 enum StokdModelConfigurationCLIArguments {
@@ -104,17 +109,25 @@ struct StokdModelConfigurationCLILoader: StokdModelConfigurationLoading {
             directory: directory,
             arguments: ["model", "list", "--json"]
         )
-        let configJSON = try await runChecked(
+        let defaults = try await runOptionalConfigGet(
             directory: directory,
-            arguments: ["config", "show", "--json"]
+            key: "models.defaults"
+        )
+        let providers = try await runOptionalConfigGet(
+            directory: directory,
+            key: "providers"
+        )
+        let workloadJSON = try await runChecked(
+            directory: directory,
+            arguments: ["model", "workload", "--json"]
         )
 
         let catalogRoot = try Self.parseJSON(catalogJSON)
-        let configRoot = try Self.parseJSON(configJSON)
         return StokdModelConfigurationSnapshot(
             catalog: Self.flattenCatalog(catalogRoot),
-            defaults: Self.readDefaults(from: configRoot),
-            workloads: Self.readWorkloads(from: configRoot)
+            defaults: Self.cleanModelList(Self.stringList(defaults)),
+            workloads: try Self.readWorkloads(fromJSON: workloadJSON),
+            providers: try Self.readProviders(fromYAML: providers ?? "")
         )
     }
 
@@ -128,11 +141,11 @@ struct StokdModelConfigurationCLILoader: StokdModelConfigurationLoading {
             directory: directory,
             arguments: StokdModelConfigurationCLIArguments.writeDefaults(expected, scope: scope)
         )
-        let config = try Self.parseJSON(try await runChecked(
+        let persisted = try await runRequiredConfigGet(
             directory: directory,
-            arguments: ["config", "show", "--json"]
-        ))
-        guard Self.readDefaults(from: config) == expected else {
+            key: "models.defaults"
+        )
+        guard Self.cleanModelList(Self.stringList(persisted)) == expected else {
             throw StokdModelConfigurationCLIError(
                 message: String(localized: "stokdModelConfiguration.error.verifyDefaults", defaultValue: "Stokd did not persist the requested default model order")
             )
@@ -155,15 +168,62 @@ struct StokdModelConfigurationCLILoader: StokdModelConfigurationLoading {
                 scope: scope
             )
         )
-        let config = try Self.parseJSON(try await runChecked(
+        let workloads = try Self.readWorkloads(fromJSON: try await runChecked(
             directory: directory,
-            arguments: ["config", "show", "--json"]
+            arguments: ["model", "workload", "--json"]
         ))
-        guard Self.readWorkloadModels(from: config, slug: writeSlug) == expected else {
+        guard workloads.first(where: { $0.slug == writeSlug })?.models == expected else {
             throw StokdModelConfigurationCLIError(
                 message: String(localized: "stokdModelConfiguration.error.verifyWorkload", defaultValue: "Stokd did not persist the requested workload model order")
             )
         }
+    }
+
+    func applyProviders(
+        _ providers: [StokdModelConfigurationProviderEntry],
+        scope: StokdModelConfigurationWriteScope,
+        directory: String
+    ) async throws {
+        let expected = providers.filter { !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        var arguments = ["config", "set", "providers", try Self.serializeProviders(expected)]
+        if scope == .workspace {
+            arguments.append("--workspace")
+        }
+        _ = try await runChecked(directory: directory, arguments: arguments)
+        let persisted = try await runRequiredConfigGet(directory: directory, key: "providers")
+        guard try Self.readProviders(fromYAML: persisted) == expected else {
+            throw StokdModelConfigurationCLIError(
+                message: String(localized: "stokdModelConfiguration.error.verifyProviders", defaultValue: "Stokd did not persist the requested providers")
+            )
+        }
+    }
+
+    private func runOptionalConfigGet(
+        directory: String,
+        key: String
+    ) async throws -> String? {
+        let result = await client.run(
+            directory: directory,
+            arguments: ["config", "get", key],
+            timeout: timeout
+        )
+        if result.exitStatus != 0,
+           [result.stderr, result.stdout]
+            .compactMap({ $0?.lowercased() })
+            .contains(where: { $0.contains("not found") }) {
+            return nil
+        }
+        return try Self.checkedOutput(result)
+    }
+
+    private func runRequiredConfigGet(
+        directory: String,
+        key: String
+    ) async throws -> String {
+        guard let output = try await runOptionalConfigGet(directory: directory, key: key) else {
+            throw StokdModelConfigurationCLIError(message: "Stokd configuration key '\(key)' was not found")
+        }
+        return output
     }
 
     private func runChecked(
@@ -175,6 +235,10 @@ struct StokdModelConfigurationCLILoader: StokdModelConfigurationLoading {
             arguments: arguments,
             timeout: timeout
         )
+        return try Self.checkedOutput(result)
+    }
+
+    private static func checkedOutput(_ result: CommandResult) throws -> String {
         if let error = result.executionError, !error.isEmpty {
             throw StokdModelConfigurationCLIError(message: error)
         }
@@ -258,72 +322,116 @@ struct StokdModelConfigurationCLILoader: StokdModelConfigurationLoading {
         return StokdModelConfigurationPricing(inputPer1M: input, outputPer1M: output)
     }
 
-    private static func readDefaults(from root: Any) -> [String] {
-        guard let dictionary = root as? [String: Any] else { return [] }
-        let models = dictionary["models"] as? [String: Any]
-        if let value = models?["defaults"] {
-            return cleanModelList(stringList(value))
+    private static func readWorkloads(fromJSON string: String) throws -> [StokdModelConfigurationWorkload] {
+        guard let entries = try parseJSON(string) as? [[String: Any]] else { return [] }
+        return entries.compactMap { entry in
+            guard let rawSlug = entry["workload"] as? String else { return nil }
+            let slug = StokdModelConfigurationCLIArguments.workloadWriteSlug(rawSlug)
+            guard !slug.isEmpty else { return nil }
+            return StokdModelConfigurationWorkload(
+                slug: slug,
+                models: cleanModelList(stringList(entry["models"])),
+                inheritsDefault: entry["inherits_default"] as? Bool ?? false
+            )
         }
-        let llm = dictionary["llm"] as? [String: Any]
-        return cleanModelList(stringList(llm?["fallbackModels"]))
+        .sorted { $0.slug < $1.slug }
     }
 
-    private static func readWorkloads(from root: Any) -> [StokdModelConfigurationWorkload] {
-        let workloads = readWorkloadDictionary(from: root)
-        var bySlug: [String: [String]] = [:]
-        for key in workloads.keys.sorted() {
-            let slug = StokdModelConfigurationCLIArguments.workloadWriteSlug(key)
-            guard !slug.isEmpty else { continue }
-            let models = readWorkloadEntry(workloads[key])
-            if key == slug || bySlug[slug] == nil {
-                bySlug[slug] = models
+    private static func readProviders(fromYAML string: String) throws -> [StokdModelConfigurationProviderEntry] {
+        var providers: [StokdModelConfigurationProviderEntry] = []
+        var name: String?
+        var fields: [StokdModelConfigurationProviderEntry.Field] = []
+
+        func finishObject() {
+            guard let name else { return }
+            providers.append(StokdModelConfigurationProviderEntry(name: name, objectFields: fields))
+        }
+
+        for rawLine in string.split(whereSeparator: \.isNewline) {
+            let line = String(rawLine)
+            if line.hasPrefix("- ") {
+                finishObject()
+                name = nil
+                fields = []
+                let value = String(line.dropFirst(2)).trimmingCharacters(in: .whitespaces)
+                if let pair = yamlPair(value), pair.key == "name" {
+                    name = yamlString(pair.value)
+                } else if !value.isEmpty {
+                    providers.append(StokdModelConfigurationProviderEntry(name: yamlString(value)))
+                }
+                continue
             }
+
+            guard name != nil else { continue }
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            guard let pair = yamlPair(trimmed), pair.key != "name" else { continue }
+            fields.append(.init(key: pair.key, value: yamlValue(pair.value)))
         }
-        return bySlug.keys.sorted().map { slug in
-            StokdModelConfigurationWorkload(slug: slug, models: bySlug[slug] ?? [])
-        }
+        finishObject()
+        return providers
     }
 
-    private static func readWorkloadModels(from root: Any, slug: String) -> [String] {
-        let workloads = readWorkloadDictionary(from: root)
-        for key in workloadReadKeys(slug) {
-            guard let value = workloads[key] else { continue }
-            let models = readWorkloadEntry(value)
-            if !models.isEmpty || value is [Any] {
-                return models
+    private static func yamlPair(_ string: String) -> (key: String, value: String)? {
+        guard let colon = string.firstIndex(of: ":") else { return nil }
+        let key = String(string[..<colon]).trimmingCharacters(in: .whitespaces)
+        guard !key.isEmpty else { return nil }
+        let value = String(string[string.index(after: colon)...]).trimmingCharacters(in: .whitespaces)
+        return (key, value)
+    }
+
+    private static func yamlString(_ rawValue: String) -> String {
+        guard rawValue.count >= 2 else { return rawValue }
+        if rawValue.first == "'", rawValue.last == "'" {
+            return String(rawValue.dropFirst().dropLast()).replacingOccurrences(of: "''", with: "'")
+        }
+        if rawValue.first == "\"", rawValue.last == "\"",
+           let data = "[\(rawValue)]".data(using: .utf8),
+           let decoded = try? JSONSerialization.jsonObject(with: data) as? [String] {
+            return decoded.first ?? ""
+        }
+        return rawValue
+    }
+
+    private static func yamlValue(_ rawValue: String) -> StokdModelConfigurationProviderEntry.Field.Value {
+        let string = yamlString(rawValue)
+        switch string.lowercased() {
+        case "null", "~": return .null
+        case "true": return .bool(true)
+        case "false": return .bool(false)
+        default: break
+        }
+        if let int = Int(string) { return .int(int) }
+        if let double = Double(string) { return .double(double) }
+        return .string(string)
+    }
+
+    private static func serializeProviders(_ providers: [StokdModelConfigurationProviderEntry]) throws -> String {
+        if providers.allSatisfy({ $0.objectFields == nil }) {
+            return providers.map(\.name).joined(separator: ",")
+        }
+        let payload: [Any] = providers.map { provider in
+            guard let fields = provider.objectFields else { return provider.name }
+            var object: [String: Any] = ["name": provider.name]
+            for field in fields {
+                object[field.key] = jsonValue(field.value)
             }
+            return object
         }
-        return []
+        let data = try JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])
+        guard let string = String(data: data, encoding: .utf8) else {
+            throw StokdModelConfigurationCLIError(message: "Unable to serialize Stokd providers")
+        }
+        return string
     }
 
-    private static func readWorkloadDictionary(from root: Any) -> [String: Any] {
-        guard let dictionary = root as? [String: Any] else { return [:] }
-        if let models = dictionary["models"] as? [String: Any],
-           let workloads = models["workloads"] as? [String: Any] {
-            return workloads
+    private static func jsonValue(_ value: StokdModelConfigurationProviderEntry.Field.Value) -> Any {
+        switch value {
+        case let .string(value): return value
+        case let .int(value): return value
+        case let .double(value): return value
+        case let .bool(value): return value
+        case .null: return NSNull()
         }
-        if let llm = dictionary["llm"] as? [String: Any],
-           let workloads = llm["workloads"] as? [String: Any] {
-            return workloads
-        }
-        return [:]
-    }
-
-    private static func readWorkloadEntry(_ value: Any?) -> [String] {
-        if let dictionary = value as? [String: Any],
-           let models = dictionary["models"] {
-            return cleanModelList(stringList(models))
-        }
-        return cleanModelList(stringList(value))
-    }
-
-    private static func workloadReadKeys(_ slug: String) -> [String] {
-        let trimmed = slug.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return [] }
-        if trimmed == "title" || trimmed == "titleGen" || trimmed.lowercased() == "titlegen" {
-            return ["title", "titleGen"]
-        }
-        return [trimmed]
     }
 
     private static func cleanModelList(_ models: [String]) -> [String] {

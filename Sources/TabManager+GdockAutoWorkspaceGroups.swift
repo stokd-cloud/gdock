@@ -5,12 +5,12 @@ extension TabManager {
     /// Debounced entry point: schedule a full Auto Workspace Group reconcile.
     func scheduleGdockAutoWorkspaceGroupReconcile() {
         guard GdockAutoWorkspaceGroupModeSettings.isEnabled() else { return }
-        gdockAutoWorkspaceGroupReconcileWorkItem?.cancel()
-        let workItem = DispatchWorkItem { [weak self] in
+        gdockAutoWorkspaceGroupReconcileTask?.cancel()
+        gdockAutoWorkspaceGroupReconcileTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 250_000_000)
+            guard !Task.isCancelled else { return }
             self?.reconcileGdockAutoWorkspaceGroupsNow()
         }
-        gdockAutoWorkspaceGroupReconcileWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: workItem)
     }
 
     /// Immediately re-group non-anchor workspaces by GitHub `owner/repo` when the mode is on.

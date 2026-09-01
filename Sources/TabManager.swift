@@ -411,7 +411,7 @@ class TabManager: ObservableObject {
     let workspaceCustomizationStore: WorkspaceCustomizationStore
     private var lastFocusHistoryIncludesPanesAndTabs: Bool
     /// Debounce token for gdock Auto Workspace Group Mode reconcile.
-    var gdockAutoWorkspaceGroupReconcileWorkItem: DispatchWorkItem?
+    var gdockAutoWorkspaceGroupReconcileTask: Task<Void, Never>?
     /// Last observed `gdock.autoWorkspaceGroupMode` enablement (gates edge work).
     var lastGdockAutoWorkspaceGroupModeEnabled: Bool?
     /// Commands a repo group's quad launch put into each anchor workspace,
@@ -421,6 +421,12 @@ class TabManager: ObservableObject {
     /// on purpose: after a restart the panes are whatever the user left, and
     /// re-running the launch is the honest response.
     var gdockRepoGroupQuadCommandsByWorkspaceId: [UUID: [String]] = [:]
+    /// Debounce token for gdock Grid Mode shape reconcile.
+    var gdockGridModeReconcileTask: Task<Void, Never>?
+    /// Last observed `gdock.gridMode` enablement (gates edge work).
+    var lastGdockGridModeEnabled: Bool?
+    /// Last observed `gdock.gridModeShape` (gates edge work).
+    var lastGdockGridModeShape: GdockGridShape?
     let nativeSSHConnectionBroker: NativeSSHConnectionBroker
     let agentChatResumeIntentRecorder: any AgentChatResumeIntentRecording
 
@@ -683,6 +689,7 @@ class TabManager: ObservableObject {
                 self?.refreshTabCloseButtonVisibility()
                 self?.refreshWindowTitle()
                 self?.gdockAutoWorkspaceGroupModeSettingsDidChange()
+                self?.gdockGridModeSettingsDidChange()
             }
         })
         observers.append(NotificationCenter.default.addObserver(
@@ -692,6 +699,15 @@ class TabManager: ObservableObject {
         ) { [weak self] _ in
             MainActor.assumeIsolated { [weak self] in
                 self?.gdockAutoWorkspaceGroupModeSettingsDidChange()
+            }
+        })
+        observers.append(NotificationCenter.default.addObserver(
+            forName: GdockGridModeSettings.didChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { [weak self] in
+                self?.gdockGridModeSettingsDidChange(force: true)
             }
         })
 #if DEBUG
@@ -707,8 +723,10 @@ class TabManager: ObservableObject {
             NotificationCenter.default.removeObserver(observer)
         }
         observers.removeAll()
-        gdockAutoWorkspaceGroupReconcileWorkItem?.cancel()
-        gdockAutoWorkspaceGroupReconcileWorkItem = nil
+        gdockAutoWorkspaceGroupReconcileTask?.cancel()
+        gdockAutoWorkspaceGroupReconcileTask = nil
+        gdockGridModeReconcileTask?.cancel()
+        gdockGridModeReconcileTask = nil
         workspaceCycleCooldownTask?.cancel()
         agentPIDSweepTimer?.cancel()
         // The sidebar git/PR services cancel their own poll, probe, snapshot,
@@ -1370,6 +1388,7 @@ class TabManager: ObservableObject {
                 }
             }
             scheduleGdockAutoWorkspaceGroupReconcile()
+            scheduleGdockGridModeReconcile()
             return newWorkspace
         }
     }
@@ -3963,6 +3982,9 @@ class TabManager: ObservableObject {
 
     /// Create a new terminal surface in the focused pane of the selected workspace
     func newSurface() {
+        // gdock Grid Mode: fill the next unactivated cell (or move to a new
+        // shaped workspace) instead of stacking a surface tab.
+        if gdockGridModeRouteNewSurface() { return }
         // Cmd+T should always focus the newly created surface.
         selectedWorkspace?.clearSplitZoom()
         selectedWorkspace?.newTerminalSurfaceInFocusedPane(focus: true)
@@ -6857,6 +6879,9 @@ extension TabManager {
                 userInfo: [GhosttyNotificationKey.tabId: selectedTabId]
             )
         }
+        // gdock Grid Mode: restored workspaces must come back in the
+        // enforced shape (no-op for workspaces that already match).
+        scheduleGdockGridModeReconcile()
         return restoredPanelIdsByWorkspaceIndex
     }
 

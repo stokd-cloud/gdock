@@ -192,7 +192,7 @@ final class StokdModelConfigurationViewModel: ObservableObject {
 
     private func upsertWorkload(slug: String, models: [String]) {
         var next = workloads.filter { $0.slug != slug }
-        next.append(StokdModelConfigurationWorkload(slug: slug, models: models))
+        next.append(StokdModelConfigurationWorkload(slug: slug, models: models, inheritsDefault: false))
         workloads = next.sorted { $0.slug < $1.slug }
         state = .populated
     }

@@ -790,6 +790,36 @@ enum CommandPaletteSettingsToggleCommands {
                 }
             ),
             CommandPaletteSettingToggleDescriptor(
+                commandId: GdockGridModeSettings.commandId,
+                settingsKey: GdockGridModeSettings.settingsKey,
+                title: {
+                    String(
+                        localized: "settings.gdock.gridMode",
+                        defaultValue: "Grid Mode"
+                    )
+                },
+                sectionTitle: gdock,
+                keywords: [
+                    "gdock.gridMode",
+                    "gdock",
+                    "grid",
+                    "quad",
+                    "split",
+                    "shape",
+                    "rows",
+                    "columns",
+                    "workspace",
+                ],
+                defaultValue: GdockGridModeSettings.defaultEnabled,
+                defaultsKey: GdockGridModeSettings.userDefaultsKey,
+                didSet: { _, _, notificationCenter in
+                    notificationCenter.post(
+                        name: GdockGridModeSettings.didChangeNotification,
+                        object: nil
+                    )
+                }
+            ),
+            CommandPaletteSettingToggleDescriptor(
                 commandId: commandIdPrefix + "rightSidebarFeed",
                 settingsKey: "betaFeatures.feed",
                 title: {
