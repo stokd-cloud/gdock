@@ -71,6 +71,39 @@ import Testing
         #expect(GitMetadataService.primaryGitHubRepositorySlug(for: "/tmp") == nil)
     }
 
+    @Test func primaryGitHubRepositorySlugPrefersOriginForForkCheckoutIdentity() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("cmux-git-fork-slug-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let gitDir = root.appendingPathComponent(".git", isDirectory: true)
+        try FileManager.default.createDirectory(at: gitDir, withIntermediateDirectories: true)
+        let config = """
+        [core]
+        \trepositoryformatversion = 0
+        [remote "origin"]
+        \turl = https://github.com/stokd-cloud/ghostty-dock.git
+        \tfetch = +refs/heads/*:refs/remotes/origin/*
+        [remote "upstream"]
+        \turl = https://github.com/manaflow-ai/cmux.git
+        \tfetch = +refs/heads/*:refs/remotes/upstream/*
+        """
+        try config.write(to: gitDir.appendingPathComponent("config"), atomically: true, encoding: .utf8)
+
+        let nested = root.appendingPathComponent("ghostty-dock", isDirectory: true)
+        try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
+
+        #expect(
+            GitMetadataService.githubRepositorySlugs(
+                fromGitRemoteVOutput: GitMetadataService.gitRemoteVLines(fromConfig: config).joined()
+            ) == ["manaflow-ai/cmux", "stokd-cloud/ghostty-dock"]
+        )
+        #expect(
+            GitMetadataService.primaryGitHubRepositorySlug(for: nested.path) == "stokd-cloud/ghostty-dock"
+        )
+    }
+
     // MARK: config parsing
 
     @Test func remoteVLinesParseUrlFromConfig() {

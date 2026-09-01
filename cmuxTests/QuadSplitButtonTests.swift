@@ -110,6 +110,42 @@ struct QuadSplitButtonTests {
         #expect(ShortcutAction.splitQuad.defaultStroke == nil)
     }
 
+    @Test("gdock quad pane shortcut actions default to Cmd-Y and Cmd-Shift-Y")
+    @MainActor
+    func gdockQuadPaneShortcutActionsAreDefaultedAndEditable() {
+        let originalStore = KeyboardShortcutSettings.installIsolatedTestFileStore(
+            prefix: "cmux-gdock-quad-shortcuts"
+        )
+        defer {
+            KeyboardShortcutSettings.resetAll()
+            KeyboardShortcutSettings.settingsFileStore = originalStore
+        }
+        KeyboardShortcutSettings.resetAll()
+
+        #expect(KeyboardShortcutSettings.Action.gdockNextQuadPane.rawValue == "gdock.nextQuadPane")
+        #expect(KeyboardShortcutSettings.Action.gdockQuadPaneWorkspaces.rawValue == "gdock.quadPaneWorkspaces")
+        #expect(KeyboardShortcutSettings.shortcut(for: .gdockNextQuadPane) == StoredShortcut(key: "y", command: true))
+        #expect(KeyboardShortcutSettings.shortcut(for: .gdockQuadPaneWorkspaces) == StoredShortcut(key: "y", command: true, shift: true))
+        #expect(KeyboardShortcutSettings.publicShortcutActions.contains(.gdockNextQuadPane))
+        #expect(KeyboardShortcutSettings.publicShortcutActions.contains(.gdockQuadPaneWorkspaces))
+        #expect(KeyboardShortcutSettings.settingsVisibleActions.contains(.gdockNextQuadPane))
+        #expect(KeyboardShortcutSettings.settingsVisibleActions.contains(.gdockQuadPaneWorkspaces))
+
+        let custom = StoredShortcut(key: "y", command: true, shift: true, option: true)
+        KeyboardShortcutSettings.setShortcut(custom, for: .gdockNextQuadPane)
+        #expect(KeyboardShortcutSettings.shortcut(for: .gdockNextQuadPane) == custom)
+    }
+
+    @Test("package ShortcutAction catalogs gdock quad pane defaults")
+    func packageShortcutActionCatalogsGdockQuadPaneDefaults() {
+        #expect(ShortcutAction.gdockNextQuadPane.rawValue == "gdock.nextQuadPane")
+        #expect(ShortcutAction.gdockQuadPaneWorkspaces.rawValue == "gdock.quadPaneWorkspaces")
+        #expect(ShortcutAction.gdockNextQuadPane.group == .panes)
+        #expect(ShortcutAction.gdockQuadPaneWorkspaces.group == .panes)
+        #expect(ShortcutAction.gdockNextQuadPane.defaultStroke == ShortcutStroke(key: "y", command: true))
+        #expect(ShortcutAction.gdockQuadPaneWorkspaces.defaultStroke == ShortcutStroke(key: "y", command: true, shift: true))
+    }
+
     @Test("Dock tri-state routing: notApplicable when Dock unfocused")
     @MainActor
     func dockRouteNotApplicableWhenUnfocused() async throws {
