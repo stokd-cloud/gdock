@@ -118,34 +118,16 @@ final class RightSidebarToolPanel: Panel, ObservableObject {
         }
     }
 
+    /// Opens a file activated in this panel's Files tree or Find results.
+    ///
+    /// The open path itself lives in ``FileExplorerFileOpenCoordinator`` so both
+    /// file-explorer hosts (this panel and the right sidebar in `ContentView`)
+    /// share one behavior.
     func openFilePreview(_ filePath: String) {
-        guard let workspace,
-              let paneId = workspace.bonsplitController.focusedPaneId ?? workspace.bonsplitController.allPaneIds.first else {
-            return
-        }
-        if workspace.isRemoteWorkspace {
-            let store = fileExplorerStore
-            Task { [weak workspace, weak store] in
-                guard let workspace, let store else { return }
-                do {
-                    let localURL = try await store.materializeRemoteFileForPreview(path: filePath)
-                    _ = workspace.openFileSurfaces(
-                        inPane: paneId,
-                        filePaths: [localURL.path],
-                        focus: true,
-                        reuseExisting: true
-                    )
-                } catch {
-                    NSSound.beep()
-                }
-            }
-            return
-        }
-        _ = workspace.openFileSurfaces(
-            inPane: paneId,
-            filePaths: [filePath],
-            focus: true,
-            reuseExisting: true
+        FileExplorerFileOpenCoordinator.shared.open(
+            filePath: filePath,
+            in: workspace,
+            remoteMaterializationStore: fileExplorerStore
         )
     }
 
