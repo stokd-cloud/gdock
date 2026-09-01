@@ -227,13 +227,32 @@ sidebar as an immutable value reduced above the lazy-list boundary.
    rather than inventing a session.
 6. Reduce to `GdockWorkspacePanelCard` above the lazy-list boundary. A card view
    holds no store reference and reads no observable state.
-7. Derive the displayed line; never render raw entry text. First sentence,
-   whitespace-collapsed, capped with an ellipsis, trailing period stripped.
-   Counts and disposition are voiced in the accessibility label rather than
-   drawn, so a card stays one line.
-8. Preserve unknown kinds. gdock ships on its own cadence; a kind the CLI adds
+7. Emit a card only for a pane actually running an agent — one with a non-empty
+   `agentPIDKeysByPanelId` entry. A plain shell pane gets no card, so a
+   four-pane workspace with one agent shows one card rather than four rows of
+   nothing.
+8. Render the cards as ONE selection-ringed stack that stands in for the focused
+   workspace's own row, not as sibling rows beneath it. Drawing both would show
+   that workspace twice. Because the stack *is* that row it stays in the
+   reorderable-row set and keeps its workspace's number — excluding it silently
+   renumbers every workspace after it and shifts the Cmd-N shortcuts.
+9. Resolve per-pane title and directory through the workspace's own accessors
+   (`resolvedPanelTitle`, `effectivePanelDirectory` with `currentDirectory` as
+   the local fallback), never the raw `panelTitles` / `panelDirectories` maps.
+   Those are populated only by shell-integration reporting, so reading them
+   directly renders a blank card and — because an empty directory
+   short-circuits the store lookup — silently suppresses every summary.
+10. Derive the displayed line; never render raw entry text. First sentence,
+   whitespace-collapsed, capped with an ellipsis, trailing period stripped. A
+   card carries the agent's glyph, the latest outcome kind as a badge, that
+   headline, the session's short id, and one metadata line.
+11. The metadata line carries only recorded values: elapsed since the session's
+   `started_at`, counts by kind, and the age of the newest entry. Progress
+   percentages and time-remaining estimates are NOT recorded anywhere gdock
+   reads; omit them rather than inventing them.
+12. Preserve unknown kinds. gdock ships on its own cadence; a kind the CLI adds
    later must still display, not vanish.
-9. Gate the surface on `gdock.panelCardSessionSummaries`. With it off the
+13. Gate the surface on `gdock.panelCardSessionSummaries`. With it off the
    reduce attaches nothing at all, rather than computing a value it then hides.
 
 ### Acceptance Checks
@@ -248,10 +267,14 @@ sidebar as an immutable value reduced above the lazy-list boundary.
 - Pane-to-session selection: each of the four precedence tiers has a test that
   fails if the tier above it is removed, and an empty descriptor list yields
   nil.
-- Display model: `GdockWorkspacePanelCardBuilder.cards` called without
-  `summariesByPaneId` is byte-identical to its pre-summary output, and no view
-  under the sidebar's lazy container references
-  `StokdSessionOutcomesStore`.
+- Population: a workspace of four panes where one runs an agent yields exactly
+  one card; a workspace with no agent panes yields none.
+- Structure: when a stack is emitted the focused workspace contributes no
+  ordinary row, and `numberedWorkspaceIndexById` is identical to the all-rows
+  arrangement.
+- Display model: no view under the sidebar's lazy container references
+  `StokdSessionOutcomesStore`, and the metadata line contains no percent or ETA
+  text.
 - `Resources/Localizable.xcstrings` has English and Japanese entries for every
   summary string.
 

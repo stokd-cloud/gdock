@@ -10,6 +10,39 @@ struct CmuxCLIPathInstaller {
     static let compatibilityCLIDestinationPath = "/usr/local/bin/cmux"
     /// Relative path of the bundled CLI inside the app resources.
     static let bundledCLIResourceRelativePath = "bin/gdock"
+    /// Upstream cmux name of the bundled CLI, kept as a spawn fallback.
+    static let legacyBundledCLIResourceRelativePath = "bin/cmux"
+
+    /// Resource-relative paths to probe when the app spawns its own CLI, in
+    /// priority order.
+    ///
+    /// The fork renamed the bundled binary to `bin/gdock`, so an app-side spawn
+    /// that hardcodes the upstream `bin/cmux` name resolves to nothing and the
+    /// feature behind it silently does nothing.
+    static var bundledCLIResourceRelativePathCandidates: [String] {
+        [bundledCLIResourceRelativePath, legacyBundledCLIResourceRelativePath]
+    }
+
+    /// The bundled CLI the app can spawn, or `nil` when no candidate is
+    /// executable.
+    ///
+    /// - Parameters:
+    ///   - bundle: Bundle whose resources are probed.
+    ///   - isExecutable: Executability probe, injectable for tests.
+    /// - Returns: The first executable candidate.
+    static func bundledCLIExecutableURL(
+        bundle: Bundle = .main,
+        isExecutable: (String) -> Bool = { FileManager.default.isExecutableFile(atPath: $0) }
+    ) -> URL? {
+        guard let resourceURL = bundle.resourceURL else { return nil }
+        for relativePath in bundledCLIResourceRelativePathCandidates {
+            let candidate = resourceURL.appendingPathComponent(relativePath, isDirectory: false)
+            if isExecutable(candidate.path) {
+                return candidate
+            }
+        }
+        return nil
+    }
 
     struct InstallOutcome {
         let usedAdministratorPrivileges: Bool

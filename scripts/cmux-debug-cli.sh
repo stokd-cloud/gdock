@@ -64,20 +64,25 @@ fi
 tagged_products_dir="${HOME}/Library/Developer/Xcode/DerivedData/cmux-${tag_slug}/Build/Products"
 cli_path=""
 cli_path_mtime=-1
+# reload.sh stages Release as "gdock <tag>.app" and Debug as
+# "gdock DBG <tag>.app"; the older DEV names stay in the probe list so a
+# previously built tag keeps resolving.
 for config in Release Debug; do
-  candidate="${tagged_products_dir}/${config}/Ghostty Dock DEV ${tag_slug}.app/Contents/Resources/bin/gdock"
-  if [[ -x "$candidate" ]]; then
-    candidate_mtime="$(stat -f '%m' "$candidate" 2>/dev/null || echo 0)"
-    if (( candidate_mtime > cli_path_mtime )); then
-      cli_path_mtime="$candidate_mtime"
-      cli_path="$candidate"
+  for app_name in "gdock ${tag_slug}" "gdock DBG ${tag_slug}" "gdock DEV ${tag_slug}" "cmux DEV ${tag_slug}"; do
+    candidate="${tagged_products_dir}/${config}/${app_name}.app/Contents/Resources/bin/gdock"
+    if [[ -x "$candidate" ]]; then
+      candidate_mtime="$(stat -f '%m' "$candidate" 2>/dev/null || echo 0)"
+      if (( candidate_mtime > cli_path_mtime )); then
+        cli_path_mtime="$candidate_mtime"
+        cli_path="$candidate"
+      fi
     fi
-  fi
+  done
 done
 if [[ -z "$cli_path" ]]; then
   cat >&2 <<EOF
 Tagged gdock CLI not found in either configuration:
-  ${tagged_products_dir}/{Release,Debug}/Ghostty Dock DEV ${tag_slug}.app/Contents/Resources/bin/gdock
+  ${tagged_products_dir}/{Release,Debug}/gdock[ DBG| DEV] ${tag_slug}.app/Contents/Resources/bin/gdock
 
 Build the tagged app first:
   ./scripts/reload.sh --tag $CMUX_TAG
