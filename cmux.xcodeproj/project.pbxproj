@@ -1540,6 +1540,8 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		00C3AA443F6DA8D94E28CE17 /* MobileWorkspaceListObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9F14137954A34DFFA05C88C /* MobileWorkspaceListObserver.swift */; };
 		D75280030000000000000001 /* MobileWorkspaceObserverSignposts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D75280030000000000000002 /* MobileWorkspaceObserverSignposts.swift */; };
 		13AB1A2E5DA6AD02DCAE971D /* MockBridgeInputCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3B5F249DECAB446CC71D32 /* MockBridgeInputCapture.swift */; };
+		4D4F4E41434F4C414E470002 /* MonacoLanguageSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D4F4E41434F4C414E470001 /* MonacoLanguageSupport.swift */; };
+		4D4F4E41434F544553540002 /* MonacoLanguageSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D4F4E41434F544553540001 /* MonacoLanguageSupportTests.swift */; };
 		C75740020000000000000001 /* MouseDownMenuItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C75740020000000000000002 /* MouseDownMenuItemView.swift */; };
 		B9000015A1B2C3D4E5F60719 /* MultiWindowNotificationsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9000016A1B2C3D4E5F60719 /* MultiWindowNotificationsUITests.swift */; };
 		D77690000000000000000005 /* MultiWindowNotificationsWorkspaceHeadlineUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D77690000000000000000006 /* MultiWindowNotificationsWorkspaceHeadlineUITests.swift */; };
@@ -4478,6 +4480,8 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		C9F14137954A34DFFA05C88C /* MobileWorkspaceListObserver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MobileWorkspaceListObserver.swift; sourceTree = "<group>"; };
 		D75280030000000000000002 /* MobileWorkspaceObserverSignposts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileWorkspaceObserverSignposts.swift; sourceTree = "<group>"; };
 		CD3B5F249DECAB446CC71D32 /* MockBridgeInputCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockBridgeInputCapture.swift; sourceTree = "<group>"; };
+		4D4F4E41434F4C414E470001 /* MonacoLanguageSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Panels/MonacoLanguageSupport.swift; sourceTree = "<group>"; };
+		4D4F4E41434F544553540001 /* MonacoLanguageSupportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonacoLanguageSupportTests.swift; sourceTree = "<group>"; };
 		C75740020000000000000002 /* MouseDownMenuItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Update/MouseDownMenuItemView.swift; sourceTree = "<group>"; };
 		B9000016A1B2C3D4E5F60719 /* MultiWindowNotificationsUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiWindowNotificationsUITests.swift; sourceTree = "<group>"; };
 		D77690000000000000000006 /* MultiWindowNotificationsWorkspaceHeadlineUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiWindowNotificationsWorkspaceHeadlineUITests.swift; sourceTree = "<group>"; };
@@ -7595,6 +7599,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				A50014F6 /* MarkdownRemoteImageLoader.swift */,
 				A50014F8 /* MarkdownWebSupport.swift */,
 				A50014F1 /* MarkdownViewerAssets.swift */,
+				4D4F4E41434F4C414E470001 /* MonacoLanguageSupport.swift */,
 				C0DE86520000000000000010 /* FilePreviewFileState.swift */,
 				C0DE8652000000000000000C /* FilePreviewLatestLoadCoordinator.swift */,
 				C0DE8652000000000000000E /* FilePreviewLatestRequestState.swift */,
@@ -8652,6 +8657,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				GDOCKGRID00000000000001 /* GdockGridModeTests.swift */,
 				GDOCKPIP000000000000005 /* GdockPipFloatingWindowTests.swift */,
 				606500010000000000000002 /* MenuBarOnlyActivationPolicyTests.swift */,
+				4D4F4E41434F544553540001 /* MonacoLanguageSupportTests.swift */,
 				B37A0000000000000000000C /* FileExplorerStateModePersistenceTests.swift */,
 				BC39DE4B96D1931C52AF7D68 /* SidebarOrderingTests.swift */,
 				86544CEFA1CA33CA9225FB6E /* MobileWorkspaceListFidelityTests.swift */,
@@ -10341,6 +10347,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				018B51BF03D44D3381D2DA30 /* MobileWorkspaceEmissionCoalescer.swift in Sources */,
 				00C3AA443F6DA8D94E28CE17 /* MobileWorkspaceListObserver.swift in Sources */,
 				D75280030000000000000001 /* MobileWorkspaceObserverSignposts.swift in Sources */,
+				4D4F4E41434F4C414E470002 /* MonacoLanguageSupport.swift in Sources */,
 					C75740020000000000000001 /* MouseDownMenuItemView.swift in Sources */,
 				596100000000000000000003 /* NativeNotificationDeliveryHooks.swift in Sources */,
 					A6AC72030000000000000001 /* NativeSpinner.swift in Sources */,
@@ -11947,6 +11954,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				F5A700000000000000000001 /* MobileTaskFilesystemJobQuotaTests.swift in Sources */,
 				F6448F377504F33956E7E03B /* MobileWorkspaceListFidelityTests.swift in Sources */,
 				13AB1A2E5DA6AD02DCAE971D /* MockBridgeInputCapture.swift in Sources */,
+				4D4F4E41434F544553540002 /* MonacoLanguageSupportTests.swift in Sources */,
 				596100000000000000000001 /* NativeNotificationFallbackCommandTests.swift in Sources */,
 				A5FB1400 /* NewWorkspaceMenuModelTests.swift in Sources */,
 				734F49D37E543DD01C2F4FEF /* NotificationAndMenuBarTests.swift in Sources */,
