@@ -8,48 +8,42 @@ import CmuxSettings
 @testable import cmux
 #endif
 
-@Suite("Right sidebar dock presentation", .serialized)
+@Suite("Right sidebar stacked presentation", .serialized)
 struct RightSidebarDockPresentationTests {
-    @Test func sidebarDockSpacesDoNotStackRightTabsByDefault() {
+    @Test func stackedSectionsFollowTheGdockSettingAlone() {
         let suite = "cmux.tests.right-sidebar.presentation.default.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
 
-        defaults.set(true, forKey: RightSidebarBetaFeatureSettings.sidebarDockEnabledKey)
-
         #expect(defaults.object(forKey: RightSidebarDockPresentationSettings.userDefaultsKey) == nil)
         #expect(!RightSidebarDockPresentationSettings.isStackedTabsEnabled(defaults: defaults))
-        #expect(!RightSidebarDockPresentationPolicy.usesStackedTabs(
-            sidebarDockSpacesEnabled: RightSidebarBetaFeatureSettings.isSidebarDockEnabled(defaults: defaults),
-            stackedTabsEnabled: RightSidebarDockPresentationSettings.isStackedTabsEnabled(defaults: defaults),
-            hasDockRegistry: true
-        ))
+        #expect(!RightSidebarDockPresentationPolicy.usesStackedTabs(stackedTabsEnabled: false))
+
+        defaults.set(true, forKey: RightSidebarDockPresentationSettings.userDefaultsKey)
+        #expect(RightSidebarDockPresentationSettings.isStackedTabsEnabled(defaults: defaults))
+        #expect(RightSidebarDockPresentationPolicy.usesStackedTabs(stackedTabsEnabled: true))
     }
 
-    @Test func stackedRightTabsRequireExplicitGdockSettingAndRegistry() {
-        let suite = "cmux.tests.right-sidebar.presentation.enabled.\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suite)!
-        defer { defaults.removePersistentDomain(forName: suite) }
+    @Test func allSidebarToolsIncludingWorkAreStackable() {
+        #expect(RightSidebarMode.stackableModes == [.files, .find, .sessions, .stokdWork])
+        #expect(RightSidebarMode.stokdWork.canStackAsSection)
+        #expect(RightSidebarMode.files.canStackAsSection)
+        #expect(RightSidebarMode.find.canStackAsSection)
+        #expect(RightSidebarMode.sessions.canStackAsSection)
+        #expect(!RightSidebarMode.feed.canStackAsSection)
+        #expect(!RightSidebarMode.dock.canStackAsSection)
+        #expect(!RightSidebarMode.customSidebar.canStackAsSection)
 
-        defaults.set(true, forKey: RightSidebarBetaFeatureSettings.sidebarDockEnabledKey)
-        defaults.set(true, forKey: RightSidebarDockPresentationSettings.userDefaultsKey)
+        var layout = RightSidebarSectionLayout()
+        layout.insert(.stokdWork, at: 0)
+        #expect(layout.contains(.stokdWork))
+    }
 
-        #expect(RightSidebarDockPresentationSettings.isStackedTabsEnabled(defaults: defaults))
-        #expect(RightSidebarDockPresentationPolicy.usesStackedTabs(
-            sidebarDockSpacesEnabled: true,
-            stackedTabsEnabled: true,
-            hasDockRegistry: true
-        ))
-        #expect(!RightSidebarDockPresentationPolicy.usesStackedTabs(
-            sidebarDockSpacesEnabled: false,
-            stackedTabsEnabled: true,
-            hasDockRegistry: true
-        ))
-        #expect(!RightSidebarDockPresentationPolicy.usesStackedTabs(
-            sidebarDockSpacesEnabled: true,
-            stackedTabsEnabled: true,
-            hasDockRegistry: false
-        ))
+    @Test func sidebarDockSpacesSettingIsRemovedEverywhere() {
+        #expect(!CmuxSettingsFileStore.supportedSettingsJSONPaths.contains("betaFeatures.sidebarDock"))
+        #expect(CommandPaletteSettingsToggleCommands.descriptor(
+            commandId: "palette.toggleSetting.sidebarDock"
+        ) == nil)
     }
 
     @Test func stackedTabsSettingUsesGdockPrefixEverywhere() throws {

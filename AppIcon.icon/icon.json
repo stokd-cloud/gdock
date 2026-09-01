@@ -5,13 +5,13 @@
       "layers" : [
         {
           "glass" : false,
-          "image-name" : "cmux-icon-chevron 2.png",
-          "name" : "cmux-icon-chevron 2",
+          "image-name" : "ghostty-dock-icon-v2.png",
+          "name" : "ghostty-dock-icon-v2",
           "position" : {
             "scale" : 1,
             "translation-in-points" : [
-              37.357790031201375,
-              -0.5
+              30.809531784929033,
+              -0.382640586797066
             ]
           }
         }

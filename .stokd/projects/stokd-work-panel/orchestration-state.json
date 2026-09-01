@@ -1,0 +1,337 @@
+{
+  "slug": "stokd-work-panel",
+  "title": "Stokd Work Panel",
+  "status": "active",
+  "created_at": "2026-08-28T09:17:25.894804+00:00",
+  "storage_mode": "database",
+  "error_message": null,
+  "progress_log": [
+    "[2026-08-28T09:17:27.225870+00:00] Project created; PRD written to prd.md; phases extracted; review files written to phases/"
+  ],
+  "review_mode": "complete",
+  "workspace_root": "/opt/worktrees/stokd-cloud/gdock/main",
+  "phases": [
+    {
+      "phase_number": 1,
+      "purpose": "One unattended pass. Every decision the work depends on — un-gate rather than",
+      "title": "Make Work a real, CLI-backed work surface",
+      "work_items": [
+        {
+          "acceptance_criteria": "- AC-1.1.a: `RightSidebarMode.availableModes(feedEnabled: false, dockEnabled: false,\n  sidebarDockEnabled: false)` equals `[.files, .find, .sessions, .stokdWork]` → Work present at\n  index 3.\n- AC-1.1.b: the symbol `StokdWorkPlaceholderView` no longer exists anywhere in the target.\n- AC-1.1.c: `resolvedAfterSidebarDockGateChange` no longer exists, and no code path rewrites\n  `.stokdWork` to `.files`.\n- AC-1.1.d: the tab host does not apply the rail section-chrome modifier; the rail host does.\n- AC-1.1.e: `xcodebuild … test -only-testing:cmuxTests/StokdWorkAvailabilityTests` → exit 0.",
+          "acceptance_tests": "- Test-1.1.a: Unit — `StokdWorkAvailabilityTests` covers AC-1.1.a and AC-1.1.c.\n- Test-1.1.b: Regression — a test asserting the non-dock host resolves `.stokdWork` to\n  `StokdWorkPanelView`, covering AC-1.1.b.\n- Test-1.1.c: Unit — section-chrome host test covering AC-1.1.d.",
+          "dependencies": [],
+          "implementation_details": "- `RightSidebarMode.isAvailable`: `.stokdWork` returns `true` unconditionally; drop the\n  `sidebarDockEnabled` input from its branch. Delete `resolvedAfterSidebarDockGateChange`, which\n  today rewrites `.stokdWork` to `.files` whenever the gate is off, and its call site in\n  `Sources/FileExplorerState.swift`.\n- `Sources/RightSidebarPanelView.swift`: the non-dock content host currently resolves `.stokdWork`\n  to `StokdWorkPlaceholderView`. Resolve it to `StokdWorkPanelView` backed by a window-scoped\n  `StokdWorkPanelViewModel`, and delete `StokdWorkPlaceholderView`.\n- Extract the repo-slug resolution currently private to\n  `RightSidebarToolPanel.syncStokdWorkRepository` into one shared resolver used by both the rail\n  host and the new non-dock host, per the repo's shared-behavior policy — one resolution path, not\n  one per entrypoint.\n- `Sources/ContentView+RightSidebarCommandPalette.swift`: the `.stokdWork` branch requires\n  `isSidebarDockEnabled()` and rejects otherwise; add the non-dock show path so\n  `palette.gdock.showStokdWork` works with docking off.\n- `SidebarDockSeeding` / `SidebarDockSessionPersistence`: `includeStokdWork:` becomes unconditional.\n  Keep the existing right-edge-only placement rule in `SidebarDockPlacementMatrix`.\n- Section chrome (`Collapse Section` / `Move Section Up` / `Move Section Down`) is applied by the\n  rail host only; assert the tab host does not apply it.\n- Failure mode: enum declaration order places Work at mode-bar index 3 with Feed and Dock off —\n  the slot the Dock tab occupies when its flag is on. Existing tests asserting the gated behavior\n  are updated to the new spec; this is a spec change, not a test weakening.",
+          "item_number": "1.1",
+          "targets": [
+            "VAL-GATE-001",
+            "VAL-CHROME-001"
+          ],
+          "title": "Un-gate Work and render it on the non-dock path",
+          "verification_commands": "set -euo pipefail\n! grep -rn \"StokdWorkPlaceholderView\" Sources\n! grep -rn \"resolvedAfterSidebarDockGateChange\" Sources\n./scripts/lint-pbxproj-test-wiring.sh\nxcodebuild -project cmux.xcodeproj -scheme cmux -configuration Debug \\\n  -destination 'platform=macOS' -derivedDataPath /tmp/cmux-work-panel \\\n  test -only-testing:cmuxTests/StokdWorkAvailabilityTests"
+        },
+        {
+          "acceptance_criteria": "- AC-1.2.a: `StokdRailPanelAvailability` does not exist in the target → grep exits non-zero.\n- AC-1.2.b: `.stokdWork.isAvailable(...)` returns the same value for `sidebarDockEnabled: true` and\n  `sidebarDockEnabled: false`.\n- AC-1.2.c: `./scripts/lint-stokd-work-dock-independence.sh` → exit 0.",
+          "acceptance_tests": "- Test-1.2.a: Unit — parameterized availability test covering AC-1.2.b.\n- Test-1.2.b: Regression — the lint script itself, run in CI, covering AC-1.2.a and AC-1.2.c.",
+          "dependencies": [
+            "1.1"
+          ],
+          "implementation_details": "- Delete `StokdRailPanelAvailability` from `Sources/App/WorkspaceRuntimeSettings.swift` and every\n  call site that used it to suppress Work.\n- Add `scripts/lint-stokd-work-dock-independence.sh`: fails when `Sources/Stokd/` or\n  `Sources/RightSidebarMode+Availability.swift` mentions `SidebarDock`, `StokdRailPanelAvailability`,\n  or `sidebar.beta.dock.enabled`.\n- Keep the rail *hosting* of Work intact — the rail may host Work; Work may not know the rail exists.\n- Failure mode: the placement matrix legitimately names `.stokdWork`; the lint covers Work-owned\n  files only, not the dock subsystem's own files.",
+          "item_number": "1.2",
+          "targets": [
+            "VAL-GATE-002"
+          ],
+          "title": "Sever the sidebar-dock coupling",
+          "verification_commands": "set -euo pipefail\n! grep -rn \"StokdRailPanelAvailability\" Sources\n./scripts/lint-stokd-work-dock-independence.sh\nxcodebuild -project cmux.xcodeproj -scheme cmux -configuration Debug \\\n  -destination 'platform=macOS' -derivedDataPath /tmp/cmux-work-panel \\\n  test -only-testing:cmuxTests/StokdWorkAvailabilityTests"
+        },
+        {
+          "acceptance_criteria": "- AC-1.3.a: the loader dispatches the exact argument vector\n  `[\"task\", \"list\", \"--repo\", \"<slug>\", \"--all\", \"--json\", \"--limit\", \"<n>\"]` (and the project /\n  todo equivalents) to the injected runner.\n- AC-1.3.b: given recorded CLI JSON for all three verbs, the resulting row hash set equals the\n  fixture hash set exactly.\n- AC-1.3.c: a non-zero exit renders a failure state containing the CLI's stderr text.\n- AC-1.3.d: `grep -rnE \"localhost|8167|http://|URLSession\" Sources/Stokd` → no matches.\n- AC-1.3.e: `xcodebuild … test -only-testing:cmuxTests/StokdWorkCLILoaderTests` → exit 0.",
+          "acceptance_tests": "- Test-1.3.a: Unit — argument-vector test against a fake `CommandRunning`, covering AC-1.3.a.\n- Test-1.3.b: Integration — replay of recorded three-verb JSON, covering AC-1.3.b.\n- Test-1.3.c: Unit — non-zero-exit and timeout paths, covering AC-1.3.c.",
+          "dependencies": [
+            "1.1"
+          ],
+          "implementation_details": "- Delete `Sources/Stokd/StokdWorkAPIClient.swift` and its `StokdWorkLoading` conformance. Replace\n  it with `StokdWorkCLILoader`, conforming to the existing `StokdWorkLoading` protocol so the view\n  model's contract is unchanged.\n- The loader runs, concurrently, through `StokdCLIRunner` with the workspace directory as cwd:\n  `stokd task list --repo <slug> --all --json --limit <n>`,\n  `stokd project list --repo <slug> --all --json --limit <n>`,\n  `stokd todo list --repo <slug> --all --json --limit <n>`.\n- Decode into `StokdTask` / `StokdProject` / `StokdTodo`. The CLI's list JSON is thinner than the\n  HTTP DTOs — task rows carry `hash`, `id`, `priority`, `repo_slug`, `status`, `task_number`,\n  `title`, `updated_at` and **no description** — so `StokdWorkModels.swift` must be re-keyed to the\n  CLI shapes and the row detail line must fall back to the status/updated metadata rather than a\n  description that is not there.\n- Failure modes to map to a user-visible state, each carrying the CLI's stderr: executable not\n  found (exit 127 from the runner), non-zero exit, timeout, and undecodable stdout. Preserve the\n  existing generation-counter cancellation so a stale response never overwrites a newer one.\n- Do not shell out on every keystroke or every `body` evaluation; load on repo change, on explicit\n  refresh, and on an action completing.",
+          "item_number": "1.3",
+          "targets": [
+            "VAL-DATA-001",
+            "VAL-DATA-002"
+          ],
+          "title": "Replace the HTTP client with a CLI-backed loader",
+          "verification_commands": "set -euo pipefail\n! grep -rnE \"localhost|8167|http://|URLSession\" Sources/Stokd\ntest ! -f Sources/Stokd/StokdWorkAPIClient.swift\n./scripts/lint-pbxproj-test-wiring.sh\nxcodebuild -project cmux.xcodeproj -scheme cmux -configuration Debug \\\n  -destination 'platform=macOS' -derivedDataPath /tmp/cmux-work-panel \\\n  test -only-testing:cmuxTests/StokdWorkCLILoaderTests"
+        },
+        {
+          "acceptance_criteria": "- AC-1.4.a: recorded `stokd todo list --json` maps to todo rows whose completed/total counts equal\n  the fixture's item statuses.\n- AC-1.4.b: selecting the Todos kind filter yields only `.todo` rows; `.all` includes them.\n- AC-1.4.c: a todo with no `items` key renders a row with a 0/0 count and does not throw.\n- AC-1.4.d: `xcodebuild … test -only-testing:cmuxTests/StokdWorkTodoKindTests` → exit 0.",
+          "acceptance_tests": "- Test-1.4.a: Unit — todo decode + count mapping, covering AC-1.4.a and AC-1.4.c.\n- Test-1.4.b: Unit — kind filter over a mixed fixture, covering AC-1.4.b.",
+          "dependencies": [
+            "1.3"
+          ],
+          "implementation_details": "- Add `StokdTodo` to `StokdWorkModels.swift` keyed to `stokd todo list --json`: `hash`, `id`,\n  `title`, `status`, `repo_slug`, `updated_at`, and a nested `items[]` of\n  `{ id, order, title, status, kind, ref_hash, task_hash, repo_slug }`.\n- Extend `RowSnapshot.Kind` with `.todo`, give it the `checklist`-family icon distinct from the\n  task and project icons, a localized \"Todo\" kind label, and a completed/total item count derived\n  from `items[]`.\n- Extend the kind filter with a Todos case; `.all` includes todos.\n- Failure mode: a todo whose `items` array is absent or empty renders a 0/0 count, not a crash and\n  not a hidden row.",
+          "item_number": "1.4",
+          "targets": [
+            "VAL-TODO-001"
+          ],
+          "title": "Add todos as a first-class kind",
+          "verification_commands": "set -euo pipefail\nxcodebuild -project cmux.xcodeproj -scheme cmux -configuration Debug \\\n  -destination 'platform=macOS' -derivedDataPath /tmp/cmux-work-panel \\\n  test -only-testing:cmuxTests/StokdWorkTodoKindTests"
+        },
+        {
+          "acceptance_criteria": "- AC-1.5.a: a fixture returning exactly the limit renders the truncation footer with the correct\n  shown count.\n- AC-1.5.b: a fixture below the limit renders no footer.\n- AC-1.5.c: Load more re-requests with a doubled limit and merges without duplicating rows by hash.\n- AC-1.5.d: `xcodebuild … test -only-testing:cmuxTests/StokdWorkCompletenessTests` → exit 0.",
+          "acceptance_tests": "- Test-1.5.a: Unit — at-limit and below-limit fixtures, covering AC-1.5.a and AC-1.5.b.\n- Test-1.5.b: Unit — Load-more merge and de-duplication, covering AC-1.5.c.",
+          "dependencies": [
+            "1.3"
+          ],
+          "implementation_details": "- Give the loader an explicit per-kind limit (default 500, well above any observed repo's work\n  count) and record, per kind, whether the CLI returned exactly the limit.\n- When any kind hit its limit, render a localized truncation footer naming the shown count and a\n  \"Load more\" control that re-requests with a doubled limit.\n- Failure mode: \"returned exactly the limit\" is a heuristic — a set whose size is exactly the limit\n  shows the footer and Load more returns nothing new. That is acceptable and must not error.",
+          "item_number": "1.5",
+          "targets": [
+            "VAL-LIST-001"
+          ],
+          "title": "Report set completeness instead of truncating silently",
+          "verification_commands": "set -euo pipefail\nxcodebuild -project cmux.xcodeproj -scheme cmux -configuration Debug \\\n  -destination 'platform=macOS' -derivedDataPath /tmp/cmux-work-panel \\\n  test -only-testing:cmuxTests/StokdWorkCompletenessTests"
+        },
+        {
+          "acceptance_criteria": "- AC-1.6.a: with show-completed off, a fixture containing `completed`, `cancelled`, and `failed`\n  rows renders none of them; toggling on renders all.\n- AC-1.6.b: selecting the active sort field a second time reverses the row order.\n- AC-1.6.c: rows lacking `created_at` sort by `updated_at` under the Created field and are present\n  in the output.\n- AC-1.6.d: all four defaults keys round-trip through a fresh `UserDefaults` suite and every key is\n  `gdock.`-prefixed.\n- AC-1.6.e: `xcodebuild … test -only-testing:cmuxTests/StokdWorkFilterBarTests` → exit 0.",
+          "acceptance_tests": "- Test-1.6.a: Unit — completed-filter behavior, covering AC-1.6.a.\n- Test-1.6.b: Unit — sort field and flip-on-reselect, covering AC-1.6.b and AC-1.6.c.\n- Test-1.6.c: Unit — defaults round-trip and prefix assertion, covering AC-1.6.d.",
+          "dependencies": [
+            "1.4"
+          ],
+          "implementation_details": "- Rebuild the toolbar as a filter bar: kind segmented control (All / Tasks / Projects / Todos), a\n  show-completed toggle, a sort control, and the existing refresh button.\n- Show-completed defaults to **off** and, while off, hides rows whose status is `completed`,\n  `cancelled`, or `failed`.\n- Sort offers Last Updated (`updated_at`) and Created (`created_at`); re-selecting the active field\n  flips ascending/descending, matching the operator's stokd-code behavior. Sorting is applied\n  client-side over the loaded set because no `list` verb accepts a sort flag.\n- Persist all three under new `GdockCatalogSection` keys `gdock.workPanel.kindFilter`,\n  `gdock.workPanel.showCompleted`, `gdock.workPanel.sortField`, `gdock.workPanel.sortAscending`.\n  Register a `palette.toggleSetting.gdock.workPanel.showCompleted` command.\n- Failure mode: `created_at` is absent from `stokd task list --json`; sorting by Created must fall\n  back to `updated_at` for rows lacking it rather than dropping or crashing on them.",
+          "item_number": "1.6",
+          "targets": [
+            "VAL-FILTER-001"
+          ],
+          "title": "Filter bar: kind, completed, sort — persisted",
+          "verification_commands": "set -euo pipefail\ngrep -q 'gdock.workPanel.showCompleted' \\\n  Packages/macOS/CmuxSettings/Sources/CmuxSettings/Keys/GdockCatalogSection.swift\nxcodebuild -project cmux.xcodeproj -scheme cmux -configuration Debug \\\n  -destination 'platform=macOS' -derivedDataPath /tmp/cmux-work-panel \\\n  test -only-testing:cmuxTests/StokdWorkFilterBarTests"
+        },
+        {
+          "acceptance_criteria": "- AC-1.7.a: a query matching only in title, only in hash, only in status, and only in repo slug\n  each returns exactly the expected row.\n- AC-1.7.b: the reported count equals matches / total-after-filters.\n- AC-1.7.c: a zero-match query renders the no-matches state, and Escape restores the full set.\n- AC-1.7.d: with the truncation footer active, the search count carries the \"of at least\" qualifier.\n- AC-1.7.e: `xcodebuild … test -only-testing:cmuxTests/StokdWorkSearchTests` → exit 0.",
+          "acceptance_tests": "- Test-1.7.a: Unit — per-field matching, covering AC-1.7.a.\n- Test-1.7.b: Unit — count, empty state, Escape, and truncation qualifier, covering AC-1.7.b\n  through AC-1.7.d.",
+          "dependencies": [
+            "1.5"
+          ],
+          "implementation_details": "- Add a search field to the filter bar. Matching is case-insensitive and diacritic-insensitive over\n  title, hash, status, and repo slug, applied after the kind and completed filters.\n- Show a localized \"N of M\" count while a query is active; Escape clears the query and restores the\n  full set. An empty result renders a distinct \"no matches for <query>\" state, not the generic\n  empty state.\n- Debounce recomputation; the filter runs over an already-loaded array, so it must never shell out\n  and must never write state from a function called by `body`.\n- Failure mode: search covers only what is loaded. When the truncation footer from 1.5 is showing,\n  the search count is suffixed with the same \"of at least N\" qualifier so a miss is not mistaken\n  for an absence.",
+          "item_number": "1.7",
+          "targets": [
+            "VAL-SEARCH-001"
+          ],
+          "title": "Search over the loaded set",
+          "verification_commands": "set -euo pipefail\nxcodebuild -project cmux.xcodeproj -scheme cmux -configuration Debug \\\n  -destination 'platform=macOS' -derivedDataPath /tmp/cmux-work-panel \\\n  test -only-testing:cmuxTests/StokdWorkSearchTests"
+        },
+        {
+          "acceptance_criteria": "- AC-1.8.a: recorded `stokd task view` output yields a detail model whose title, number, hash,\n  status, description, and acceptance criteria match the fixture.\n- AC-1.8.b: recorded `stokd project view` output yields the equivalent project detail model.\n- AC-1.8.c: recorded `stokd todo view --json` yields a todo detail model including every checklist\n  item and its status.\n- AC-1.8.d: unparseable output renders the raw text block, not an empty pane.\n- AC-1.8.e: a non-zero exit renders the stderr text and a Retry control.\n- AC-1.8.f: `xcodebuild … test -only-testing:cmuxTests/StokdWorkDetailTests` → exit 0.",
+          "acceptance_tests": "- Test-1.8.a: Unit — task text parser, covering AC-1.8.a.\n- Test-1.8.b: Unit — project text parser, covering AC-1.8.b.\n- Test-1.8.c: Unit — todo JSON parser, covering AC-1.8.c.\n- Test-1.8.d: Unit — degradation and error paths, covering AC-1.8.d and AC-1.8.e.",
+          "dependencies": [
+            "1.4"
+          ],
+          "implementation_details": "- Selecting a row pushes a detail view inside the panel with a back control; the panel is too narrow\n  for a side-by-side split at typical sidebar widths.\n- Detail loads on demand: `stokd task view <hash>` (text), `stokd project view <hash>` (text),\n  `stokd todo view <hash> --json` (JSON). Add `StokdWorkDetailParser` with one parser per format.\n  The task/project text format is section-delimited (`Task #N  <title>`, a rule line, `Status:`,\n  `ID:`, `Runtime:`, `Components:`, then `Description` / `Acceptance Criteria` / `Notes` sections\n  under rule lines); parse defensively and render any unrecognized trailing section verbatim rather\n  than dropping it.\n- Render: identity header (title, number, hash, repo, status badge), timestamps, description /\n  objective, acceptance criteria as a list with each criterion's recorded outcome, and notes.\n- A non-zero exit renders the CLI's stderr and a Retry control. Cache per hash for the panel's\n  lifetime, invalidated by any action from 1.9 that mutates that item.\n- Failure mode: the text format is not a stable contract. Parsing must degrade to \"render the raw\n  CLI output in a monospaced block\" rather than showing an empty pane — an assertion the tests\n  cover explicitly.",
+          "item_number": "1.8",
+          "targets": [
+            "VAL-DETAIL-001"
+          ],
+          "title": "Detail view",
+          "verification_commands": "set -euo pipefail\nxcodebuild -project cmux.xcodeproj -scheme cmux -configuration Debug \\\n  -destination 'platform=macOS' -derivedDataPath /tmp/cmux-work-panel \\\n  test -only-testing:cmuxTests/StokdWorkDetailTests"
+        },
+        {
+          "acceptance_criteria": "- AC-1.9.a: the entry list for each of task, project, and todo equals the enumeration above, in that\n  order, for a pending item.\n- AC-1.9.b: each entry dispatches its documented argument vector to a fake runner.\n- AC-1.9.c: Delete and Mark Completed do not dispatch until confirmation is accepted.\n- AC-1.9.d: `complete` is absent from the menu for an item already in a terminal status.\n- AC-1.9.e: a non-zero exit surfaces the stderr text.\n- AC-1.9.f: `xcodebuild … test -only-testing:cmuxTests/StokdWorkActionTests` → exit 0.",
+          "acceptance_tests": "- Test-1.9.a: Unit — per-kind entry list, covering AC-1.9.a and AC-1.9.d.\n- Test-1.9.b: Unit — argument-vector dispatch for every entry, covering AC-1.9.b.\n- Test-1.9.c: Unit — confirmation gating and error surfacing, covering AC-1.9.c and AC-1.9.e.",
+          "dependencies": [
+            "1.8"
+          ],
+          "implementation_details": "- One shared action table maps (kind, status) to an ordered entry list and each entry to a `stokd`\n  argument vector, per the repo's shared-behavior policy — the row context menu, the detail view's\n  action bar, and any palette entry read the same table.\n- Entries: task — `task start`, `task start --worktree`, `task one-shot`, `task resume`,\n  `task integrate`, `task review`, `task note`, `task priority`, `task complete`, `task delete`;\n  project — `project start`, `project advance`, `project review`, `project report`,\n  `project integrate`, `project note`, `project priority`, `project complete`, `project delete`;\n  todo — `todo start`, `todo note`, `todo complete`, `todo delete`; all kinds — Copy Hash and Open\n  in Terminal.\n- `task note` / `project note` / `todo note` and `priority` prompt for their input first. Delete and\n  Mark Completed require an explicit confirmation naming the item.\n- Long-running verbs (`start`, `one-shot`, `integrate`, `advance`, `report`) open a terminal surface\n  running the verb rather than blocking the panel on a hidden subprocess.\n- On completion, invalidate that item's detail cache and refresh the list. Any non-zero exit\n  surfaces the CLI's stderr in a dismissible alert.\n- Failure mode: an entry offered for a status where the verb is invalid (for example `complete` on\n  an already-completed item) must be absent from the menu, not fail at dispatch.",
+          "item_number": "1.9",
+          "targets": [
+            "VAL-ACTION-001"
+          ],
+          "title": "Per-kind context actions",
+          "verification_commands": "set -euo pipefail\n./scripts/lint-pbxproj-test-wiring.sh\nxcodebuild -project cmux.xcodeproj -scheme cmux -configuration Debug \\\n  -destination 'platform=macOS' -derivedDataPath /tmp/cmux-work-panel \\\n  test -only-testing:cmuxTests/StokdWorkActionTests"
+        },
+        {
+          "acceptance_criteria": "- AC-1.10.a: `./scripts/lint-stokd-work-localization.sh` → exit 0.\n- AC-1.10.b: every `String(localized:` key introduced under `Sources/Stokd/` resolves in\n  `Resources/Localizable.xcstrings`.\n- AC-1.10.c: `./scripts/lint-pbxproj-test-wiring.sh` → exit 0.\n- AC-1.10.d: the full `cmuxTests` suite passes and reports a non-zero executed-test count.",
+          "acceptance_tests": "- Test-1.10.a: Regression — the localization lint, covering AC-1.10.a and AC-1.10.b.\n- Test-1.10.b: Integration — the full suite run, covering AC-1.10.d.",
+          "dependencies": [
+            "1.6",
+            "1.7",
+            "1.9"
+          ],
+          "implementation_details": "- Add `scripts/lint-stokd-work-localization.sh`: fails when `Sources/Stokd/` contains a bare\n  user-facing string literal in `Text(`, `Button(`, `.help(`, or `.accessibilityLabel(`, and fails\n  when a `String(localized: \"key\"` used under `Sources/Stokd/` is missing from\n  `Resources/Localizable.xcstrings`.\n- Audit every string added across 1.1–1.9, including the filter bar, search placeholder and count,\n  truncation footer, detail sections, every context-menu entry, every confirmation, and every error\n  state.\n- Run the whole `cmuxTests` suite, not only the focused targets, to catch tests that the earlier\n  spec changes invalidated.",
+          "item_number": "1.10",
+          "targets": [
+            "VAL-L10N-001"
+          ],
+          "title": "Localization audit and full-suite green",
+          "verification_commands": "set -euo pipefail\n./scripts/lint-stokd-work-localization.sh\n./scripts/lint-pbxproj-test-wiring.sh\nxcodebuild -project cmux.xcodeproj -scheme cmux -configuration Debug \\\n  -destination 'platform=macOS' -derivedDataPath /tmp/cmux-work-panel \\\n  test -only-testing:cmuxTests | tee /tmp/cmux-work-panel-tests.log\ngrep -qE \"Executed [1-9][0-9]* tests\" /tmp/cmux-work-panel-tests.log"
+        }
+      ]
+    }
+  ],
+  "project_id": "9003ceb1-65d3-4967-b074-bb1a02a3ae4c",
+  "hash_short": "38f437b",
+  "contract": [
+    {
+      "behavior": "with `sidebar.beta.dock.enabled`, `rightSidebar.beta.dock.enabled`, and `rightSidebar.beta.feed.enabled` all absent or false, the right-sidebar mode bar offers a \"Work\" tab, and selecting it renders the live work list rather than `StokdWorkPlaceholderView`.",
+      "evidence": "a Swift test asserting `RightSidebarMode.availableModes(feedEnabled: false, dockEnabled: false, sidebarDockEnabled: false)` contains `.stokdWork` and that the non-dock content host resolves `.stokdWork` to `StokdWorkPanelView`; plus a tagged Release build launched with those three defaults deleted, screenshotted showing the Work tab and a populated list.",
+      "fail": "the operator cannot reach Work at all without enabling a docking beta they intend to delete.",
+      "id": "VAL-GATE-001",
+      "needs": "none",
+      "oracle": null,
+      "raw": "**VAL-GATE-001** — Work is a default right-sidebar tool with every beta flag off.\nSurface: browser\nNeeds: none\nBehavior: with `sidebar.beta.dock.enabled`, `rightSidebar.beta.dock.enabled`, and\n  `rightSidebar.beta.feed.enabled` all absent or false, the right-sidebar mode bar offers a \"Work\"\n  tab, and selecting it renders the live work list rather than `StokdWorkPlaceholderView`.\nEvidence: a Swift test asserting `RightSidebarMode.availableModes(feedEnabled: false,\n  dockEnabled: false, sidebarDockEnabled: false)` contains `.stokdWork` and that the non-dock\n  content host resolves `.stokdWork` to `StokdWorkPanelView`; plus a tagged Release build launched\n  with those three defaults deleted, screenshotted showing the Work tab and a populated list.\nFail: the operator cannot reach Work at all without enabling a docking beta they intend to delete.\nRigor: R2\nWhy: the defect is total unreachability on the default configuration, which a unit test over\n  availability alone cannot prove; an independent validator must confirm it on a real build.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "browser",
+      "title": "Work is a default right-sidebar tool with every beta flag off."
+    },
+    {
+      "behavior": "no file under `Sources/Stokd/` and no Work availability path references a `SidebarDock*` type, `StokdRailPanelAvailability`, or the `sidebar.beta.dock.enabled` key, so deleting the docking subsystem cannot make Work disappear or fail to compile.",
+      "evidence": "a checked-in lint script that greps `Sources/Stokd/` and `Sources/RightSidebarMode+Availability.swift` for those tokens and exits non-zero on a hit, run in the verification block; plus a unit test asserting `.stokdWork.isAvailable` returns the same value for `sidebarDockEnabled: true` and `false`.",
+      "fail": "gutting docking silently takes Work with it, which is the operator's stated fear.",
+      "id": "VAL-GATE-002",
+      "needs": "VAL-GATE-001",
+      "oracle": null,
+      "raw": "**VAL-GATE-002** — Work does not depend on the sidebar-dock subsystem.\nSurface: library\nNeeds: VAL-GATE-001\nBehavior: no file under `Sources/Stokd/` and no Work availability path references a `SidebarDock*`\n  type, `StokdRailPanelAvailability`, or the `sidebar.beta.dock.enabled` key, so deleting the\n  docking subsystem cannot make Work disappear or fail to compile.\nEvidence: a checked-in lint script that greps `Sources/Stokd/` and\n  `Sources/RightSidebarMode+Availability.swift` for those tokens and exits non-zero on a hit, run\n  in the verification block; plus a unit test asserting `.stokdWork.isAvailable` returns the same\n  value for `sidebarDockEnabled: true` and `false`.\nFail: gutting docking silently takes Work with it, which is the operator's stated fear.\nRigor: R1\nWhy: fully decided by a deterministic grep plus one unit test; no independent lane owed.",
+      "rigor": "R1",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "Work does not depend on the sidebar-dock subsystem."
+    },
+    {
+      "behavior": "for the workspace repository's slug, the Work list contains one row per record returned by `stokd task list --repo <slug> --all --json`, `stokd project list --repo <slug> --all --json`, and `stokd todo list --repo <slug> --all --json`, matched by `hash`, with no extra rows and none missing.",
+      "evidence": "an integration test driving the loader through a fake `CommandRunning` that replays recorded CLI JSON for all three verbs and asserting the resulting row hash set equals the fixture hash set; plus a dogfood comparison on `stokd-cloud/gdock` of the on-screen row count against `stokd task list --repo stokd-cloud/gdock --all --json | jq length` (today: CLI 18 vs panel 1).",
+      "fail": "the operator's real work is invisible and a foreign dataset is shown in its place.",
+      "id": "VAL-DATA-001",
+      "needs": "none",
+      "oracle": null,
+      "raw": "**VAL-DATA-001** — The panel lists exactly the work the stokd CLI lists.\nSurface: browser\nNeeds: none\nBehavior: for the workspace repository's slug, the Work list contains one row per record returned\n  by `stokd task list --repo <slug> --all --json`, `stokd project list --repo <slug> --all --json`,\n  and `stokd todo list --repo <slug> --all --json`, matched by `hash`, with no extra rows and none\n  missing.\nEvidence: an integration test driving the loader through a fake `CommandRunning` that replays\n  recorded CLI JSON for all three verbs and asserting the resulting row hash set equals the fixture\n  hash set; plus a dogfood comparison on `stokd-cloud/gdock` of the on-screen row count against\n  `stokd task list --repo stokd-cloud/gdock --all --json | jq length` (today: CLI 18 vs panel 1).\nFail: the operator's real work is invisible and a foreign dataset is shown in its place.\nRigor: R2\nWhy: this is the reported defect; fixtures alone cannot prove the live store matches, so an\n  independent validator must confirm the counts on live data.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "browser",
+      "title": "The panel lists exactly the work the stokd CLI lists."
+    },
+    {
+      "behavior": "every Work read and write executes the `stokd` executable located by `StokdExecutableResolver`, and no Work code path contains an API host, port, or URL literal.",
+      "evidence": "grep of `Sources/Stokd/` for `localhost`, `8167`, `http://`, and `URLSession` exits non-zero on any hit; a unit test asserting the loader invokes the runner with the argument vector `[\"task\", \"list\", \"--repo\", <slug>, \"--all\", \"--json\", \"--limit\", <n>]`.",
+      "fail": "a second, environment-blind data path reappears and drifts from the CLI again.",
+      "id": "VAL-DATA-002",
+      "needs": "VAL-DATA-001",
+      "oracle": null,
+      "raw": "**VAL-DATA-002** — The data source is resolved, never hardcoded.\nSurface: library\nNeeds: VAL-DATA-001\nBehavior: every Work read and write executes the `stokd` executable located by\n  `StokdExecutableResolver`, and no Work code path contains an API host, port, or URL literal.\nEvidence: grep of `Sources/Stokd/` for `localhost`, `8167`, `http://`, and `URLSession` exits\n  non-zero on any hit; a unit test asserting the loader invokes the runner with the argument vector\n  `[\"task\", \"list\", \"--repo\", <slug>, \"--all\", \"--json\", \"--limit\", <n>]`.\nFail: a second, environment-blind data path reappears and drifts from the CLI again.\nRigor: R1\nWhy: settled entirely by a grep and one argument-vector assertion.",
+      "rigor": "R1",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "The data source is resolved, never hardcoded."
+    },
+    {
+      "behavior": "todos render as their own kind with a distinct icon, a \"Todo\" kind label, their status badge, and their checklist item count (completed / total), and the kind filter offers Todos alongside All, Tasks, and Projects.",
+      "evidence": "a view-model test mapping recorded `stokd todo list --json` (which nests `items[]`) into todo rows carrying the correct completed/total counts, plus a test that selecting the Todos filter yields only todo rows; screenshot of the Todos filter with a populated list.",
+      "fail": "todos — now a real Stokd work vehicle — remain invisible in the editor.",
+      "id": "VAL-TODO-001",
+      "needs": "VAL-DATA-001",
+      "oracle": null,
+      "raw": "**VAL-TODO-001** — Todos are a first-class item kind.\nSurface: browser\nNeeds: VAL-DATA-001\nBehavior: todos render as their own kind with a distinct icon, a \"Todo\" kind label, their status\n  badge, and their checklist item count (completed / total), and the kind filter offers Todos\n  alongside All, Tasks, and Projects.\nEvidence: a view-model test mapping recorded `stokd todo list --json` (which nests `items[]`) into\n  todo rows carrying the correct completed/total counts, plus a test that selecting the Todos\n  filter yields only todo rows; screenshot of the Todos filter with a populated list.\nFail: todos — now a real Stokd work vehicle — remain invisible in the editor.\nRigor: R1\nWhy: deterministic mapping over a recorded fixture; no cross-lane validation owed.",
+      "rigor": "R1",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "browser",
+      "title": "Todos are a first-class item kind."
+    },
+    {
+      "behavior": "the panel requests a stated maximum per kind, and when any kind returns exactly that maximum it renders a truncation indicator naming the shown count and offering \"Load more\"; below the maximum no indicator appears.",
+      "evidence": "a view-model test with a fixture of exactly the limit asserting the indicator text and its presence, and a second fixture below the limit asserting its absence.",
+      "fail": "silent truncation reproduces \"where are all my items\" with a different root cause.",
+      "id": "VAL-LIST-001",
+      "needs": "VAL-DATA-001",
+      "oracle": null,
+      "raw": "**VAL-LIST-001** — The list is complete, and says so when it is not.\nSurface: browser\nNeeds: VAL-DATA-001\nBehavior: the panel requests a stated maximum per kind, and when any kind returns exactly that\n  maximum it renders a truncation indicator naming the shown count and offering \"Load more\";\n  below the maximum no indicator appears.\nEvidence: a view-model test with a fixture of exactly the limit asserting the indicator text and\n  its presence, and a second fixture below the limit asserting its absence.\nFail: silent truncation reproduces \"where are all my items\" with a different root cause.\nRigor: R1\nWhy: two deterministic fixtures settle it.",
+      "rigor": "R1",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "browser",
+      "title": "The list is complete, and says so when it is not."
+    },
+    {
+      "behavior": "the filter bar offers a kind filter (All / Tasks / Projects / Todos), a show-completed toggle that defaults to off and hides `completed`, `cancelled`, and `failed` items while off, and a sort control over Last Updated and Created where re-selecting the active field flips ascending/descending; every choice survives a panel rebuild and an app relaunch.",
+      "evidence": "view-model tests for each control's effect on the rendered rows including the flip-on-reselect behavior; a persistence test round-tripping each value through the `gdock.workPanel.*` defaults keys.",
+      "fail": "the operator re-configures the panel on every launch, as in the current build.",
+      "id": "VAL-FILTER-001",
+      "needs": "VAL-DATA-001",
+      "oracle": null,
+      "raw": "**VAL-FILTER-001** — Filters and sort are present and persist.\nSurface: browser\nNeeds: VAL-DATA-001\nBehavior: the filter bar offers a kind filter (All / Tasks / Projects / Todos), a show-completed\n  toggle that defaults to off and hides `completed`, `cancelled`, and `failed` items while off, and\n  a sort control over Last Updated and Created where re-selecting the active field flips\n  ascending/descending; every choice survives a panel rebuild and an app relaunch.\nEvidence: view-model tests for each control's effect on the rendered rows including the\n  flip-on-reselect behavior; a persistence test round-tripping each value through the\n  `gdock.workPanel.*` defaults keys.\nFail: the operator re-configures the panel on every launch, as in the current build.\nRigor: R1\nWhy: all behavior is view-model plus defaults round-trip, decided by unit tests.",
+      "rigor": "R1",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "browser",
+      "title": "Filters and sort are present and persist."
+    },
+    {
+      "behavior": "typing in the search field filters the loaded rows case-insensitively across title, hash, status, and repo slug; the panel shows a \"N of M\" match count; Escape clears the query and restores the full set.",
+      "evidence": "view-model tests over one fixture set covering a match in each of the four fields, the reported count, a zero-match empty state, and the Escape-clears behavior.",
+      "fail": "finding a known item in a repo with hundreds of work items requires scrolling.",
+      "id": "VAL-SEARCH-001",
+      "needs": "VAL-LIST-001",
+      "oracle": null,
+      "raw": "**VAL-SEARCH-001** — Search narrows the loaded set.\nSurface: browser\nNeeds: VAL-LIST-001\nBehavior: typing in the search field filters the loaded rows case-insensitively across title, hash,\n  status, and repo slug; the panel shows a \"N of M\" match count; Escape clears the query and\n  restores the full set.\nEvidence: view-model tests over one fixture set covering a match in each of the four fields, the\n  reported count, a zero-match empty state, and the Escape-clears behavior.\nFail: finding a known item in a repo with hundreds of work items requires scrolling.\nRigor: R1\nWhy: pure view-model behavior over deterministic fixtures.",
+      "rigor": "R1",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "browser",
+      "title": "Search narrows the loaded set."
+    },
+    {
+      "behavior": "selecting a row opens a detail view showing identity (title, number, hash, repo slug, status), created/updated timestamps, the description or objective, acceptance criteria with each criterion's recorded outcome, and any notes — loaded on demand from `stokd task view <hash>`, `stokd project view <hash>`, or `stokd todo view <hash> --json` for the row's kind; a non-zero exit renders the CLI's stderr and a Retry control instead of an empty pane.",
+      "evidence": "tests over recorded output of all three verbs asserting each named field renders for its kind, and a test asserting a non-zero exit renders the stderr text plus Retry.",
+      "fail": "the panel is a list of titles with no way to read what a work item actually promises.",
+      "id": "VAL-DETAIL-001",
+      "needs": "VAL-DATA-001",
+      "oracle": null,
+      "raw": "**VAL-DETAIL-001** — Selecting a row opens a detail view.\nSurface: browser\nNeeds: VAL-DATA-001\nBehavior: selecting a row opens a detail view showing identity (title, number, hash, repo slug,\n  status), created/updated timestamps, the description or objective, acceptance criteria with each\n  criterion's recorded outcome, and any notes — loaded on demand from `stokd task view <hash>`,\n  `stokd project view <hash>`, or `stokd todo view <hash> --json` for the row's kind; a non-zero\n  exit renders the CLI's stderr and a Retry control instead of an empty pane.\nEvidence: tests over recorded output of all three verbs asserting each named field renders for its\n  kind, and a test asserting a non-zero exit renders the stderr text plus Retry.\nFail: the panel is a list of titles with no way to read what a work item actually promises.\nRigor: R2\nWhy: correctness spans three different CLI output formats — two of them text, one JSON — so an\n  independent validator must confirm all three parse, not just the JSON one.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "browser",
+      "title": "Selecting a row opens a detail view."
+    },
+    {
+      "behavior": "right-clicking a row opens a menu whose entries depend on kind — task: Start, Start in Worktree, One-Shot, Resume, Integrate, Review, Add Note, Set Priority, Mark Completed, Delete; project: Start, Advance, Review, Report, Integrate, Add Note, Set Priority, Mark Completed, Delete; todo: Start, Add Note, Mark Completed, Delete — plus Copy Hash and Open in Terminal on every kind; each entry runs the matching `stokd` verb through the resolved executable, Delete and Mark Completed require a confirmation, and any non-zero exit surfaces the CLI's stderr to the operator rather than failing silently.",
+      "evidence": "tests asserting the exact entry list per kind, that each entry dispatches the expected argument vector to a fake runner, that Delete and Mark Completed are gated behind confirmation, and that a non-zero exit is surfaced; plus one live dogfood run of the non-destructive Add Note entry verified with `stokd task view <hash>`.",
+      "fail": "state-changing verbs are dispatched with wrong arguments, or fail silently against real work.",
+      "id": "VAL-ACTION-001",
+      "needs": "VAL-DETAIL-001",
+      "oracle": null,
+      "raw": "**VAL-ACTION-001** — Each item kind carries its own context actions.\nSurface: browser\nNeeds: VAL-DETAIL-001\nBehavior: right-clicking a row opens a menu whose entries depend on kind — task: Start, Start in\n  Worktree, One-Shot, Resume, Integrate, Review, Add Note, Set Priority, Mark Completed, Delete;\n  project: Start, Advance, Review, Report, Integrate, Add Note, Set Priority, Mark Completed,\n  Delete; todo: Start, Add Note, Mark Completed, Delete — plus Copy Hash and Open in Terminal on\n  every kind; each entry runs the matching `stokd` verb through the resolved executable, Delete and\n  Mark Completed require a confirmation, and any non-zero exit surfaces the CLI's stderr to the\n  operator rather than failing silently.\nEvidence: tests asserting the exact entry list per kind, that each entry dispatches the expected\n  argument vector to a fake runner, that Delete and Mark Completed are gated behind confirmation,\n  and that a non-zero exit is surfaced; plus one live dogfood run of the non-destructive Add Note\n  entry verified with `stokd task view <hash>`.\nFail: state-changing verbs are dispatched with wrong arguments, or fail silently against real work.\nRigor: R2\nWhy: these invoke real state-changing CLI verbs against the operator's live work, so an independent\n  validator confirms the argument vectors and the confirmation gates before they ship.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "browser",
+      "title": "Each item kind carries its own context actions."
+    },
+    {
+      "behavior": "when Work is shown as an ordinary right-sidebar tab, no \"Collapse Section\", \"Move Section Up\", or \"Move Section Down\" context entry is offered and no collapsed \"Collapsed / Expand\" strip can be produced; those affordances exist only when Work is hosted as a rail section.",
+      "evidence": "a test asserting the section-chrome modifier is applied on the rail host path and not on the tab host path; a screenshot of a right-click on the Work tab with the docking flag off showing no section entries.",
+      "fail": "the operator meets docking chrome on a surface that has nothing to do with docking — the behavior in the reported screenshots.",
+      "id": "VAL-CHROME-001",
+      "needs": "VAL-GATE-001",
+      "oracle": null,
+      "raw": "**VAL-CHROME-001** — No dock section chrome on the plain Work tab.\nSurface: browser\nNeeds: VAL-GATE-001\nBehavior: when Work is shown as an ordinary right-sidebar tab, no \"Collapse Section\", \"Move Section\n  Up\", or \"Move Section Down\" context entry is offered and no collapsed \"Collapsed / Expand\" strip\n  can be produced; those affordances exist only when Work is hosted as a rail section.\nEvidence: a test asserting the section-chrome modifier is applied on the rail host path and not on\n  the tab host path; a screenshot of a right-click on the Work tab with the docking flag off\n  showing no section entries.\nFail: the operator meets docking chrome on a surface that has nothing to do with docking — the\n  behavior in the reported screenshots.\nRigor: R1\nWhy: one structural assertion plus a visual check settles it.",
+      "rigor": "R1",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "browser",
+      "title": "No dock section chrome on the plain Work tab."
+    },
+    {
+      "behavior": "every user-facing string added by this project resolves through `String(localized:)` with its key present in `Resources/Localizable.xcstrings`.",
+      "evidence": "a lint over the diff asserting no bare `Text(\"…\")` / `Button(\"…\")` string literal is introduced under `Sources/Stokd/`, and a check that every `String(localized:` key added under `Sources/Stokd/` exists in `Resources/Localizable.xcstrings`.",
+      "fail": "an English-only panel ships, violating the repo's localization policy.",
+      "id": "VAL-L10N-001",
+      "needs": "none",
+      "oracle": null,
+      "raw": "**VAL-L10N-001** — Every new user-facing string is localized.\nSurface: artifact\nNeeds: none\nBehavior: every user-facing string added by this project resolves through `String(localized:)` with\n  its key present in `Resources/Localizable.xcstrings`.\nEvidence: a lint over the diff asserting no bare `Text(\"…\")` / `Button(\"…\")` string literal is\n  introduced under `Sources/Stokd/`, and a check that every `String(localized:` key added under\n  `Sources/Stokd/` exists in `Resources/Localizable.xcstrings`.\nFail: an English-only panel ships, violating the repo's localization policy.\nRigor: R1\nWhy: repo policy already requires a localization audit for any UI change; the lint persists it.",
+      "rigor": "R1",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "artifact",
+      "title": "Every new user-facing string is localized."
+    }
+  ],
+  "ceremony_tier": "C1"
+}
