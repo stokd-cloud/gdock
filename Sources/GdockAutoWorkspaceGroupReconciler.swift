@@ -11,13 +11,22 @@ enum GdockAutoWorkspaceGroupMutation: Equatable, Sendable {
     /// Emitted when a single panel is retargeted at a different repository than
     /// the workspace it lives in: only that panel relocates, its siblings stay.
     case extractPanel(panelId: UUID, fromWorkspaceId: UUID, slug: String)
+    /// Rename an existing repository group to `name`.
+    ///
+    /// A group header cannot move itself into another group, so an anchor that
+    /// is its group's only workspace re-identifies the group instead of
+    /// relocating: the container follows the repository the user is in.
+    case renameGroup(groupId: UUID, name: String)
 }
 
 /// Pure planner for Auto Workspace Group Mode.
 ///
 /// Resolves desired `owner/repo` membership from workspace and panel cwds and
-/// emits the minimum create/add/extract mutations. Never plans moves for group
-/// anchors.
+/// emits the minimum rename/create/add/extract mutations. A group anchor is
+/// never moved into another group — it *is* its group's header — but it is not
+/// exempt from the feature: a one-workspace group follows its anchor by being
+/// renamed, and an anchor with siblings gives up its retargeted panels the same
+/// way a member does.
 ///
 /// Granularity matters here. Re-grouping whole workspaces by their reported cwd
 /// meant that `cd`-ing one panel into a different repo dragged every unrelated
@@ -74,8 +83,8 @@ enum GdockAutoWorkspaceGroupReconciler {
     ///   - workspaces: Current workspaces (membership + cwd + anchor bit + panels).
     ///   - groups: Current groups (id + display name).
     ///   - slugForDirectory: Returns the primary GitHub `owner/repo` for a cwd, or nil.
-    /// - Returns: Ordered mutations — panel extractions first, then group
-    ///   creates/adds in slug encounter order.
+    /// - Returns: Ordered mutations — group renames, then panel extractions,
+    ///   then group creates/adds in slug encounter order.
     static func plan(
         workspaces: [WorkspaceSnapshot],
         groups: [GroupSnapshot],
@@ -93,13 +102,68 @@ enum GdockAutoWorkspaceGroupReconciler {
             return slug
         }
 
+        var renames: [GdockAutoWorkspaceGroupMutation] = []
         var extractions: [GdockAutoWorkspaceGroupMutation] = []
         var memberIdsBySlug: [String: [UUID]] = [:]
         var slugOrder: [String] = []
         var workspaceById: [UUID: WorkspaceSnapshot] = [:]
+        for workspace in workspaces { workspaceById[workspace.id] = workspace }
 
+        // Two groups may not answer to the same repository, so a rename only
+        // lands on a slug nothing else already carries.
+        var claimedSlugs = Set(groups.compactMap { repositorySlug(from: $0.name) })
+
+        // Pass 1 — group anchors. The header cannot move, so either the group
+        // re-identifies (it owns nothing but the anchor) or the anchor sheds the
+        // panels that wandered off, keeping at least one so the header survives.
+        for workspace in workspaces where workspace.isGroupAnchor {
+            guard let groupId = workspace.groupId,
+                  let homeSlug = groupNameById[groupId].flatMap(repositorySlug(from:)) else {
+                continue
+            }
+
+            let panelSlugs = Set(workspace.panels.compactMap { normalizedSlug($0.currentDirectory) })
+            let ownsNothingElse = workspaces.filter { $0.groupId == groupId }.count == 1
+
+            if ownsNothingElse {
+                // One agreed-on repo across the anchor's panels re-identifies the
+                // group. Panels split across repos do not: renaming would mis-name
+                // the ones that stayed, so they are extracted instead.
+                let target: String?
+                if panelSlugs.count == 1 {
+                    target = panelSlugs.first
+                } else if panelSlugs.isEmpty {
+                    target = normalizedSlug(workspace.currentDirectory)
+                } else {
+                    target = nil
+                }
+                if let target, target != homeSlug, !claimedSlugs.contains(target) {
+                    renames.append(.renameGroup(groupId: groupId, name: target))
+                    claimedSlugs.remove(homeSlug)
+                    claimedSlugs.insert(target)
+                    groupNameById[groupId] = target
+                    continue
+                }
+            }
+
+            guard workspace.panels.count > 1 else { continue }
+            let divergent = workspace.panels.compactMap { panel -> (UUID, String)? in
+                guard let slug = normalizedSlug(panel.currentDirectory), slug != homeSlug else {
+                    return nil
+                }
+                return (panel.id, slug)
+            }
+            // Emptying the anchor would take the group's header with it, so the
+            // trailing divergent panel stays behind.
+            for (panelId, slug) in divergent.prefix(workspace.panels.count - 1) {
+                extractions.append(
+                    .extractPanel(panelId: panelId, fromWorkspaceId: workspace.id, slug: slug)
+                )
+            }
+        }
+
+        // Pass 2 — everything that is not a header.
         for workspace in workspaces {
-            workspaceById[workspace.id] = workspace
             guard !workspace.isGroupAnchor else { continue }
 
             // A workspace already grouped under a repo slug treats that slug as
@@ -132,10 +196,12 @@ enum GdockAutoWorkspaceGroupReconciler {
             memberIdsBySlug[slug, default: []].append(workspace.id)
         }
 
-        var mutations = extractions
+        var mutations = renames + extractions
         for slug in slugOrder {
             guard let memberIds = memberIdsBySlug[slug], !memberIds.isEmpty else { continue }
-            if let existing = groups.first(where: { $0.name == slug }) {
+            // Match on the planned name so members route into a group this same
+            // plan renamed rather than creating a duplicate beside it.
+            if let existing = groups.first(where: { groupNameById[$0.id] == slug }) {
                 for workspaceId in memberIds {
                     guard let workspace = workspaceById[workspaceId] else { continue }
                     if workspace.groupId != existing.id {
