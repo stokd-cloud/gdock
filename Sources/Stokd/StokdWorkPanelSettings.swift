@@ -33,6 +33,7 @@ enum StokdWorkPanelSettings {
     static let showCompletedKey = SettingCatalog().gdock.workPanelShowCompleted
     static let sortFieldKey = SettingCatalog().gdock.workPanelSortField
     static let sortAscendingKey = SettingCatalog().gdock.workPanelSortAscending
+    static let detailPaneHeightKey = SettingCatalog().gdock.workPanelDetailHeight
 
     static let showCompletedCommandId = "palette.toggleSetting.gdock.workPanel.showCompleted"
     static let didChangeNotification = Notification.Name("gdock.workPanel.didChange")
@@ -97,5 +98,20 @@ enum StokdWorkPanelSettings {
 
     static func setSortAscending(_ ascending: Bool, defaults: UserDefaults = .standard) {
         defaults.set(ascending, forKey: sortAscendingKey.userDefaultsKey)
+    }
+
+    static var defaultDetailPaneHeight: Double { detailPaneHeightKey.defaultValue }
+    static let minimumDetailPaneHeight: Double = 120
+
+    static func detailPaneHeight(defaults: UserDefaults = .standard) -> Double {
+        guard defaults.object(forKey: detailPaneHeightKey.userDefaultsKey) != nil else {
+            return detailPaneHeightKey.defaultValue
+        }
+        let stored = defaults.double(forKey: detailPaneHeightKey.userDefaultsKey)
+        return stored >= minimumDetailPaneHeight ? stored : detailPaneHeightKey.defaultValue
+    }
+
+    static func setDetailPaneHeight(_ height: Double, defaults: UserDefaults = .standard) {
+        defaults.set(max(minimumDetailPaneHeight, height), forKey: detailPaneHeightKey.userDefaultsKey)
     }
 }

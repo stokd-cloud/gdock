@@ -20,18 +20,32 @@ protocol StokdWorkDetailLoading: Sendable {
 
 /// The exact argument vectors the panel hands to `stokd`.
 enum StokdWorkCLIArguments {
-    static func list(kind: StokdWorkItemKind, repoSlug: String, limit: Int) -> [String] {
+    static func list(
+        kind: StokdWorkItemKind,
+        repoSlug: String,
+        limit: Int,
+        sortField: StokdWorkSortField = .updatedAt,
+        sortAscending: Bool = false
+    ) -> [String] {
+        var arguments: [String]
         switch kind {
         case .task:
-            return ["task", "list", "--repo", repoSlug, "--all", "--json", "--limit", String(limit)]
+            arguments = ["task", "list", "--repo", repoSlug, "--all", "--json", "--limit", String(limit)]
         case .project:
-            return ["project", "list", "--repo", repoSlug, "--all", "--json", "--limit", String(limit)]
+            arguments = ["project", "list", "--repo", repoSlug, "--all", "--json", "--limit", String(limit)]
         case .todo:
             // Todos span repositories (a todo owned by one repo can carry items
             // from another), so the CLI is asked for all of them and membership
             // is decided client-side by `StokdWorkCLILoader.todoBelongs`.
-            return ["todo", "list", "--all", "--json", "--limit", String(limit)]
+            arguments = ["todo", "list", "--all", "--json", "--limit", String(limit)]
         }
+        // The CLI orders before it caps, so the page must be cut by the same
+        // sort the panel displays; otherwise "the newest 100" would be wrong.
+        arguments += ["--sort-by", sortField.rawValue]
+        if !sortAscending {
+            arguments.append("--desc")
+        }
+        return arguments
     }
 
     static func detail(kind: StokdWorkItemKind, hash: String) -> [String] {
@@ -88,17 +102,26 @@ struct StokdWorkCLILoader: StokdWorkLoading, StokdWorkDetailLoading, Sendable {
 
         async let taskResult = run(
             directory: directory,
-            arguments: StokdWorkCLIArguments.list(kind: .task, repoSlug: repoSlug, limit: limit),
+            arguments: StokdWorkCLIArguments.list(
+                kind: .task, repoSlug: repoSlug, limit: limit,
+                sortField: query.sortField, sortAscending: query.sortAscending
+            ),
             as: [StokdTask].self
         )
         async let projectResult = run(
             directory: directory,
-            arguments: StokdWorkCLIArguments.list(kind: .project, repoSlug: repoSlug, limit: limit),
+            arguments: StokdWorkCLIArguments.list(
+                kind: .project, repoSlug: repoSlug, limit: limit,
+                sortField: query.sortField, sortAscending: query.sortAscending
+            ),
             as: [StokdProject].self
         )
         async let todoResult = run(
             directory: directory,
-            arguments: StokdWorkCLIArguments.list(kind: .todo, repoSlug: repoSlug, limit: limit),
+            arguments: StokdWorkCLIArguments.list(
+                kind: .todo, repoSlug: repoSlug, limit: limit,
+                sortField: query.sortField, sortAscending: query.sortAscending
+            ),
             as: [StokdTodo].self
         )
         let (tasks, projects, todos) = await (taskResult, projectResult, todoResult)

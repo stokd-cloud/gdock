@@ -78,7 +78,14 @@ Also listed in `Agents.md` so every agent session loads it.
   two `stokd` subprocesses in flight, cached per hash, and appends body-only
   matches marked "matched in body". Nothing shells out from `body` or per
   keystroke.
-- Detail: selecting a row pushes an in-panel detail (Back returns).
+- Paging is infinite scroll: the first page is 100 rows per kind, cut
+  server-side by the panel sort (`--sort-by`, `--desc`); when a row past the
+  midpoint appears and a kind came back full, the cap grows by another page
+  and the list reloads in place (never a spinner over the list). A sort
+  change restarts from the first page.
+- Detail: selecting a row opens a resizable split pane under the list
+  (height persisted as `gdock.workPanel.detailHeight`); the list stays live,
+  selecting another row swaps the detail, selecting the open row closes it.
   `StokdWorkDetailParser` parses the CLI text/JSON defensively and falls
   back to the raw output; a non-zero exit shows stderr plus Retry.
 - Actions: `StokdWorkActionTable` is the single (kind, status) → verbs table

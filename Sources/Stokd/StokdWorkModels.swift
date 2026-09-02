@@ -276,16 +276,28 @@ enum StokdWorkStatus {
 /// What the panel asks the loader for: the repository scope, the directory the
 /// CLI resolves its environment from, and the per-kind row cap.
 struct StokdWorkListQuery: Equatable, Sendable {
-    static let defaultLimitPerKind = 500
+    /// One page. The list grows by this much each time the operator scrolls
+    /// past the midpoint of what is loaded.
+    static let defaultLimitPerKind = 100
 
     var repoSlug: String?
     var directory: String
     var limitPerKind: Int
+    var sortField: StokdWorkSortField
+    var sortAscending: Bool
 
-    init(repoSlug: String? = nil, directory: String = "", limitPerKind: Int = StokdWorkListQuery.defaultLimitPerKind) {
+    init(
+        repoSlug: String? = nil,
+        directory: String = "",
+        limitPerKind: Int = StokdWorkListQuery.defaultLimitPerKind,
+        sortField: StokdWorkSortField = .updatedAt,
+        sortAscending: Bool = false
+    ) {
         self.repoSlug = repoSlug
         self.directory = directory
         self.limitPerKind = max(1, limitPerKind)
+        self.sortField = sortField
+        self.sortAscending = sortAscending
     }
 }
 

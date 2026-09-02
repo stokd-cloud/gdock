@@ -88,6 +88,8 @@ final class StokdWorkPanelViewModel: ObservableObject {
     @Published private(set) var isBodySearchRunning: Bool = false
     @Published private(set) var truncatedKinds: [StokdWorkItemKind] = []
     @Published private(set) var limitPerKind: Int
+    @Published private(set) var isLoadingMore: Bool = false
+    @Published private(set) var isRefreshing: Bool = false
     @Published private(set) var selectedRow: RowSnapshot?
     @Published private(set) var detailState: DetailState?
     @Published private(set) var pendingAction: PendingAction?
@@ -132,13 +134,15 @@ final class StokdWorkPanelViewModel: ObservableObject {
         String(localized: "stokdWork.search.noMatches", defaultValue: "No matches for “\(searchQuery)”")
     }
 
-    var truncationFooterText: String? {
-        guard !truncatedKinds.isEmpty else { return nil }
-        return String(
-            localized: "stokdWork.list.truncated",
-            defaultValue: "Showing the first \(limitPerKind) per kind — the list may be incomplete"
-        )
+    /// True while some kind came back exactly full, so scrolling can ask for more.
+    var hasMoreRows: Bool { !truncatedKinds.isEmpty }
+
+    func isRowSelected(_ rowID: String) -> Bool {
+        selectedRow?.id == rowID
     }
+
+    /// Page size; the list grows by this much per page.
+    private let pageSize: Int
 
     private let loader: any StokdWorkLoading
     private let detailLoader: any StokdWorkDetailLoading
@@ -181,6 +185,7 @@ final class StokdWorkPanelViewModel: ObservableObject {
         self.searchDebounce = searchDebounce
         self.terminalLauncher = terminalLauncher
         self.limitPerKind = max(1, initialLimitPerKind)
+        self.pageSize = max(1, initialLimitPerKind)
         filter = StokdWorkPanelSettings.kindFilter(defaults: defaults)
         showCompleted = StokdWorkPanelSettings.showCompleted(defaults: defaults)
         sortField = StokdWorkPanelSettings.sortField(defaults: defaults)
@@ -196,6 +201,7 @@ final class StokdWorkPanelViewModel: ObservableObject {
         closeDetail()
         bodyTextCache = [:]
         detailCache = [:]
+        limitPerKind = pageSize
         reload(preservingRows: false)
     }
 
@@ -205,9 +211,21 @@ final class StokdWorkPanelViewModel: ObservableObject {
         reload(preservingRows: true)
     }
 
-    /// Doubles the per-kind cap and reloads; results are merged de-duplicated by id.
+    /// Infinite scroll: called as rows appear. Once the operator has scrolled
+    /// past the midpoint of what is loaded and a kind is still full, the next
+    /// page is requested. Never replaces the list with a spinner.
+    func rowDidAppear(id: String) {
+        guard hasMoreRows, !isLoadingMore, !isRefreshing, state == .populated else { return }
+        guard let index = rows.firstIndex(where: { $0.id == id }) else { return }
+        guard index >= rows.count / 2 else { return }
+        loadMore()
+    }
+
+    /// Grows the per-kind cap by one page and reloads in place.
     func loadMore() {
-        limitPerKind = min(limitPerKind * 2, 100_000)
+        guard !isLoadingMore else { return }
+        isLoadingMore = true
+        limitPerKind = min(limitPerKind + pageSize, 100_000)
         reload(preservingRows: true)
     }
 
@@ -226,6 +244,8 @@ final class StokdWorkPanelViewModel: ObservableObject {
             allRows = []
             rows = []
             truncatedKinds = []
+            isLoadingMore = false
+            isRefreshing = false
             state = .failure(String(
                 localized: "stokdWork.state.noRepository",
                 defaultValue: "No repository is associated with this workspace"
@@ -233,8 +253,20 @@ final class StokdWorkPanelViewModel: ObservableObject {
             return
         }
 
-        state = .loading
-        let query = StokdWorkListQuery(repoSlug: repoSlug, directory: directory, limitPerKind: limitPerKind)
+        // Keep the rows on screen while a page or refresh is in flight; only
+        // a first load shows the loading state.
+        if preservingRows, !allRows.isEmpty {
+            isRefreshing = true
+        } else {
+            state = .loading
+        }
+        let query = StokdWorkListQuery(
+            repoSlug: repoSlug,
+            directory: directory,
+            limitPerKind: limitPerKind,
+            sortField: sortField,
+            sortAscending: sortAscending
+        )
         let loader = self.loader
         loadTask = Task { [weak self] in
             let payload = await loader.load(query: query)
@@ -243,12 +275,25 @@ final class StokdWorkPanelViewModel: ObservableObject {
         }
     }
 
+    /// Sorting is server-side for the page cut and client-side for the merged
+    /// set, so a sort change starts over from the first page.
+    private func reloadForSortChange() {
+        limitPerKind = pageSize
+        reload(preservingRows: true)
+    }
+
     private func apply(_ payload: StokdWorkPayload) {
+        isLoadingMore = false
+        isRefreshing = false
         if let error = payload.error {
-            allRows = []
-            rows = []
-            truncatedKinds = []
-            state = .failure(error.message)
+            if allRows.isEmpty {
+                rows = []
+                truncatedKinds = []
+                state = .failure(error.message)
+            } else {
+                // A failed page keeps what is already on screen.
+                actionErrorMessage = error.message
+            }
             return
         }
         allRows = Self.rows(from: payload)
@@ -286,6 +331,7 @@ final class StokdWorkPanelViewModel: ObservableObject {
         sortAscending.toggle()
         StokdWorkPanelSettings.setSortAscending(sortAscending, defaults: defaults)
         recompute()
+        reloadForSortChange()
     }
 
     func setSortField(_ field: StokdWorkSortField) {
@@ -293,6 +339,15 @@ final class StokdWorkPanelViewModel: ObservableObject {
         sortField = field
         StokdWorkPanelSettings.setSortField(field, defaults: defaults)
         recompute()
+        reloadForSortChange()
+    }
+
+    func setDetailPaneHeight(_ height: Double) {
+        StokdWorkPanelSettings.setDetailPaneHeight(height, defaults: defaults)
+    }
+
+    var detailPaneHeight: Double {
+        StokdWorkPanelSettings.detailPaneHeight(defaults: defaults)
     }
 
     // MARK: - Search
@@ -474,7 +529,12 @@ final class StokdWorkPanelViewModel: ObservableObject {
 
     // MARK: - Detail
 
+    /// Opens the detail pane for a row; selecting the open row again closes it.
     func select(rowID: String) {
+        if selectedRow?.id == rowID {
+            closeDetail()
+            return
+        }
         guard let row = rows.first(where: { $0.id == rowID }) ?? allRows.first(where: { $0.id == rowID }) else { return }
         selectedRow = row
         loadDetail(for: row, force: false)

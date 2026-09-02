@@ -113,5 +113,13 @@ public struct GdockCatalogSection: SettingCatalogSection {
         userDefaultsKey: "gdock.workPanel.sortAscending"
     )
 
+    /// Height in points of the Work panel's detail pane (the resizable split
+    /// under the list). Remembered across restarts.
+    public let workPanelDetailHeight = DefaultsKey<Double>(
+        id: "gdock.workPanel.detailHeight",
+        defaultValue: 280,
+        userDefaultsKey: "gdock.workPanel.detailHeight"
+    )
+
     public init() {}
 }

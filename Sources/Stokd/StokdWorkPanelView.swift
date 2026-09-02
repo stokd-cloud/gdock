@@ -91,18 +91,25 @@ enum StokdWorkPresentation {
 struct StokdWorkPanelView: View {
     @ObservedObject var model: StokdWorkPanelViewModel
     @State private var actionInput: String = ""
+    @State private var detailHeight: Double = StokdWorkPanelSettings.defaultDetailPaneHeight
+    @State private var dragStartHeight: Double?
     @FocusState private var isSearchFocused: Bool
 
     var body: some View {
-        VStack(spacing: 0) {
-            if let selectedRow = model.selectedRow {
-                detailHeader(for: selectedRow)
-                detailContent(for: selectedRow)
-            } else {
+        GeometryReader { proxy in
+            VStack(spacing: 0) {
                 filterBar
                 content
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                if let selectedRow = model.selectedRow {
+                    detailSplitHandle(totalHeight: proxy.size.height)
+                    detailHeader(for: selectedRow)
+                    detailContent(for: selectedRow)
+                        .frame(height: clampedDetailHeight(totalHeight: proxy.size.height))
+                }
             }
         }
+        .onAppear { detailHeight = model.detailPaneHeight }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .cmuxFontMagnificationEnvironment()
         .accessibilityIdentifier("stokdWork.panel")
@@ -204,7 +211,7 @@ struct StokdWorkPanelView: View {
                 .help(String(localized: "stokdWork.refresh", defaultValue: "Refresh work"))
                 .accessibilityLabel(String(localized: "stokdWork.refresh", defaultValue: "Refresh work"))
                 .accessibilityIdentifier("stokdWork.refresh")
-                .disabled(model.repoSlug == nil || model.state == .loading)
+                .disabled(model.repoSlug == nil || model.state == .loading || model.isRefreshing)
             }
 
             HStack(spacing: 6) {
@@ -297,6 +304,45 @@ struct StokdWorkPanelView: View {
         }
     }
 
+    // MARK: - Split handle
+
+    private func clampedDetailHeight(totalHeight: Double) -> Double {
+        let upper = max(StokdWorkPanelSettings.minimumDetailPaneHeight, totalHeight - 160)
+        return min(max(detailHeight, StokdWorkPanelSettings.minimumDetailPaneHeight), upper)
+    }
+
+    private func detailSplitHandle(totalHeight: Double) -> some View {
+        ZStack {
+            Rectangle()
+                .fill(Color.secondary.opacity(0.18))
+                .frame(height: 1)
+            Capsule()
+                .fill(Color.secondary.opacity(0.35))
+                .frame(width: 36, height: 4)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 9)
+        .contentShape(Rectangle())
+        .onHover { inside in
+            if inside { NSCursor.resizeUpDown.push() } else { NSCursor.pop() }
+        }
+        .gesture(
+            DragGesture(minimumDistance: 1)
+                .onChanged { value in
+                    if dragStartHeight == nil { dragStartHeight = detailHeight }
+                    let start = dragStartHeight ?? detailHeight
+                    detailHeight = start - value.translation.height
+                }
+                .onEnded { _ in
+                    dragStartHeight = nil
+                    detailHeight = clampedDetailHeight(totalHeight: totalHeight)
+                    model.setDetailPaneHeight(detailHeight)
+                }
+        )
+        .accessibilityLabel(String(localized: "stokdWork.detail.resize", defaultValue: "Resize details"))
+        .accessibilityIdentifier("stokdWork.detail.splitHandle")
+    }
+
     // MARK: - List
 
     private var content: AnyView {
@@ -317,14 +363,16 @@ struct StokdWorkPanelView: View {
                     ForEach(model.rows) { row in
                         StokdWorkRowView(
                             row: row,
+                            isSelected: model.isRowSelected(row.id),
                             actions: model.actions(for: row),
                             onSelect: { model.select(rowID: row.id) },
                             onAction: { model.requestAction($0, on: row) }
                         )
+                        .onAppear { model.rowDidAppear(id: row.id) }
                         Divider().padding(.leading, 36)
                     }
-                    if let footer = model.truncationFooterText {
-                        StokdWorkTruncationFooter(text: footer, onLoadMore: model.loadMore)
+                    if model.isLoadingMore {
+                        StokdWorkLoadingMoreFooter()
                     }
                 }
             }
@@ -375,17 +423,10 @@ struct StokdWorkPanelView: View {
 
     private func detailHeader(for row: StokdWorkPanelViewModel.RowSnapshot) -> some View {
         HStack(spacing: 8) {
-            Button(action: model.closeDetail) {
-                Label(
-                    String(localized: "stokdWork.detail.back", defaultValue: "Back"),
-                    systemImage: "chevron.left"
-                )
-                .labelStyle(.titleAndIcon)
-                .cmuxFont(size: 11, weight: .medium)
-            }
-            .buttonStyle(.borderless)
-            .keyboardShortcut(.escape, modifiers: [])
-            .accessibilityIdentifier("stokdWork.detail.back")
+            Text(String(localized: "stokdWork.detail.title", defaultValue: "Details"))
+                .cmuxFont(size: 10, weight: .semibold)
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
 
             Spacer()
 
@@ -415,9 +456,18 @@ struct StokdWorkPanelView: View {
             .help(String(localized: "stokdWork.detail.actions", defaultValue: "Actions"))
             .accessibilityLabel(String(localized: "stokdWork.detail.actions", defaultValue: "Actions"))
             .accessibilityIdentifier("stokdWork.detail.actions")
+
+            Button(action: model.closeDetail) {
+                Image(systemName: "xmark")
+                    .frame(width: 16, height: 16)
+            }
+            .buttonStyle(.borderless)
+            .help(String(localized: "stokdWork.detail.close", defaultValue: "Close details"))
+            .accessibilityLabel(String(localized: "stokdWork.detail.close", defaultValue: "Close details"))
+            .accessibilityIdentifier("stokdWork.detail.close")
         }
         .padding(.horizontal, 8)
-        .padding(.vertical, 6)
+        .padding(.vertical, 4)
         .rightSidebarChromeBottomBorder()
     }
 
@@ -453,6 +503,7 @@ struct StokdWorkPanelView: View {
 
 private struct StokdWorkRowView: View {
     let row: StokdWorkPanelViewModel.RowSnapshot
+    let isSelected: Bool
     let actions: [StokdWorkAction]
     let onSelect: () -> Void
     let onAction: (StokdWorkAction) -> Void
@@ -514,6 +565,14 @@ private struct StokdWorkRowView: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .background(isSelected ? Color.accentColor.opacity(0.14) : Color.clear)
+            .overlay(alignment: .leading) {
+                if isSelected {
+                    Rectangle()
+                        .fill(Color.accentColor)
+                        .frame(width: 2)
+                }
+            }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -531,22 +590,17 @@ private struct StokdWorkRowView: View {
     }
 }
 
-private struct StokdWorkTruncationFooter: View {
-    let text: String
-    let onLoadMore: () -> Void
-
+private struct StokdWorkLoadingMoreFooter: View {
     var body: some View {
-        VStack(spacing: 6) {
-            Text(text)
+        HStack(spacing: 6) {
+            ProgressView().controlSize(.mini)
+            Text(String(localized: "stokdWork.list.loadingMore", defaultValue: "Loading more…"))
                 .cmuxFont(size: 10)
                 .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-            Button(String(localized: "stokdWork.list.loadMore", defaultValue: "Load more"), action: onLoadMore)
-                .controlSize(.small)
         }
-        .padding(10)
+        .padding(8)
         .frame(maxWidth: .infinity)
-        .accessibilityIdentifier("stokdWork.list.truncated")
+        .accessibilityIdentifier("stokdWork.list.loadingMore")
     }
 }
 
