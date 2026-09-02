@@ -19,6 +19,13 @@ struct StokdWorkAvailabilityTests {
         #expect(RightSidebarMode.stokdWork.isAvailable(feedEnabled: false, dockEnabled: false, stokdPanelsEnabled: false))
     }
 
+    @Test func workIsSelectableFromTheCLIAndSocket() {
+        #expect(RightSidebarMode.from(cliArgument: "work") == .stokdWork)
+        #expect(RightSidebarMode.from(cliArgument: "stokd-work") == .stokdWork)
+        #expect(RightSidebarMode.from(cliArgument: "WORK") == .stokdWork)
+        #expect(RightSidebarMode.from(cliArgument: "worktrees") == nil)
+    }
+
     @Test func workSourcesHaveNoDockDependency() throws {
         let root = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
