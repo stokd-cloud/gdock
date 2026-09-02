@@ -13,7 +13,11 @@ extension TabManager {
         }
     }
 
-    /// Immediately re-group non-anchor workspaces by GitHub `owner/repo` when the mode is on.
+    /// Immediately re-group workspaces by GitHub `owner/repo` when the mode is on.
+    ///
+    /// A group anchor is the group's header, so it is re-grouped by renaming its
+    /// group (when it owns nothing else) or by shedding its retargeted panels —
+    /// never by being moved into some other group.
     func reconcileGdockAutoWorkspaceGroupsNow() {
         guard GdockAutoWorkspaceGroupModeSettings.isEnabled() else { return }
 
@@ -71,6 +75,8 @@ extension TabManager {
                     fromWorkspaceId: fromWorkspaceId,
                     slug: slug
                 )
+            case .renameGroup(let groupId, let name):
+                renameWorkspaceGroup(groupId: groupId, name: name)
             }
         }
     }

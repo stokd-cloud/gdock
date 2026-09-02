@@ -269,6 +269,113 @@ import CmuxSettings
         #expect(plan.isEmpty)
     }
 
+    // MARK: - Group anchors
+
+    /// The reported defect: a workspace promoted to (or created as) its group's
+    /// anchor fell out of Auto Workspace Group Mode entirely — `cd`-ing into
+    /// another repo left it sitting in the old repo's group forever.
+    @Test func soleAnchorRenamesItsGroupWhenItsRepoChanges() {
+        let groupId = UUID()
+        let anchor = UUID()
+        let plan = GdockAutoWorkspaceGroupReconciler.plan(
+            workspaces: [
+                .init(
+                    id: anchor,
+                    currentDirectory: "/tmp/b",
+                    groupId: groupId,
+                    isGroupAnchor: true,
+                    panels: [panel(UUID(), "/tmp/b")]
+                ),
+            ],
+            groups: [.init(id: groupId, name: repoA)],
+            slugForDirectory: slugMap([("/tmp/b", repoB)])
+        )
+        #expect(plan == [.renameGroup(groupId: groupId, name: repoB)])
+    }
+
+    /// Two groups may not carry the same repository slug, so the rename yields
+    /// to the group that already owns the name.
+    @Test func soleAnchorDoesNotRenameOntoAnExistingSlugGroup() {
+        let groupId = UUID()
+        let existing = UUID()
+        let anchor = UUID()
+        let plan = GdockAutoWorkspaceGroupReconciler.plan(
+            workspaces: [
+                .init(
+                    id: anchor,
+                    currentDirectory: "/tmp/b",
+                    groupId: groupId,
+                    isGroupAnchor: true,
+                    panels: [panel(UUID(), "/tmp/b")]
+                ),
+            ],
+            groups: [.init(id: groupId, name: repoA), .init(id: existing, name: repoB)],
+            slugForDirectory: slugMap([("/tmp/b", repoB)])
+        )
+        #expect(!plan.contains { if case .renameGroup = $0 { return true } else { return false } })
+    }
+
+    /// An anchor with siblings keeps its group; only the retargeted panel moves.
+    @Test func anchorExtractsOnlyTheRetargetedPanel() {
+        let groupId = UUID()
+        let anchor = UUID()
+        let member = UUID()
+        let stays = UUID()
+        let moves = UUID()
+        let plan = GdockAutoWorkspaceGroupReconciler.plan(
+            workspaces: [
+                .init(
+                    id: anchor,
+                    currentDirectory: "/tmp/b",
+                    groupId: groupId,
+                    isGroupAnchor: true,
+                    panels: [panel(stays, "/tmp/a"), panel(moves, "/tmp/b")]
+                ),
+                .init(
+                    id: member,
+                    currentDirectory: "/tmp/a",
+                    groupId: groupId,
+                    isGroupAnchor: false,
+                    panels: [panel(UUID(), "/tmp/a")]
+                ),
+            ],
+            groups: [.init(id: groupId, name: repoA)],
+            slugForDirectory: slugMap([("/tmp/a", repoA), ("/tmp/b", repoB)])
+        )
+        #expect(plan == [.extractPanel(panelId: moves, fromWorkspaceId: anchor, slug: repoB)])
+    }
+
+    /// A group header must keep at least one panel, so the last divergent panel
+    /// of an anchor stays put even when every panel moved.
+    @Test func anchorExtractionNeverEmptiesTheWorkspace() {
+        let groupId = UUID()
+        let anchor = UUID()
+        let member = UUID()
+        let first = UUID()
+        let second = UUID()
+        let plan = GdockAutoWorkspaceGroupReconciler.plan(
+            workspaces: [
+                .init(
+                    id: anchor,
+                    currentDirectory: "/tmp/b",
+                    groupId: groupId,
+                    isGroupAnchor: true,
+                    panels: [panel(first, "/tmp/b"), panel(second, "/tmp/b")]
+                ),
+                .init(
+                    id: member,
+                    currentDirectory: "/tmp/a",
+                    groupId: groupId,
+                    isGroupAnchor: false,
+                    panels: [panel(UUID(), "/tmp/a")]
+                ),
+            ],
+            groups: [.init(id: groupId, name: repoA)],
+            slugForDirectory: slugMap([("/tmp/a", repoA), ("/tmp/b", repoB)])
+        )
+        #expect(plan == [.extractPanel(panelId: first, fromWorkspaceId: anchor, slug: repoB)])
+    }
+
     @Test func groupNameIsReadAsSlugOnlyWhenItLooksLikeOne() {
         #expect(GdockAutoWorkspaceGroupReconciler.repositorySlug(from: "owner/repo") == "owner/repo")
         #expect(GdockAutoWorkspaceGroupReconciler.repositorySlug(from: "  owner/repo  ") == "owner/repo")

@@ -29,7 +29,7 @@
 
 - Setting: `gdock.autoWorkspaceGroupMode` (default off).
 - Palette: Enable/Disable **Auto Workspace Group Mode** (`palette.toggleSetting.gdock.autoWorkspaceGroupMode`).
-- When on: non-anchor workspaces whose cwd is inside a GitHub-remote repo are placed in a workspace group named `owner/repo` (primary remote: upstream → origin → others). Group anchors are not auto-moved.
+- When on: non-anchor workspaces whose cwd is inside a GitHub-remote repo are placed in a workspace group named `owner/repo` (primary remote: origin → upstream → others). A group anchor is the group's header and is never moved into another group, but it is not exempt: an anchor that owns nothing else renames its group to the repo it moved to, and an anchor with siblings sheds the panels that diverged (always keeping one, so the header survives). Focus follows an extracted panel only when it is the panel the user is working in.
 
 Also listed in `Agents.md` so every agent session loads it.
 
