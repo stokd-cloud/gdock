@@ -21,7 +21,7 @@ struct StokdWorkPanelViewModelTests {
             ],
             error: nil
         ))
-        let model = StokdWorkPanelViewModel(loader: loader)
+        let model = StokdWorkPanelViewModel(loader: loader, defaults: freshDefaults())
 
         model.refresh(repoSlug: "owner/repo")
         await waitUntil { model.state == .populated }
@@ -39,7 +39,7 @@ struct StokdWorkPanelViewModelTests {
 
     @Test func staleResponseCannotReplaceNewerRepository() async {
         let loader = ControlledStokdWorkLoader()
-        let model = StokdWorkPanelViewModel(loader: loader)
+        let model = StokdWorkPanelViewModel(loader: loader, defaults: freshDefaults())
 
         model.refresh(repoSlug: "owner/old")
         await loader.waitUntilRequested("owner/old")
@@ -73,7 +73,7 @@ struct StokdWorkPanelViewModelTests {
     @Test func emptyAndErrorStatesNeverRenderBlankContent() async {
         let empty = StokdWorkPanelViewModel(loader: ImmediateStokdWorkLoader(
             payload: StokdWorkPayload(tasks: [], projects: [], error: nil)
-        ))
+        ), defaults: freshDefaults())
         empty.refresh(repoSlug: "owner/empty")
         await waitUntil { empty.state == .empty }
         #expect(empty.rows.isEmpty)
@@ -83,9 +83,9 @@ struct StokdWorkPanelViewModelTests {
             payload: StokdWorkPayload(
                 tasks: [],
                 projects: [],
-                error: StokdWorkAPIError(kind: .connection, message: "Service unavailable")
+                error: StokdWorkLoadError(kind: .exit(1), message: "Service unavailable")
             )
-        ))
+        ), defaults: freshDefaults())
         failure.refresh(repoSlug: "owner/error")
         await waitUntil { failure.state.isFailure }
         #expect(failure.rows.isEmpty)
@@ -99,7 +99,7 @@ struct StokdWorkPanelViewModelTests {
                 projects: [project(id: "project", title: "Project", updatedAt: "2026-08-20T11:00:00Z")],
                 error: nil
             )
-        ))
+        ), defaults: freshDefaults())
         projectsOnly.refresh(repoSlug: "owner/repo")
         await waitUntil { projectsOnly.state == .populated }
 
@@ -117,7 +117,7 @@ struct StokdWorkPanelViewModelTests {
                 projects: [],
                 error: nil
             )
-        ))
+        ), defaults: freshDefaults())
         tasksOnly.refresh(repoSlug: "owner/repo")
         await waitUntil { tasksOnly.state == .populated }
 
@@ -128,6 +128,13 @@ struct StokdWorkPanelViewModelTests {
             localized: "stokdWork.state.empty.projects",
             defaultValue: "No projects found"
         ))
+    }
+
+    private func freshDefaults() -> UserDefaults {
+        let name = "stokdWork.viewModel.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: name)!
+        defaults.removePersistentDomain(forName: name)
+        return defaults
     }
 
     private func waitUntil(
