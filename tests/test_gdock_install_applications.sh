@@ -51,6 +51,10 @@ reload_build_count() {
   wc -l < "$RELOAD_CALLS" | tr -d ' '
 }
 
+reload_reuse_count() {
+  wc -l < "$REUSE_CALLS" | tr -d ' '
+}
+
 pending_record() {
   # The pending-install record lives beside the per-mode build state.
   find "$STATE/builds" -name 'pending-install' -type f 2>/dev/null | head -n 1
@@ -63,24 +67,43 @@ write_reload_stub() {
 set -euo pipefail
 
 if [[ "${1:-}" == "--help" ]]; then
-  echo "usage: reload.sh [--release] [--debug] [--tag <tag>] [--launch]"
+  echo "usage: reload.sh [--release] [--debug] [--tag <tag>] [--reuse-app <path>] [--launch]"
   exit 0
 fi
 
-echo build >> "$GDOCK_TEST_RELOAD_CALLS"
-
 APP="$GDOCK_TEST_BUILT_APP"
-for arg in "$@"; do
-  if [[ "$arg" == "--tag" ]]; then
-    APP="$(dirname "$GDOCK_TEST_BUILT_APP")/gdock tagged.app"
-  fi
+TAG=""
+REUSE_APP=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --tag)
+      TAG="${2:-}"
+      shift 2
+      ;;
+    --reuse-app)
+      REUSE_APP="${2:-}"
+      shift 2
+      ;;
+    *)
+      shift
+      ;;
+  esac
 done
+if [[ -n "$TAG" ]]; then
+  APP="$(dirname "$GDOCK_TEST_BUILT_APP")/gdock tagged.app"
+fi
 
 rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS"
-printf '%s\n' "$GDOCK_TEST_BUILD_ID" > "$APP/Contents/marker"
-printf '#!/bin/sh\nexit 0\n' > "$APP/Contents/MacOS/gdock"
-chmod +x "$APP/Contents/MacOS/gdock"
+if [[ -n "$REUSE_APP" ]]; then
+  printf '%s\n' "$REUSE_APP" >> "$GDOCK_TEST_REUSE_CALLS"
+  cp -R "$REUSE_APP" "$APP"
+else
+  echo build >> "$GDOCK_TEST_RELOAD_CALLS"
+  mkdir -p "$APP/Contents/MacOS"
+  printf '%s\n' "$GDOCK_TEST_BUILD_ID" > "$APP/Contents/marker"
+  printf '#!/bin/sh\nexit 0\n' > "$APP/Contents/MacOS/gdock"
+  chmod +x "$APP/Contents/MacOS/gdock"
+fi
 
 echo "Build complete."
 echo "App path:"
@@ -127,6 +150,7 @@ new_env() {
   STATE="$TEST/state"
   APPS="$TEST/Applications"
   RELOAD_CALLS="$TEST/reload-calls"
+  REUSE_CALLS="$TEST/reuse-calls"
   OPEN_LOG="$TEST/open.log"
   OSASCRIPT_LOG="$TEST/osascript.log"
   KILL_LOG="$TEST/kill.log"
@@ -138,6 +162,7 @@ new_env() {
   mkdir -p "$FW/scripts" "$FW/ghostty/include" "$STATE" "$APPS" "$TEST/bin"
   : > "$FW/ghostty/include/ghostty.h"
   : > "$RELOAD_CALLS"
+  : > "$REUSE_CALLS"
   : > "$OPEN_LOG"
   : > "$OSASCRIPT_LOG"
   : > "$KILL_LOG"
@@ -181,6 +206,7 @@ run_gdock() {
       GDOCK_PROMPT_TIMEOUT=5 \
       GDOCK_TEST_INSTALL_DIR="$APPS" \
       GDOCK_TEST_RELOAD_CALLS="$RELOAD_CALLS" \
+      GDOCK_TEST_REUSE_CALLS="$REUSE_CALLS" \
       GDOCK_TEST_BUILT_APP="$BUILT_APP" \
       GDOCK_TEST_BUILD_ID="$BUILD_ID" \
       GDOCK_TEST_OPEN_LOG="$OPEN_LOG" \
@@ -355,6 +381,75 @@ case_tagged_never_installs() {
 }
 
 # ---------------------------------------------------------------------------
+# Case 8: an unchanged first Release tag clones the main artifact without a
+# second compile, then the tagged cache handles subsequent unchanged runs.
+# ---------------------------------------------------------------------------
+case_unchanged_release_retags_main_artifact() {
+  begin_case "case 8: unchanged first Release tag reuses the main build artifact"
+  new_env
+  mark_not_running
+  BUILD_ID="main-build"
+
+  run_gdock --build --no-launch < /dev/null > "$TEST/main.log" 2>&1
+  assert_eq "$(reload_build_count)" "1" "main Release compile count"
+  assert_eq "$(reload_reuse_count)" "0" "main Release reuse count"
+
+  local donor_marker tagged_app status
+  donor_marker="$(cat "$BUILT_APP/Contents/marker" 2>/dev/null || true)"
+  tagged_app="$(dirname "$BUILT_APP")/gdock tagged.app"
+  BUILD_ID="tag-build-must-not-run"
+  run_gdock --tag latest --no-launch < /dev/null > "$TEST/tag1.log" 2>&1
+  status=$?
+
+  assert_eq "$status" "0" "first tagged exit status"
+  assert_eq "$(reload_build_count)" "1" "first tag must not compile"
+  assert_eq "$(reload_reuse_count)" "1" "first tag must clone once"
+  assert_exists "$tagged_app"
+  assert_eq "$(cat "$tagged_app/Contents/marker" 2>/dev/null || true)" "main-build" "tagged artifact payload"
+  assert_eq "$(cat "$BUILT_APP/Contents/marker" 2>/dev/null || true)" "$donor_marker" "donor must remain unchanged"
+  grep -Fxq "$BUILT_APP" "$REUSE_CALLS" || fail "reuse did not name the main Release donor"
+
+  run_gdock --tag latest --no-launch < /dev/null > "$TEST/tag2.log" 2>&1
+  assert_eq "$(reload_build_count)" "1" "second unchanged tag must not compile"
+  assert_eq "$(reload_reuse_count)" "1" "second unchanged tag must not restage"
+
+  BUILD_ID="forced-tag-build"
+  run_gdock --build --tag latest --no-launch < /dev/null > "$TEST/tag-forced.log" 2>&1
+  assert_eq "$(reload_build_count)" "2" "forced tag must compile"
+  assert_eq "$(reload_reuse_count)" "1" "forced tag must bypass artifact reuse"
+  assert_eq "$(cat "$tagged_app/Contents/marker" 2>/dev/null || true)" "forced-tag-build" "forced tag payload"
+  cleanup_env
+}
+
+# ---------------------------------------------------------------------------
+# Case 9: changed sources and Debug builds never reuse the main Release donor.
+# ---------------------------------------------------------------------------
+case_release_reuse_guardrails() {
+  begin_case "case 9: changed sources and Debug bypass Release artifact reuse"
+  new_env
+  mark_not_running
+  BUILD_ID="main-build"
+  run_gdock --build --no-launch < /dev/null > "$TEST/main.log" 2>&1
+
+  printf 'changed\n' > "$FW/source-change"
+  BUILD_ID="changed-tag-build"
+  run_gdock --tag changed --no-launch < /dev/null > "$TEST/changed.log" 2>&1
+  assert_eq "$(reload_build_count)" "2" "changed sources must compile"
+  assert_eq "$(reload_reuse_count)" "0" "changed sources must not reuse"
+  cleanup_env
+
+  new_env
+  mark_not_running
+  BUILD_ID="main-build"
+  run_gdock --build --no-launch < /dev/null > "$TEST/main.log" 2>&1
+  BUILD_ID="debug-tag-build"
+  run_gdock --debug --tag debug --no-launch < /dev/null > "$TEST/debug.log" 2>&1
+  assert_eq "$(reload_build_count)" "2" "Debug tag must compile"
+  assert_eq "$(reload_reuse_count)" "0" "Debug tag must not reuse Release"
+  cleanup_env
+}
+
+# ---------------------------------------------------------------------------
 
 if [[ ! -x "$GDOCK" ]]; then
   echo "FATAL: $GDOCK is missing or not executable" >&2
@@ -368,6 +463,8 @@ case_pending_applied_on_next_run
 case_accept_quits_and_replaces
 case_non_tty_declines
 case_tagged_never_installs
+case_unchanged_release_retags_main_artifact
+case_release_reuse_guardrails
 
 if [[ "$FAILURES" -ne 0 ]]; then
   printf '\n%d assertion failure(s)\n' "$FAILURES" >&2
