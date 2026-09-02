@@ -84,5 +84,34 @@ public struct GdockCatalogSection: SettingCatalogSection {
         userDefaultsKey: "gdock.gridModeShape"
     )
 
+    /// Work panel kind filter: `all`, `tasks`, `projects`, or `todos`.
+    public let workPanelKindFilter = DefaultsKey<String>(
+        id: "gdock.workPanel.kindFilter",
+        defaultValue: "all",
+        userDefaultsKey: "gdock.workPanel.kindFilter"
+    )
+
+    /// When off (the default) the Work panel hides completed, cancelled, and
+    /// failed items so the list shows what still needs doing.
+    public let workPanelShowCompleted = DefaultsKey<Bool>(
+        id: "gdock.workPanel.showCompleted",
+        defaultValue: false,
+        userDefaultsKey: "gdock.workPanel.showCompleted"
+    )
+
+    /// Work panel sort field: `updated_at` (default) or `created_at`.
+    public let workPanelSortField = DefaultsKey<String>(
+        id: "gdock.workPanel.sortField",
+        defaultValue: "updated_at",
+        userDefaultsKey: "gdock.workPanel.sortField"
+    )
+
+    /// Work panel sort direction; `false` (the default) lists newest first.
+    public let workPanelSortAscending = DefaultsKey<Bool>(
+        id: "gdock.workPanel.sortAscending",
+        defaultValue: false,
+        userDefaultsKey: "gdock.workPanel.sortAscending"
+    )
+
     public init() {}
 }

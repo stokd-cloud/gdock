@@ -44,7 +44,7 @@ final class StokdWorkRepositoryBinder {
             // A newer bind supersedes this one; never let a slow resolution
             // overwrite the current repository.
             guard let self, let model, self.generation == generation else { return }
-            model.refresh(repoSlug: repoSlug)
+            model.refresh(repoSlug: repoSlug, directory: directory)
         }
         return true
     }

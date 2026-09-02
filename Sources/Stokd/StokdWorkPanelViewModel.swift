@@ -1,36 +1,17 @@
+import AppKit
 import Combine
 import Foundation
 
-struct StokdWorkPayload: Equatable, Sendable {
-    let tasks: [StokdTask]
-    let projects: [StokdProject]
-    let error: StokdWorkAPIError?
-}
-
-protocol StokdWorkLoading: Sendable {
-    func load(query: StokdWorkListQuery) async -> StokdWorkPayload
-}
-
-extension StokdWorkAPIClient: StokdWorkLoading {
-    func load(query: StokdWorkListQuery) async -> StokdWorkPayload {
-        async let taskResult = tasks(query)
-        async let projectResult = projects(query)
-        let (tasks, projects) = await (taskResult, projectResult)
-        return StokdWorkPayload(
-            tasks: tasks.page.items,
-            projects: projects.page.items,
-            error: tasks.error ?? projects.error
-        )
-    }
-}
-
+/// State for the Work panel: the loaded set, the kind / completed / sort /
+/// search filters, the in-panel detail, and the per-kind context actions.
+///
+/// All data enters through ``StokdWorkLoading`` and ``StokdWorkDetailLoading``
+/// (the resolved `stokd` CLI in production); nothing here spawns a process from
+/// `body` or per keystroke — search recomputes over the loaded array and the
+/// body search runs debounced in a bounded background queue.
 @MainActor
 final class StokdWorkPanelViewModel: ObservableObject {
-    enum Filter: String, CaseIterable, Equatable, Sendable {
-        case all
-        case tasks
-        case projects
-    }
+    typealias Filter = StokdWorkKindFilter
 
     enum State: Equatable, Sendable {
         case idle
@@ -53,7 +34,7 @@ final class StokdWorkPanelViewModel: ObservableObject {
             case .populated:
                 return ""
             case .empty:
-                return String(localized: "stokdWork.state.empty", defaultValue: "No tasks or projects found")
+                return String(localized: "stokdWork.state.empty", defaultValue: "No tasks, projects, or todos found")
             case let .failure(message):
                 return message
             }
@@ -61,24 +42,61 @@ final class StokdWorkPanelViewModel: ObservableObject {
     }
 
     struct RowSnapshot: Equatable, Identifiable, Sendable {
-        enum Kind: String, Equatable, Sendable {
-            case task
-            case project
-        }
-
         let id: String
         let rawID: String
-        let kind: Kind
+        let kind: StokdWorkItemKind
+        let hash: String
+        let number: Int?
         let title: String
         let detail: String
         let status: String
+        let repoSlug: String?
         let updatedAt: String
+        let createdAt: String?
+        let checklistCompleted: Int?
+        let checklistTotal: Int?
+        var matchedInBody: Bool = false
+
+        var sortCreatedAt: String { createdAt ?? updatedAt }
+    }
+
+    struct DetailState: Equatable, Sendable {
+        var isLoading: Bool
+        var detail: StokdWorkDetail?
+        var errorMessage: String?
+
+        var isLoaded: Bool { detail != nil }
+    }
+
+    struct PendingAction: Equatable, Sendable {
+        let action: StokdWorkAction
+        let row: RowSnapshot
+
+        var needsConfirmation: Bool { action.needsConfirmation }
+        var needsInput: Bool { action.needsInput }
     }
 
     @Published private(set) var state: State = .idle
     @Published private(set) var rows: [RowSnapshot] = []
     @Published private(set) var repoSlug: String?
-    @Published private(set) var filter: Filter = .all
+    @Published private(set) var directory: String = ""
+    @Published private(set) var filter: Filter
+    @Published private(set) var showCompleted: Bool
+    @Published private(set) var sortField: StokdWorkSortField
+    @Published private(set) var sortAscending: Bool
+    @Published private(set) var searchQuery: String = ""
+    @Published private(set) var isBodySearchRunning: Bool = false
+    @Published private(set) var truncatedKinds: [StokdWorkItemKind] = []
+    @Published private(set) var limitPerKind: Int
+    @Published private(set) var selectedRow: RowSnapshot?
+    @Published private(set) var detailState: DetailState?
+    @Published private(set) var pendingAction: PendingAction?
+    @Published private(set) var isPerformingAction: Bool = false
+    @Published private(set) var actionErrorMessage: String?
+
+    /// Opens a terminal surface running `command` in `directory`. Hosts install
+    /// their own launcher; without one, interactive actions are unavailable.
+    var terminalLauncher: ((_ command: String, _ directory: String) -> Void)?
 
     var stateMessage: String {
         guard state == .empty else { return state.message }
@@ -89,29 +107,125 @@ final class StokdWorkPanelViewModel: ObservableObject {
             return String(localized: "stokdWork.state.empty.tasks", defaultValue: "No tasks found")
         case .projects:
             return String(localized: "stokdWork.state.empty.projects", defaultValue: "No projects found")
+        case .todos:
+            return String(localized: "stokdWork.state.empty.todos", defaultValue: "No todos found")
         }
     }
 
-    private let loader: any StokdWorkLoading
-    private var allRows: [RowSnapshot] = []
-    private var requestGeneration: UInt64 = 0
-    private var loadTask: Task<Void, Never>?
-
-    init(loader: any StokdWorkLoading = StokdWorkAPIClient()) {
-        self.loader = loader
+    /// "N of M" while a query is active; qualified with "at least" when any kind
+    /// hit its cap so a miss is not mistaken for an absence.
+    var searchCountText: String? {
+        guard !normalizedQuery.isEmpty else { return nil }
+        let shown = rows.count
+        let total = filteredBase.count
+        if truncatedKinds.isEmpty {
+            return String(localized: "stokdWork.search.count", defaultValue: "\(shown) of \(total)")
+        }
+        return String(localized: "stokdWork.search.countAtLeast", defaultValue: "\(shown) of at least \(total)")
     }
 
-    func refresh(repoSlug: String?) {
-        let normalizedRepo = repoSlug?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+    var isShowingNoMatches: Bool {
+        !normalizedQuery.isEmpty && rows.isEmpty && state == .populated
+    }
+
+    var noMatchesText: String {
+        String(localized: "stokdWork.search.noMatches", defaultValue: "No matches for “\(searchQuery)”")
+    }
+
+    var truncationFooterText: String? {
+        guard !truncatedKinds.isEmpty else { return nil }
+        return String(
+            localized: "stokdWork.list.truncated",
+            defaultValue: "Showing the first \(limitPerKind) per kind — the list may be incomplete"
+        )
+    }
+
+    private let loader: any StokdWorkLoading
+    private let detailLoader: any StokdWorkDetailLoading
+    private let actionClient: any StokdWorkCLIClient
+    private let defaults: UserDefaults
+    private let searchDebounce: Duration
+    private let bodySearchConcurrency = 2
+
+    private var allRows: [RowSnapshot] = []
+    private var filteredBase: [RowSnapshot] = []
+    private var bodyMatchedHashes: Set<String> = []
+    private var bodyTextCache: [String: String] = [:]
+    private var detailCache: [String: StokdWorkDetail] = [:]
+    private var requestGeneration: UInt64 = 0
+    private var loadTask: Task<Void, Never>?
+    private var searchGeneration: UInt64 = 0
+    private var bodySearchTask: Task<Void, Never>?
+    private var detailTask: Task<Void, Never>?
+    private var detailGeneration: UInt64 = 0
+
+    init(
+        loader: any StokdWorkLoading = StokdWorkCLILoader(),
+        detailLoader: (any StokdWorkDetailLoading)? = nil,
+        actionClient: (any StokdWorkCLIClient)? = nil,
+        defaults: UserDefaults = .standard,
+        initialLimitPerKind: Int = StokdWorkListQuery.defaultLimitPerKind,
+        searchDebounce: Duration = .milliseconds(300),
+        terminalLauncher: ((_ command: String, _ directory: String) -> Void)? = nil
+    ) {
+        self.loader = loader
+        if let detailLoader {
+            self.detailLoader = detailLoader
+        } else if let cli = loader as? StokdWorkCLILoader {
+            self.detailLoader = cli
+        } else {
+            self.detailLoader = StokdWorkCLILoader()
+        }
+        self.actionClient = actionClient ?? StokdCLIRunner()
+        self.defaults = defaults
+        self.searchDebounce = searchDebounce
+        self.terminalLauncher = terminalLauncher
+        self.limitPerKind = max(1, initialLimitPerKind)
+        filter = StokdWorkPanelSettings.kindFilter(defaults: defaults)
+        showCompleted = StokdWorkPanelSettings.showCompleted(defaults: defaults)
+        sortField = StokdWorkPanelSettings.sortField(defaults: defaults)
+        sortAscending = StokdWorkPanelSettings.sortAscending(defaults: defaults)
+    }
+
+    // MARK: - Loading
+
+    func refresh(repoSlug: String?, directory: String = "") {
+        let normalizedRepo = repoSlug?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.repoSlug = normalizedRepo?.isEmpty == false ? normalizedRepo : nil
+        self.directory = directory.trimmingCharacters(in: .whitespacesAndNewlines)
+        closeDetail()
+        bodyTextCache = [:]
+        detailCache = [:]
+        reload(preservingRows: false)
+    }
+
+    func refreshCurrentRepository() {
+        bodyTextCache = [:]
+        detailCache = [:]
+        reload(preservingRows: true)
+    }
+
+    /// Doubles the per-kind cap and reloads; results are merged de-duplicated by id.
+    func loadMore() {
+        limitPerKind = min(limitPerKind * 2, 100_000)
+        reload(preservingRows: true)
+    }
+
+    private func reload(preservingRows: Bool) {
         requestGeneration &+= 1
         let generation = requestGeneration
         loadTask?.cancel()
-        self.repoSlug = normalizedRepo?.isEmpty == false ? normalizedRepo : nil
-        allRows = []
-        rows = []
+        cancelBodySearch()
+        if !preservingRows {
+            allRows = []
+            bodyMatchedHashes = []
+            recompute()
+        }
 
-        guard let repoSlug = self.repoSlug else {
+        guard let repoSlug else {
+            allRows = []
+            rows = []
+            truncatedKinds = []
             state = .failure(String(
                 localized: "stokdWork.state.noRepository",
                 defaultValue: "No repository is associated with this workspace"
@@ -120,74 +234,431 @@ final class StokdWorkPanelViewModel: ObservableObject {
         }
 
         state = .loading
+        let query = StokdWorkListQuery(repoSlug: repoSlug, directory: directory, limitPerKind: limitPerKind)
         let loader = self.loader
         loadTask = Task { [weak self] in
-            let payload = await loader.load(query: StokdWorkListQuery(repoSlug: repoSlug))
+            let payload = await loader.load(query: query)
             guard let self, self.requestGeneration == generation else { return }
             self.apply(payload)
         }
     }
 
+    private func apply(_ payload: StokdWorkPayload) {
+        if let error = payload.error {
+            allRows = []
+            rows = []
+            truncatedKinds = []
+            state = .failure(error.message)
+            return
+        }
+        allRows = Self.rows(from: payload)
+        truncatedKinds = payload.truncatedKinds
+        bodyMatchedHashes = []
+        // The load is over: let `recompute()` derive the presented state again.
+        state = .populated
+        recompute()
+        scheduleBodySearch()
+    }
+
+    // MARK: - Filters
+
     func setFilter(_ filter: Filter) {
         guard self.filter != filter else { return }
         self.filter = filter
-        applyFilter()
+        StokdWorkPanelSettings.setKindFilter(filter, defaults: defaults)
+        recompute()
+        scheduleBodySearch()
     }
 
-    func refreshCurrentRepository() {
-        refresh(repoSlug: repoSlug)
+    func setShowCompleted(_ show: Bool) {
+        guard showCompleted != show else { return }
+        showCompleted = show
+        StokdWorkPanelSettings.setShowCompleted(show, defaults: defaults)
+        recompute()
+        scheduleBodySearch()
     }
 
-    private func apply(_ payload: StokdWorkPayload) {
-        guard let error = payload.error else {
-            allRows = Self.sortedRows(tasks: payload.tasks, projects: payload.projects)
-            applyFilter()
+    func toggleShowCompleted() {
+        setShowCompleted(!showCompleted)
+    }
+
+    func toggleSortDirection() {
+        sortAscending.toggle()
+        StokdWorkPanelSettings.setSortAscending(sortAscending, defaults: defaults)
+        recompute()
+    }
+
+    func setSortField(_ field: StokdWorkSortField) {
+        guard sortField != field else { return }
+        sortField = field
+        StokdWorkPanelSettings.setSortField(field, defaults: defaults)
+        recompute()
+    }
+
+    // MARK: - Search
+
+    func setSearchQuery(_ query: String) {
+        guard searchQuery != query else { return }
+        searchQuery = query
+        bodyMatchedHashes = []
+        recompute()
+        scheduleBodySearch()
+    }
+
+    func clearSearch() {
+        setSearchQuery("")
+    }
+
+    private var normalizedQuery: String {
+        Self.normalize(searchQuery)
+    }
+
+    nonisolated static func normalize(_ text: String) -> String {
+        text.folding(options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive], locale: nil)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    nonisolated private static func tierOneMatches(_ row: RowSnapshot, query: String) -> Bool {
+        guard !query.isEmpty else { return true }
+        let haystacks = [row.title, row.hash, row.status, row.repoSlug ?? "", row.detail]
+        return haystacks.contains { normalize($0).contains(query) }
+    }
+
+    /// Recomputes `filteredBase` and `rows` from `allRows`; never shells out.
+    private func recompute() {
+        var base = allRows
+        if let kind = filter.kind {
+            base = base.filter { $0.kind == kind }
+        }
+        if !showCompleted {
+            base = base.filter { !StokdWorkStatus.isTerminal($0.status) }
+        }
+        base.sort(by: comparator)
+        filteredBase = base
+
+        let query = normalizedQuery
+        if query.isEmpty {
+            rows = base
+        } else {
+            var tierOne: [RowSnapshot] = []
+            var tierTwo: [RowSnapshot] = []
+            for row in base {
+                if Self.tierOneMatches(row, query: query) {
+                    tierOne.append(row)
+                } else if bodyMatchedHashes.contains(row.hash) {
+                    var marked = row
+                    marked.matchedInBody = true
+                    tierTwo.append(marked)
+                }
+            }
+            rows = tierOne + tierTwo
+        }
+
+        if state == .loading || state.isFailure { return }
+        if allRows.isEmpty {
+            state = .empty
+        } else if rows.isEmpty, query.isEmpty {
+            state = .empty
+        } else {
+            state = .populated
+        }
+    }
+
+    private func comparator(_ lhs: RowSnapshot, _ rhs: RowSnapshot) -> Bool {
+        let lhsKey: String
+        let rhsKey: String
+        switch sortField {
+        case .updatedAt:
+            lhsKey = lhs.updatedAt
+            rhsKey = rhs.updatedAt
+        case .createdAt:
+            lhsKey = lhs.sortCreatedAt
+            rhsKey = rhs.sortCreatedAt
+        }
+        if lhsKey != rhsKey {
+            return sortAscending ? lhsKey < rhsKey : lhsKey > rhsKey
+        }
+        if lhs.title != rhs.title { return lhs.title < rhs.title }
+        return lhs.id < rhs.id
+    }
+
+    // MARK: - Tier-2 body search
+
+    private func cancelBodySearch() {
+        searchGeneration &+= 1
+        bodySearchTask?.cancel()
+        bodySearchTask = nil
+        isBodySearchRunning = false
+    }
+
+    private func scheduleBodySearch() {
+        cancelBodySearch()
+        let query = normalizedQuery
+        guard !query.isEmpty, !allRows.isEmpty, repoSlug != nil else { return }
+        let candidates = filteredBase.filter { !Self.tierOneMatches($0, query: query) }
+        guard !candidates.isEmpty else { return }
+
+        let generation = searchGeneration
+        let debounce = searchDebounce
+        let directory = self.directory
+        let detailLoader = self.detailLoader
+        let concurrency = bodySearchConcurrency
+        let cached = bodyTextCache
+        isBodySearchRunning = true
+
+        bodySearchTask = Task { [weak self] in
+            if debounce > .zero {
+                try? await Task.sleep(for: debounce)
+            }
+            guard !Task.isCancelled else { return }
+
+            // Cached bodies are checked synchronously; the rest are fetched
+            // through a queue that never has more than `concurrency` in flight.
+            var pending: [RowSnapshot] = []
+            for row in candidates {
+                if let text = cached[row.hash] {
+                    if Self.normalize(text).contains(query) {
+                        await self?.recordBodyMatch(hash: row.hash, generation: generation)
+                    }
+                } else {
+                    pending.append(row)
+                }
+            }
+
+            await withTaskGroup(of: (String, String?).self) { group in
+                var iterator = pending.makeIterator()
+                var active = 0
+                func enqueueNext() {
+                    guard let row = iterator.next() else { return }
+                    active += 1
+                    group.addTask {
+                        let result = await detailLoader.loadDetailText(kind: row.kind, hash: row.hash, directory: directory)
+                        return (row.hash, try? result.get())
+                    }
+                }
+                for _ in 0..<concurrency { enqueueNext() }
+                while active > 0, let next = await group.next() {
+                    let (hash, text) = next
+                    active -= 1
+                    if Task.isCancelled { break }
+                    if let text {
+                        await self?.cacheBodyText(text, for: hash, generation: generation)
+                        if Self.normalize(text).contains(query) {
+                            await self?.recordBodyMatch(hash: hash, generation: generation)
+                        }
+                    }
+                    enqueueNext()
+                }
+                group.cancelAll()
+            }
+            await self?.finishBodySearch(generation: generation)
+        }
+    }
+
+    private func cacheBodyText(_ text: String, for hash: String, generation: UInt64) {
+        bodyTextCache[hash] = text
+        _ = generation
+    }
+
+    private func recordBodyMatch(hash: String, generation: UInt64) {
+        guard generation == searchGeneration else { return }
+        bodyMatchedHashes.insert(hash)
+        recompute()
+    }
+
+    private func finishBodySearch(generation: UInt64) {
+        guard generation == searchGeneration else { return }
+        isBodySearchRunning = false
+        bodySearchTask = nil
+    }
+
+    // MARK: - Detail
+
+    func select(rowID: String) {
+        guard let row = rows.first(where: { $0.id == rowID }) ?? allRows.first(where: { $0.id == rowID }) else { return }
+        selectedRow = row
+        loadDetail(for: row, force: false)
+    }
+
+    func closeDetail() {
+        detailGeneration &+= 1
+        detailTask?.cancel()
+        detailTask = nil
+        selectedRow = nil
+        detailState = nil
+    }
+
+    func retryDetail() {
+        guard let row = selectedRow else { return }
+        loadDetail(for: row, force: true)
+    }
+
+    private func loadDetail(for row: RowSnapshot, force: Bool) {
+        detailGeneration &+= 1
+        let generation = detailGeneration
+        detailTask?.cancel()
+
+        if !force, let cached = detailCache[row.hash] {
+            detailState = DetailState(isLoading: false, detail: cached, errorMessage: nil)
             return
         }
-        allRows = []
-        rows = []
-        state = .failure(error.message)
-    }
-
-    private func applyFilter() {
-        switch filter {
-        case .all:
-            rows = allRows
-        case .tasks:
-            rows = allRows.filter { $0.kind == .task }
-        case .projects:
-            rows = allRows.filter { $0.kind == .project }
+        detailState = DetailState(isLoading: true, detail: nil, errorMessage: nil)
+        let detailLoader = self.detailLoader
+        let directory = self.directory
+        detailTask = Task { [weak self] in
+            let result = await detailLoader.loadDetailText(kind: row.kind, hash: row.hash, directory: directory)
+            guard let self, self.detailGeneration == generation else { return }
+            switch result {
+            case let .success(text):
+                let detail = StokdWorkDetailParser.parse(kind: row.kind, output: text)
+                self.detailCache[row.hash] = detail
+                self.bodyTextCache[row.hash] = text
+                self.detailState = DetailState(isLoading: false, detail: detail, errorMessage: nil)
+            case let .failure(error):
+                self.detailState = DetailState(isLoading: false, detail: nil, errorMessage: error.message)
+            }
         }
-        state = rows.isEmpty ? .empty : .populated
     }
 
-    private static func sortedRows(tasks: [StokdTask], projects: [StokdProject]) -> [RowSnapshot] {
-        let taskRows = tasks.map { task in
-            RowSnapshot(
+    // MARK: - Actions
+
+    func actions(for row: RowSnapshot) -> [StokdWorkAction] {
+        StokdWorkActionTable.actions(kind: row.kind, status: row.status)
+    }
+
+    /// Entry point for every action surface (row menu, detail bar). Interactive
+    /// verbs open a terminal at once; destructive and input verbs park in
+    /// `pendingAction` until the view confirms; the rest dispatch immediately.
+    func requestAction(_ action: StokdWorkAction, on row: RowSnapshot) {
+        if action == .copyHash {
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.setString(row.hash, forType: .string)
+            return
+        }
+        if action.runsInTerminal {
+            guard let command = StokdWorkActionTable.terminalCommand(for: action, kind: row.kind, hash: row.hash) else { return }
+            guard let terminalLauncher else {
+                actionErrorMessage = String(
+                    localized: "stokdWork.action.noTerminal",
+                    defaultValue: "No terminal is available to run “\(command)”"
+                )
+                return
+            }
+            terminalLauncher(command, directory)
+            return
+        }
+        if action.needsConfirmation || action.needsInput {
+            pendingAction = PendingAction(action: action, row: row)
+            return
+        }
+        perform(action, on: row, input: nil)
+    }
+
+    func confirmPendingAction(input: String?) {
+        guard let pending = pendingAction else { return }
+        pendingAction = nil
+        perform(pending.action, on: pending.row, input: input)
+    }
+
+    func cancelPendingAction() {
+        pendingAction = nil
+    }
+
+    func dismissActionError() {
+        actionErrorMessage = nil
+    }
+
+    private func perform(_ action: StokdWorkAction, on row: RowSnapshot, input: String?) {
+        guard let arguments = StokdWorkActionTable.arguments(for: action, kind: row.kind, hash: row.hash, input: input) else {
+            actionErrorMessage = String(
+                localized: "stokdWork.action.invalidInput",
+                defaultValue: "“\(action.title)” needs a valid value"
+            )
+            return
+        }
+        isPerformingAction = true
+        let client = actionClient
+        let directory = self.directory.isEmpty ? NSHomeDirectory() : self.directory
+        Task { [weak self] in
+            let result = await client.run(directory: directory, arguments: arguments, timeout: 60)
+            guard let self else { return }
+            self.isPerformingAction = false
+            if let error = StokdWorkCLILoader.error(from: result) {
+                self.actionErrorMessage = error.message
+                return
+            }
+            self.detailCache.removeValue(forKey: row.hash)
+            self.bodyTextCache.removeValue(forKey: row.hash)
+            if action == .delete, self.selectedRow?.hash == row.hash {
+                self.closeDetail()
+            } else if self.selectedRow?.hash == row.hash {
+                self.retryDetail()
+            }
+            self.reload(preservingRows: true)
+        }
+    }
+
+    // MARK: - Rows
+
+    private static func rows(from payload: StokdWorkPayload) -> [RowSnapshot] {
+        var seen = Set<String>()
+        var result: [RowSnapshot] = []
+        func append(_ row: RowSnapshot) {
+            guard seen.insert(row.id).inserted else { return }
+            result.append(row)
+        }
+        for task in payload.tasks {
+            append(RowSnapshot(
                 id: "task:\(task.id)",
                 rawID: task.id,
                 kind: .task,
+                hash: task.hashShort ?? task.id,
+                number: task.number,
                 title: task.title,
                 detail: task.description,
                 status: task.status,
-                updatedAt: task.updatedAt
-            )
+                repoSlug: task.repoSlug,
+                updatedAt: task.updatedAt,
+                createdAt: task.createdAt,
+                checklistCompleted: nil,
+                checklistTotal: nil
+            ))
         }
-        let projectRows = projects.map { project in
-            RowSnapshot(
+        for project in payload.projects {
+            append(RowSnapshot(
                 id: "project:\(project.id)",
                 rawID: project.id,
                 kind: .project,
+                hash: project.hashShort ?? project.id,
+                number: project.number,
                 title: project.title,
                 detail: project.description,
                 status: project.status,
-                updatedAt: project.updatedAt
-            )
+                repoSlug: project.repoSlug,
+                updatedAt: project.updatedAt,
+                createdAt: project.createdAt,
+                checklistCompleted: nil,
+                checklistTotal: nil
+            ))
         }
-        return (taskRows + projectRows).sorted { lhs, rhs in
-            if lhs.updatedAt != rhs.updatedAt { return lhs.updatedAt > rhs.updatedAt }
-            if lhs.title != rhs.title { return lhs.title < rhs.title }
-            return lhs.id < rhs.id
+        for todo in payload.todos {
+            append(RowSnapshot(
+                id: "todo:\(todo.id)",
+                rawID: todo.id,
+                kind: .todo,
+                hash: todo.hashShort ?? todo.id,
+                number: nil,
+                title: todo.title,
+                detail: "",
+                status: todo.status,
+                repoSlug: todo.repoSlug,
+                updatedAt: todo.updatedAt,
+                createdAt: nil,
+                checklistCompleted: todo.completedItemCount,
+                checklistTotal: todo.items.count
+            ))
         }
+        return result
     }
 }

@@ -44,63 +44,287 @@ enum StokdWorkPresentation {
             Date.FormatStyle(date: .abbreviated, time: .shortened).locale(locale)
         )
     }
+
+    static func kindText(_ kind: StokdWorkItemKind, locale: Locale = .current) -> String {
+        switch kind {
+        case .task:
+            return String(localized: "stokdWork.kind.task", defaultValue: "Task", locale: locale)
+        case .project:
+            return String(localized: "stokdWork.kind.project", defaultValue: "Project", locale: locale)
+        case .todo:
+            return String(localized: "stokdWork.kind.todo", defaultValue: "Todo", locale: locale)
+        }
+    }
+
+    static func kindSymbol(_ kind: StokdWorkItemKind) -> String {
+        switch kind {
+        case .task: return "checkmark.circle"
+        case .project: return "folder"
+        case .todo: return "checklist"
+        }
+    }
+
+    static func kindColor(_ kind: StokdWorkItemKind) -> Color {
+        switch kind {
+        case .task: return Color.accentColor
+        case .project: return Color.secondary
+        case .todo: return Color.purple
+        }
+    }
+
+    static func statusColor(_ rawValue: String) -> Color {
+        switch rawValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+        case "in_progress", "executing", "active":
+            return Color.blue
+        case "completed", "done":
+            return Color.green
+        case "blocked", "failed":
+            return Color.red
+        case "cancelled":
+            return Color.gray
+        default:
+            return Color.secondary
+        }
+    }
 }
 
 struct StokdWorkPanelView: View {
     @ObservedObject var model: StokdWorkPanelViewModel
+    @State private var actionInput: String = ""
+    @FocusState private var isSearchFocused: Bool
 
     var body: some View {
         VStack(spacing: 0) {
-            toolbar
-            content
+            if let selectedRow = model.selectedRow {
+                detailHeader(for: selectedRow)
+                detailContent(for: selectedRow)
+            } else {
+                filterBar
+                content
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .cmuxFontMagnificationEnvironment()
         .accessibilityIdentifier("stokdWork.panel")
+        .alert(
+            model.pendingAction?.action.title ?? "",
+            isPresented: Binding(
+                get: { model.pendingAction != nil },
+                set: { presented in if !presented { model.cancelPendingAction() } }
+            ),
+            presenting: model.pendingAction
+        ) { pending in
+            if pending.needsInput {
+                TextField(pending.action.inputPrompt, text: $actionInput)
+                Button(String(localized: "stokdWork.action.run", defaultValue: "Run")) {
+                    let input = actionInput
+                    actionInput = ""
+                    model.confirmPendingAction(input: input)
+                }
+                Button(String(localized: "stokdWork.action.cancel", defaultValue: "Cancel"), role: .cancel) {
+                    actionInput = ""
+                    model.cancelPendingAction()
+                }
+            } else {
+                Button(pending.action.title, role: pending.action.isDestructive ? ButtonRole.destructive : nil) {
+                    model.confirmPendingAction(input: nil)
+                }
+                Button(String(localized: "stokdWork.action.cancel", defaultValue: "Cancel"), role: .cancel) {
+                    model.cancelPendingAction()
+                }
+            }
+        } message: { pending in
+            if pending.needsInput {
+                Text(pending.row.title)
+            } else {
+                Text(String(
+                    localized: "stokdWork.action.confirm",
+                    defaultValue: "\(pending.action.title) “\(pending.row.title)” (\(pending.row.hash))?"
+                ))
+            }
+        }
+        .alert(
+            String(localized: "stokdWork.action.failed", defaultValue: "stokd command failed"),
+            isPresented: Binding(
+                get: { model.actionErrorMessage != nil },
+                set: { presented in if !presented { model.dismissActionError() } }
+            )
+        ) {
+            Button(String(localized: "stokdWork.action.ok", defaultValue: "OK"), role: .cancel) {
+                model.dismissActionError()
+            }
+        } message: {
+            Text(model.actionErrorMessage ?? "")
+        }
     }
 
-    private var toolbar: some View {
-        HStack(spacing: 8) {
-            Picker(
-                String(localized: "stokdWork.filter.label", defaultValue: "Work type"),
-                selection: Binding(
-                    get: { model.filter },
-                    set: model.setFilter
-                )
-            ) {
-                Text(String(localized: "stokdWork.filter.all", defaultValue: "All"))
-                    .tag(StokdWorkPanelViewModel.Filter.all)
-                Text(String(localized: "stokdWork.filter.tasks", defaultValue: "Tasks"))
-                    .tag(StokdWorkPanelViewModel.Filter.tasks)
-                Text(String(localized: "stokdWork.filter.projects", defaultValue: "Projects"))
-                    .tag(StokdWorkPanelViewModel.Filter.projects)
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .accessibilityIdentifier("stokdWork.filter")
+    // MARK: - Filter bar
 
-            Button(action: model.refreshCurrentRepository) {
-                Image(systemName: "arrow.clockwise")
-                    .frame(width: 16, height: 16)
+    private var filterBar: some View {
+        VStack(spacing: 6) {
+            HStack(spacing: 6) {
+                HStack(spacing: 4) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(.secondary)
+                        .cmuxFont(size: 11)
+                    TextField(
+                        String(localized: "stokdWork.search.placeholder", defaultValue: "Search work"),
+                        text: Binding(
+                            get: { model.searchQuery },
+                            set: { model.setSearchQuery($0) }
+                        )
+                    )
+                    .textFieldStyle(.plain)
+                    .cmuxFont(size: 11)
+                    .focused($isSearchFocused)
+                    .onExitCommand { model.clearSearch() }
+                    .accessibilityIdentifier("stokdWork.search")
+                    if model.isBodySearchRunning {
+                        ProgressView()
+                            .controlSize(.mini)
+                            .help(String(localized: "stokdWork.search.bodies", defaultValue: "Searching item bodies"))
+                    } else if !model.searchQuery.isEmpty {
+                        Button(action: model.clearSearch) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(String(localized: "stokdWork.search.clear", defaultValue: "Clear search"))
+                    }
+                }
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 6))
+
+                Button(action: model.refreshCurrentRepository) {
+                    Image(systemName: "arrow.clockwise")
+                        .frame(width: 16, height: 16)
+                }
+                .buttonStyle(.borderless)
+                .help(String(localized: "stokdWork.refresh", defaultValue: "Refresh work"))
+                .accessibilityLabel(String(localized: "stokdWork.refresh", defaultValue: "Refresh work"))
+                .accessibilityIdentifier("stokdWork.refresh")
+                .disabled(model.repoSlug == nil || model.state == .loading)
             }
-            .buttonStyle(.borderless)
-            .help(String(localized: "stokdWork.refresh", defaultValue: "Refresh work"))
-            .accessibilityLabel(String(localized: "stokdWork.refresh", defaultValue: "Refresh work"))
-            .accessibilityIdentifier("stokdWork.refresh")
-            .disabled(model.repoSlug == nil || model.state == .loading)
+
+            HStack(spacing: 6) {
+                Picker(
+                    String(localized: "stokdWork.filter.label", defaultValue: "Work type"),
+                    selection: Binding(
+                        get: { model.filter },
+                        set: model.setFilter
+                    )
+                ) {
+                    Text(String(localized: "stokdWork.filter.all", defaultValue: "All"))
+                        .tag(StokdWorkPanelViewModel.Filter.all)
+                    Text(String(localized: "stokdWork.filter.tasks", defaultValue: "Tasks"))
+                        .tag(StokdWorkPanelViewModel.Filter.tasks)
+                    Text(String(localized: "stokdWork.filter.projects", defaultValue: "Projects"))
+                        .tag(StokdWorkPanelViewModel.Filter.projects)
+                    Text(String(localized: "stokdWork.filter.todos", defaultValue: "Todos"))
+                        .tag(StokdWorkPanelViewModel.Filter.todos)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .accessibilityIdentifier("stokdWork.filter")
+
+                Button(action: model.toggleShowCompleted) {
+                    Image(systemName: model.showCompleted ? "eye" : "eye.slash")
+                        .frame(width: 16, height: 16)
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(model.showCompleted ? Color.secondary : Color.accentColor)
+                .help(model.showCompleted
+                      ? String(localized: "stokdWork.filter.hideCompleted", defaultValue: "Hide completed")
+                      : String(localized: "stokdWork.filter.showCompleted", defaultValue: "Show completed"))
+                .accessibilityLabel(String(localized: "stokdWork.filter.completedToggle", defaultValue: "Toggle completed items"))
+                .accessibilityValue(model.showCompleted
+                                    ? String(localized: "stokdWork.filter.completed.shown", defaultValue: "Shown")
+                                    : String(localized: "stokdWork.filter.completed.hidden", defaultValue: "Hidden"))
+                .accessibilityIdentifier("stokdWork.filter.completed")
+
+                Button(action: model.toggleSortDirection) {
+                    Image(systemName: model.sortAscending ? "arrow.up" : "arrow.down")
+                        .frame(width: 16, height: 16)
+                }
+                .buttonStyle(.borderless)
+                .help(sortHelpText)
+                .accessibilityLabel(String(localized: "stokdWork.sort.direction", defaultValue: "Sort direction"))
+                .accessibilityValue(sortHelpText)
+                .accessibilityIdentifier("stokdWork.sort")
+                .contextMenu {
+                    Picker(
+                        String(localized: "stokdWork.sort.field", defaultValue: "Sort by"),
+                        selection: Binding(
+                            get: { model.sortField },
+                            set: model.setSortField
+                        )
+                    ) {
+                        Text(String(localized: "stokdWork.sort.updatedAt", defaultValue: "Last Updated"))
+                            .tag(StokdWorkSortField.updatedAt)
+                        Text(String(localized: "stokdWork.sort.createdAt", defaultValue: "Created"))
+                            .tag(StokdWorkSortField.createdAt)
+                    }
+                    .pickerStyle(.inline)
+                }
+            }
+
+            if let count = model.searchCountText {
+                HStack {
+                    Text(count)
+                        .cmuxFont(size: 10)
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("stokdWork.search.count")
+                    Spacer()
+                }
+            }
         }
-        .rightSidebarChromeBar()
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
         .rightSidebarChromeBottomBorder()
     }
+
+    private var sortHelpText: String {
+        switch (model.sortField, model.sortAscending) {
+        case (.updatedAt, false):
+            return String(localized: "stokdWork.sort.updatedNewest", defaultValue: "Last updated, newest first")
+        case (.updatedAt, true):
+            return String(localized: "stokdWork.sort.updatedOldest", defaultValue: "Last updated, oldest first")
+        case (.createdAt, false):
+            return String(localized: "stokdWork.sort.createdNewest", defaultValue: "Created, newest first")
+        case (.createdAt, true):
+            return String(localized: "stokdWork.sort.createdOldest", defaultValue: "Created, oldest first")
+        }
+    }
+
+    // MARK: - List
 
     private var content: AnyView {
         switch model.state {
         case .populated:
+            if model.isShowingNoMatches {
+                return AnyView(StokdWorkStateView(
+                    title: model.noMatchesText,
+                    symbol: "magnifyingglass",
+                    showsProgress: model.isBodySearchRunning,
+                    actionTitle: String(localized: "stokdWork.search.clear", defaultValue: "Clear search"),
+                    action: { model.clearSearch() }
+                )
+                .accessibilityIdentifier("stokdWork.state.noMatches"))
+            }
             return AnyView(ScrollView {
                 LazyVStack(spacing: 0) {
                     ForEach(model.rows) { row in
-                        StokdWorkRowView(row: row)
+                        StokdWorkRowView(
+                            row: row,
+                            actions: model.actions(for: row),
+                            onSelect: { model.select(rowID: row.id) },
+                            onAction: { model.requestAction($0, on: row) }
+                        )
                         Divider().padding(.leading, 36)
+                    }
+                    if let footer = model.truncationFooterText {
+                        StokdWorkTruncationFooter(text: footer, onLoadMore: model.loadMore)
                     }
                 }
             }
@@ -146,57 +370,359 @@ struct StokdWorkPanelView: View {
             .accessibilityIdentifier("stokdWork.state.error"))
         }
     }
+
+    // MARK: - Detail
+
+    private func detailHeader(for row: StokdWorkPanelViewModel.RowSnapshot) -> some View {
+        HStack(spacing: 8) {
+            Button(action: model.closeDetail) {
+                Label(
+                    String(localized: "stokdWork.detail.back", defaultValue: "Back"),
+                    systemImage: "chevron.left"
+                )
+                .labelStyle(.titleAndIcon)
+                .cmuxFont(size: 11, weight: .medium)
+            }
+            .buttonStyle(.borderless)
+            .keyboardShortcut(.escape, modifiers: [])
+            .accessibilityIdentifier("stokdWork.detail.back")
+
+            Spacer()
+
+            Text(StokdWorkPresentation.kindText(row.kind))
+                .cmuxFont(size: 9, weight: .semibold)
+                .foregroundStyle(.secondary)
+            Text(row.hash)
+                .cmuxFont(size: 10, design: .monospaced)
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
+
+            Menu {
+                ForEach(model.actions(for: row), id: \.self) { action in
+                    Button(role: action.isDestructive ? ButtonRole.destructive : nil) {
+                        model.requestAction(action, on: row)
+                    } label: {
+                        Label(action.title, systemImage: action.systemImage)
+                    }
+                }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+                    .frame(width: 16, height: 16)
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .frame(width: 20)
+            .help(String(localized: "stokdWork.detail.actions", defaultValue: "Actions"))
+            .accessibilityLabel(String(localized: "stokdWork.detail.actions", defaultValue: "Actions"))
+            .accessibilityIdentifier("stokdWork.detail.actions")
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .rightSidebarChromeBottomBorder()
+    }
+
+    @ViewBuilder
+    private func detailContent(for row: StokdWorkPanelViewModel.RowSnapshot) -> some View {
+        if let state = model.detailState {
+            if state.isLoading {
+                StokdWorkStateView(
+                    title: String(localized: "stokdWork.detail.loading", defaultValue: "Loading details"),
+                    symbol: "doc.text",
+                    showsProgress: true,
+                    actionTitle: nil,
+                    action: nil
+                )
+                .accessibilityIdentifier("stokdWork.detail.loading")
+            } else if let detail = state.detail {
+                StokdWorkDetailView(row: row, detail: detail, isPerformingAction: model.isPerformingAction)
+            } else {
+                StokdWorkStateView(
+                    title: state.errorMessage ?? "",
+                    symbol: "exclamationmark.triangle",
+                    showsProgress: false,
+                    actionTitle: String(localized: "stokdWork.retry", defaultValue: "Retry"),
+                    action: { model.retryDetail() }
+                )
+                .accessibilityIdentifier("stokdWork.detail.error")
+            }
+        } else {
+            EmptyView()
+        }
+    }
 }
 
 private struct StokdWorkRowView: View {
     let row: StokdWorkPanelViewModel.RowSnapshot
+    let actions: [StokdWorkAction]
+    let onSelect: () -> Void
+    let onAction: (StokdWorkAction) -> Void
 
     var body: some View {
-        HStack(alignment: .top, spacing: 8) {
-            Image(systemName: row.kind == .task ? "checkmark.circle" : "folder")
-                .cmuxFont(size: 13, weight: .medium)
-                .foregroundStyle(row.kind == .task ? Color.accentColor : Color.secondary)
-                .frame(width: 18, height: 18)
+        Button(action: onSelect) {
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: StokdWorkPresentation.kindSymbol(row.kind))
+                    .cmuxFont(size: 13, weight: .medium)
+                    .foregroundStyle(StokdWorkPresentation.kindColor(row.kind))
+                    .frame(width: 18, height: 18)
 
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(row.title)
-                        .cmuxFont(size: 12, weight: .medium)
-                        .lineLimit(2)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text(row.title)
+                            .cmuxFont(size: 12, weight: .medium)
+                            .lineLimit(2)
+                            .frame(maxWidth: .infinity, alignment: .leading)
 
-                    Text(StokdWorkPresentation.statusText(row.status))
-                        .cmuxFont(size: 9, weight: .semibold)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
-                        .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 4))
+                        Text(StokdWorkPresentation.statusText(row.status))
+                            .cmuxFont(size: 9, weight: .semibold)
+                            .foregroundStyle(StokdWorkPresentation.statusColor(row.status))
+                            .lineLimit(1)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(
+                                StokdWorkPresentation.statusColor(row.status).opacity(0.12),
+                                in: RoundedRectangle(cornerRadius: 4)
+                            )
+                    }
+
+                    if !row.detail.isEmpty {
+                        Text(row.detail)
+                            .cmuxFont(size: 11)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                    }
+
+                    HStack(spacing: 5) {
+                        Text(StokdWorkPresentation.kindText(row.kind))
+                        Text(row.hash)
+                        if let completed = row.checklistCompleted, let total = row.checklistTotal {
+                            Text(String(
+                                localized: "stokdWork.todo.checklist",
+                                defaultValue: "\(completed)/\(total) done"
+                            ))
+                        }
+                        Text(StokdWorkPresentation.updatedAtText(row.updatedAt))
+                        if row.matchedInBody {
+                            Text(String(localized: "stokdWork.search.matchedInBody", defaultValue: "matched in body"))
+                                .foregroundStyle(Color.accentColor)
+                        }
+                    }
+                    .cmuxFont(size: 9, design: .monospaced)
+                    .foregroundStyle(.tertiary)
+                    .lineLimit(1)
                 }
-
-                if !row.detail.isEmpty {
-                    Text(row.detail)
-                        .cmuxFont(size: 11)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            ForEach(actions, id: \.self) { action in
+                Button(role: action.isDestructive ? ButtonRole.destructive : nil) {
+                    onAction(action)
+                } label: {
+                    Label(action.title, systemImage: action.systemImage)
                 }
-
-                HStack(spacing: 5) {
-                    Text(row.kind == .task
-                         ? String(localized: "stokdWork.kind.task", defaultValue: "Task")
-                         : String(localized: "stokdWork.kind.project", defaultValue: "Project"))
-                    Text(StokdWorkPresentation.updatedAtText(row.updatedAt))
-                }
-                .cmuxFont(size: 9, design: .monospaced)
-                .foregroundStyle(.tertiary)
-                .lineLimit(1)
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("stokdWork.row.\(row.id)")
+    }
+}
+
+private struct StokdWorkTruncationFooter: View {
+    let text: String
+    let onLoadMore: () -> Void
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Text(text)
+                .cmuxFont(size: 10)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            Button(String(localized: "stokdWork.list.loadMore", defaultValue: "Load more"), action: onLoadMore)
+                .controlSize(.small)
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity)
+        .accessibilityIdentifier("stokdWork.list.truncated")
+    }
+}
+
+private struct StokdWorkDetailView: View {
+    let row: StokdWorkPanelViewModel.RowSnapshot
+    let detail: StokdWorkDetail
+    let isPerformingAction: Bool
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                identityHeader
+
+                if !detail.isParsed {
+                    rawBlock(detail.rawText)
+                } else {
+                    if !detail.fields.isEmpty {
+                        fieldsBlock
+                    }
+                    if !detail.checklist.isEmpty {
+                        section(String(localized: "stokdWork.detail.checklist", defaultValue: "Checklist")) {
+                            ForEach(detail.checklist) { item in
+                                HStack(alignment: .top, spacing: 6) {
+                                    Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
+                                        .foregroundStyle(item.isCompleted ? Color.green : Color.secondary)
+                                        .cmuxFont(size: 11)
+                                    VStack(alignment: .leading, spacing: 1) {
+                                        Text(item.title)
+                                            .cmuxFont(size: 11)
+                                            .strikethrough(item.isCompleted)
+                                        if let repo = item.repoSlug {
+                                            Text(repo)
+                                                .cmuxFont(size: 9, design: .monospaced)
+                                                .foregroundStyle(.tertiary)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if let description = detail.description, !description.isEmpty {
+                        section(String(localized: "stokdWork.detail.description", defaultValue: "Description")) {
+                            Text(description)
+                                .cmuxFont(size: 11)
+                                .textSelection(.enabled)
+                        }
+                    }
+                    if !detail.acceptanceCriteria.isEmpty {
+                        section(String(localized: "stokdWork.detail.acceptanceCriteria", defaultValue: "Acceptance Criteria")) {
+                            ForEach(Array(detail.acceptanceCriteria.enumerated()), id: \.offset) { _, criterion in
+                                HStack(alignment: .top, spacing: 6) {
+                                    Image(systemName: "checkmark.square")
+                                        .foregroundStyle(.secondary)
+                                        .cmuxFont(size: 11)
+                                    Text(criterion)
+                                        .cmuxFont(size: 11)
+                                        .textSelection(.enabled)
+                                }
+                            }
+                        }
+                    }
+                    ForEach(Array(detail.sections.enumerated()), id: \.offset) { _, extra in
+                        section(extra.title) {
+                            Text(extra.body)
+                                .cmuxFont(size: 11, design: .monospaced)
+                                .textSelection(.enabled)
+                        }
+                    }
+                    if !detail.notes.isEmpty {
+                        section(String(localized: "stokdWork.detail.notes", defaultValue: "Notes")) {
+                            ForEach(Array(detail.notes.enumerated()), id: \.offset) { _, note in
+                                HStack(alignment: .top, spacing: 6) {
+                                    Text("•")
+                                        .cmuxFont(size: 11)
+                                        .foregroundStyle(.secondary)
+                                    Text(note)
+                                        .cmuxFont(size: 11)
+                                        .textSelection(.enabled)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if isPerformingAction {
+                    HStack(spacing: 6) {
+                        ProgressView().controlSize(.small)
+                        Text(String(localized: "stokdWork.action.running", defaultValue: "Running stokd…"))
+                            .cmuxFont(size: 10)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .accessibilityIdentifier("stokdWork.detail")
+    }
+
+    private var identityHeader: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: StokdWorkPresentation.kindSymbol(row.kind))
+                    .cmuxFont(size: 14, weight: .medium)
+                    .foregroundStyle(StokdWorkPresentation.kindColor(row.kind))
+                Text(detail.title ?? row.title)
+                    .cmuxFont(size: 13, weight: .semibold)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            HStack(spacing: 6) {
+                let status = detail.status ?? row.status
+                Text(StokdWorkPresentation.statusText(status))
+                    .cmuxFont(size: 9, weight: .semibold)
+                    .foregroundStyle(StokdWorkPresentation.statusColor(status))
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 2)
+                    .background(StokdWorkPresentation.statusColor(status).opacity(0.12), in: RoundedRectangle(cornerRadius: 4))
+                if let number = detail.number ?? row.number {
+                    Text("#\(number)")
+                        .cmuxFont(size: 9, design: .monospaced)
+                        .foregroundStyle(.secondary)
+                }
+                if let repo = detail.repoSlug ?? row.repoSlug {
+                    Text(repo)
+                        .cmuxFont(size: 9, design: .monospaced)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+            Text(String(
+                localized: "stokdWork.detail.updated",
+                defaultValue: "Updated \(StokdWorkPresentation.updatedAtText(row.updatedAt))"
+            ))
+            .cmuxFont(size: 9, design: .monospaced)
+            .foregroundStyle(.tertiary)
+        }
+    }
+
+    private var fieldsBlock: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            ForEach(detail.fields.keys.sorted(), id: \.self) { key in
+                if key.lowercased() != "status" {
+                    HStack(alignment: .top, spacing: 6) {
+                        Text(key)
+                            .cmuxFont(size: 10, weight: .medium)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 84, alignment: .trailing)
+                        Text(detail.fields[key] ?? "")
+                            .cmuxFont(size: 10, design: .monospaced)
+                            .textSelection(.enabled)
+                    }
+                }
+            }
+        }
+    }
+
+    private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title.uppercased())
+                .cmuxFont(size: 9, weight: .semibold)
+                .foregroundStyle(.secondary)
+            content()
+        }
+    }
+
+    private func rawBlock(_ text: String) -> some View {
+        Text(text.isEmpty
+             ? String(localized: "stokdWork.detail.emptyOutput", defaultValue: "stokd returned no output for this item")
+             : text)
+            .cmuxFont(size: 10, design: .monospaced)
+            .textSelection(.enabled)
+            .padding(8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 6))
+            .accessibilityIdentifier("stokdWork.detail.raw")
     }
 }
 

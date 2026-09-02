@@ -2584,6 +2584,16 @@ struct ContentView: View {
     /// Called from the directory sync and from the panel's own `onAppear`, since
     /// `onChange` does not fire for a mode restored at launch.
     private func syncStokdWorkRepository() {
+        if stokdWorkViewModel.terminalLauncher == nil {
+            let tabManager = self.tabManager
+            stokdWorkViewModel.terminalLauncher = { command, directory in
+                StokdWorkTerminalLauncher.launch(
+                    command: command,
+                    directory: directory,
+                    in: tabManager.selectedWorkspace
+                )
+            }
+        }
         stokdWorkRepositoryBinder.bind(
             directory: stokdWorkScopeDirectory,
             to: stokdWorkViewModel

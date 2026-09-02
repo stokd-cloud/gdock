@@ -5,7 +5,7 @@ import Foundation
 /// The base URL comes from the *active* environment — see
 /// ``StokdEnvironmentStore`` — never a hard-coded host. `local`, `stage`, and
 /// `saas` are different hosts, and assuming the local one sends a user on saas
-/// to a dead `http://localhost:8167/...` link. When the environment has not
+/// to a dead link at the old hardcoded local API port. When the environment has not
 /// resolved yet, this returns `nil` and the caller shows no link rather than a
 /// link into the wrong environment. Only the path shape is configurable, via
 /// `gdock.stokdRepoDetailURLTemplate`.
