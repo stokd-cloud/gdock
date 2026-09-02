@@ -82,6 +82,43 @@ struct StokdWorkDetailTests {
         #expect(empty.rawText == "")
     }
 
+    @Test func detailIsASplitPaneSoOtherRowsStaySelectable() async {
+        let loader = FixtureStokdWorkLoader(payload: StokdWorkPayload(
+            tasks: [
+                StokdWorkFixtures.task(id: "t1", hash: "8b4b164", title: "Repair", updatedAt: "2026-08-20T12:00:00Z"),
+                StokdWorkFixtures.task(id: "t2", hash: "adb3051", title: "Fast path", updatedAt: "2026-08-20T11:00:00Z"),
+            ],
+            projects: [], todos: [], limitPerKind: 100, error: nil
+        ))
+        let detailLoader = FixtureStokdWorkDetailLoader(bodies: [
+            "8b4b164": .success(StokdWorkFixtures.taskGetText),
+            "adb3051": .success("Task #adb3051  Fast path\n────────\nStatus:  in_progress\n"),
+        ])
+        let defaults = freshDefaults()
+        let model = StokdWorkPanelViewModel(loader: loader, detailLoader: detailLoader, defaults: defaults)
+        model.refresh(repoSlug: "owner/repo", directory: "/repos/x")
+        await stokdWorkWaitUntil { model.state == .populated }
+
+        model.select(rowID: "task:t1")
+        await stokdWorkWaitUntil { model.detailState?.isLoaded == true }
+        #expect(model.rows.count == 2, "the list stays in place next to the detail")
+        #expect(model.isRowSelected("task:t1"))
+        #expect(!model.isRowSelected("task:t2"))
+
+        model.select(rowID: "task:t2")
+        await stokdWorkWaitUntil { model.detailState?.detail?.hash == "adb3051" }
+        #expect(model.isRowSelected("task:t2"))
+        #expect(model.rows.count == 2)
+
+        // Re-selecting the open row toggles the pane closed; the split height persists.
+        model.select(rowID: "task:t2")
+        #expect(model.selectedRow == nil)
+        model.setDetailPaneHeight(333)
+        #expect(StokdWorkPanelSettings.detailPaneHeight(defaults: defaults) == 333)
+        #expect(StokdWorkPanelSettings.detailPaneHeightKey.userDefaultsKey == "gdock.workPanel.detailHeight")
+        #expect(StokdWorkPanelSettings.detailPaneHeight(defaults: freshDefaults()) == StokdWorkPanelSettings.defaultDetailPaneHeight)
+    }
+
     @Test func selectingARowLoadsDetailAndFailuresOfferRetry() async {
         let loader = FixtureStokdWorkLoader(payload: StokdWorkPayload(
             tasks: [StokdWorkFixtures.task(id: "t1", hash: "8b4b164", title: "Repair", updatedAt: "2026-08-20T12:00:00Z")],

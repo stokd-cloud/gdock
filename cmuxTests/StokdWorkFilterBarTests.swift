@@ -131,9 +131,9 @@ struct StokdWorkFilterBarTests {
         #expect(StokdWorkPanelSettings.defaultShowCompleted == false)
     }
 
-    @Test func exactlyTheLimitShowsTruncationAndLoadMoreDoublesTheLimit() async {
+    @Test func scrollingPastTheMidpointGrowsThePageAndMergesRows() async {
         let loader = RecordingLimitStokdWorkLoader { limit in
-            let tasks = (0..<min(limit, 4)).map { index in
+            let tasks = (0..<min(limit, 5)).map { index in
                 StokdWorkFixtures.task(id: "t\(index)", title: "T\(index)", updatedAt: "2026-08-20T1\(index):00:00Z")
             }
             return StokdWorkPayload(tasks: tasks, projects: [], todos: [], limitPerKind: limit, error: nil)
@@ -142,18 +142,56 @@ struct StokdWorkFilterBarTests {
         model.refresh(repoSlug: "owner/repo", directory: "/repos/x")
         await stokdWorkWaitUntil { model.state == .populated }
 
-        #expect(model.truncatedKinds == [.task])
-        #expect(model.truncationFooterText?.contains("2") == true)
+        #expect(model.rows.count == 2)
+        #expect(model.hasMoreRows)
+        #expect(model.isLoadingMore == false)
 
-        model.loadMore()
+        // Rows above the midpoint do not page; the midpoint row does, once.
+        model.rowDidAppear(id: model.rows[0].id)
+        #expect(await loader.recordedLimits() == [2])
+        model.rowDidAppear(id: model.rows[1].id)
+        #expect(model.isLoadingMore)
+        #expect(model.state == .populated, "paging never replaces the list with a spinner")
+        model.rowDidAppear(id: model.rows[1].id)
         await stokdWorkWaitUntil { model.rows.count == 4 }
 
         #expect(await loader.recordedLimits() == [2, 4])
-        #expect(model.truncatedKinds == [.task])
+        #expect(model.isLoadingMore == false)
         #expect(Set(model.rows.map(\.rawID)).count == 4)
+        #expect(model.hasMoreRows)
 
-        model.loadMore()
-        await stokdWorkWaitUntil { model.truncatedKinds.isEmpty }
-        #expect(model.truncationFooterText == nil)
+        model.rowDidAppear(id: model.rows[3].id)
+        await stokdWorkWaitUntil { model.rows.count == 5 }
+        #expect(await loader.recordedLimits() == [2, 4, 6])
+        #expect(model.hasMoreRows == false)
+
+        // A short page is the end: no further requests.
+        model.rowDidAppear(id: model.rows[4].id)
+        await Task.yield()
+        #expect(await loader.recordedLimits() == [2, 4, 6])
+    }
+
+    @Test func changingTheSortRefetchesTheTopPageWithoutBlankingTheList() async {
+        let loader = RecordingLimitStokdWorkLoader { limit in
+            StokdWorkPayload(
+                tasks: [StokdWorkFixtures.task(id: "t0", title: "T0", updatedAt: "2026-08-20T10:00:00Z")],
+                projects: [], todos: [], limitPerKind: limit, error: nil
+            )
+        }
+        let model = StokdWorkPanelViewModel(loader: loader, defaults: freshDefaults(), initialLimitPerKind: 2)
+        model.refresh(repoSlug: "owner/repo", directory: "/repos/x")
+        await stokdWorkWaitUntil { model.state == .populated }
+        #expect(await loader.recordedLimits() == [2])
+
+        model.toggleSortDirection()
+        #expect(model.state == .populated)
+        #expect(model.rows.count == 1)
+        await stokdWorkWaitUntilAsync { await loader.recordedLimits().count == 2 }
+        #expect(await loader.recordedQueries().last?.sortAscending == true)
+
+        model.setSortField(.createdAt)
+        await stokdWorkWaitUntilAsync { await loader.recordedLimits().count == 3 }
+        #expect(await loader.recordedQueries().last?.sortField == .createdAt)
+        #expect(model.rows.count == 1)
     }
 }

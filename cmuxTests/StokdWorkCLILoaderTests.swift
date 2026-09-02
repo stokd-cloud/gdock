@@ -16,15 +16,29 @@ struct StokdWorkCLILoaderTests {
         let client = FakeStokdWorkCLIClient()
         let loader = StokdWorkCLILoader(client: client)
 
-        _ = await loader.load(query: StokdWorkListQuery(repoSlug: "owner/repo", directory: "/repos/x", limitPerKind: 500))
+        _ = await loader.load(query: StokdWorkListQuery(repoSlug: "owner/repo", directory: "/repos/x", limitPerKind: 100))
 
         let invocations = await client.invocations
         #expect(invocations.allSatisfy { $0.directory == "/repos/x" })
         let arguments = Set(invocations.map(\.arguments))
-        #expect(arguments.contains(["task", "list", "--repo", "owner/repo", "--all", "--json", "--limit", "500"]))
-        #expect(arguments.contains(["project", "list", "--repo", "owner/repo", "--all", "--json", "--limit", "500"]))
-        #expect(arguments.contains(["todo", "list", "--all", "--json", "--limit", "500"]))
+        #expect(arguments.contains(["task", "list", "--repo", "owner/repo", "--all", "--json", "--limit", "100", "--sort-by", "updated_at", "--desc"]))
+        #expect(arguments.contains(["project", "list", "--repo", "owner/repo", "--all", "--json", "--limit", "100", "--sort-by", "updated_at", "--desc"]))
+        #expect(arguments.contains(["todo", "list", "--all", "--json", "--limit", "100", "--sort-by", "updated_at", "--desc"]))
         #expect(invocations.count == 3)
+    }
+
+    @Test func listArgumentsFollowThePanelSortSoTheTopPageIsTheRightPage() async {
+        let client = FakeStokdWorkCLIClient()
+        let loader = StokdWorkCLILoader(client: client)
+
+        _ = await loader.load(query: StokdWorkListQuery(
+            repoSlug: "owner/repo", directory: "/repos/x", limitPerKind: 100,
+            sortField: .createdAt, sortAscending: true
+        ))
+
+        let arguments = Set(await client.recordedArguments())
+        #expect(arguments.contains(["task", "list", "--repo", "owner/repo", "--all", "--json", "--limit", "100", "--sort-by", "created_at"]))
+        #expect(StokdWorkListQuery.defaultLimitPerKind == 100)
     }
 
     @Test func recordedCLIOutputDecodesIntoTasksProjectsAndRepoMemberTodos() async {

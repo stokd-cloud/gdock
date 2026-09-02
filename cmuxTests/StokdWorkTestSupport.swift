@@ -229,6 +229,7 @@ struct FixtureStokdWorkLoader: StokdWorkLoading {
 
 actor RecordingLimitStokdWorkLoader: StokdWorkLoading {
     private(set) var limits: [Int] = []
+    private(set) var queries: [StokdWorkListQuery] = []
     private let payloadForLimit: @Sendable (Int) -> StokdWorkPayload
 
     init(payloadForLimit: @escaping @Sendable (Int) -> StokdWorkPayload) {
@@ -237,10 +238,12 @@ actor RecordingLimitStokdWorkLoader: StokdWorkLoading {
 
     func load(query: StokdWorkListQuery) async -> StokdWorkPayload {
         limits.append(query.limitPerKind)
+        queries.append(query)
         return payloadForLimit(query.limitPerKind)
     }
 
     func recordedLimits() -> [Int] { limits }
+    func recordedQueries() -> [StokdWorkListQuery] { queries }
 }
 
 /// Detail loader whose bodies are keyed by hash; used for detail and body-search tests.
