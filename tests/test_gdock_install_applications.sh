@@ -74,6 +74,7 @@ fi
 APP="$GDOCK_TEST_BUILT_APP"
 TAG=""
 REUSE_APP=""
+REUSE_IDENTITY=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --tag)
@@ -82,6 +83,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --reuse-app)
       REUSE_APP="${2:-}"
+      shift 2
+      ;;
+    --reuse-identity)
+      REUSE_IDENTITY="${2:-}"
       shift 2
       ;;
     *)
@@ -96,8 +101,20 @@ fi
 rm -rf "$APP"
 if [[ -n "$REUSE_APP" ]]; then
   printf '%s\n' "$REUSE_APP" >> "$GDOCK_TEST_REUSE_CALLS"
-  cp -R "$REUSE_APP" "$APP"
-else
+  printf '%s\n' "$REUSE_IDENTITY" >> "$GDOCK_TEST_REUSE_IDENTITIES"
+  if [[ -n "${GDOCK_TEST_REUSE_PAUSE_FLAG:-}" && -e "$GDOCK_TEST_REUSE_PAUSE_FLAG" ]]; then
+    : > "$GDOCK_TEST_REUSE_ENTERED"
+    while [[ -e "$GDOCK_TEST_REUSE_PAUSE_FLAG" ]]; do
+      sleep 0.05
+    done
+  fi
+  if [[ "${GDOCK_TEST_REUSE_REJECT:-0}" != "1" ]]; then
+    cp -R "$REUSE_APP" "$APP"
+  else
+    REUSE_APP=""
+  fi
+fi
+if [[ -z "$REUSE_APP" ]]; then
   echo build >> "$GDOCK_TEST_RELOAD_CALLS"
   mkdir -p "$APP/Contents/MacOS"
   printf '%s\n' "$GDOCK_TEST_BUILD_ID" > "$APP/Contents/marker"
@@ -151,6 +168,7 @@ new_env() {
   APPS="$TEST/Applications"
   RELOAD_CALLS="$TEST/reload-calls"
   REUSE_CALLS="$TEST/reuse-calls"
+  REUSE_IDENTITIES="$TEST/reuse-identities"
   OPEN_LOG="$TEST/open.log"
   OSASCRIPT_LOG="$TEST/osascript.log"
   KILL_LOG="$TEST/kill.log"
@@ -158,11 +176,17 @@ new_env() {
   BUILT_APP="$FW/DerivedData/Build/Products/Release/gdock.app"
   BUILD_ID="build-1"
   ASSUME_TTY=""
+  REUSE_REJECT=0
+  REUSE_PAUSE_FLAG="$TEST/reuse-pause"
+  REUSE_ENTERED="$TEST/reuse-entered"
+  SKIP_ZIG_VALUE=1
+  INNER_VALUE=0
 
   mkdir -p "$FW/scripts" "$FW/ghostty/include" "$STATE" "$APPS" "$TEST/bin"
   : > "$FW/ghostty/include/ghostty.h"
   : > "$RELOAD_CALLS"
   : > "$REUSE_CALLS"
+  : > "$REUSE_IDENTITIES"
   : > "$OPEN_LOG"
   : > "$OSASCRIPT_LOG"
   : > "$KILL_LOG"
@@ -172,7 +196,9 @@ new_env() {
 
   git -C "$FW" -c init.defaultBranch=main init -q
   git -C "$FW" remote add origin "git@github.com:stokd/gdock.git"
-  git -C "$FW" -c user.email=t@example.com -c user.name=t commit -q --allow-empty -m init
+  printf 'DerivedData/\n' > "$FW/.gitignore"
+  git -C "$FW" add .gitignore
+  git -C "$FW" -c user.email=t@example.com -c user.name=t commit -q -m init
 }
 
 cleanup_env() {
@@ -204,9 +230,15 @@ run_gdock() {
       GDOCK_KILL="$TEST/bin/kill" \
       GDOCK_ASSUME_TTY="$ASSUME_TTY" \
       GDOCK_PROMPT_TIMEOUT=5 \
+      GDOCK_INNER="$INNER_VALUE" \
+      GDOCK_SKIP_ZIG="$SKIP_ZIG_VALUE" \
       GDOCK_TEST_INSTALL_DIR="$APPS" \
       GDOCK_TEST_RELOAD_CALLS="$RELOAD_CALLS" \
       GDOCK_TEST_REUSE_CALLS="$REUSE_CALLS" \
+      GDOCK_TEST_REUSE_IDENTITIES="$REUSE_IDENTITIES" \
+      GDOCK_TEST_REUSE_REJECT="$REUSE_REJECT" \
+      GDOCK_TEST_REUSE_PAUSE_FLAG="$REUSE_PAUSE_FLAG" \
+      GDOCK_TEST_REUSE_ENTERED="$REUSE_ENTERED" \
       GDOCK_TEST_BUILT_APP="$BUILT_APP" \
       GDOCK_TEST_BUILD_ID="$BUILD_ID" \
       GDOCK_TEST_OPEN_LOG="$OPEN_LOG" \
@@ -394,9 +426,15 @@ case_unchanged_release_retags_main_artifact() {
   assert_eq "$(reload_build_count)" "1" "main Release compile count"
   assert_eq "$(reload_reuse_count)" "0" "main Release reuse count"
 
-  local donor_marker tagged_app status
+  local donor_marker tagged_app status expected_identity installed_snapshot
   donor_marker="$(cat "$BUILT_APP/Contents/marker" 2>/dev/null || true)"
   tagged_app="$(dirname "$BUILT_APP")/gdock tagged.app"
+  expected_identity="sha256:$(shasum -a 256 "$BUILT_APP/Contents/MacOS/gdock" | awk '{ print $1 }')"
+  installed_snapshot="$TEST/installed-snapshot.app"
+  cp -R "$APPS/gdock.app" "$installed_snapshot"
+  mark_running
+  : > "$OSASCRIPT_LOG"
+  : > "$KILL_LOG"
   BUILD_ID="tag-build-must-not-run"
   run_gdock --tag latest --no-launch < /dev/null > "$TEST/tag1.log" 2>&1
   status=$?
@@ -408,16 +446,109 @@ case_unchanged_release_retags_main_artifact() {
   assert_eq "$(cat "$tagged_app/Contents/marker" 2>/dev/null || true)" "main-build" "tagged artifact payload"
   assert_eq "$(cat "$BUILT_APP/Contents/marker" 2>/dev/null || true)" "$donor_marker" "donor must remain unchanged"
   grep -Fxq "$BUILT_APP" "$REUSE_CALLS" || fail "reuse did not name the main Release donor"
+  assert_eq "$(head -n 1 "$REUSE_IDENTITIES")" "$expected_identity" "reuse donor identity"
+  diff -qr "$installed_snapshot" "$APPS/gdock.app" >/dev/null 2>&1 || fail "tagged reuse modified the installed app"
+  assert_log_empty "$OSASCRIPT_LOG" "tagged reuse quit via osascript"
+  assert_log_empty "$KILL_LOG" "tagged reuse kill by pid"
 
   run_gdock --tag latest --no-launch < /dev/null > "$TEST/tag2.log" 2>&1
+  status=$?
+  assert_eq "$status" "0" "second tagged exit status"
   assert_eq "$(reload_build_count)" "1" "second unchanged tag must not compile"
   assert_eq "$(reload_reuse_count)" "1" "second unchanged tag must not restage"
+  assert_eq "$(cat "$tagged_app/Contents/marker" 2>/dev/null || true)" "main-build" "second tagged payload"
 
   BUILD_ID="forced-tag-build"
   run_gdock --build --tag latest --no-launch < /dev/null > "$TEST/tag-forced.log" 2>&1
   assert_eq "$(reload_build_count)" "2" "forced tag must compile"
   assert_eq "$(reload_reuse_count)" "1" "forced tag must bypass artifact reuse"
   assert_eq "$(cat "$tagged_app/Contents/marker" 2>/dev/null || true)" "forced-tag-build" "forced tag payload"
+  cleanup_env
+}
+
+# ---------------------------------------------------------------------------
+# Case 10: concurrent first runs serialize donor reuse and publish one coherent
+# tagged cache record.
+# ---------------------------------------------------------------------------
+case_concurrent_release_reuse() {
+  begin_case "case 10: concurrent first tag runs reuse and publish exactly once"
+  new_env
+  mark_not_running
+  BUILD_ID="main-build"
+  run_gdock --build --no-launch < /dev/null > "$TEST/main.log" 2>&1
+
+  INNER_VALUE=1
+  : > "$REUSE_PAUSE_FLAG"
+  run_gdock --tag concurrent --no-launch < /dev/null > "$TEST/concurrent-1.log" 2>&1 &
+  local first_pid=$!
+  local attempt
+  for attempt in {1..100}; do
+    [[ -e "$REUSE_ENTERED" ]] && break
+    sleep 0.05
+  done
+  [[ -e "$REUSE_ENTERED" ]] || fail "first concurrent reuse never reached the pause point"
+
+  run_gdock --tag concurrent --no-launch < /dev/null > "$TEST/concurrent-2.log" 2>&1 &
+  local second_pid=$!
+  for attempt in {1..100}; do
+    grep -q 'waiting for another release artifact operation' "$TEST/concurrent-2.log" 2>/dev/null && break
+    sleep 0.05
+  done
+  grep -q 'waiting for another release artifact operation' "$TEST/concurrent-2.log" 2>/dev/null \
+    || fail "second concurrent run never contended for the release lock"
+  rm -f "$REUSE_PAUSE_FLAG"
+
+  local first_status=0 second_status=0
+  wait "$first_pid" || first_status=$?
+  wait "$second_pid" || second_status=$?
+  assert_eq "$first_status" "0" "first concurrent exit status"
+  assert_eq "$second_status" "0" "second concurrent exit status"
+  assert_eq "$(reload_build_count)" "1" "concurrent tags must not add a compile"
+  assert_eq "$(reload_reuse_count)" "1" "concurrent tags must restage exactly once"
+
+  local tagged_app
+  tagged_app="$(dirname "$BUILT_APP")/gdock tagged.app"
+  assert_eq "$(cat "$tagged_app/Contents/marker" 2>/dev/null || true)" "main-build" "concurrent tagged payload"
+  run_gdock --tag concurrent --no-launch < /dev/null > "$TEST/concurrent-3.log" 2>&1
+  assert_eq "$?" "0" "third unchanged concurrent-tag exit status"
+  assert_eq "$(reload_build_count)" "1" "third unchanged run must not compile"
+  assert_eq "$(reload_reuse_count)" "1" "third unchanged run must not restage"
+  cleanup_env
+}
+
+# ---------------------------------------------------------------------------
+# Case 11: a source edit during packaging invalidates the clone and triggers a
+# full tagged build for the new fingerprint.
+# ---------------------------------------------------------------------------
+case_source_change_during_reuse() {
+  begin_case "case 11: source change during reuse falls back to a fresh build"
+  new_env
+  mark_not_running
+  BUILD_ID="main-build"
+  run_gdock --build --no-launch < /dev/null > "$TEST/main.log" 2>&1
+
+  INNER_VALUE=1
+  BUILD_ID="source-race-build"
+  : > "$REUSE_PAUSE_FLAG"
+  run_gdock --tag source-race --no-launch < /dev/null > "$TEST/source-race.log" 2>&1 &
+  local build_pid=$!
+  local attempt
+  for attempt in {1..100}; do
+    [[ -e "$REUSE_ENTERED" ]] && break
+    sleep 0.05
+  done
+  [[ -e "$REUSE_ENTERED" ]] || fail "source-race reuse never reached the pause point"
+  printf 'changed during reuse\n' > "$FW/source-during-reuse"
+  rm -f "$REUSE_PAUSE_FLAG"
+
+  local build_status=0
+  wait "$build_pid" || build_status=$?
+  assert_eq "$build_status" "0" "source-race exit status"
+  assert_eq "$(reload_build_count)" "2" "source race must trigger one fresh compile"
+  assert_eq "$(reload_reuse_count)" "1" "source race must attempt reuse once"
+  local tagged_app
+  tagged_app="$(dirname "$BUILT_APP")/gdock tagged.app"
+  assert_eq "$(cat "$tagged_app/Contents/marker" 2>/dev/null || true)" "source-race-build" "source-race payload"
   cleanup_env
 }
 
@@ -447,6 +578,101 @@ case_release_reuse_guardrails() {
   assert_eq "$(reload_build_count)" "2" "Debug tag must compile"
   assert_eq "$(reload_reuse_count)" "0" "Debug tag must not reuse Release"
   cleanup_env
+
+  new_env
+  mark_not_running
+  BUILD_ID="main-build"
+  run_gdock --build --no-launch < /dev/null > "$TEST/main.log" 2>&1
+  chmod -x "$BUILT_APP/Contents/MacOS/gdock"
+  BUILD_ID="malformed-donor-tag-build"
+  run_gdock --tag malformed --no-launch < /dev/null > "$TEST/malformed.log" 2>&1
+  assert_eq "$(reload_build_count)" "2" "malformed donor must compile"
+  assert_eq "$(reload_reuse_count)" "0" "malformed donor must not reuse"
+  cleanup_env
+
+  new_env
+  mark_not_running
+  BUILD_ID="main-build"
+  run_gdock --build --no-launch < /dev/null > "$TEST/main.log" 2>&1
+  BUILD_ID="fallback-tag-build"
+  REUSE_REJECT=1
+  run_gdock --tag fallback --no-launch < /dev/null > "$TEST/fallback.log" 2>&1
+  local fallback_status=$?
+  local fallback_app
+  fallback_app="$(dirname "$BUILT_APP")/gdock tagged.app"
+  assert_eq "$fallback_status" "0" "reload donor rejection fallback exit status"
+  assert_eq "$(reload_build_count)" "2" "reload donor rejection must fall back to compile"
+  assert_eq "$(reload_reuse_count)" "1" "reload donor rejection must first attempt reuse"
+  [[ -n "$(tr -d '[:space:]' < "$REUSE_IDENTITIES" 2>/dev/null || true)" ]] || fail "reuse request omitted the recorded donor identity"
+  assert_eq "$(cat "$fallback_app/Contents/marker" 2>/dev/null || true)" "fallback-tag-build" "fallback payload"
+  cleanup_env
+
+  new_env
+  mark_not_running
+  BUILD_ID="main-build"
+  run_gdock --build --no-launch < /dev/null > "$TEST/main.log" 2>&1
+  SKIP_ZIG_VALUE=0
+  BUILD_ID="real-helper-tag-build"
+  run_gdock --tag real-helper --no-launch < /dev/null > "$TEST/profile.log" 2>&1
+  assert_eq "$(reload_build_count)" "2" "different zig-helper profile must compile"
+  assert_eq "$(reload_reuse_count)" "0" "different zig-helper profile must not reuse"
+  cleanup_env
+
+  new_env
+  mark_not_running
+  BUILD_ID="main-build"
+  run_gdock --build --no-launch < /dev/null > "$TEST/main.log" 2>&1
+  printf '\n# replaced outside launcher\n' >> "$BUILT_APP/Contents/MacOS/gdock"
+  BUILD_ID="identity-mismatch-tag-build"
+  run_gdock --tag identity-mismatch --no-launch < /dev/null > "$TEST/identity.log" 2>&1
+  assert_eq "$(reload_build_count)" "2" "changed donor identity must compile"
+  assert_eq "$(reload_reuse_count)" "0" "changed donor identity must not reuse"
+  cleanup_env
+
+  new_env
+  mark_not_running
+  BUILD_ID="main-build"
+  run_gdock --build --no-launch < /dev/null > "$TEST/main.log" 2>&1
+  local main_manifest
+  main_manifest="$(find "$STATE/builds" -name manifest -type f -print -quit)"
+  [[ -n "$main_manifest" && -f "$main_manifest" ]] || fail "main build did not publish an atomic manifest"
+  sed 's#^root=.*#root=/different/worktree#' "$main_manifest" > "$main_manifest.tmp"
+  mv "$main_manifest.tmp" "$main_manifest"
+  BUILD_ID="different-root-tag-build"
+  run_gdock --tag different-root --no-launch < /dev/null > "$TEST/root.log" 2>&1
+  assert_eq "$(reload_build_count)" "2" "different worktree root must compile"
+  assert_eq "$(reload_reuse_count)" "0" "different worktree root must not reuse"
+  cleanup_env
+
+  new_env
+  mark_not_running
+  BUILD_ID="main-build"
+  run_gdock --build --no-launch < /dev/null > "$TEST/main.log" 2>&1
+  run_gdock --tag cached-root --no-launch < /dev/null > "$TEST/cached-root-1.log" 2>&1
+  local tagged_manifest
+  tagged_manifest="$(find "$STATE/builds" -name manifest -type f -exec grep -l '^mode=release:cached-root$' {} \; | head -n 1)"
+  [[ -n "$tagged_manifest" && -f "$tagged_manifest" ]] || fail "tagged build did not publish an atomic manifest"
+  sed 's#^root=.*#root=/different/worktree#' "$tagged_manifest" > "$tagged_manifest.tmp"
+  mv "$tagged_manifest.tmp" "$tagged_manifest"
+  BUILD_ID="cached-root-compile-must-not-run"
+  run_gdock --tag cached-root --no-launch < /dev/null > "$TEST/cached-root-2.log" 2>&1
+  assert_eq "$(reload_build_count)" "1" "different cached root must not require a compile when the main donor is valid"
+  assert_eq "$(reload_reuse_count)" "2" "different cached root must restage from the same-root main donor"
+  assert_eq "$(cat "$(dirname "$BUILT_APP")/gdock tagged.app/Contents/marker" 2>/dev/null || true)" "main-build" "different cached root payload"
+  cleanup_env
+
+  new_env
+  mark_not_running
+  BUILD_ID="main-build"
+  run_gdock --build --no-launch < /dev/null > "$TEST/main.log" 2>&1
+  main_manifest="$(find "$STATE/builds" -name manifest -type f -print -quit)"
+  [[ -n "$main_manifest" && -f "$main_manifest" ]] || fail "main build did not publish an atomic manifest"
+  mv "$main_manifest" "$main_manifest.legacy"
+  BUILD_ID="legacy-state-tag-build"
+  run_gdock --tag legacy-state --no-launch < /dev/null > "$TEST/legacy.log" 2>&1
+  assert_eq "$(reload_build_count)" "2" "legacy main state must compile"
+  assert_eq "$(reload_reuse_count)" "0" "legacy main state must not reuse"
+  cleanup_env
 }
 
 # ---------------------------------------------------------------------------
@@ -465,6 +691,8 @@ case_non_tty_declines
 case_tagged_never_installs
 case_unchanged_release_retags_main_artifact
 case_release_reuse_guardrails
+case_concurrent_release_reuse
+case_source_change_during_reuse
 
 if [[ "$FAILURES" -ne 0 ]]; then
   printf '\n%d assertion failure(s)\n' "$FAILURES" >&2

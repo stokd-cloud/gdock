@@ -27,6 +27,11 @@ NAME_SET=0
 BUNDLE_SET=0
 DERIVED_SET=0
 TAG=""
+REUSE_APP=""
+REUSE_EXPECTED_IDENTITY=""
+REUSED_APP=0
+REUSE_FAILURE_REASON=""
+REUSE_FAILURE_FATAL=0
 LAUNCH=0
 CMUX_DEBUG_LOG=""
 CMUX_DEV_PORT=""
@@ -1200,6 +1205,444 @@ validate_app_bundle() {
   fi
 }
 
+plist_value() {
+  /usr/bin/plutil -extract "$2" raw -n -- "$1" 2>/dev/null
+}
+
+plist_replace_string() {
+  /usr/bin/plutil -replace "$2" -string "$3" -- "$1" >/dev/null
+}
+
+path_has_symlink_component() {
+  local path="$1"
+  [[ "$path" == /* ]] || return 0
+  while [[ "$path" != "/" ]]; do
+    [[ -L "$path" ]] && return 0
+    path="${path%/*}"
+    [[ -n "$path" ]] || path="/"
+  done
+  return 1
+}
+
+codesign_identifier() {
+  /usr/bin/codesign -d --verbose=4 "$1" 2>&1 \
+    | sed -n 's/^Identifier=//p' \
+    | head -n 1
+}
+
+codesign_cdhash() {
+  /usr/bin/codesign -d --verbose=4 "$1" 2>&1 \
+    | sed -n 's/^CDHash=//p' \
+    | head -n 1
+}
+
+codesign_has_entitlement_keys() {
+  local entitlements=""
+  entitlements="$(/usr/bin/codesign -d --entitlements :- "$1" 2>/dev/null || true)"
+  [[ "$entitlements" == *'<key>'* ]]
+}
+
+expect_plist_value() {
+  local plist="$1"
+  local key="$2"
+  local expected="$3"
+  local actual=""
+  actual="$(plist_value "$plist" "$key" || true)"
+  if [[ "$actual" != "$expected" ]]; then
+    REUSE_FAILURE_REASON="$key mismatch (expected $expected, got ${actual:-<missing>})"
+    return 1
+  fi
+}
+
+audit_reused_tagged_app() {
+  local app="$1"
+  local info="$app/Contents/Info.plist"
+  local plugin="$app/Contents/PlugIns/CmuxDockTilePlugin.plugin"
+  local plugin_info="$plugin/Contents/Info.plist"
+  local point_id="${BUNDLE_ID}.cmux.sidebar"
+  local extension_file="$app/Contents/Extensions/${point_id}.appextensionpoint"
+  local plist="" bundle_id="" relative="" display_name=""
+  local tagged_id_count=0 extension_count=0
+
+  validate_app_bundle "$app" "$STAGED_EXECUTABLE_NAME" || {
+    REUSE_FAILURE_REASON="staged bundle structure is invalid"
+    return 1
+  }
+  expect_plist_value "$info" CFBundleExecutable "$STAGED_EXECUTABLE_NAME" || return 1
+  expect_plist_value "$info" CFBundleName "$APP_NAME" || return 1
+  expect_plist_value "$info" CFBundleDisplayName "$APP_NAME" || return 1
+  expect_plist_value "$info" CFBundleIdentifier "$BUNDLE_ID" || return 1
+  expect_plist_value "$info" CFBundleURLTypes.0.CFBundleURLName "${BUNDLE_ID}.web" || return 1
+  expect_plist_value "$info" CFBundleURLTypes.1.CFBundleURLName "${BUNDLE_ID}.auth" || return 1
+  expect_plist_value "$info" CFBundleURLTypes.1.CFBundleURLSchemes 1 || return 1
+  expect_plist_value "$info" CFBundleURLTypes.1.CFBundleURLSchemes.0 "cmux-dev-${TAG_SLUG}" || return 1
+  expect_plist_value "$info" CMUXSidebarExtensionPointIdentifier "$point_id" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUX_BUNDLE_ID "$BUNDLE_ID" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUXD_UNIX_PATH "$HOME/Library/Application Support/cmux/cmuxd-dev-${TAG_SLUG}.sock" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUX_SOCKET_PATH "/tmp/cmux-debug-${TAG_SLUG}.sock" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUX_DEBUG_LOG "/tmp/cmux-debug-${TAG_SLUG}.log" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUX_TAG "$TAG_SLUG" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUX_AUTH_CALLBACK_SCHEME "cmux-dev-${TAG_SLUG}" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUX_SOCKET_ENABLE "1" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUX_SOCKET_MODE "allowAll" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUX_REMOTE_DAEMON_ALLOW_LOCAL_BUILD "1" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUXTERM_REPO_ROOT "$PWD" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUX_BUNDLED_CLI_PATH "$TAG_APP_FINAL_PATH/Contents/Resources/bin/gdock" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUX_SHELL_INTEGRATION_DIR "$TAG_APP_FINAL_PATH/Contents/Resources/shell-integration" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUX_PORT "$CMUX_DEV_PORT" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUX_PORT_END "$CMUX_DEV_PORT_END" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUX_PORT_RANGE "$CMUX_DEV_PORT_RANGE" || return 1
+  expect_plist_value "$info" LSEnvironment.PORT "$CMUX_DEV_PORT" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUX_AUTH_WWW_ORIGIN "$CMUX_AUTH_WWW_ORIGIN_VALUE" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUX_WWW_ORIGIN "$CMUX_WWW_ORIGIN_VALUE" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUX_API_BASE_URL "$CMUX_DEV_API_BASE_URL_VALUE" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUX_VM_API_BASE_URL "$CMUX_DEV_API_BASE_URL_VALUE" || return 1
+  expect_plist_value "$info" LSEnvironment.CMUX_IROH_BROKER_BASE_URL "$CMUX_IROH_BROKER_BASE_URL_VALUE" || return 1
+  if [[ "$PROD_AUTH" -eq 1 ]]; then
+    expect_plist_value "$info" LSEnvironment.CMUX_AUTH_ENVIRONMENT production || return 1
+  fi
+  if [[ -n "$AUTH_CREDENTIALS_FILE" ]]; then
+    expect_plist_value "$info" LSEnvironment.CMUX_AUTH_CREDENTIALS_FILE "$AUTH_CREDENTIALS_FILE" || return 1
+  fi
+
+  while IFS= read -r -d '' plist; do
+    /usr/bin/plutil -lint "$plist" >/dev/null 2>&1 || {
+      REUSE_FAILURE_REASON="invalid plist in staged bundle: ${plist#"$app/"}"
+      return 1
+    }
+    bundle_id="$(plist_value "$plist" CFBundleIdentifier || true)"
+    relative="${plist#"$app/"}"
+    if [[ "$bundle_id" == "cloud.stokd.ghostty-dock" ]]; then
+      REUSE_FAILURE_REASON="stable bundle id remained in $relative"
+      return 1
+    fi
+    if [[ "$bundle_id" == "$BUNDLE_ID" ]]; then
+      case "$relative" in
+        Contents/Info.plist|Contents/PlugIns/CmuxDockTilePlugin.plugin/Contents/Info.plist|Contents/Resources/*.bundle/Contents/Info.plist)
+          tagged_id_count=$((tagged_id_count + 1))
+          ;;
+        *)
+          REUSE_FAILURE_REASON="unexpected nested tagged bundle: $relative"
+          return 1
+          ;;
+      esac
+    fi
+    if [[ "$relative" == Contents/Resources/*.bundle/Contents/Info.plist ]]; then
+      display_name="$(plist_value "$plist" CFBundleDisplayName || true)"
+      if [[ -n "$display_name" ]]; then
+        REUSE_FAILURE_REASON="resource bundle kept injected display name: $relative"
+        return 1
+      fi
+    fi
+  done < <(find "$app/Contents" -name Info.plist -type f -print0)
+  if (( tagged_id_count < 3 )); then
+    REUSE_FAILURE_REASON="staged bundle did not contain the expected tagged nested bundles"
+    return 1
+  fi
+
+  expect_plist_value "$plugin_info" CFBundleDisplayName "cmux Dock Tile Plugin" || return 1
+  [[ -f "$extension_file" ]] || {
+    REUSE_FAILURE_REASON="tagged sidebar extension-point declaration is missing"
+    return 1
+  }
+  while IFS= read -r -d '' plist; do
+    extension_count=$((extension_count + 1))
+  done < <(find "$app/Contents/Extensions" -maxdepth 1 -name '*.appextensionpoint' -type f -print0)
+  if [[ "$extension_count" -ne 1 ]]; then
+    REUSE_FAILURE_REASON="expected one sidebar extension-point declaration, found $extension_count"
+    return 1
+  fi
+  /usr/bin/plutil -lint "$extension_file" >/dev/null 2>&1 || {
+    REUSE_FAILURE_REASON="tagged sidebar extension-point declaration is invalid"
+    return 1
+  }
+
+  if [[ "$(codesign_identifier "$plugin" || true)" != "$BUNDLE_ID" ]]; then
+    REUSE_FAILURE_REASON="DockTile plugin signing identifier mismatch"
+    return 1
+  fi
+  if [[ "$(codesign_identifier "$app" || true)" != "$BUNDLE_ID" ]]; then
+    REUSE_FAILURE_REASON="host signing identifier mismatch"
+    return 1
+  fi
+  if codesign_has_entitlement_keys "$app"; then
+    REUSE_FAILURE_REASON="reused Release host unexpectedly has entitlements"
+    return 1
+  fi
+  if ! /usr/bin/codesign --verify --deep --strict "$app" >/dev/null 2>&1; then
+    REUSE_FAILURE_REASON="deep code-signature validation failed"
+    return 1
+  fi
+}
+
+try_stage_reused_app() {
+  local donor="$REUSE_APP"
+  local donor_info="$donor/Contents/Info.plist"
+  local donor_plugin="$donor/Contents/PlugIns/CmuxDockTilePlugin.plugin"
+  local donor_real="" products_real="" donor_arches=""
+  local donor_cdhash="" copied_cdhash=""
+  local info="" plugin="" plugin_info="" plist="" bundle_id="" relative="" display_name=""
+  local stable_nested_count=0
+  local point_id="${BUNDLE_ID}.cmux.sidebar"
+
+  REUSE_FAILURE_REASON=""
+  REUSE_FAILURE_FATAL=0
+  if [[ -z "$TAG_SLUG" || "$CONFIGURATION" != "Release" ]]; then
+    REUSE_FAILURE_REASON="artifact reuse requires a tagged Release build"
+    return 1
+  fi
+  if [[ "$NAME_SET" -ne 0 || "$BUNDLE_SET" -ne 0 || "$DERIVED_SET" -ne 0 || "$PROD_AUTH" -ne 0 || -n "$AUTH_CREDENTIALS_FILE" ]]; then
+    REUSE_FAILURE_REASON="custom name, bundle, DerivedData, or auth options require a full build"
+    return 1
+  fi
+  if [[ -z "$REUSE_EXPECTED_IDENTITY" ]]; then
+    REUSE_FAILURE_REASON="donor provenance identity is missing"
+    return 1
+  fi
+  # Prove the output tree cannot resolve through a symlink to the donor before
+  # any validation failure is allowed to fall back to xcodebuild cleanup.
+  if path_has_symlink_component "$BUILD_PRODUCTS_DIR"; then
+    REUSE_FAILURE_REASON="tagged output DerivedData contains a symlink component"
+    REUSE_FAILURE_FATAL=1
+    return 1
+  fi
+  if [[ ! -d "$donor" || -L "$donor" ]]; then
+    REUSE_FAILURE_REASON="donor app is missing or is a symlink"
+    return 1
+  fi
+  donor_real="$(cd "$donor" && pwd -P)" || {
+    REUSE_FAILURE_REASON="could not resolve donor path"
+    return 1
+  }
+  case "$donor_real" in
+    "$BUILD_PRODUCTS_DIR"|"$BUILD_PRODUCTS_DIR"/*)
+      REUSE_FAILURE_REASON="donor is inside the tagged output DerivedData"
+      REUSE_FAILURE_FATAL=1
+      return 1
+      ;;
+  esac
+  case "$BUILD_PRODUCTS_DIR" in
+    "$donor_real"|"$donor_real"/*)
+      REUSE_FAILURE_REASON="tagged output DerivedData is inside the donor app"
+      REUSE_FAILURE_FATAL=1
+      return 1
+      ;;
+  esac
+  if [[ "$donor_real" == "/Applications/gdock.app" ]]; then
+    REUSE_FAILURE_REASON="the installed app is never an artifact-reuse donor"
+    return 1
+  fi
+  if [[ ! -f "$donor_info" || ! -x "$donor/Contents/MacOS/gdock" ]]; then
+    REUSE_FAILURE_REASON="donor app structure is invalid"
+    return 1
+  fi
+  if [[ ! -x "$donor/Contents/Resources/bin/gdock" || ! -x "$donor/Contents/Resources/bin/ghostty" || ! -d "$donor/Contents/Resources/shell-integration" ]]; then
+    REUSE_FAILURE_REASON="donor app is missing required bundled helpers"
+    return 1
+  fi
+  if [[ ! -d "$donor_plugin" || ! -f "$donor/Contents/Extensions/com.cmuxterm.app.cmux.sidebar.appextensionpoint" ]]; then
+    REUSE_FAILURE_REASON="donor app is missing tagged packaging inputs"
+    return 1
+  fi
+  expect_plist_value "$donor_info" CFBundleExecutable gdock || return 1
+  expect_plist_value "$donor_info" CFBundleName gdock || return 1
+  expect_plist_value "$donor_info" CFBundleIdentifier cloud.stokd.ghostty-dock || return 1
+  expect_plist_value "$donor_info" CFBundleIconName AppIcon-Debug || return 1
+  expect_plist_value "$donor_info" CFBundleURLTypes.1.CFBundleURLSchemes 1 || return 1
+  expect_plist_value "$donor_info" CFBundleURLTypes.1.CFBundleURLSchemes.0 cmux-dev || return 1
+  expect_plist_value "$donor_info" CMUXIrohRelayPolicyKeyID cmux-staging-relay-policy-2026-07 || return 1
+  expect_plist_value "$donor_info" CMUXIrohRelayPolicyPublicKeyBase64 'Otx9S0B4d/tlwIKYRf5evJaqhjCltFLPjMfXrLFd6lk=' || return 1
+  expect_plist_value "$donor_info" CMUXIrohRelayPolicyTrustKeys.1.keyID cmux-staging-relay-policy-2026-08 || return 1
+  expect_plist_value "$donor_info" CMUXIrohRelayPolicyTrustKeys.1.publicKeyBase64 'KnOZ6gKmH05Mrfan2tXgwRygBKxcSUue4bp34udiQFA=' || return 1
+  if [[ "$(codesign_identifier "$donor" || true)" != "cloud.stokd.ghostty-dock" ]]; then
+    REUSE_FAILURE_REASON="donor signing identifier is incompatible"
+    return 1
+  fi
+  if codesign_has_entitlement_keys "$donor"; then
+    REUSE_FAILURE_REASON="donor Release host unexpectedly has entitlements"
+    return 1
+  fi
+  if ! /usr/bin/codesign --verify --deep --strict "$donor" >/dev/null 2>&1; then
+    REUSE_FAILURE_REASON="donor code signature is invalid"
+    return 1
+  fi
+  donor_arches="$(/usr/bin/lipo -archs "$donor/Contents/MacOS/gdock" 2>/dev/null || true)"
+  if [[ " $donor_arches " != *" $(uname -m) "* ]]; then
+    REUSE_FAILURE_REASON="donor executable does not contain the host architecture"
+    return 1
+  fi
+  donor_cdhash="$(codesign_cdhash "$donor" || true)"
+  if [[ -z "$donor_cdhash" ]]; then
+    REUSE_FAILURE_REASON="donor code signature has no CDHash"
+    return 1
+  fi
+  if [[ "$REUSE_EXPECTED_IDENTITY" != "codesign:${donor_cdhash}" ]]; then
+    REUSE_FAILURE_REASON="donor identity no longer matches the successful main build"
+    return 1
+  fi
+
+  mkdir -p "$BUILD_PRODUCTS_DIR" || {
+    REUSE_FAILURE_REASON="could not create tagged build-products directory"
+    return 1
+  }
+  products_real="$(cd "$BUILD_PRODUCTS_DIR" && pwd -P)" || {
+    REUSE_FAILURE_REASON="could not resolve tagged build-products directory"
+    return 1
+  }
+  TAG_APP_FINAL_PATH="${products_real}/${APP_NAME}.app"
+  TAG_APP_STAGING_PATH="${products_real}/.${APP_NAME}.reload-$$.app"
+  case "$donor_real" in
+    "$products_real"/*)
+      REUSE_FAILURE_REASON="donor is inside the tagged output DerivedData"
+      REUSE_FAILURE_FATAL=1
+      return 1
+      ;;
+  esac
+  case "$products_real" in
+    "$donor_real"|"$donor_real"/*)
+      REUSE_FAILURE_REASON="tagged output DerivedData is inside the donor app"
+      REUSE_FAILURE_FATAL=1
+      return 1
+      ;;
+  esac
+  if [[ "$donor_real" == "$TAG_APP_FINAL_PATH" || "$donor_real" == "$TAG_APP_STAGING_PATH" ]]; then
+    REUSE_FAILURE_REASON="donor and tagged output paths alias"
+    REUSE_FAILURE_FATAL=1
+    return 1
+  fi
+  remove_app_bundle_output "$TAG_APP_STAGING_PATH"
+  if command -v ditto >/dev/null 2>&1; then
+    if ! ditto "$donor_real" "$TAG_APP_STAGING_PATH"; then
+      REUSE_FAILURE_REASON="could not clone donor app"
+      return 1
+    fi
+  elif ! cp -R "$donor_real" "$TAG_APP_STAGING_PATH"; then
+    REUSE_FAILURE_REASON="could not clone donor app"
+    return 1
+  fi
+  if ! /usr/bin/codesign --verify --deep --strict "$TAG_APP_STAGING_PATH" >/dev/null 2>&1; then
+    REUSE_FAILURE_REASON="cloned donor failed signature validation before retagging"
+    return 1
+  fi
+  copied_cdhash="$(codesign_cdhash "$TAG_APP_STAGING_PATH" || true)"
+  if [[ "$copied_cdhash" != "$donor_cdhash" ]]; then
+    REUSE_FAILURE_REASON="donor changed while it was being cloned"
+    return 1
+  fi
+
+  if ! mv "$TAG_APP_STAGING_PATH/Contents/MacOS/gdock" "$TAG_APP_STAGING_PATH/Contents/MacOS/$STAGED_EXECUTABLE_NAME"; then
+    REUSE_FAILURE_REASON="could not rename staged executable"
+    return 1
+  fi
+  info="$TAG_APP_STAGING_PATH/Contents/Info.plist"
+  plist_replace_string "$info" CFBundleExecutable "$STAGED_EXECUTABLE_NAME" || return 1
+  plist_replace_string "$info" CFBundleName "$APP_NAME" || return 1
+  plist_replace_string "$info" CFBundleDisplayName "$APP_NAME" || return 1
+  plist_replace_string "$info" CFBundleIdentifier "$BUNDLE_ID" || return 1
+  plist_replace_string "$info" CFBundleURLTypes.0.CFBundleURLName "${BUNDLE_ID}.web" || return 1
+  plist_replace_string "$info" CFBundleURLTypes.1.CFBundleURLName "${BUNDLE_ID}.auth" || return 1
+  set_plist_url_scheme "$info" "cmux-dev-${TAG_SLUG}"
+  plist_replace_string "$info" CMUXSidebarExtensionPointIdentifier "$point_id" || return 1
+
+  APP_SUPPORT_DIR="$HOME/Library/Application Support/cmux"
+  CMUXD_SOCKET="${APP_SUPPORT_DIR}/cmuxd-dev-${TAG_SLUG}.sock"
+  CMUX_SOCKET_PATH_VALUE="/tmp/cmux-debug-${TAG_SLUG}.sock"
+  CMUX_DEBUG_LOG="/tmp/cmux-debug-${TAG_SLUG}.log"
+  CMUX_AUTH_CALLBACK_SCHEME_VALUE="cmux-dev-${TAG_SLUG}"
+  /usr/bin/plutil -remove LSEnvironment -- "$info" >/dev/null 2>&1 || true
+  /usr/bin/plutil -insert LSEnvironment -dictionary -- "$info" >/dev/null || return 1
+  set_plist_env "$info" CMUX_BUNDLE_ID "$BUNDLE_ID" || return 1
+  set_plist_env "$info" CMUXD_UNIX_PATH "$CMUXD_SOCKET" || return 1
+  set_plist_env "$info" CMUX_SOCKET_PATH "$CMUX_SOCKET_PATH_VALUE" || return 1
+  set_plist_env "$info" CMUX_DEBUG_LOG "$CMUX_DEBUG_LOG" || return 1
+  set_plist_env "$info" CMUX_TAG "$TAG_SLUG" || return 1
+  set_plist_env "$info" CMUX_AUTH_CALLBACK_SCHEME "$CMUX_AUTH_CALLBACK_SCHEME_VALUE" || return 1
+  set_plist_env "$info" CMUX_SOCKET_ENABLE "1" || return 1
+  set_plist_env "$info" CMUX_SOCKET_MODE "allowAll" || return 1
+  set_plist_env "$info" CMUX_REMOTE_DAEMON_ALLOW_LOCAL_BUILD "1" || return 1
+  set_plist_env "$info" CMUXTERM_REPO_ROOT "$PWD" || return 1
+  set_plist_env "$info" CMUX_BUNDLED_CLI_PATH "$TAG_APP_FINAL_PATH/Contents/Resources/bin/gdock" || return 1
+  set_plist_env "$info" CMUX_SHELL_INTEGRATION_DIR "$TAG_APP_FINAL_PATH/Contents/Resources/shell-integration" || return 1
+  set_plist_env "$info" CMUX_PORT "$CMUX_DEV_PORT" || return 1
+  set_plist_env "$info" CMUX_PORT_END "$CMUX_DEV_PORT_END" || return 1
+  set_plist_env "$info" CMUX_PORT_RANGE "$CMUX_DEV_PORT_RANGE" || return 1
+  set_plist_env "$info" PORT "$CMUX_DEV_PORT" || return 1
+  set_plist_env "$info" CMUX_AUTH_WWW_ORIGIN "$CMUX_AUTH_WWW_ORIGIN_VALUE" || return 1
+  set_plist_env "$info" CMUX_WWW_ORIGIN "$CMUX_WWW_ORIGIN_VALUE" || return 1
+  set_plist_env "$info" CMUX_API_BASE_URL "$CMUX_DEV_API_BASE_URL_VALUE" || return 1
+  set_plist_env "$info" CMUX_VM_API_BASE_URL "$CMUX_DEV_API_BASE_URL_VALUE" || return 1
+  set_plist_env "$info" CMUX_IROH_BROKER_BASE_URL "$CMUX_IROH_BROKER_BASE_URL_VALUE" || return 1
+
+  while IFS= read -r -d '' plist; do
+    bundle_id="$(plist_value "$plist" CFBundleIdentifier || true)"
+    [[ "$bundle_id" == "cloud.stokd.ghostty-dock" ]] || continue
+    relative="${plist#"$TAG_APP_STAGING_PATH/"}"
+    case "$relative" in
+      Contents/PlugIns/CmuxDockTilePlugin.plugin/Contents/Info.plist)
+        plist_replace_string "$plist" CFBundleIdentifier "$BUNDLE_ID" || return 1
+        plist_replace_string "$plist" CFBundleDisplayName "cmux Dock Tile Plugin" || return 1
+        stable_nested_count=$((stable_nested_count + 1))
+        ;;
+      Contents/Resources/*.bundle/Contents/Info.plist)
+        display_name="$(plist_value "$plist" CFBundleDisplayName || true)"
+        if [[ -n "$display_name" && "$display_name" != "gdock" ]]; then
+          REUSE_FAILURE_REASON="unexpected resource bundle display name in $relative"
+          return 1
+        fi
+        plist_replace_string "$plist" CFBundleIdentifier "$BUNDLE_ID" || return 1
+        /usr/bin/plutil -remove CFBundleDisplayName -- "$plist" >/dev/null 2>&1 || true
+        stable_nested_count=$((stable_nested_count + 1))
+        ;;
+      Contents/Info.plist)
+        ;;
+      *)
+        REUSE_FAILURE_REASON="unexpected stable bundle id in $relative"
+        return 1
+        ;;
+    esac
+  done < <(find "$TAG_APP_STAGING_PATH/Contents" -name Info.plist -type f -print0)
+  if (( stable_nested_count < 2 )); then
+    REUSE_FAILURE_REASON="donor did not contain the expected nested bundles"
+    return 1
+  fi
+
+  if ! BUILT_PRODUCTS_DIR="$products_real" \
+      CONTENTS_FOLDER_PATH="$(basename "$TAG_APP_STAGING_PATH")/Contents" \
+      CMUX_SIDEBAR_EXTENSION_POINT_ID="$point_id" \
+      "$PWD/scripts/write-sidebar-extension-point.sh"; then
+    REUSE_FAILURE_REASON="could not generate tagged sidebar extension-point declaration"
+    return 1
+  fi
+
+  plugin="$TAG_APP_STAGING_PATH/Contents/PlugIns/CmuxDockTilePlugin.plugin"
+  plugin_info="$plugin/Contents/Info.plist"
+  if command -v xattr >/dev/null 2>&1; then
+    xattr -cr "$TAG_APP_STAGING_PATH" || return 1
+  fi
+  if ! /usr/bin/codesign --force --sign - --timestamp=none --generate-entitlement-der "$plugin" >/dev/null 2>&1; then
+    REUSE_FAILURE_REASON="could not re-sign the retagged DockTile plugin"
+    return 1
+  fi
+  if ! /usr/bin/codesign --force --sign - --timestamp=none --generate-entitlement-der "$TAG_APP_STAGING_PATH" >/dev/null 2>&1; then
+    REUSE_FAILURE_REASON="could not re-sign the retagged host app"
+    return 1
+  fi
+  audit_reused_tagged_app "$TAG_APP_STAGING_PATH" || return 1
+
+  echo "$CMUX_DEBUG_LOG" > /tmp/cmux-last-debug-log-path || true
+  if [[ -S "$CMUXD_SOCKET" ]]; then
+    for PID in $(lsof -t "$CMUXD_SOCKET" 2>/dev/null); do
+      kill "$PID" 2>/dev/null || true
+    done
+    rm -f "$CMUXD_SOCKET"
+  fi
+
+  APP_PATH="$TAG_APP_STAGING_PATH"
+  APP_EXECUTABLE_NAME="$STAGED_EXECUTABLE_NAME"
+  XCODEBUILD_OUTPUT_VALID=1
+  return 0
+}
+
 print_tag_cleanup_reminder() {
   local current_slug="$1"
   local path=""
@@ -1273,6 +1716,22 @@ while [[ $# -gt 0 ]]; do
       TAG="${2:-}"
       if [[ -z "$TAG" ]]; then
         echo "error: --tag requires a value" >&2
+        exit 1
+      fi
+      shift 2
+      ;;
+    --reuse-app)
+      REUSE_APP="${2:-}"
+      if [[ -z "$REUSE_APP" ]]; then
+        echo "error: --reuse-app requires a value" >&2
+        exit 1
+      fi
+      shift 2
+      ;;
+    --reuse-identity)
+      REUSE_EXPECTED_IDENTITY="${2:-}"
+      if [[ -z "$REUSE_EXPECTED_IDENTITY" ]]; then
+        echo "error: --reuse-identity requires a value" >&2
         exit 1
       fi
       shift 2
@@ -1561,6 +2020,25 @@ trap reload_finalize EXIT
 # Tell the user we're starting (visible even though body output is redirected).
 echo "==> reload starting (tag: ${TAG}, configuration: ${CONFIGURATION}, log: ${RELOAD_LOG})" >&3
 
+if [[ -n "$REUSE_APP" ]]; then
+  if try_stage_reused_app; then
+    REUSED_APP=1
+    echo "==> packaged tagged app from validated Release artifact: $REUSE_APP"
+  else
+    if [[ "$REUSE_FAILURE_FATAL" -eq 1 ]]; then
+      echo "error: unsafe artifact-reuse layout (${REUSE_FAILURE_REASON:-path alias}); refusing to touch the donor" >&2
+      exit 1
+    fi
+    echo "==> artifact reuse unavailable (${REUSE_FAILURE_REASON:-validation failed}); falling back to xcodebuild"
+    remove_app_bundle_output "${TAG_APP_STAGING_PATH:-}"
+    TAG_APP_FINAL_PATH=""
+    TAG_APP_STAGING_PATH=""
+    APP_PATH=""
+    XCODEBUILD_OUTPUT_VALID=0
+  fi
+fi
+
+if [[ "$REUSED_APP" -ne 1 ]]; then
 "$PWD/scripts/ensure-ghosttykit.sh"
 
 if should_skip_ghostty_cli_helper_zig_build; then
@@ -1918,15 +2396,25 @@ if [[ "$APP_NAME" != "$SEARCH_APP_NAME" ]]; then
   fi
   APP_PATH="$TAG_APP_STAGING_PATH"
 fi
+fi
+
+if [[ "$REUSED_APP" -eq 1 && -n "${TAG_SLUG:-}" ]]; then
+  TMP_COMPAT_DERIVED_LINK="/tmp/cmux-${TAG_SLUG}"
+  if [[ "$DERIVED_DATA" != "$TMP_COMPAT_DERIVED_LINK" ]]; then
+    ABS_DERIVED_DATA="$(cd "$DERIVED_DATA" && pwd)"
+    rm -rf "$TMP_COMPAT_DERIVED_LINK"
+    ln -s "$ABS_DERIVED_DATA" "$TMP_COMPAT_DERIVED_LINK"
+  fi
+fi
 
 CLI_PATH="$(dirname "$APP_PATH")/cmux"
 
 # Build cmuxd and ensure helper binaries are present (needed for both launch and no-launch).
 CMUXD_SRC="$PWD/cmuxd/zig-out/bin/cmuxd"
-if [[ -d "$PWD/cmuxd" ]]; then
+if [[ "$REUSED_APP" -ne 1 && -d "$PWD/cmuxd" ]]; then
   (cd "$PWD/cmuxd" && zig build -Doptimize=ReleaseFast)
 fi
-if [[ -d "$PWD/ghostty" ]]; then
+if [[ "$REUSED_APP" -ne 1 && -d "$PWD/ghostty" ]]; then
   BIN_DIR="$APP_PATH/Contents/Resources/bin"
   GHOSTTY_HELPER_DEST="$BIN_DIR/ghostty"
   if [[ -x "$GHOSTTY_HELPER_DEST" ]]; then
@@ -1938,16 +2426,16 @@ if [[ -d "$PWD/ghostty" ]]; then
     "$PWD/scripts/build-ghostty-cli-helper.sh" --output "$GHOSTTY_HELPER_DEST"
   fi
 fi
-if [[ -x "$CMUXD_SRC" ]]; then
+if [[ "$REUSED_APP" -ne 1 && -x "$CMUXD_SRC" ]]; then
   BIN_DIR="$APP_PATH/Contents/Resources/bin"
   mkdir -p "$BIN_DIR"
   cp "$CMUXD_SRC" "$BIN_DIR/cmuxd"
   chmod +x "$BIN_DIR/cmuxd"
 fi
-if command -v xattr >/dev/null 2>&1; then
+if [[ "$REUSED_APP" -ne 1 ]] && command -v xattr >/dev/null 2>&1; then
   xattr -cr "$APP_PATH" || true
 fi
-if ! /usr/bin/codesign --force --sign - --timestamp=none --generate-entitlement-der "$APP_PATH" >/dev/null 2>&1; then
+if [[ "$REUSED_APP" -ne 1 ]] && ! /usr/bin/codesign --force --sign - --timestamp=none --generate-entitlement-der "$APP_PATH" >/dev/null 2>&1; then
   if [[ "${CMUX_ALLOW_UNSIGNED_DEV_APP:-}" == "1" ]]; then
     echo "warning: codesign failed for $APP_PATH; continuing because CMUX_ALLOW_UNSIGNED_DEV_APP=1" >&2
   else
