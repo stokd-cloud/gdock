@@ -48,6 +48,7 @@ public enum ShortcutAction: String, CaseIterable, Sendable, Hashable, SettingCod
     case gdockCycleSessionsNext = "gdock.cycleSessionsNext"
     /// Cycles backward through open agent sessions.
     case gdockCycleSessionsPrev = "gdock.cycleSessionsPrev"
+    case gdockShowPromptHistory = "gdock.showPromptHistory"
     /// Moves the selected surface one position left.
     case moveSurfaceLeft
     /// Moves the selected surface one position right.

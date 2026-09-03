@@ -1635,6 +1635,7 @@
               "prevSurface",
               "gdock.cycleSessionsNext",
               "gdock.cycleSessionsPrev",
+              "gdock.showPromptHistory",
               "moveSurfaceLeft",
               "moveSurfaceRight",
               "moveSurfaceToPreviousPane",

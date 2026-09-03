@@ -7531,6 +7531,7 @@ struct ContentView: View {
         )
         contributions.append(contentsOf: Self.commandPaletteAuthCommandContributions() + Self.commandPaletteProCommandContributions())
         contributions.append(contentsOf: Self.commandPaletteGdockSessionCyclerCommandContributions())
+        contributions.append(contentsOf: Self.commandPaletteGdockPromptHistoryCommandContributions())
         contributions.append(
             CommandPaletteCommandContribution(
                 commandId: "palette.makeDefaultTerminal",
@@ -8759,6 +8760,7 @@ struct ContentView: View {
         registerAuthCommandHandlers(&registry)
         registerProCommandHandlers(&registry)
         registerGdockSessionCyclerCommandHandlers(&registry)
+        registerGdockPromptHistoryCommandHandlers(&registry)
         registry.register(commandId: "palette.makeDefaultTerminal") {
             DefaultTerminalUserAction.setAsDefault(debugSource: "palette.makeDefaultTerminal")
         }

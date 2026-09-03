@@ -280,6 +280,7 @@ export const shortcutCategories: ShortcutCategory[] = [
       { id: "prevSurface", combos: [], description: { en: "Previous surface", ja: "前のサーフェス" } },
       { id: "gdock.cycleSessionsNext", combos: [["⌘", "⇧", "]"]], description: { en: "Cycle sessions forward", ja: "セッションを次へ切り替え" } },
       { id: "gdock.cycleSessionsPrev", combos: [["⌘", "⇧", "["]], description: { en: "Cycle sessions backward", ja: "セッションを前へ切り替え" } },
+      { id: "gdock.showPromptHistory", combos: [["⌥", "⌘", "P"]], description: { en: "Hold to show prompts submitted to the focused session", ja: "押している間、フォーカス中のセッションに送信したプロンプトを表示" } },
       { id: "moveSurfaceLeft", combos: [["⌥", "⌘", "⇧", "["]], description: { en: "Reorder surface left", ja: "サーフェスを左へ並べ替え" } },
       { id: "moveSurfaceRight", combos: [["⌥", "⌘", "⇧", "]"]], description: { en: "Reorder surface right", ja: "サーフェスを右へ並べ替え" } },
       { id: "moveSurfaceToPreviousPane", combos: [["⌃", "⌘", "⇧", "["]], description: { en: "Move surface to previous pane", ja: "サーフェスを前のペインへ移動" } },

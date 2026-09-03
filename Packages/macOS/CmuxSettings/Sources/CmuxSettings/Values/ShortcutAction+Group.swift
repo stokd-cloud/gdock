@@ -14,6 +14,7 @@ extension ShortcutAction {
             return .workspace
         case .nextSurface, .prevSurface,
              .gdockCycleSessionsNext, .gdockCycleSessionsPrev,
+             .gdockShowPromptHistory,
              .moveSurfaceLeft, .moveSurfaceRight,
              .moveSurfaceToPreviousPane, .moveSurfaceToNextPane,
              .moveSurfaceToPaneLeft, .moveSurfaceToPaneRight,
