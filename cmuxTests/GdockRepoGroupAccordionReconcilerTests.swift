@@ -62,11 +62,35 @@ import Testing
         #expect(plan == [.expand(groupId: repo.id)])
     }
 
-    @Test func pinnedGroupsAreNeverCollapsed() {
+    /// Pinning orders a group above the unpinned tier; it does not keep the
+    /// group open. A pinned repo group collapses like any other when the
+    /// selection moves to a different repo.
+    @Test func pinnedRepoGroupsCollapseLikeAnyOther() {
         let a = group("stokd-cloud/gdock", collapsed: true)
         let pinned = group("manaflow-ai/cmux", collapsed: false, pinned: true)
 
         let plan = Reconciler.plan(groups: [a, pinned], selectedGroupId: a.id, isEnabled: true)
+
+        #expect(plan == [.expand(groupId: a.id), .collapse(groupId: pinned.id)])
+    }
+
+    /// The pinned group stays open while it owns the selection, so pinning a
+    /// repo and working inside it never fights the accordion.
+    @Test func aPinnedRepoGroupStaysOpenWhileSelected() {
+        let pinned = group("manaflow-ai/cmux", collapsed: false, pinned: true)
+        let other = group("stokd-cloud/gdock", collapsed: false)
+
+        let plan = Reconciler.plan(groups: [pinned, other], selectedGroupId: pinned.id, isEnabled: true)
+
+        #expect(plan == [.collapse(groupId: other.id)])
+    }
+
+    /// A pinned hand-named group is still a hand-named group: never touched.
+    @Test func pinnedHandNamedGroupsAreStillNeverCollapsed() {
+        let a = group("stokd-cloud/gdock", collapsed: true)
+        let scratch = group("Scratch", collapsed: false, pinned: true)
+
+        let plan = Reconciler.plan(groups: [a, scratch], selectedGroupId: a.id, isEnabled: true)
 
         #expect(plan == [.expand(groupId: a.id)])
     }

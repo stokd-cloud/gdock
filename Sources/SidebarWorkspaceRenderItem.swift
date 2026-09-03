@@ -19,7 +19,7 @@ enum SidebarWorkspaceRenderItem {
     /// It replaces the row rather than sitting beneath it: the mockup shows one
     /// ringed container of cards where the workspace row used to be, and
     /// drawing both would show the same workspace twice.
-    case panelCardStack(workspaceId: UUID, paneIds: [UUID])
+    case panelCardStack(workspaceId: UUID, panelIds: [UUID])
 
     var id: SidebarWorkspaceRenderItemID {
         switch self {
@@ -67,7 +67,7 @@ enum SidebarWorkspaceRenderItem {
 
     /// Render items with per-pane cards inserted under the focused workspace.
     ///
-    /// Cards are additive: with `panelCardPaneIds` empty — which is what every
+    /// Cards are additive: with `panelCardPanelIds` empty — which is what every
     /// caller that does not opt in passes — the output is byte-identical to
     /// ``renderItems(tabs:groupsById:)``.
     ///
@@ -79,14 +79,14 @@ enum SidebarWorkspaceRenderItem {
         tabs: [Workspace],
         groupsById: [UUID: WorkspaceGroup],
         focusedWorkspaceId: UUID?,
-        panelCardPaneIds: [UUID]
+        panelCardPanelIds: [UUID]
     ) -> [SidebarWorkspaceRenderItem] {
         let base = renderItems(tabs: tabs, groupsById: groupsById)
-        guard let focusedWorkspaceId, !panelCardPaneIds.isEmpty else { return base }
+        guard let focusedWorkspaceId, !panelCardPanelIds.isEmpty else { return base }
 
         let stack = SidebarWorkspaceRenderItem.panelCardStack(
             workspaceId: focusedWorkspaceId,
-            paneIds: panelCardPaneIds
+            panelIds: panelCardPanelIds
         )
 
         var result: [SidebarWorkspaceRenderItem] = []

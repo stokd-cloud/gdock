@@ -120595,6 +120595,23 @@
         }
       }
     },
+    "gdock.panelCard.backgroundTab.a11y" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "in a background tab"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バックグラウンドのタブ内"
+          }
+        }
+      }
+    },
     "gdock.panelCard.meta.last" : {
       "extractionState" : "manual",
       "localizations" : {
