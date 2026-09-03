@@ -1,0 +1,467 @@
+{
+  "slug": "gdock-worktree-panel-hold-to-show",
+  "title": "Gdock Worktree Panel (hold-to-show...",
+  "status": "active",
+  "created_at": "2026-09-02T06:54:59.468585+00:00",
+  "storage_mode": "database",
+  "error_message": null,
+  "progress_log": [
+    "[2026-09-02T06:55:00.594999+00:00] Project created; PRD written to prd.md; phases extracted; review files written to phases/"
+  ],
+  "review_mode": "complete",
+  "workspace_root": "/opt/worktrees/stokd-cloud/gdock/project-38f437b-execute-project-38f437b-stokd-wo",
+  "phases": [
+    {
+      "phase_number": 1,
+      "purpose": "One unattended pass delivers the overlay lifecycle, snapshot,",
+      "title": "Native hold-to-show worktree overlay",
+      "work_items": [
+        {
+          "acceptance_criteria": "- AC-1.1.a: Chord keyDown shows the overlay; Option or Shift release hides\n  it when unpinned.\n- AC-1.1.b: Each pinning mode survives modifier release; ending the mode\n  restores hold-to-hide.\n- AC-1.1.c: App resign hides an unpinned overlay.\n- AC-1.1.d: The controller is a floating panel, not a rail kind.\n- AC-1.1.e: Shortcut id is `gdock.`-prefixed and remappable.\n- AC-1.1.f: `./scripts/test-unit.sh -only-testing:cmuxTests/GdockWorktreePanelHoldTests CMUX_SKIP_ZIG_BUILD=1 test` exits 0.\n- AC-1.1.g: `./scripts/lint-pbxproj-test-wiring.sh` exits 0.",
+          "acceptance_tests": "- Test-1.1.a: Unit — show/hide on flagsChanged.\n- Test-1.1.b: Unit — pin matrix for the five pinning modes.\n- Test-1.1.c: Unit — resign notification.\n- Test-1.1.d: Source — floating panel host, no `stokdWorktrees` kind reuse.\n- Test-1.1.e: Unit — catalog id + default chord.\n- Test-1.1.f: Suite gate.\n- Test-1.1.g: Test-wiring lint.",
+          "dependencies": [],
+          "implementation_details": "- **Landing:** fork-only.\n- Add `GdockWorktreePanelWindowController` as a floating centered panel,\n  following `GdockSessionCyclerWindowController` (not a `SidebarDock` kind).\n- Monitor Opt+Shift+W via `WindowScopedShortcutHintModifierMonitor` /\n  flagsChanged: show on chord keyDown, hide unpinned overlay when Option or\n  Shift drops, hide unpinned overlay on app resign.\n- Pin on Filter / confirm / disposition modes; unpin when those modes end.\n- Register `gdock.worktreePanelHold` (name TBD to match catalog style) in\n  `KeyboardShortcutSettings` with default Opt+Shift+W; document it.\n- Failure modes: missing shortcut binding → overlay never shows (not a\n  crash); duplicate chord with an existing W shortcut is forbidden by\n  catalog uniqueness tests.",
+          "item_number": "1.1",
+          "targets": [
+            "VAL-HOLD-001",
+            "VAL-HOLD-002",
+            "VAL-HOLD-003",
+            "VAL-OVERLAY-001",
+            "VAL-SHORT-001"
+          ],
+          "title": "Overlay host, hold chord, pin, and shortcut catalog",
+          "verification_commands": "set -euo pipefail\nrg -n 'GdockWorktreePanelWindowController|gdock\\.worktreePanel' Sources/ Packages/macOS/\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/GdockWorktreePanelHoldTests CMUX_SKIP_ZIG_BUILD=1 test\n./scripts/test-unit.sh -only-testing:cmuxTests/GdockWorktreePanelPinTests CMUX_SKIP_ZIG_BUILD=1 test"
+        },
+        {
+          "acceptance_criteria": "- AC-1.2.a: Fixture JSON decodes into one row per worktree with the\n  documented fields.\n- AC-1.2.b: Missing `stokd` yields structured code 127, not `fatalError`.\n- AC-1.2.c: Fixture JSON without lander fields never produces a pid or\n  queue total.\n- AC-1.2.d: `rg` over the new sources finds no `land explain` JSON parse.\n- AC-1.2.e: `./scripts/test-unit.sh -only-testing:cmuxTests/GdockWorktreePanelSnapshotTests CMUX_SKIP_ZIG_BUILD=1 test` exits 0.",
+          "acceptance_tests": "- Test-1.2.a: Unit — JSON decode fixture.\n- Test-1.2.b: Unit — missing binary / non-zero exit.\n- Test-1.2.c: Unit — lander degradation.\n- Test-1.2.d: Regression scan.\n- Test-1.2.e: Suite gate.",
+          "dependencies": [
+            "1.1"
+          ],
+          "implementation_details": "- **Landing:** fork-only.\n- Resolve `stokd` via `StokdExecutableResolver`; run\n  `stokd worktree list --json` off the main actor in the focused workspace\n  repo root.\n- Decode the documented JSON fields into immutable row value types.\n- Load dirty files, commits, and file lists through `CmuxGit` (or the\n  existing git process boundary), never by shelling out from `body`.\n- Lander/queue fields absent from JSON render as an explicit degraded\n  marker. Do not parse `stokd land explain`. Record the mono follow-up\n  `stokd worktree snapshot --json` in this PRD's Open Questions only.\n- Failure modes: missing binary → code 127 empty table + error; non-zero\n  `stokd` → empty table + stderr banner; non-git cwd → empty + reason.",
+          "item_number": "1.2",
+          "targets": [
+            "VAL-DATA-001",
+            "VAL-LANDER-001"
+          ],
+          "title": "Snapshot data plane and honest lander degradation",
+          "verification_commands": "set -euo pipefail\nrg -n 'worktree list --json' Sources/\nif rg -n 'land explain' Sources/GdockWorktreePanel* Sources/Stokd/WorktreePanel* 2>/dev/null; then\n  echo 'VAL-LANDER-001: do not parse stokd land explain' >&2\n  exit 1\nfi\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/GdockWorktreePanelSnapshotTests CMUX_SKIP_ZIG_BUILD=1 test"
+        },
+        {
+          "acceptance_criteria": "- AC-1.3.a: All nine column ids exist and render fixture cells.\n- AC-1.3.b: Selected dirty and clean fixtures fill the detail block.\n- AC-1.3.c: Git fixture with 3 commits / 35 files renders both lists.\n- AC-1.3.d: Tab moves focus between the two panes.\n- AC-1.3.e: `./scripts/test-unit.sh -only-testing:cmuxTests/GdockWorktreePanelTableTests CMUX_SKIP_ZIG_BUILD=1 test` exits 0.",
+          "acceptance_tests": "- Test-1.3.a: Unit — columns.\n- Test-1.3.b: Unit — detail projection.\n- Test-1.3.c: Unit — commits/files.\n- Test-1.3.d: Unit — pane focus.\n- Test-1.3.e: Suite gate.",
+          "dependencies": [
+            "1.2"
+          ],
+          "implementation_details": "- **Landing:** fork-only.\n- Native table with the nine TUI columns; selection drives the detail block\n  (BRANCH/PATH/ID/HASH/STATE line) and the commits/files pane.\n- Two focus panes (Worktrees, DirtyFiles) with independent selection.\n- ACTION line + OPERATION column bind to RowOp in-flight state from 1.5.\n- SwiftUI snapshot-boundary: rows are value snapshots; no store below a\n  Lazy stack. The oracle checklist itself is work item 1.6.",
+          "item_number": "1.3",
+          "targets": [
+            "VAL-TABLE-001",
+            "VAL-DETAIL-001",
+            "VAL-COMMITS-001",
+            "VAL-PANE-001"
+          ],
+          "title": "Native table, detail, commits, panes, and ACTION chrome",
+          "verification_commands": "set -euo pipefail\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/GdockWorktreePanelTableTests CMUX_SKIP_ZIG_BUILD=1 test\n./scripts/test-unit.sh -only-testing:cmuxTests/GdockWorktreePanelFocusTests CMUX_SKIP_ZIG_BUILD=1 test"
+        },
+        {
+          "acceptance_criteria": "- AC-1.4.a: Each movement key changes selection as in the TUI.\n- AC-1.4.b: Space toggles marks; actions use the mark set when present.\n- AC-1.4.c: `/` filters; Esc restores the full list.\n- AC-1.4.d: `?` shows help containing kill/disposition/handover keys.\n- AC-1.4.e: Focused unit suites for nav/mark/filter/help exit 0.",
+          "acceptance_tests": "- Test-1.4.a: Unit — movement keys.\n- Test-1.4.b: Unit — mark set.\n- Test-1.4.c: Unit — filter.\n- Test-1.4.d: Unit — help catalog.\n- Test-1.4.e: Suite gates.",
+          "dependencies": [
+            "1.1",
+            "1.3"
+          ],
+          "implementation_details": "- **Landing:** fork-only.\n- Dispatch ↑↓jk, PageUp/PageDown, Home/End, r, q, Esc, Space, `/`, `?`\n  through one overlay key router (shared with 1.5).\n- Space toggles marks; marked set is the action target when non-empty.\n- `/` pins Filter; Enter commits; Esc restores.\n- `?` pins Help listing every action key.\n- Unpinned q/Esc is unnecessary for hide (modifiers already hide) but must\n  dismiss a pinned overlay.",
+          "item_number": "1.4",
+          "targets": [
+            "VAL-NAV-001",
+            "VAL-MARK-001",
+            "VAL-FILTER-001",
+            "VAL-HELP-001"
+          ],
+          "title": "Navigation, marks, filter, and help",
+          "verification_commands": "set -euo pipefail\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/GdockWorktreePanelNavTests CMUX_SKIP_ZIG_BUILD=1 test"
+        },
+        {
+          "acceptance_criteria": "- AC-1.5.a: `l` and `s` argv match fixtures; non-zero maps to ACTION error.\n- AC-1.5.b: `x` cancel / checked-out / dirty-confirm / success paths all\n  covered; checked-out is refused.\n- AC-1.5.c: Each disposition kind builds the required flags; cancel does\n  not invoke `stokd`.\n- AC-1.5.d: `g`/`L`/`v` argv tests pass; source scan finds no `git merge`\n  / `git push` in the overlay module.\n- AC-1.5.e: In-flight OPERATION clears after process exit.\n- AC-1.5.f: Focused action test suite exits 0.",
+          "acceptance_tests": "- Test-1.5.a: Unit — shove/enqueue argv + failure.\n- Test-1.5.b: Unit — kill confirm matrix.\n- Test-1.5.c: Unit — disposition flag matrix.\n- Test-1.5.d: Unit — handover argv + source scan.\n- Test-1.5.e: Unit — RowOp lifecycle.\n- Test-1.5.f: Suite gate.",
+          "dependencies": [
+            "1.2",
+            "1.4"
+          ],
+          "implementation_details": "- **Landing:** fork-only.\n- `l` / `s` invoke the exact argv `worktree_list.rs` uses for enqueue vs\n  shove (do not invent a third verb or flags). OPERATION/ACTION track RowOp\n  until exit. Open Question 2 is only about confirming those flags at\n  implementation time against the oracle file, not about adding a new verb.\n- `x` pins ConfirmKill; dirty trees also pin ConfirmDeleteDirty; refuse\n  checked-out worktrees; on confirm, `git worktree remove` + `git branch -D`\n  with the TUI guard.\n- `d` pins DispositionPick then DispositionReason as required; runs\n  `stokd disposition <kind> [--hash --reason --blocker --question]`.\n- `g` / `L` / `v` spawn `stokd integrate` / `stokd worktree land` /\n  `stokd worktree review` and dismiss. The overlay never merges or pushes.\n- Failure modes: non-zero exit → ACTION error + OPERATION failure; never\n  leave a silent no-op.",
+          "item_number": "1.5",
+          "targets": [
+            "VAL-ENQUEUE-001",
+            "VAL-SHOVE-001",
+            "VAL-KILL-001",
+            "VAL-DISP-001",
+            "VAL-HAND-001",
+            "VAL-STATUS-001",
+            "VAL-FAIL-001"
+          ],
+          "title": "Mutating verbs: enqueue, shove, kill, disposition, handover",
+          "verification_commands": "set -euo pipefail\nif rg -n 'git merge|git push' Sources/GdockWorktreePanel* 2>/dev/null; then\n  echo 'VAL-HAND-001: overlay must not merge or push' >&2\n  exit 1\nfi\n./scripts/lint-pbxproj-test-wiring.sh\n./scripts/test-unit.sh -only-testing:cmuxTests/GdockWorktreePanelActionTests CMUX_SKIP_ZIG_BUILD=1 test"
+        },
+        {
+          "acceptance_criteria": "- AC-1.6.a: Localization audit lists the new keys in en and ja.\n- AC-1.6.b: No raw user-facing literals in the overlay sources.\n- AC-1.6.c: Parity checklist is green against the oracle list.\n- AC-1.6.d: Tagged dogfood notes confirm hold-to-show and the nine columns.",
+          "acceptance_tests": "- Test-1.6.a: Localization audit.\n- Test-1.6.b: Source scan for literals.\n- Test-1.6.c: Unit — `GdockWorktreePanelParityTests`.\n- Test-1.6.d: Dogfood evidence artifact.",
+          "dependencies": [
+            "1.3",
+            "1.4",
+            "1.5"
+          ],
+          "implementation_details": "- **Landing:** fork-only.\n- Every overlay string uses `String(localized:)` with keys in\n  `Resources/Localizable.xcstrings` (en+ja), including shortcut titles.\n- `GdockWorktreePanelParityTests` walks the `worktree_list.rs` oracle list\n  (nine columns, two panes, six modes, every listed key) and fails on any\n  unmapped item other than VAL-LANDER-001's named gap.\n- Tagged Release reload (`./scripts/reload.sh --tag worktree-panel`) for\n  hold/pin/table dogfood; do not launch an untagged app.\n- Document the chord in the keyboard-shortcut docs the catalog already uses.",
+          "item_number": "1.6",
+          "targets": [
+            "VAL-LOC-001",
+            "VAL-PARITY-001"
+          ],
+          "title": "Localization, parity checklist, and tagged dogfood",
+          "verification_commands": "set -euo pipefail\nrg -n 'String\\(localized:' Sources/GdockWorktree* Packages/macOS/CmuxSettings/\n./scripts/test-unit.sh -only-testing:cmuxTests/GdockWorktreePanelParityTests CMUX_SKIP_ZIG_BUILD=1 test\n./scripts/reload.sh --tag worktree-panel"
+        }
+      ]
+    }
+  ],
+  "project_id": "22f276f3-d0d1-40a2-b78c-a15cf2eb7787",
+  "hash_short": "c6142e5",
+  "contract": [
+    {
+      "behavior": "Pressing the registered Opt+Shift+W chord shows the centered worktree overlay; releasing Option or Shift hides an unpinned overlay without requiring q or Esc. Navigation and single-key TUI actions remain dispatchable while the modifiers stay held.",
+      "evidence": "Persist RED → GREEN results from `GdockWorktreePanelHoldTests` plus tagged dogfood notes that the overlay is gone after modifier release.",
+      "fail": "An unpinned overlay remaining visible after Option or Shift is released, or failing to appear on chord keyDown while gdock is focused.",
+      "id": "VAL-HOLD-001",
+      "needs": "none",
+      "oracle": null,
+      "raw": "**VAL-HOLD-001** — The overlay appears only while Opt+Shift+W is held.\nSurface: artifact\nNeeds: none\nBehavior: Pressing the registered Opt+Shift+W chord shows the centered\n  worktree overlay; releasing Option or Shift hides an unpinned overlay\n  without requiring q or Esc. Navigation and single-key TUI actions remain\n  dispatchable while the modifiers stay held.\nEvidence: Persist RED → GREEN results from `GdockWorktreePanelHoldTests` plus\n  tagged dogfood notes that the overlay is gone after modifier release.\nRigor: R3\nWhy: Hold-to-show is a global key-monitor path; a missed hide leaves a\n  blocking modal on screen, so the suite is a hard gate.\nFail: An unpinned overlay remaining visible after Option or Shift is\n  released, or failing to appear on chord keyDown while gdock is focused.",
+      "rigor": "R3",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "artifact",
+      "title": "The overlay appears only while Opt+Shift+W is held."
+    },
+    {
+      "behavior": "Entering Filter, ConfirmKill, ConfirmDeleteDirty, DispositionPick, or DispositionReason pins the overlay so it survives modifier release; unpinning or completing/cancelling the mode restores hold-to-hide.",
+      "evidence": "Persist RED → GREEN `GdockWorktreePanelPinTests` covering each pinning mode, cancel, confirm, and modifier-release-while-pinned.",
+      "fail": "Filter or a confirm sheet dismissing because the operator released Option/Shift, or remaining pinned after the mode ends.",
+      "id": "VAL-HOLD-002",
+      "needs": "VAL-HOLD-001",
+      "oracle": null,
+      "raw": "**VAL-HOLD-002** — Typed and confirm flows pin the overlay.\nSurface: library\nNeeds: VAL-HOLD-001\nBehavior: Entering Filter, ConfirmKill, ConfirmDeleteDirty, DispositionPick,\n  or DispositionReason pins the overlay so it survives modifier release;\n  unpinning or completing/cancelling the mode restores hold-to-hide.\nEvidence: Persist RED → GREEN `GdockWorktreePanelPinTests` covering each\n  pinning mode, cancel, confirm, and modifier-release-while-pinned.\nRigor: R2\nWhy: Pin is a deterministic mode machine and is fully covered by unit tests.\nFail: Filter or a confirm sheet dismissing because the operator released\n  Option/Shift, or remaining pinned after the mode ends.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "Typed and confirm flows pin the overlay."
+    },
+    {
+      "behavior": "When gdock resigns active status, an unpinned overlay hides; a pinned overlay stays until the operator cancels or completes the pinned mode.",
+      "evidence": "Persist RED → GREEN `GdockWorktreePanelHoldTests` resign fixture.",
+      "fail": "An unpinned overlay remaining after gdock is no longer active.",
+      "id": "VAL-HOLD-003",
+      "needs": "VAL-HOLD-001",
+      "oracle": null,
+      "raw": "**VAL-HOLD-003** — App resign hides an unpinned overlay.\nSurface: library\nNeeds: VAL-HOLD-001\nBehavior: When gdock resigns active status, an unpinned overlay hides; a\n  pinned overlay stays until the operator cancels or completes the pinned\n  mode.\nEvidence: Persist RED → GREEN `GdockWorktreePanelHoldTests` resign fixture.\nRigor: R2\nWhy: Resign is a single notification path with a unit-testable fixture.\nFail: An unpinned overlay remaining after gdock is no longer active.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "App resign hides an unpinned overlay."
+    },
+    {
+      "behavior": "The worktree UI mounts as a floating centered panel over the focused gdock window, reusing the session-cycler overlay host pattern, and does not add a rail tab, terminal surface, or persistent window.",
+      "evidence": "Source scan that the controller subclasses the floating-panel host (not `SidebarDockStore` kinds) plus tagged dogfood screenshot of the centered overlay.",
+      "fail": "The UI appearing as a left-rail Worktrees section, a right-rail tool, or an embedded terminal.",
+      "id": "VAL-OVERLAY-001",
+      "needs": "VAL-HOLD-001",
+      "oracle": null,
+      "raw": "**VAL-OVERLAY-001** — The panel is a centered native overlay, not a rail.\nSurface: artifact\nNeeds: VAL-HOLD-001\nBehavior: The worktree UI mounts as a floating centered panel over the\n  focused gdock window, reusing the session-cycler overlay host pattern, and\n  does not add a rail tab, terminal surface, or persistent window.\nEvidence: Source scan that the controller subclasses the floating-panel\n  host (not `SidebarDockStore` kinds) plus tagged dogfood screenshot of the\n  centered overlay.\nRigor: R2\nWhy: Placement is structural and confirmed by source plus one dogfood still.\nFail: The UI appearing as a left-rail Worktrees section, a right-rail tool,\n  or an embedded terminal.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "artifact",
+      "title": "The panel is a centered native overlay, not a rail."
+    },
+    {
+      "behavior": "Given a reachable `stokd` and a git checkout, the overlay lists one row per JSON worktree (branch, path, dirty, ahead/behind, agents, hash, title, status, land_state, disposition, primary) and loads the selected row's dirty files, commits, and file list from git. A missing binary or non-zero `stokd` exit yields an empty table plus a structured error, never a crash.",
+      "evidence": "Persist RED → GREEN `GdockWorktreePanelSnapshotTests` against fixture JSON and git fixtures, including missing-binary code 127.",
+      "fail": "Inventing rows from the VS Code worktrees panel, or crashing when `stokd` is missing.",
+      "id": "VAL-DATA-001",
+      "needs": "the existing `StokdCLIRunner` / `CmuxGit` process boundary",
+      "oracle": null,
+      "raw": "**VAL-DATA-001** — Rows come from `stokd worktree list --json` plus git.\nSurface: cli\nNeeds: the existing `StokdCLIRunner` / `CmuxGit` process boundary\nBehavior: Given a reachable `stokd` and a git checkout, the overlay lists\n  one row per JSON worktree (branch, path, dirty, ahead/behind, agents,\n  hash, title, status, land_state, disposition, primary) and loads the\n  selected row's dirty files, commits, and file list from git. A missing\n  binary or non-zero `stokd` exit yields an empty table plus a structured\n  error, never a crash.\nEvidence: Persist RED → GREEN `GdockWorktreePanelSnapshotTests` against\n  fixture JSON and git fixtures, including missing-binary code 127.\nRigor: R2\nWhy: Decoding and process errors are independently fixture-testable.\nFail: Inventing rows from the VS Code worktrees panel, or crashing when\n  `stokd` is missing.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "cli",
+      "title": "Rows come from `stokd worktree list --json` plus git."
+    },
+    {
+      "behavior": "LANDER / CURRENT / ACTION lines render only fields present in `stokd worktree list --json` plus in-overlay operation state. Fields the TUI computes in-process (`RepoLanderStatus`, `queue_position`, `land_detail`) display an explicit unavailable/degraded marker and are listed as a mono follow-up (`stokd worktree snapshot --json`), not filled from guesswork.",
+      "evidence": "Persist RED → GREEN snapshot tests that fixture JSON without lander fields never fabricates pid/queue numbers, plus a source scan that gdock does not parse `stokd land explain` as JSON.",
+      "fail": "Showing a lander pid, queue total, or current worker that did not come from a documented JSON field.",
+      "id": "VAL-LANDER-001",
+      "needs": "VAL-DATA-001",
+      "oracle": null,
+      "raw": "**VAL-LANDER-001** — Lander chrome degrades instead of inventing JSON.\nSurface: parity\nNeeds: VAL-DATA-001\nBehavior: LANDER / CURRENT / ACTION lines render only fields present in\n  `stokd worktree list --json` plus in-overlay operation state. Fields the\n  TUI computes in-process (`RepoLanderStatus`, `queue_position`,\n  `land_detail`) display an explicit unavailable/degraded marker and are\n  listed as a mono follow-up (`stokd worktree snapshot --json`), not filled\n  from guesswork.\nEvidence: Persist RED → GREEN snapshot tests that fixture JSON without\n  lander fields never fabricates pid/queue numbers, plus a source scan that\n  gdock does not parse `stokd land explain` as JSON.\nRigor: R2\nWhy: The TUI is the oracle; independent tests must prove the client does\n  not fake the missing block.\nFail: Showing a lander pid, queue total, or current worker that did not\n  come from a documented JSON field.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "parity",
+      "title": "Lander chrome degrades instead of inventing JSON."
+    },
+    {
+      "behavior": "The overlay table exposes WORKTREE, STATE, SYNC, AGENTS, CHANGED, LAND, STATUS, DISPOSITION, and OPERATION for every listed row, using the TUI's dirty/clean, ahead/behind, and status color language, and marks the JSON `primary` row the way the TUI marks the current worktree.",
+      "evidence": "Persist RED → GREEN `GdockWorktreePanelTableTests` asserting all nine column identifiers and fixture cell values.",
+      "fail": "Shipping fewer than the nine enumerated columns, or renaming them so the TUI screenshot is no longer recognizable.",
+      "id": "VAL-TABLE-001",
+      "needs": "VAL-DATA-001",
+      "oracle": null,
+      "raw": "**VAL-TABLE-001** — The table shows the nine TUI columns.\nSurface: artifact\nNeeds: VAL-DATA-001\nBehavior: The overlay table exposes WORKTREE, STATE, SYNC, AGENTS, CHANGED,\n  LAND, STATUS, DISPOSITION, and OPERATION for every listed row, using the\n  TUI's dirty/clean, ahead/behind, and status color language, and marks the\n  JSON `primary` row the way the TUI marks the current worktree.\nEvidence: Persist RED → GREEN `GdockWorktreePanelTableTests` asserting all\n  nine column identifiers and fixture cell values.\nRigor: R2\nWhy: Column presence is a straightforward table-model test.\nFail: Shipping fewer than the nine enumerated columns, or renaming them so\n  the TUI screenshot is no longer recognizable.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "artifact",
+      "title": "The table shows the nine TUI columns."
+    },
+    {
+      "behavior": "The selected row shows BRANCH, PATH, ID, HASH, and a STATE line (clean/dirty, ahead/behind, STATUS, LAND, DISP) matching the TUI detail block for that row.",
+      "evidence": "Persist RED → GREEN detail-block tests against one dirty and one clean fixture row.",
+      "fail": "A selected row with an empty detail block while snapshot data exists.",
+      "id": "VAL-DETAIL-001",
+      "needs": "VAL-TABLE-001",
+      "oracle": null,
+      "raw": "**VAL-DETAIL-001** — Selecting a row fills the TUI detail block.\nSurface: artifact\nNeeds: VAL-TABLE-001\nBehavior: The selected row shows BRANCH, PATH, ID, HASH, and a STATE line\n  (clean/dirty, ahead/behind, STATUS, LAND, DISP) matching the TUI detail\n  block for that row.\nEvidence: Persist RED → GREEN detail-block tests against one dirty and one\n  clean fixture row.\nRigor: R2\nWhy: Detail mapping is a pure projection of the snapshot row.\nFail: A selected row with an empty detail block while snapshot data exists.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "artifact",
+      "title": "Selecting a row fills the TUI detail block."
+    },
+    {
+      "behavior": "The overlay shows the selected worktree's commit count, file count, recent commits (hash + subject), and file paths from git, matching the TUI \"commits / files\" pane.",
+      "evidence": "Persist RED → GREEN git-fixture tests for a 3-commit / 35-file row and an empty-history row.",
+      "fail": "Omitting the commits/files pane, or showing another worktree's files for the selection.",
+      "id": "VAL-COMMITS-001",
+      "needs": "VAL-DATA-001",
+      "oracle": null,
+      "raw": "**VAL-COMMITS-001** — The lower pane lists commits and files.\nSurface: artifact\nNeeds: VAL-DATA-001\nBehavior: The overlay shows the selected worktree's commit count, file\n  count, recent commits (hash + subject), and file paths from git, matching\n  the TUI \"commits / files\" pane.\nEvidence: Persist RED → GREEN git-fixture tests for a 3-commit / 35-file\n  row and an empty-history row.\nRigor: R2\nWhy: Git porcelain parsing is independently fixture-testable.\nFail: Omitting the commits/files pane, or showing another worktree's files\n  for the selection.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "artifact",
+      "title": "The lower pane lists commits and files."
+    },
+    {
+      "behavior": "Tab (and the TUI equivalent) moves focus between the worktree table and the dirty-files list; each pane keeps its own selection index.",
+      "evidence": "Persist RED → GREEN `GdockWorktreePanelFocusTests` for Tab both directions and independent selection.",
+      "fail": "Only one focus target, or Tab doing nothing while the overlay is shown.",
+      "id": "VAL-PANE-001",
+      "needs": "VAL-TABLE-001",
+      "oracle": null,
+      "raw": "**VAL-PANE-001** — Focus moves between Worktrees and DirtyFiles.\nSurface: library\nNeeds: VAL-TABLE-001\nBehavior: Tab (and the TUI equivalent) moves focus between the worktree\n  table and the dirty-files list; each pane keeps its own selection index.\nEvidence: Persist RED → GREEN `GdockWorktreePanelFocusTests` for Tab both\n  directions and independent selection.\nRigor: R2\nWhy: Focus is a two-state machine covered by unit tests.\nFail: Only one focus target, or Tab doing nothing while the overlay is\n  shown.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "Focus moves between Worktrees and DirtyFiles."
+    },
+    {
+      "behavior": "The ACTION line shows idle or the in-flight verb and the TUI footer key hints (select, mark, enqueue, handover, shove, kill, disposition, refresh, filter, help). The OPERATION column shows per-row RowOp state (enqueue, shove, kill, disposition) until the process completes or fails, then clears or shows the failure.",
+      "evidence": "Persist RED → GREEN in-flight fixtures for success and non-zero exit.",
+      "fail": "A running shove with ACTION idle and OPERATION empty, or a stuck OPERATION after the process exits.",
+      "id": "VAL-STATUS-001",
+      "needs": "VAL-DATA-001",
+      "oracle": null,
+      "raw": "**VAL-STATUS-001** — ACTION and OPERATION reflect in-flight work.\nSurface: library\nNeeds: VAL-DATA-001\nBehavior: The ACTION line shows idle or the in-flight verb and the TUI\n  footer key hints (select, mark, enqueue, handover, shove, kill,\n  disposition, refresh, filter, help). The OPERATION column shows per-row\n  RowOp state (enqueue, shove, kill, disposition) until the process\n  completes or fails, then clears or shows the failure.\nEvidence: Persist RED → GREEN in-flight fixtures for success and non-zero\n  exit.\nRigor: R2\nWhy: RowOp is a deterministic state machine.\nFail: A running shove with ACTION idle and OPERATION empty, or a stuck\n  OPERATION after the process exits.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "ACTION and OPERATION reflect in-flight work."
+    },
+    {
+      "behavior": "While the overlay is visible, ↑ ↓ j k PageUp PageDown Home End move the focused pane's selection; r refreshes the snapshot; q and Esc dismiss a pinned overlay (unpinned already hides on modifier release).",
+      "evidence": "Persist RED → GREEN key-dispatch tests for each listed key.",
+      "fail": "j/k doing nothing, or Esc killing gdock instead of dismissing the overlay.",
+      "id": "VAL-NAV-001",
+      "needs": "VAL-PANE-001",
+      "oracle": null,
+      "raw": "**VAL-NAV-001** — Movement keys match the TUI.\nSurface: library\nNeeds: VAL-PANE-001\nBehavior: While the overlay is visible, ↑ ↓ j k PageUp PageDown Home End\n  move the focused pane's selection; r refreshes the snapshot; q and Esc\n  dismiss a pinned overlay (unpinned already hides on modifier release).\nEvidence: Persist RED → GREEN key-dispatch tests for each listed key.\nRigor: R2\nWhy: Key routing is unit-testable without a live window.\nFail: j/k doing nothing, or Esc killing gdock instead of dismissing the\n  overlay.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "Movement keys match the TUI."
+    },
+    {
+      "behavior": "Space toggles a mark on the focused worktree row; marked rows form the target set for enqueue, shove, kill, and disposition when any marks exist, otherwise the action uses the focused row.",
+      "evidence": "Persist RED → GREEN mark-set tests for toggle, empty set, and multi-row action targeting.",
+      "fail": "Actions ignoring marks, or Space activating the focused row as if it were Return.",
+      "id": "VAL-MARK-001",
+      "needs": "VAL-NAV-001",
+      "oracle": null,
+      "raw": "**VAL-MARK-001** — Space marks rows for multi-select actions.\nSurface: library\nNeeds: VAL-NAV-001\nBehavior: Space toggles a mark on the focused worktree row; marked rows\n  form the target set for enqueue, shove, kill, and disposition when any\n  marks exist, otherwise the action uses the focused row.\nEvidence: Persist RED → GREEN mark-set tests for toggle, empty set, and\n  multi-row action targeting.\nRigor: R2\nWhy: Mark set is a pure model concern.\nFail: Actions ignoring marks, or Space activating the focused row as if it\n  were Return.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "Space marks rows for multi-select actions."
+    },
+    {
+      "behavior": "`/` enters Filter (pinned), a text field filters rows by worktree/title/branch, and Enter returns to Browse on the filtered set; Esc cancels filter and restores the unfiltered list.",
+      "evidence": "Persist RED → GREEN filter tests for substring match, empty match, Enter, and Esc.",
+      "fail": "`/` doing nothing, or filter remaining applied after Esc.",
+      "id": "VAL-FILTER-001",
+      "needs": "VAL-HOLD-002 and VAL-TABLE-001",
+      "oracle": null,
+      "raw": "**VAL-FILTER-001** — Slash filters the cycling/listed set.\nSurface: library\nNeeds: VAL-HOLD-002 and VAL-TABLE-001\nBehavior: `/` enters Filter (pinned), a text field filters rows by\n  worktree/title/branch, and Enter returns to Browse on the filtered set;\n  Esc cancels filter and restores the unfiltered list.\nEvidence: Persist RED → GREEN filter tests for substring match, empty\n  match, Enter, and Esc.\nRigor: R2\nWhy: Filter is a string-match over fixture rows.\nFail: `/` doing nothing, or filter remaining applied after Esc.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "Slash filters the cycling/listed set."
+    },
+    {
+      "behavior": "`?` pins and shows a help sheet listing the same action keys as the TUI ACTION/help line; Esc or `?` again closes it.",
+      "evidence": "Persist RED → GREEN help-mode tests plus a localized string scan for each documented key.",
+      "fail": "`?` unbound, or help omitting kill/disposition/handover keys.",
+      "id": "VAL-HELP-001",
+      "needs": "VAL-HOLD-002",
+      "oracle": null,
+      "raw": "**VAL-HELP-001** — Question mark shows the TUI help overlay.\nSurface: artifact\nNeeds: VAL-HOLD-002\nBehavior: `?` pins and shows a help sheet listing the same action keys as\n  the TUI ACTION/help line; Esc or `?` again closes it.\nEvidence: Persist RED → GREEN help-mode tests plus a localized string scan\n  for each documented key.\nRigor: R2\nWhy: Help is a mode plus a string catalog check.\nFail: `?` unbound, or help omitting kill/disposition/handover keys.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "artifact",
+      "title": "Question mark shows the TUI help overlay."
+    },
+    {
+      "behavior": "`l` on the marked set — or the focused row when nothing is marked — stages each eligible target by running `stokd disposition dev_complete` in that worktree, off the main actor, with OPERATION in-flight per row. A row already queued or landable is reported as already-queued and a row whose own land is in flight is skipped; neither is re-staged. The action reports the staged / already / skipped counts and clears the marks. The overlay never invokes `stokd land` or any other land process directly.",
+      "evidence": "Persist RED → GREEN planner tests over rows in each state (unqueued, `queue_position` set, `land_state` in {dev_complete, pending, landing, landed}, land in flight) asserting the per-row action and the reported counts, plus a recording-runner test asserting that no land argv is ever issued.",
+      "fail": "Treating `l` as a shove, invoking `stokd land`, or re-staging a row that is already queued — any of which breaks land serialization.",
+      "id": "VAL-ENQUEUE-001",
+      "needs": "VAL-MARK-001",
+      "oracle": null,
+      "raw": "**VAL-ENQUEUE-001** — `l` stages `dev_complete` and never spawns a land.\nSurface: cli\nNeeds: VAL-MARK-001\nBehavior: `l` on the marked set — or the focused row when nothing is marked\n  — stages each eligible target by running `stokd disposition dev_complete`\n  in that worktree, off the main actor, with OPERATION in-flight per row. A\n  row already queued or landable is reported as already-queued and a row\n  whose own land is in flight is skipped; neither is re-staged. The action\n  reports the staged / already / skipped counts and clears the marks. The\n  overlay never invokes `stokd land` or any other land process directly.\nEvidence: Persist RED → GREEN planner tests over rows in each state\n  (unqueued, `queue_position` set, `land_state` in {dev_complete, pending,\n  landing, landed}, land in flight) asserting the per-row action and the\n  reported counts, plus a recording-runner test asserting that no land argv\n  is ever issued.\nRigor: R4\nWhy: Enqueue writes the serialized lander's queue. A second land process,\n  or a double-staged item, corrupts the queue for every other worktree in\n  the repository, so two independent lanes must agree before it ships.\nFail: Treating `l` as a shove, invoking `stokd land`, or re-staging a row\n  that is already queued — any of which breaks land serialization.",
+      "rigor": "R4",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "cli",
+      "title": "`l` stages `dev_complete` and never spawns a land."
+    },
+    {
+      "behavior": "`s` runs `stokd shove` for the focused or marked set, off the main actor, with OPERATION in-flight and a structured error on failure.",
+      "evidence": "Persist RED → GREEN `stokd shove` argv + exit-code fixtures.",
+      "fail": "`s` calling `git push` instead of `stokd shove`.",
+      "id": "VAL-SHOVE-001",
+      "needs": "VAL-MARK-001",
+      "oracle": null,
+      "raw": "**VAL-SHOVE-001** — `s` shoves the targeted worktrees.\nSurface: cli\nNeeds: VAL-MARK-001\nBehavior: `s` runs `stokd shove` for the focused or marked set, off the\n  main actor, with OPERATION in-flight and a structured error on failure.\nEvidence: Persist RED → GREEN `stokd shove` argv + exit-code fixtures.\nRigor: R2\nWhy: Same process-boundary tests as enqueue.\nFail: `s` calling `git push` instead of `stokd shove`.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "cli",
+      "title": "`s` shoves the targeted worktrees."
+    },
+    {
+      "behavior": "`x` pins ConfirmKill; confirming runs git worktree remove and deletes the branch with the TUI's checked-out guard. A dirty tree extra confirm (ConfirmDeleteDirty) is required before data loss. Cancel leaves the worktree untouched.",
+      "evidence": "Persist RED → GREEN tests for cancel, checked-out refusal, dirty confirm, and successful remove argv.",
+      "fail": "`x` removing a checked-out or dirty worktree without the matching confirm, or skipping the checked-out guard.",
+      "id": "VAL-KILL-001",
+      "needs": "VAL-HOLD-002 and VAL-MARK-001",
+      "oracle": null,
+      "raw": "**VAL-KILL-001** — `x` kills with the TUI confirmations.\nSurface: cli\nNeeds: VAL-HOLD-002 and VAL-MARK-001\nBehavior: `x` pins ConfirmKill; confirming runs git worktree remove and\n  deletes the branch with the TUI's checked-out guard. A dirty tree extra\n  confirm (ConfirmDeleteDirty) is required before data loss. Cancel leaves\n  the worktree untouched.\nEvidence: Persist RED → GREEN tests for cancel, checked-out refusal, dirty\n  confirm, and successful remove argv.\nRigor: R3\nWhy: Destructive git is a hard-gated path; independent tests must see both\n  confirms and the checked-out refusal.\nFail: `x` removing a checked-out or dirty worktree without the matching\n  confirm, or skipping the checked-out guard.",
+      "rigor": "R3",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "cli",
+      "title": "`x` kills with the TUI confirmations."
+    },
+    {
+      "behavior": "`d` pins DispositionPick (dev_complete, blocked, abandon, needs-input); kinds that require `--reason` / `--blocker` / `--question` pin DispositionReason; confirming runs `stokd disposition <kind> [--hash --reason --blocker --question]` off the main actor.",
+      "evidence": "Persist RED → GREEN argv fixtures for each kind, including the required-flag matrix and cancel.",
+      "fail": "`d` posting a disposition without the flags the CLI requires, or writing a disposition record without invoking `stokd`.",
+      "id": "VAL-DISP-001",
+      "needs": "VAL-HOLD-002 and VAL-MARK-001",
+      "oracle": null,
+      "raw": "**VAL-DISP-001** — `d` runs `stokd disposition` with kind and reason.\nSurface: cli\nNeeds: VAL-HOLD-002 and VAL-MARK-001\nBehavior: `d` pins DispositionPick (dev_complete, blocked, abandon,\n  needs-input); kinds that require `--reason` / `--blocker` / `--question`\n  pin DispositionReason; confirming runs\n  `stokd disposition <kind> [--hash --reason --blocker --question]` off the\n  main actor.\nEvidence: Persist RED → GREEN argv fixtures for each kind, including the\n  required-flag matrix and cancel.\nRigor: R2\nWhy: Kind/flag matrix is fully fixture-testable.\nFail: `d` posting a disposition without the flags the CLI requires, or\n  writing a disposition record without invoking `stokd`.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "cli",
+      "title": "`d` runs `stokd disposition` with kind and reason."
+    },
+    {
+      "behavior": "`g` starts `stokd integrate`, `L` starts `stokd worktree land`, and `v` starts `stokd worktree review` for the targeted worktree, then dismisses the overlay. The overlay does not itself land, merge, or integrate.",
+      "evidence": "Persist RED → GREEN argv tests for the three handovers plus a source scan that the overlay never calls `git merge` / `git push` itself.",
+      "fail": "The overlay merging or force-pushing, or the three keys being unbound.",
+      "id": "VAL-HAND-001",
+      "needs": "VAL-MARK-001",
+      "oracle": null,
+      "raw": "**VAL-HAND-001** — `g` / `L` / `v` hand over to the TUI's exit commands.\nSurface: cli\nNeeds: VAL-MARK-001\nBehavior: `g` starts `stokd integrate`, `L` starts `stokd worktree land`,\n  and `v` starts `stokd worktree review` for the targeted worktree, then\n  dismisses the overlay. The overlay does not itself land, merge, or\n  integrate.\nEvidence: Persist RED → GREEN argv tests for the three handovers plus a\n  source scan that the overlay never calls `git merge` / `git push` itself.\nRigor: R2\nWhy: Handover is argv + an explicit non-goal scan.\nFail: The overlay merging or force-pushing, or the three keys being unbound.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "cli",
+      "title": "`g` / `L` / `v` hand over to the TUI's exit commands."
+    },
+    {
+      "behavior": "Against `worktree_list.rs` as oracle, the overlay provides the nine columns, two panes, six modes, and every listed keybinding/action. The only permitted omissions are RepoLanderStatus / queue_position / land_detail, which VAL-LANDER-001 already degrades.",
+      "evidence": "Persist a checklist test `GdockWorktreePanelParityTests` that walks the oracle list and fails on any unmapped column, mode, or key other than the named gap.",
+      "fail": "Shipping a glanceable subset (table-only) while this PRD is marked complete.",
+      "id": "VAL-PARITY-001",
+      "needs": "VAL-TABLE-001, VAL-NAV-001, VAL-MARK-001, VAL-FILTER-001, VAL-HELP-001, VAL-ENQUEUE-001, VAL-SHOVE-001, VAL-KILL-001, VAL-DISP-001, VAL-HAND-001, VAL-LANDER-001",
+      "oracle": null,
+      "raw": "**VAL-PARITY-001** — Every enumerated TUI control has a native counterpart.\nSurface: parity\nNeeds: VAL-TABLE-001, VAL-NAV-001, VAL-MARK-001, VAL-FILTER-001,\n  VAL-HELP-001, VAL-ENQUEUE-001, VAL-SHOVE-001, VAL-KILL-001, VAL-DISP-001,\n  VAL-HAND-001, VAL-LANDER-001\nBehavior: Against `worktree_list.rs` as oracle, the overlay provides the\n  nine columns, two panes, six modes, and every listed keybinding/action.\n  The only permitted omissions are RepoLanderStatus / queue_position /\n  land_detail, which VAL-LANDER-001 already degrades.\nEvidence: Persist a checklist test `GdockWorktreePanelParityTests` that\n  walks the oracle list and fails on any unmapped column, mode, or key\n  other than the named gap.\nRigor: R3\nWhy: Full-port claims need a hard-gated oracle checklist, not prose.\nFail: Shipping a glanceable subset (table-only) while this PRD is marked\n  complete.",
+      "rigor": "R3",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "parity",
+      "title": "Every enumerated TUI control has a native counterpart."
+    },
+    {
+      "behavior": "Opt+Shift+W is registered in `KeyboardShortcutSettings` with a `gdock.`-prefixed id, is editable in Settings and `cmux.json`, and is documented. Default remains unbound for any conflicting catalog entry.",
+      "evidence": "Persist RED → GREEN shortcut-catalog tests plus a localization audit line for the shortcut title.",
+      "fail": "A hard-coded keyDown path that Settings cannot rebind.",
+      "id": "VAL-SHORT-001",
+      "needs": "VAL-HOLD-001",
+      "oracle": null,
+      "raw": "**VAL-SHORT-001** — The chord is a documented, remappable gdock shortcut.\nSurface: library\nNeeds: VAL-HOLD-001\nBehavior: Opt+Shift+W is registered in `KeyboardShortcutSettings` with a\n  `gdock.`-prefixed id, is editable in Settings and `cmux.json`, and is\n  documented. Default remains unbound for any conflicting catalog entry.\nEvidence: Persist RED → GREEN shortcut-catalog tests plus a localization\n  audit line for the shortcut title.\nRigor: R2\nWhy: Catalog membership is a unit-level registry test.\nFail: A hard-coded keyDown path that Settings cannot rebind.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "The chord is a documented, remappable gdock shortcut."
+    },
+    {
+      "behavior": "Overlay titles, columns, help, confirms, and errors go through `String(localized:)` and exist in `Resources/Localizable.xcstrings` for en and ja.",
+      "evidence": "Persist the localization-audit command output from the work item and a string-catalog grep for the new keys.",
+      "fail": "Raw English literals in the overlay source.",
+      "id": "VAL-LOC-001",
+      "needs": "VAL-OVERLAY-001",
+      "oracle": null,
+      "raw": "**VAL-LOC-001** — Every user-facing string is localized en+ja.\nSurface: artifact\nNeeds: VAL-OVERLAY-001\nBehavior: Overlay titles, columns, help, confirms, and errors go through\n  `String(localized:)` and exist in `Resources/Localizable.xcstrings` for\n  en and ja.\nEvidence: Persist the localization-audit command output from the work item\n  and a string-catalog grep for the new keys.\nRigor: R2\nWhy: Localization is a repo-required audit, independently greppable.\nFail: Raw English literals in the overlay source.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "artifact",
+      "title": "Every user-facing string is localized en+ja."
+    },
+    {
+      "behavior": "A missing `stokd` binary, a non-zero action exit, or a non-git cwd leaves the overlay visible (pinned if an action was in flight) with a structured error on the ACTION line and does not crash gdock.",
+      "evidence": "Persist RED → GREEN failure fixtures in snapshot and action tests.",
+      "fail": "A missing `stokd` crashing the app, or a failed shove with no ACTION error.",
+      "id": "VAL-FAIL-001",
+      "needs": "VAL-DATA-001",
+      "oracle": null,
+      "raw": "**VAL-FAIL-001** — Missing CLI and failed verbs stay on the overlay.\nSurface: artifact\nNeeds: VAL-DATA-001\nBehavior: A missing `stokd` binary, a non-zero action exit, or a non-git\n  cwd leaves the overlay visible (pinned if an action was in flight) with a\n  structured error on the ACTION line and does not crash gdock.\nEvidence: Persist RED → GREEN failure fixtures in snapshot and action\n  tests.\nRigor: R2\nWhy: Failure chrome is user-visible and fixture-testable.\nFail: A missing `stokd` crashing the app, or a failed shove with no ACTION\n  error.\n\n\nThe parity oracle is `stokd-cloud/mono` `apps/cli/src/commands/worktree_list.rs`\nplus a live `stokd worktree` run in the same repo. VAL-PARITY-001 and\nVAL-LANDER-001 are adjudicated against that file's columns, modes, keys, and\nin-process lander block — not against the left-rail Worktrees PRD and not\nagainst a screenshot alone.\n\n---",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "artifact",
+      "title": "Missing CLI and failed verbs stay on the overlay."
+    }
+  ],
+  "ceremony_tier": "C3"
+}

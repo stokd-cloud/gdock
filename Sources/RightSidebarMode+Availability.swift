@@ -14,6 +14,8 @@ extension RightSidebarMode {
             return .feed
         case "dock":
             return .dock
+        case "work", "stokd-work", "stokdwork":
+            return .stokdWork
         default:
             return nil
         }
