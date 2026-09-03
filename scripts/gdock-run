@@ -35,6 +35,8 @@ OPEN_CMD="${GDOCK_OPEN:-/usr/bin/open}"
 OSASCRIPT_CMD="${GDOCK_OSASCRIPT:-/usr/bin/osascript}"
 PS_CMD="${GDOCK_PS:-/bin/ps}"
 KILL_CMD="${GDOCK_KILL:-/bin/kill}"
+SHLOCK_CMD="${GDOCK_SHLOCK:-/usr/bin/shlock}"
+ARTIFACT_LOCK_TIMEOUT="${GDOCK_ARTIFACT_LOCK_TIMEOUT:-3600}"
 ASSUME_TTY="${GDOCK_ASSUME_TTY:-}"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 
@@ -53,6 +55,15 @@ INSTALLED_PATH_ONLY=0
 RUN_INSTALLED_ONLY=0
 # fork | upstream. Set after resolve_repo_root via reload.sh --help.
 RELOAD_DIALECT="fork"
+RELEASE_ARTIFACT_LOCK=""
+RELEASE_ARTIFACT_LOCK_HELD=0
+BUILD_STATE_APP=""
+BUILD_STATE_FINGERPRINT=""
+BUILD_STATE_MODE=""
+BUILD_STATE_PROFILE=""
+BUILD_STATE_IDENTITY=""
+BUILD_STATE_ROOT=""
+BUILD_STATE_FORMAT=""
 
 usage() {
   cat <<'USAGE'
@@ -510,6 +521,178 @@ write_atomic_line() {
   mv -f "$temp" "$file"
 }
 
+current_build_profile() {
+  if [[ "$SKIP_ZIG" == "1" ]]; then
+    printf 'skip_zig=1\n'
+  else
+    printf 'skip_zig=0\n'
+  fi
+}
+
+artifact_identity() {
+  local app="$1"
+  local cdhash="" executable="" digest=""
+  [[ -d "$app" ]] || return 1
+
+  if [[ -x /usr/bin/codesign ]]; then
+    cdhash="$(/usr/bin/codesign -dvvv "$app" 2>&1 | sed -n 's/^CDHash=//p' | head -n 1)"
+    if [[ -n "$cdhash" ]] && /usr/bin/codesign --verify --deep --strict "$app" >/dev/null 2>&1; then
+      printf 'codesign:%s\n' "$cdhash"
+      return 0
+    fi
+  fi
+
+  if [[ -f "$app/Contents/MacOS/gdock" ]]; then
+    executable="$app/Contents/MacOS/gdock"
+  elif [[ -d "$app/Contents/MacOS" ]]; then
+    executable="$(find "$app/Contents/MacOS" -maxdepth 1 -type f -perm -111 -print 2>/dev/null | LC_ALL=C sort | head -n 1)"
+  fi
+  [[ -n "$executable" && -f "$executable" ]] || return 1
+  digest="$(shasum -a 256 "$executable" | awk '{ print $1 }')"
+  [[ -n "$digest" ]] || return 1
+  printf 'sha256:%s\n' "$digest"
+}
+
+artifact_declared_root() {
+  local app="$1"
+  local info="$app/Contents/Info.plist"
+  local root=""
+  [[ -f "$info" && -x /usr/bin/plutil ]] || return 1
+  root="$(/usr/bin/plutil -extract LSEnvironment.CMUXTERM_REPO_ROOT raw -n -- "$info" 2>/dev/null || true)"
+  [[ -n "$root" && -d "$root" ]] || return 1
+  absolute_path "$root"
+}
+
+manifest_field() {
+  local manifest="$1"
+  local key="$2"
+  sed -n "s/^${key}=//p" "$manifest" | head -n 1
+}
+
+write_build_manifest() {
+  local state_dir="$1"
+  local app="$2"
+  local fingerprint="$3"
+  local mode="$4"
+  local profile="$5"
+  local identity="$6"
+  local root="$7"
+  local temp
+  mkdir -p "$state_dir"
+  temp="$(mktemp "$state_dir/manifest.tmp.XXXXXX")"
+  {
+    printf 'version=1\n'
+    printf 'app=%s\n' "$app"
+    printf 'fingerprint=%s\n' "$fingerprint"
+    printf 'mode=%s\n' "$mode"
+    printf 'profile=%s\n' "$profile"
+    printf 'identity=%s\n' "$identity"
+    printf 'root=%s\n' "$root"
+  } > "$temp"
+  mv -f "$temp" "$state_dir/manifest"
+}
+
+write_build_state() {
+  local state_dir="$1"
+  local app="$2"
+  local fingerprint="$3"
+  local mode="$4"
+  local profile="$5"
+  local identity="$6"
+  local root="$7"
+
+  # Keep the legacy files for installed-launcher compatibility, then publish a
+  # single atomic manifest last. Readers never combine partially updated files.
+  write_atomic_line "$state_dir/app" "$app"
+  write_atomic_line "$state_dir/fingerprint" "$fingerprint"
+  write_atomic_line "$state_dir/mode" "$mode"
+  write_atomic_line "$state_dir/profile" "$profile"
+  write_atomic_line "$state_dir/identity" "$identity"
+  write_build_manifest "$state_dir" "$app" "$fingerprint" "$mode" "$profile" "$identity" "$root"
+}
+
+load_build_state() {
+  local state_dir="$1"
+  local manifest="$state_dir/manifest"
+  local actual_identity=""
+
+  BUILD_STATE_APP=""
+  BUILD_STATE_FINGERPRINT=""
+  BUILD_STATE_MODE=""
+  BUILD_STATE_PROFILE=""
+  BUILD_STATE_IDENTITY=""
+  BUILD_STATE_ROOT=""
+  BUILD_STATE_FORMAT=""
+
+  if [[ -f "$manifest" ]]; then
+    [[ "$(manifest_field "$manifest" version)" == "1" ]] || return 1
+    BUILD_STATE_APP="$(manifest_field "$manifest" app)"
+    BUILD_STATE_FINGERPRINT="$(manifest_field "$manifest" fingerprint)"
+    BUILD_STATE_MODE="$(manifest_field "$manifest" mode)"
+    BUILD_STATE_PROFILE="$(manifest_field "$manifest" profile)"
+    BUILD_STATE_IDENTITY="$(manifest_field "$manifest" identity)"
+    BUILD_STATE_ROOT="$(manifest_field "$manifest" root)"
+    [[ -n "$BUILD_STATE_APP" && -n "$BUILD_STATE_FINGERPRINT" && -n "$BUILD_STATE_MODE" && -n "$BUILD_STATE_PROFILE" && -n "$BUILD_STATE_IDENTITY" && -n "$BUILD_STATE_ROOT" ]] || return 1
+    actual_identity="$(artifact_identity "$BUILD_STATE_APP" 2>/dev/null || true)"
+    [[ -n "$actual_identity" && "$actual_identity" == "$BUILD_STATE_IDENTITY" ]] || return 1
+    BUILD_STATE_FORMAT="manifest"
+    return 0
+  fi
+
+  BUILD_STATE_APP="$(read_first_line "$state_dir/app" 2>/dev/null || true)"
+  BUILD_STATE_FINGERPRINT="$(read_first_line "$state_dir/fingerprint" 2>/dev/null || true)"
+  BUILD_STATE_MODE="$(read_first_line "$state_dir/mode" 2>/dev/null || true)"
+  [[ -n "$BUILD_STATE_APP" && -n "$BUILD_STATE_FINGERPRINT" ]] || return 1
+  BUILD_STATE_ROOT="$(artifact_declared_root "$BUILD_STATE_APP" 2>/dev/null || true)"
+  BUILD_STATE_FORMAT="legacy"
+  return 0
+}
+
+release_release_artifact_lock() {
+  local owner=""
+  if [[ "$RELEASE_ARTIFACT_LOCK_HELD" -eq 1 && -n "$RELEASE_ARTIFACT_LOCK" && -f "$RELEASE_ARTIFACT_LOCK" ]]; then
+    owner="$(read_first_line "$RELEASE_ARTIFACT_LOCK" 2>/dev/null || true)"
+    if [[ "$owner" == "$$" ]]; then
+      rm -f "$RELEASE_ARTIFACT_LOCK"
+    fi
+  fi
+  RELEASE_ARTIFACT_LOCK=""
+  RELEASE_ARTIFACT_LOCK_HELD=0
+}
+
+acquire_release_artifact_lock() {
+  local repo_key="$1"
+  local lock_dir deadline now announced=0 timeout="$ARTIFACT_LOCK_TIMEOUT"
+  [[ "$RELEASE_ARTIFACT_LOCK_HELD" -eq 0 ]] || return 0
+  [[ -x "$SHLOCK_CMD" ]] || {
+    echo "gdock: artifact lock helper is unavailable: $SHLOCK_CMD" >&2
+    return 1
+  }
+  case "$timeout" in
+    ''|*[!0-9]*) timeout=3600 ;;
+  esac
+  lock_dir="$STATE_DIR/builds/${repo_key:0:16}"
+  mkdir -p "$lock_dir"
+  RELEASE_ARTIFACT_LOCK="$lock_dir/release-main.lock"
+  deadline=$(( $(date +%s) + timeout ))
+  while ! "$SHLOCK_CMD" -f "$RELEASE_ARTIFACT_LOCK" -p "$$"; do
+    now="$(date +%s)"
+    if (( now >= deadline )); then
+      echo "gdock: timed out waiting for the release artifact lock" >&2
+      RELEASE_ARTIFACT_LOCK=""
+      return 1
+    fi
+    if [[ "$announced" -eq 0 ]]; then
+      echo "gdock: waiting for another release artifact operation to finish..." >&2
+      announced=1
+    fi
+    sleep 0.25
+  done
+  RELEASE_ARTIFACT_LOCK_HELD=1
+}
+
+trap release_release_artifact_lock EXIT
+
 expected_app_path() {
   local config="Release"
   local dd_slug="gdock"
@@ -795,7 +978,10 @@ build_app() {
   local root="$1"
   local state_dir="$2"
   local mode_key="$3"
-  local output_file app fingerprint reload_log_key
+  local reuse_app="${4:-}"
+  local expected_fingerprint="${5:-}"
+  local expected_identity="${6:-}"
+  local output_file app fingerprint profile identity artifact_root reload_log_key
   local -a reload_args
   local reload_status=0
 
@@ -815,6 +1001,10 @@ build_app() {
     fi
     if [[ -n "$USER_TAG" ]]; then
       reload_args+=(--tag "$USER_TAG")
+    fi
+    if [[ -n "$reuse_app" ]]; then
+      reload_args+=(--reuse-app "$reuse_app")
+      reload_args+=(--reuse-identity "$expected_identity")
     fi
     if [[ -n "$USER_TAG" ]]; then
       reload_log_key="$(sanitize_tag_part "$USER_TAG")"
@@ -876,10 +1066,69 @@ build_app() {
   }
 
   fingerprint="$(repo_fingerprint "$root")"
-  write_atomic_line "$state_dir/app" "$app"
-  write_atomic_line "$state_dir/fingerprint" "$fingerprint"
-  write_atomic_line "$state_dir/mode" "$mode_key"
+  if [[ -n "$expected_fingerprint" && "$fingerprint" != "$expected_fingerprint" ]]; then
+    echo "gdock: sources changed while producing the artifact; refusing to cache it" >&2
+    return 75
+  fi
+  profile="$(current_build_profile)"
+  identity="$(artifact_identity "$app" 2>/dev/null || true)"
+  if [[ -z "$identity" ]]; then
+    echo "gdock: built app has no verifiable artifact identity: $app" >&2
+    return 1
+  fi
+  artifact_root="$(absolute_path "$root")"
+  write_build_state "$state_dir" "$app" "$fingerprint" "$mode_key" "$profile" "$identity" "$artifact_root"
   printf '%s\n' "$app"
+}
+
+# Return the one safe packaging donor for a first tagged Release build. Never
+# scan DerivedData or borrow another tag: only the successful release:main cache
+# record for this exact repository identity can prove source equivalence.
+release_main_reuse_donor() {
+  local root="$1"
+  local repo_key="$2"
+  local current_fingerprint="$3"
+  local main_mode_hash main_state donor_app donor_fingerprint donor_mode
+  local donor_profile donor_identity donor_root current_profile current_root
+
+  release_main_reuse_requested "$root" || return 1
+
+  main_mode_hash="$(hash_text 'release:main')"
+  main_state="$STATE_DIR/builds/${repo_key:0:16}/${main_mode_hash:0:16}"
+  load_build_state "$main_state" || return 1
+  donor_app="$BUILD_STATE_APP"
+  donor_fingerprint="$BUILD_STATE_FINGERPRINT"
+  donor_mode="$BUILD_STATE_MODE"
+  donor_profile="$BUILD_STATE_PROFILE"
+  donor_identity="$BUILD_STATE_IDENTITY"
+  donor_root="$BUILD_STATE_ROOT"
+  [[ "$BUILD_STATE_FORMAT" == "manifest" ]] || return 1
+
+  [[ "$donor_mode" == "release:main" ]] || return 1
+  [[ -n "$donor_fingerprint" && "$donor_fingerprint" == "$current_fingerprint" ]] || return 1
+  current_profile="$(current_build_profile)"
+  [[ "$donor_profile" == "$current_profile" ]] || return 1
+  current_root="$(absolute_path "$root")"
+  [[ "$donor_root" == "$current_root" ]] || return 1
+  [[ -d "$donor_app" && -x "$donor_app/Contents/MacOS/gdock" ]] || return 1
+  [[ "$donor_app" != "$(installed_app_path)" ]] || return 1
+  [[ "$(artifact_identity "$donor_app" 2>/dev/null || true)" == "$donor_identity" ]] || return 1
+
+  printf '%s\t%s\n' "$donor_app" "$donor_identity"
+}
+
+release_main_reuse_requested() {
+  local root="$1"
+  [[ "$RELOAD_DIALECT" == "fork" ]] || return 1
+  [[ -n "$USER_TAG" ]] || return 1
+  [[ "$WANT_DEBUG" -eq 0 ]] || return 1
+  [[ "$FORCE_BUILD" -eq 0 ]] || return 1
+  [[ -z "$DERIVED_DATA_OVERRIDE" ]] || return 1
+  [[ "$(sanitize_tag_part "$USER_TAG")" != "gdock" ]] || return 1
+  # The installed launcher can be newer than another checkout it is run from.
+  # Never pass private fast-path options to an older reload.sh.
+  grep -qE '^[[:space:]]*--reuse-app\)' "$root/scripts/reload.sh" || return 1
+  grep -qE '^[[:space:]]*--reuse-identity\)' "$root/scripts/reload.sh" || return 1
 }
 
 case "$INSTALL_MODE" in
@@ -947,11 +1196,21 @@ mode_key="$(build_mode_key)"
 repo_key="$(repo_identity "$repo_root")"
 mode_hash="$(hash_text "$mode_key")"
 state_dir="$STATE_DIR/builds/${repo_key:0:16}/${mode_hash:0:16}"
-recorded_app="$(read_first_line "$state_dir/app" 2>/dev/null || true)"
-recorded_fingerprint="$(read_first_line "$state_dir/fingerprint" 2>/dev/null || true)"
+if load_build_state "$state_dir"; then
+  recorded_app="$BUILD_STATE_APP"
+  recorded_fingerprint="$BUILD_STATE_FINGERPRINT"
+  recorded_profile="$BUILD_STATE_PROFILE"
+  recorded_root="$BUILD_STATE_ROOT"
+else
+  recorded_app=""
+  recorded_fingerprint=""
+  recorded_profile=""
+  recorded_root=""
+fi
 
 if [[ "$PATH_ONLY" -eq 1 ]]; then
-  if [[ -n "$recorded_app" ]]; then
+  path_root="$(absolute_path "$repo_root")"
+  if [[ -n "$recorded_app" && "$recorded_root" == "$path_root" ]]; then
     printf '%s\n' "$recorded_app"
   else
     expected_app_path
@@ -959,7 +1218,41 @@ if [[ "$PATH_ONLY" -eq 1 ]]; then
   exit 0
 fi
 
+# Submodule initialization changes the repository fingerprint. Finish that
+# operational setup before selecting or recording any artifact fingerprint.
+ensure_worktree_ready "$repo_root"
+
+reuse_lock_available=0
+if is_main_app_mode; then
+  acquire_release_artifact_lock "$repo_key" || exit 1
+  reuse_lock_available=1
+elif release_main_reuse_requested "$repo_root"; then
+  if acquire_release_artifact_lock "$repo_key"; then
+    reuse_lock_available=1
+  else
+    echo "gdock: artifact reuse lock unavailable; running a full tagged build" >&2
+  fi
+fi
+
+# A process that held the release lock may have published state while we
+# waited. Re-read the atomic record only after ownership is established.
+if [[ "$reuse_lock_available" -eq 1 ]]; then
+  if load_build_state "$state_dir"; then
+    recorded_app="$BUILD_STATE_APP"
+    recorded_fingerprint="$BUILD_STATE_FINGERPRINT"
+    recorded_profile="$BUILD_STATE_PROFILE"
+    recorded_root="$BUILD_STATE_ROOT"
+  else
+    recorded_app=""
+    recorded_fingerprint=""
+    recorded_profile=""
+    recorded_root=""
+  fi
+fi
+
 fingerprint="$(repo_fingerprint "$repo_root")"
+current_profile="$(current_build_profile)"
+current_root="$(absolute_path "$repo_root")"
 needs_build=0
 reason=""
 if [[ "$FORCE_BUILD" -eq 1 ]]; then
@@ -974,15 +1267,55 @@ elif [[ ! -d "$recorded_app" ]]; then
 elif [[ "$fingerprint" != "$recorded_fingerprint" ]]; then
   needs_build=1
   reason="sources changed"
+elif [[ -z "$recorded_root" || "$recorded_root" != "$current_root" ]]; then
+  needs_build=1
+  reason="worktree changed"
+elif [[ -n "$recorded_profile" && "$recorded_profile" != "$current_profile" ]]; then
+  needs_build=1
+  reason="build profile changed"
+elif [[ -z "$recorded_profile" && "$current_profile" != "skip_zig=1" ]]; then
+  needs_build=1
+  reason="recorded build profile is unknown"
 fi
 
 app="$recorded_app"
 if [[ "$needs_build" -eq 1 ]]; then
   echo "gdock: rebuild needed ($reason)" >&2
-  app="$(build_app "$repo_root" "$state_dir" "$mode_key")"
+  reuse_record=""
+  reuse_donor=""
+  reuse_identity=""
+  if [[ "$reuse_lock_available" -eq 1 ]] && ! is_main_app_mode; then
+    reuse_record="$(release_main_reuse_donor "$repo_root" "$repo_key" "$fingerprint" 2>/dev/null || true)"
+    if [[ -n "$reuse_record" ]]; then
+      IFS=$'\t' read -r reuse_donor reuse_identity <<< "$reuse_record"
+    fi
+  fi
+  if [[ -n "$reuse_donor" ]]; then
+    echo "gdock: unchanged from release:main; packaging tagged app from $reuse_donor" >&2
+  elif ! is_main_app_mode; then
+    release_release_artifact_lock
+  fi
+  if app="$(build_app "$repo_root" "$state_dir" "$mode_key" "$reuse_donor" "$fingerprint" "$reuse_identity")"; then
+    :
+  else
+    build_status=$?
+    if [[ "$build_status" -eq 75 && -n "$reuse_donor" ]]; then
+      echo "gdock: source changed during artifact reuse; running a full build for the new fingerprint" >&2
+      release_release_artifact_lock
+      fingerprint="$(repo_fingerprint "$repo_root")"
+      if app="$(build_app "$repo_root" "$state_dir" "$mode_key" "" "$fingerprint" "")"; then
+        :
+      else
+        exit $?
+      fi
+    else
+      exit "$build_status"
+    fi
+  fi
 else
   echo "gdock: unchanged; reusing $app" >&2
 fi
+release_release_artifact_lock
 
 echo "gdock: branch=$branch dialect=$RELOAD_DIALECT mode=$mode_key name=$(app_display_name)" >&2
 cli_tag="$(effective_tag)"

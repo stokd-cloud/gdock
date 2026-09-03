@@ -135,6 +135,25 @@ the installed app keeps working while a new build compiles in DerivedData.
 directory.** They stay in DerivedData exactly as before. Agent dogfood builds are
 always tagged, so agents never touch `/Applications`.
 
+### Unchanged Release artifact reuse
+
+On the first `gdock-build --tag <tag>` run, the tag has no cache record of its
+own. If the same worktree's successful `release:main` record has the exact
+current source fingerprint and Zig-helper build profile, `gdock-build` packages
+that Release artifact into the tag's isolated DerivedData instead of invoking
+xcodebuild again. The atomic build record binds that fingerprint to the signed
+artifact identity and canonical worktree root, and main publication/reuse is
+serialized while it is cloned. Legacy records without that manifest are not donors.
+Packaging rewrites and audits the host, nested bundle, URL/auth, socket, and sidebar
+extension-point identities, then signs the result before it can replace the
+tagged output. The donor is never modified and the installed app is never used
+as a donor.
+
+Debug, `--build`, changed sources, a DerivedData override, or any missing,
+malformed, incompatible, or invalidly signed donor uses the normal full-build
+path. A second unchanged run uses the tag's own cache record and does not
+repackage.
+
 ### The swap gate
 
 Replacing the installed app is gated on whether it is running:
