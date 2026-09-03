@@ -531,7 +531,7 @@ struct TitlebarControlsHoverPolicyTests {
                     TitlebarNewWorkspaceCloudSplitButtonMetrics.primaryWidth(config: config)
                 case .some(.cloudVM):
                     TitlebarNewWorkspaceCloudSplitButtonMetrics.dropdownWidth(config: config)
-                case .some(.toggleSidebar), .some(.showNotifications), .some(.focusHistoryBack), .some(.focusHistoryForward), nil:
+                case .some(.toggleSidebar), .some(.showNotifications), .some(.focusHistoryBack), .some(.focusHistoryForward), .some(.gdockGrid), nil:
                     config.buttonSize
                 }
                 checkEqual(

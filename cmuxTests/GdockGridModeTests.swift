@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 import CmuxSettings
+import CmuxTerminalCore
 
 #if canImport(cmux_DEV)
 @testable import cmux_DEV
@@ -68,6 +69,21 @@ import CmuxSettings
         #expect(plan.cellPanelIds == [displayed, background])
     }
 
+    @Test func backgroundTabsFromEveryPaneBecomeVisibleCellsBeforeOverflow() {
+        let paneA = UUID(), paneB = UUID()
+        let a1 = UUID(), a2 = UUID(), b1 = UUID(), b2 = UUID()
+        let plan = GdockGridSplitPlanner.plan(
+            panes: [
+                pane(paneA, panels: [a1, a2], selected: a2),
+                pane(paneB, panels: [b1, b2], selected: b1),
+            ],
+            focusedPaneId: paneA,
+            shape: GdockGridShape(rows: 2, cols: 2)
+        )
+        #expect(plan.cellPanelIds == [a2, a1, b1, b2])
+        #expect(plan.overflowPanelIds.isEmpty)
+    }
+
     @Test func surplusSurfacesOverflowInsteadOfHiding() {
         let paneA = UUID()
         let panels = (0..<5).map { _ in UUID() }
@@ -89,6 +105,116 @@ import CmuxSettings
             shape: GdockGridShape(rows: 2, cols: 2)
         )
         #expect(plan.cellPanelIds == [panelA, nil, nil, nil])
+    }
+
+    @Test func placeholderTemplateRemovesLaunchPayloadButKeepsAppearanceAndEnvironment() {
+        var inherited = CmuxSurfaceConfigTemplate()
+        inherited.setFontSize(15, isExplicitOverride: true)
+        inherited.workingDirectory = "/tmp/gdock-grid"
+        inherited.command = "stokd task"
+        inherited.initialInput = "dangerous inherited input"
+        inherited.environmentVariables = ["TERM_THEME": "night"]
+        inherited.waitAfterCommand = true
+
+        let clean = GdockGridSplitAction.placeholderConfigTemplate(from: inherited)
+
+        #expect(clean.fontSize == 15)
+        #expect(clean.workingDirectory == "/tmp/gdock-grid")
+        #expect(clean.environmentVariables == ["TERM_THEME": "night"])
+        #expect(clean.command == nil)
+        #expect(clean.initialInput == nil)
+        #expect(!clean.waitAfterCommand)
+    }
+
+    @Test @MainActor
+    func appliedGridUsesOneFullWidthTitleHeaderPerPane() throws {
+        let manager = TabManager()
+        let workspace = try #require(manager.selectedWorkspace)
+
+        let outcome = GdockGridSplitAction.applyShape(.quad, to: workspace)
+        guard case .success = outcome else {
+            Issue.record("expected Grid Mode to shape the workspace, got \(outcome)")
+            return
+        }
+
+        #expect(workspace.bonsplitController.allPaneIds.count == 4)
+        for paneId in workspace.bonsplitController.allPaneIds {
+            #expect(workspace.bonsplitController.tabs(inPane: paneId).count == 1)
+            #expect(workspace.bonsplitController.isFullWidthTabMode(inPane: paneId))
+        }
+    }
+
+    // MARK: - New surface routing and workspace compaction
+
+    @Test func newSurfaceActivatesPlaceholderBeforeRollingOverARealPanel() {
+        let first = UUID(), placeholder = UUID(), third = UUID()
+        let route = GdockGridNewSurfacePlanner.route(
+            orderedPanelIds: [first, placeholder, third],
+            placeholderPanelIds: [placeholder],
+            touchOrder: [first: 2, third: 1]
+        )
+        #expect(route == .activatePlaceholder(placeholder))
+    }
+
+    @Test func fullGridRollsOverTheLeastRecentlyTouchedRealPanel() {
+        let first = UUID(), oldest = UUID(), newest = UUID()
+        let route = GdockGridNewSurfacePlanner.route(
+            orderedPanelIds: [first, oldest, newest],
+            placeholderPanelIds: [],
+            touchOrder: [first: 8, oldest: 2, newest: 13]
+        )
+        #expect(route == .rollOver(oldest))
+    }
+
+    @Test func untouchedPanelIsOlderThanTouchedPanelsWithSpatialOrderAsTieBreaker() {
+        let untouchedFirst = UUID(), untouchedSecond = UUID(), touched = UUID()
+        let route = GdockGridNewSurfacePlanner.route(
+            orderedPanelIds: [untouchedFirst, untouchedSecond, touched],
+            placeholderPanelIds: [],
+            touchOrder: [touched: 1]
+        )
+        #expect(route == .rollOver(untouchedFirst))
+    }
+
+    @Test func regularGridCompactionUsesTheMinimumWorkspaceCountOverall() {
+        let workspaceA = UUID(), workspaceB = UUID(), workspaceC = UUID()
+        let groupA = UUID(), groupB = UUID()
+        let panels = (0..<5).map { _ in UUID() }
+        let placeholder = UUID()
+        let plan = GdockGridWorkspaceCompactionPlanner.plan(
+            workspaces: [
+                .init(id: workspaceA, groupId: groupA, panelIds: [panels[0], panels[1]], placeholderPanelIds: []),
+                .init(id: workspaceB, groupId: groupB, panelIds: [panels[2], placeholder], placeholderPanelIds: [placeholder]),
+                .init(id: workspaceC, groupId: nil, panelIds: [panels[3], panels[4]], placeholderPanelIds: []),
+            ],
+            capacity: 4,
+            groupByRepository: false
+        )
+
+        #expect(plan.scopes.count == 1)
+        #expect(plan.scopes[0].retainedWorkspaceIds == [workspaceA, workspaceB])
+        #expect(plan.scopes[0].surplusWorkspaceIds == [workspaceC])
+        #expect(plan.scopes[0].panelAssignments.flatMap(\.panelIds) == panels)
+    }
+
+    @Test func autoGroupGridCompactionUsesTheMinimumCountPerRepository() {
+        let groupA = UUID(), groupB = UUID()
+        let workspaceA1 = UUID(), workspaceA2 = UUID(), workspaceB1 = UUID(), workspaceB2 = UUID()
+        let panelA = UUID(), panelB = UUID()
+        let plan = GdockGridWorkspaceCompactionPlanner.plan(
+            workspaces: [
+                .init(id: workspaceA1, groupId: groupA, panelIds: [panelA], placeholderPanelIds: []),
+                .init(id: workspaceA2, groupId: groupA, panelIds: [], placeholderPanelIds: []),
+                .init(id: workspaceB1, groupId: groupB, panelIds: [panelB], placeholderPanelIds: []),
+                .init(id: workspaceB2, groupId: groupB, panelIds: [], placeholderPanelIds: []),
+            ],
+            capacity: 4,
+            groupByRepository: true
+        )
+
+        #expect(plan.scopes.count == 2)
+        #expect(plan.scopes.map(\.retainedWorkspaceIds) == [[workspaceA1], [workspaceB1]])
+        #expect(plan.scopes.map(\.surplusWorkspaceIds) == [[workspaceA2], [workspaceB2]])
     }
 
     // MARK: - Grid signature

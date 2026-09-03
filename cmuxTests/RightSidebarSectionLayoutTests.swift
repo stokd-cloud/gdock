@@ -118,6 +118,41 @@ import Testing
         #expect(subject.resolvedHeights(totalHeight: 400) == before)
     }
 
+    @Test func draggingTopOfCollapsedRunMovesTheRunWithTheNextExpandedSection() {
+        var subject = layout([.files, .find, .sessions])
+        subject.setCollapsed(true, for: .find)
+        let before = subject.resolvedHeights(totalHeight: 500)
+
+        subject.resize(dividerAbove: 1, by: 40, totalHeight: 500)
+        let after = subject.resolvedHeights(totalHeight: 500)
+
+        #expect(after[0] > before[0])
+        #expect(after[1] == Layout.headerHeight)
+        #expect(after[2] < before[2])
+    }
+
+    @Test func dividerInsideCollapsedRunCannotSplitTheBlock() {
+        var subject = layout([.files, .find, .sessions])
+        subject.setCollapsed(true, for: .find)
+        let before = subject.sections
+
+        subject.resize(dividerAbove: 2, by: 40, totalHeight: 500)
+
+        #expect(subject.sections == before)
+    }
+
+    @Test func stackedPresentationReconcilesEveryStackableToolAndPreservesState() {
+        var subject = layout([.files, .find])
+        subject.setCollapsed(true, for: .files)
+        subject.resize(dividerAbove: 1, by: 30, totalHeight: 400)
+        let filesBefore = subject.sections[0]
+
+        subject.reconcileStackableModes(RightSidebarMode.stackableModes)
+
+        #expect(subject.modes == [.files, .find, .sessions, .stokdWork])
+        #expect(subject.sections[0] == filesBefore)
+    }
+
     @Test func resizingOutOfRangeIndexIsIgnored() {
         var subject = layout([.files, .find])
         let before = subject.sections

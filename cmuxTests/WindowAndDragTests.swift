@@ -889,8 +889,9 @@ final class WindowDragHandleHitTests: XCTestCase {
                 "titlebarControl.cloudVM",
                 "titlebarControl.focusHistoryBack",
                 "titlebarControl.focusHistoryForward",
+                "GdockGridModeTitlebarButton",
             ],
-            "The hidden minimal-mode click lanes must match the visible titlebar control order."
+            "The hidden minimal-mode click lanes must match the visible titlebar control order, with Grid immediately after Focus Forward."
         )
         XCTAssertEqual(
             ranges[0].lowerBound,
