@@ -86,12 +86,19 @@ enum RightSidebarContentMountPolicy {
 }
 
 enum RightSidebarDockPresentationPolicy {
-    static func usesStackedTabs(
-        sidebarDockSpacesEnabled: Bool,
-        stackedTabsEnabled: Bool,
-        hasDockRegistry: Bool
-    ) -> Bool {
-        sidebarDockSpacesEnabled && stackedTabsEnabled && hasDockRegistry
+    /// Stacked (accordion) sections follow `gdock.rightSidebarStackedTabs`
+    /// alone; the sidebar-dock beta gate no longer participates.
+    static func usesStackedTabs(stackedTabsEnabled: Bool) -> Bool {
+        stackedTabsEnabled
+    }
+}
+
+extension RightSidebarMode {
+    /// Tools that can live as collapsible sections in the stacked right sidebar.
+    static let stackableModes: [RightSidebarMode] = [.files, .find, .sessions, .stokdWork]
+
+    var canStackAsSection: Bool {
+        Self.stackableModes.contains(self)
     }
 }
 
@@ -224,9 +231,7 @@ struct RightSidebarPanelView: View {
 
     private var usesStackedTabsPresentation: Bool {
         RightSidebarDockPresentationPolicy.usesStackedTabs(
-            sidebarDockSpacesEnabled: sidebarDockEnabled,
-            stackedTabsEnabled: rightSidebarStackedTabsEnabled,
-            hasDockRegistry: dockRegistry != nil
+            stackedTabsEnabled: rightSidebarStackedTabsEnabled
         )
     }
 

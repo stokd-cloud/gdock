@@ -54,6 +54,47 @@ Also listed in `Agents.md` so every agent session loads it.
   and navigates there. Shrinking the shape spills surplus surfaces into a
   new workspace — Grid Mode never hides a surface behind another.
 
+### Feature: Stokd Work panel (right sidebar)
+
+- Data: every read and mutation goes through the resolved `stokd`
+  executable (`StokdExecutableResolver` → `StokdCLIRunner` →
+  `StokdWorkCLILoader`). No HTTP client, no hardcoded host: the CLI alone
+  resolves the environment, org, and credentials. Argument vectors live in
+  `StokdWorkCLIArguments`; `scripts/lint-stokd-work-dock-independence.sh`
+  fails on any `SidebarDock`, `sidebar.beta.dock.enabled`, `localhost`,
+  `8167`, `http://`, or `URLSession` under `Sources/Stokd/`.
+- Kinds: tasks, projects, and **todos** are rows in this one panel (kind
+  filter All / Tasks / Projects / Todos). A todo belongs to a repository
+  when the todo or any checklist item names it.
+- Settings (preferences, not gates): `gdock.workPanel.kindFilter`
+  (`all`), `gdock.workPanel.showCompleted` (default **off**: completed,
+  cancelled, and failed items are hidden), `gdock.workPanel.sortField`
+  (`updated_at` | `created_at`), `gdock.workPanel.sortAscending` (default
+  off: newest first). Palette: **Work: Show Completed Items**
+  (`palette.toggleSetting.gdock.workPanel.showCompleted`).
+- Search is two-tier: tier 1 matches title / hash / status / repo on the
+  loaded set instantly; tier 2 fetches item bodies (`task get`,
+  `project get`, `todo view --json`) through a debounced queue with at most
+  two `stokd` subprocesses in flight, cached per hash, and appends body-only
+  matches marked "matched in body". Nothing shells out from `body` or per
+  keystroke.
+- Paging is infinite scroll: the first page is 100 rows per kind, cut
+  server-side by the panel sort (`--sort-by`, `--desc`); when a row past the
+  midpoint appears and a kind came back full, the cap grows by another page
+  and the list reloads in place (never a spinner over the list). A sort
+  change restarts from the first page.
+- Detail: selecting a row opens a resizable split pane under the list
+  (height persisted as `gdock.workPanel.detailHeight`); the list stays live,
+  selecting another row swaps the detail, selecting the open row closes it.
+  `StokdWorkDetailParser` parses the CLI text/JSON defensively and falls
+  back to the raw output; a non-zero exit shows stderr plus Retry.
+- Actions: `StokdWorkActionTable` is the single (kind, status) → verbs table
+  shared by the row context menu and the detail menu. Interactive verbs
+  (start, resume, integrate, review, advance, report, open in terminal)
+  open a terminal surface born with the command via
+  `StokdWorkTerminalLauncher`; note / priority / complete / delete run
+  through the CLI runner, with confirmation for complete and delete.
+
 ## AX-GDOCK-INSTALLED-CLI-RESOLUTION
 
 Installed gdock app restore startup input must invoke the bundled CLI from the

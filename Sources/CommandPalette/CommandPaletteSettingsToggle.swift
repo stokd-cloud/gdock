@@ -820,6 +820,37 @@ enum CommandPaletteSettingsToggleCommands {
                 }
             ),
             CommandPaletteSettingToggleDescriptor(
+                commandId: StokdWorkPanelSettings.showCompletedCommandId,
+                settingsKey: StokdWorkPanelSettings.showCompletedKey.id,
+                title: {
+                    String(
+                        localized: "settings.gdock.workPanel.showCompleted",
+                        defaultValue: "Work: Show Completed Items"
+                    )
+                },
+                sectionTitle: gdock,
+                keywords: [
+                    "gdock.workPanel.showCompleted",
+                    "gdock",
+                    "work",
+                    "stokd",
+                    "completed",
+                    "hide",
+                    "show",
+                    "tasks",
+                    "projects",
+                    "todos",
+                ],
+                defaultValue: StokdWorkPanelSettings.defaultShowCompleted,
+                defaultsKey: StokdWorkPanelSettings.showCompletedKey.userDefaultsKey,
+                didSet: { _, _, notificationCenter in
+                    notificationCenter.post(
+                        name: StokdWorkPanelSettings.didChangeNotification,
+                        object: nil
+                    )
+                }
+            ),
+            CommandPaletteSettingToggleDescriptor(
                 commandId: commandIdPrefix + "rightSidebarFeed",
                 settingsKey: "betaFeatures.feed",
                 title: {

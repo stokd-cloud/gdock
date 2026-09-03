@@ -30,7 +30,7 @@ final class RightSidebarToolPanel: Panel, ObservableObject {
     init(
         workspace: Workspace,
         mode: RightSidebarMode,
-        stokdLoader: any StokdWorkLoading = StokdWorkAPIClient(),
+        stokdLoader: any StokdWorkLoading = StokdWorkCLILoader(),
         stokdRepositoryDiscovering: any GitRepositoryDiscovering = GitMetadataService()
     ) {
         self.id = UUID()
@@ -77,6 +77,9 @@ final class RightSidebarToolPanel: Panel, ObservableObject {
     var stokdWorkViewModel: StokdWorkPanelViewModel {
         if let model = stokdWorkViewModelStorage { return model }
         let model = StokdWorkPanelViewModel(loader: stokdLoader)
+        model.terminalLauncher = { [weak self] command, directory in
+            StokdWorkTerminalLauncher.launch(command: command, directory: directory, in: self?.workspace)
+        }
         stokdWorkViewModelStorage = model
         if let workspace {
             syncStokdWorkRepository(from: workspace)
