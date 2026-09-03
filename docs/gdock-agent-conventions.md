@@ -407,3 +407,42 @@ existing read-only consumer described in AX-GDOCK-PANEL-CARD-SESSION-SUMMARY.
   or Cmd+Shift+[ as its default binding.
 - `Resources/Localizable.xcstrings` has English and Japanese entries for every
   cycler string.
+
+## AX-GDOCK-ICONS-SOURCE
+
+Gdock raster app icons are generated from `design/gdock-light.png` and
+`design/gdock-dark.png`. Those two 1024x1024 files are the canonical light and
+dark sources. Every `AppIcon.appiconset` size, the `AppIconLight` /
+`AppIconDark` imagesets, the iOS `AppIcon` / `AppIconDark` files, and the
+Debug / Nightly banner variants are a resize or overlay of those sources. Do
+not synthesize a glow, recolor the cube from the old cmux chevron, or
+hand-edit a single size.
+
+### Why
+
+- The light and dark mockups are the product icon. The previous generator
+  rebuilt dark from a Figma chevron plus glow and drifted from the mockups.
+- One pair of sources keeps Dock, Finder, Settings picker, iOS, and
+  Debug / Nightly icons the same mark.
+
+### How to apply
+
+1. Put new mockups at `design/gdock-light.png` and `design/gdock-dark.png`
+   (1024x1024 RGBA).
+2. Run `python3 scripts/generate_app_icons.py` to resize into
+   `AppIcon.appiconset` (light + dark), the `AppIconLight` / `AppIconDark`
+   imagesets, the iOS AppIcon sets, and Debug / Nightly banner variants.
+3. Do not edit individual size PNGs by hand. Do not call the old
+   glow-from-chevron path in `generate_dark_icon.py`.
+4. Icon Composer (`AppIcon.icon`) keeps the cube glyph only (no baked
+   squircle); raster sets use the full mockups.
+
+### Acceptance Checks
+
+- Runnable: `python3 tests/test_gdock_app_icons.py` exits 0.
+- `AppIconLight.png` equals `design/gdock-light.png` and `AppIconDark.png`
+  equals `design/gdock-dark.png`.
+- Light center is ~ `(224,224,224)` and dark center is ~ `(31,31,31)`;
+  neither center is cyan-glow.
+- `scripts/generate_dark_icon.py` does not composite
+  `design/cmux-icon-chevron.png`.
