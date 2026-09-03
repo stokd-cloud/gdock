@@ -1,12 +1,15 @@
 import AppKit
 import Foundation
 
-/// One card describing an agent session running in a pane of the focused
+/// One card describing an agent session running in a panel of the focused
 /// workspace.
 ///
-/// Cards are emitted only for panes that are actually running an agent
-/// (AX-GDOCK-PANEL-CARD-SESSION-SUMMARY): a plain shell pane gets no card, so a
+/// Cards are emitted only for panels that are actually running an agent
+/// (AX-GDOCK-PANEL-CARD-SESSION-SUMMARY): a plain shell panel gets no card, so a
 /// four-pane workspace with one agent shows one card, not four rows of nothing.
+/// Every panel counts, not only the one showing in each pane: an agent in a
+/// background tab of a pane is still a session in this workspace, and the
+/// stack is the one place all of them are listed.
 ///
 /// This is a value snapshot on purpose. Per the SwiftUI list-boundary rule in
 /// `CLAUDE.md`, nothing below a lazy container may hold an observable store
@@ -35,9 +38,10 @@ struct GdockWorkspacePanelCard: Equatable, Identifiable, Sendable {
         }
     }
 
-    /// Bonsplit pane identity; also the card's identity.
+    /// Panel identity (one tab in one pane); also the card's identity. A pane
+    /// can host several panels, so the pane is not specific enough.
     let id: UUID
-    /// Position in the workspace's pane tree order among carded panes, 0-based.
+    /// Position in the workspace's pane-tree order among carded panels, 0-based.
     let index: Int
     /// Pane title, resolved through the workspace rather than read from the raw
     /// reporting map, so it is never blank.
@@ -46,8 +50,11 @@ struct GdockWorkspacePanelCard: Equatable, Identifiable, Sendable {
     let directory: String
     /// Git branch when the pane's directory is in a repository.
     let branch: String?
-    /// Whether this pane is the focused one.
+    /// Whether this panel is the focused one.
     let isSelected: Bool
+    /// Whether this panel is the one its pane is currently showing. A card for
+    /// a background tab is still a full card, but it says so.
+    let isVisible: Bool
     /// Agent kind exactly as recorded on the pane's agent PID key (`claude`,
     /// `codex`, …). Drives the leading glyph.
     let agentKindRaw: String
@@ -66,6 +73,7 @@ struct GdockWorkspacePanelCard: Equatable, Identifiable, Sendable {
         directory: String,
         branch: String?,
         isSelected: Bool,
+        isVisible: Bool = true,
         agentKindRaw: String,
         sessionState: String?,
         workItem: WorkItem?,
@@ -77,6 +85,7 @@ struct GdockWorkspacePanelCard: Equatable, Identifiable, Sendable {
         self.directory = directory
         self.branch = branch
         self.isSelected = isSelected
+        self.isVisible = isVisible
         self.agentKindRaw = agentKindRaw
         self.sessionState = sessionState
         self.workItem = workItem
@@ -207,83 +216,90 @@ enum GdockAgentSessionCardMetadata {
 
 /// Reduces live workspace state into ``GdockWorkspacePanelCard`` values.
 ///
-/// Pure so the whole shape — which panes qualify, count, order, which card is
+/// Pure so the whole shape — which panels qualify, count, order, which card is
 /// selected — is unit-tested without a live workspace.
 enum GdockWorkspacePanelCardBuilder {
-    /// One visible pane as it exists in the workspace.
-    struct PaneInput: Equatable, Sendable {
-        let paneId: UUID
+    /// One panel as it exists in the workspace: a tab in a pane, whether or
+    /// not it is the tab that pane is currently showing.
+    struct PanelInput: Equatable, Sendable {
+        let panelId: UUID
         let title: String
         let directory: String
         let branch: String?
-        /// Agent kind running in this pane, or nil when the pane runs no agent.
-        /// Nil is what excludes the pane from producing a card.
+        /// Agent kind running in this panel, or nil when the panel runs no
+        /// agent. Nil is what excludes the panel from producing a card.
         let agentKindRaw: String?
         let sessionState: String?
+        /// Whether the panel's pane is currently showing it.
+        let isVisible: Bool
 
         init(
-            paneId: UUID,
+            panelId: UUID,
             title: String,
             directory: String,
             branch: String? = nil,
             agentKindRaw: String? = nil,
-            sessionState: String? = nil
+            sessionState: String? = nil,
+            isVisible: Bool = true
         ) {
-            self.paneId = paneId
+            self.panelId = panelId
             self.title = title
             self.directory = directory
             self.branch = branch
             self.agentKindRaw = agentKindRaw
             self.sessionState = sessionState
+            self.isVisible = isVisible
         }
     }
 
     /// Builds the cards for one workspace.
     ///
     /// - Parameters:
-    ///   - panes: Visible panes in pane-tree order.
-    ///   - focusedPaneId: The workspace's focused pane.
-    ///   - workItemsByDirectory: Resolved stokd work items keyed by the pane
+    ///   - panels: Every panel in the workspace, in pane-tree order with each
+    ///     pane's tabs in tab order — background tabs included.
+    ///   - focusedPanelId: The panel the workspace's focused pane is showing.
+    ///   - workItemsByDirectory: Resolved stokd work items keyed by the panel
     ///     directory they belong to.
-    ///   - summariesByPaneId: Session outcome summaries keyed by the pane whose
-    ///     session they describe. Two panes in one directory can be running
-    ///     different sessions, so these are keyed by pane rather than by
-    ///     directory.
-    /// - Returns: One card per *agent* pane, in pane-tree order. Panes running
-    ///   no agent are skipped entirely. At most one card is selected — when the
-    ///   focused pane runs no agent, the first card is selected so the stack
-    ///   never renders with nothing highlighted.
+    ///   - summariesByPanelId: Session outcome summaries keyed by the panel
+    ///     whose session they describe. Two panels in one directory can be
+    ///     running different sessions, so these are keyed by panel rather
+    ///     than by directory.
+    /// - Returns: One card per *agent* panel, in the given order. Panels
+    ///   running no agent are skipped entirely. At most one card is selected —
+    ///   when the focused panel runs no agent, the first card is selected so
+    ///   the stack never renders with nothing highlighted.
     static func cards(
-        panes: [PaneInput],
-        focusedPaneId: UUID?,
+        panels: [PanelInput],
+        focusedPanelId: UUID?,
         workItemsByDirectory: [String: GdockWorkspacePanelCard.WorkItem] = [:],
-        summariesByPaneId: [UUID: StokdSessionOutcomeSummary] = [:]
+        summariesByPanelId: [UUID: StokdSessionOutcomeSummary] = [:]
     ) -> [GdockWorkspacePanelCard] {
-        let agentPanes = panes.filter { pane in
-            guard let kind = pane.agentKindRaw else { return false }
+        let agentPanels = panels.filter { panel in
+            guard let kind = panel.agentKindRaw else { return false }
             return !kind.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
-        guard !agentPanes.isEmpty else { return [] }
+        guard !agentPanels.isEmpty else { return [] }
 
-        let selectedPaneId: UUID = {
-            if let focusedPaneId, agentPanes.contains(where: { $0.paneId == focusedPaneId }) {
-                return focusedPaneId
+        let selectedPanelId: UUID = {
+            if let focusedPanelId, agentPanels.contains(where: { $0.panelId == focusedPanelId }) {
+                return focusedPanelId
             }
-            return agentPanes[0].paneId
+            return agentPanels[0].panelId
         }()
 
-        return agentPanes.enumerated().map { index, pane in
+        return agentPanels.enumerated().map { index, panel in
             GdockWorkspacePanelCard(
-                id: pane.paneId,
+                id: panel.panelId,
                 index: index,
-                title: pane.title,
-                directory: pane.directory,
-                branch: pane.branch,
-                isSelected: pane.paneId == selectedPaneId,
-                agentKindRaw: pane.agentKindRaw ?? "",
-                sessionState: pane.sessionState,
-                workItem: workItemsByDirectory[pane.directory],
-                sessionSummary: summariesByPaneId[pane.paneId]
+                title: panel.title,
+                directory: panel.directory,
+                branch: panel.branch,
+                isSelected: panel.panelId == selectedPanelId,
+                isVisible: panel.isVisible,
+                agentKindRaw: panel.agentKindRaw ?? "",
+                sessionState: panel.sessionState,
+                workItem: workItemsByDirectory[panel.directory],
+                sessionSummary: summariesByPanelId[panel.panelId]
             )
         }
     }

@@ -294,10 +294,16 @@ sidebar as an immutable value reduced above the lazy-list boundary.
    rather than inventing a session.
 6. Reduce to `GdockWorkspacePanelCard` above the lazy-list boundary. A card view
    holds no store reference and reads no observable state.
-7. Emit a card only for a pane actually running an agent — one with a non-empty
-   `agentPIDKeysByPanelId` entry. A plain shell pane gets no card, so a
-   four-pane workspace with one agent shows one card rather than four rows of
-   nothing.
+7. Emit a card only for a panel actually running an agent — one with a
+   non-empty `agentPIDKeysByPanelId` entry. A plain shell panel gets no card,
+   so a four-pane workspace with one agent shows one card rather than four rows
+   of nothing. Enumerate EVERY panel of every pane (`tabs(inPane:)`), not just
+   the tab each pane is showing: an agent parked in a background tab is still
+   a session in this workspace, and the stack is the one place all of them are
+   listed. A card's identity is the panel, never the pane. A background-tab
+   card carries `isVisible == false` and is drawn with a dashed edge so it
+   reads as "here, but not on screen"; the selected card is the panel the
+   focused pane is showing.
 8. Render the cards as ONE selection-ringed stack that stands in for the focused
    workspace's own row, not as sibling rows beneath it. Drawing both would show
    that workspace twice. Because the stack *is* that row it stays in the
@@ -335,7 +341,8 @@ sidebar as an immutable value reduced above the lazy-list boundary.
   fails if the tier above it is removed, and an empty descriptor list yields
   nil.
 - Population: a workspace of four panes where one runs an agent yields exactly
-  one card; a workspace with no agent panes yields none.
+  one card; a workspace with no agent panes yields none; an agent in a
+  background tab yields a card marked not visible, ordered with its pane.
 - Structure: when a stack is emitted the focused workspace contributes no
   ordinary row, and `numberedWorkspaceIndexById` is identical to the all-rows
   arrangement.
