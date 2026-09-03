@@ -159,7 +159,7 @@ import Testing
         let expected = summary("interactive-claude-1-2")
 
         let cards = Builder.cards(
-            panes: [one, two],
+            panels: [one, two],
             focusedPanelId: one.panelId,
             summariesByPanelId: [one.panelId: expected]
         )
@@ -172,7 +172,7 @@ import Testing
         let visible = agentPane("claude")
 
         let cards = Builder.cards(
-            panes: [visible],
+            panels: [visible],
             focusedPanelId: visible.panelId,
             summariesByPanelId: [UUID(): summary("stranger")]
         )
@@ -192,7 +192,7 @@ import Testing
         )
 
         let cards = Builder.cards(
-            panes: [gdock, mono],
+            panels: [gdock, mono],
             focusedPanelId: gdock.panelId,
             workItemsByDirectory: ["/opt/gdock": item]
         )
