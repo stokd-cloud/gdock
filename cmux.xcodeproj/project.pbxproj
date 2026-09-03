@@ -193,6 +193,7 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */; };
 		A5F100000000000000000013 /* AppDelegate+FocusedNotificationSeam.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5F100000000000000000014 /* AppDelegate+FocusedNotificationSeam.swift */; };
 		C4160A040000000000000001 /* AppDelegate+FocusHistoryContextMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4160A040000000000000002 /* AppDelegate+FocusHistoryContextMenu.swift */; };
+		GDOCKPRHS000000000000016 /* AppDelegate+GdockPromptHistoryShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPRHS000000000000015 /* AppDelegate+GdockPromptHistoryShortcut.swift */; };
 		GDOCKCYCD000000000000002 /* AppDelegate+GdockSessionCyclerShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKCYCD000000000000001 /* AppDelegate+GdockSessionCyclerShortcut.swift */; };
 		3865A0063865A0063865A006 /* AppDelegate+GlobalSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3865B0063865B0063865B006 /* AppDelegate+GlobalSearch.swift */; };
 		A74770010000000000000001 /* AppDelegate+MonitorMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A74770010000000000000002 /* AppDelegate+MonitorMemory.swift */; };
@@ -946,6 +947,7 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		CA52E0010000000000000000 /* ContentView+CanvasCommandPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA52F0010000000000000000 /* ContentView+CanvasCommandPalette.swift */; };
 		C51A720000000000000001A1 /* ContentView+CommandPaletteSurfaceMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = C51A720000000000000001A2 /* ContentView+CommandPaletteSurfaceMetadata.swift */; };
 		C0DEF0A90000000000000001 /* ContentView+ForkAgentConversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DEF0A90000000000000002 /* ContentView+ForkAgentConversation.swift */; };
+		GDOCKPRHS000000000000018 /* ContentView+GdockPromptHistoryPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPRHS000000000000017 /* ContentView+GdockPromptHistoryPalette.swift */; };
 		GDOCKCYCA000000000000010 /* ContentView+GdockSessionCyclerPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKCYCA000000000000009 /* ContentView+GdockSessionCyclerPalette.swift */; };
 		D7AB00000000000000000003 /* ContentView+MoveTabToNewWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AB00000000000000000004 /* ContentView+MoveTabToNewWorkspace.swift */; };
 		C0DEA7710000000000000003 /* ContentView+ProCommandPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DEA7710000000000000004 /* ContentView+ProCommandPalette.swift */; };
@@ -1204,6 +1206,16 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		GDOCKPIP000000000000004 /* GdockPipFloatingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPIP000000000000003 /* GdockPipFloatingWindowController.swift */; };
 		GDOCKPIP000000000000002 /* GdockPipFloatingWindowPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPIP000000000000001 /* GdockPipFloatingWindowPolicy.swift */; };
 		GDOCKPIP000000000000006 /* GdockPipFloatingWindowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPIP000000000000005 /* GdockPipFloatingWindowTests.swift */; };
+		GDOCKPRHS000000000000004 /* GdockPromptHistoryCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPRHS000000000000003 /* GdockPromptHistoryCollector.swift */; };
+		GDOCKPRHT000000000000002 /* GdockPromptHistoryCollectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPRHT000000000000001 /* GdockPromptHistoryCollectorTests.swift */; };
+		GDOCKPRHS000000000000002 /* GdockPromptHistoryEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPRHS000000000000001 /* GdockPromptHistoryEntry.swift */; };
+		GDOCKPRHS000000000000006 /* GdockPromptHistoryLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPRHS000000000000005 /* GdockPromptHistoryLayout.swift */; };
+		GDOCKPRHT000000000000004 /* GdockPromptHistoryLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPRHT000000000000003 /* GdockPromptHistoryLayoutTests.swift */; };
+		GDOCKPRHS000000000000008 /* GdockPromptHistoryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPRHS000000000000007 /* GdockPromptHistoryModel.swift */; };
+		GDOCKPRHS000000000000010 /* GdockPromptHistoryOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPRHS000000000000009 /* GdockPromptHistoryOverlayView.swift */; };
+		GDOCKPRHS000000000000014 /* GdockPromptHistoryPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPRHS000000000000013 /* GdockPromptHistoryPresenter.swift */; };
+		GDOCKPRHT000000000000006 /* GdockPromptHistoryShortcutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPRHT000000000000005 /* GdockPromptHistoryShortcutTests.swift */; };
+		GDOCKPRHS000000000000012 /* GdockPromptHistoryWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPRHS000000000000011 /* GdockPromptHistoryWindowController.swift */; };
 		GDOCKACC000000000000002 /* GdockRepoGroupAccordionReconciler.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKACC000000000000001 /* GdockRepoGroupAccordionReconciler.swift */; };
 		GDOCKACC000000000000008 /* GdockRepoGroupAccordionReconcilerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKACC000000000000007 /* GdockRepoGroupAccordionReconcilerTests.swift */; };
 		GDOCKRGAS0000000000002 /* GdockRepoGroupAccordionSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKRGAS0000000000001 /* GdockRepoGroupAccordionSettings.swift */; };
@@ -3225,6 +3237,7 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+EqualizeSplitsShortcut.swift"; sourceTree = "<group>"; };
 		A5F100000000000000000014 /* AppDelegate+FocusedNotificationSeam.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+FocusedNotificationSeam.swift"; sourceTree = "<group>"; };
 		C4160A040000000000000002 /* AppDelegate+FocusHistoryContextMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+FocusHistoryContextMenu.swift"; sourceTree = "<group>"; };
+		GDOCKPRHS000000000000015 /* AppDelegate+GdockPromptHistoryShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+GdockPromptHistoryShortcut.swift"; sourceTree = "<group>"; };
 		GDOCKCYCD000000000000001 /* AppDelegate+GdockSessionCyclerShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+GdockSessionCyclerShortcut.swift"; sourceTree = "<group>"; };
 		3865B0063865B0063865B006 /* AppDelegate+GlobalSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Search/AppDelegate+GlobalSearch.swift"; sourceTree = "<group>"; };
 		A74770010000000000000002 /* AppDelegate+MonitorMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+MonitorMemory.swift"; sourceTree = "<group>"; };
@@ -3903,6 +3916,7 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		CA52F0010000000000000000 /* ContentView+CanvasCommandPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+CanvasCommandPalette.swift"; sourceTree = "<group>"; };
 		C51A720000000000000001A2 /* ContentView+CommandPaletteSurfaceMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+CommandPaletteSurfaceMetadata.swift"; sourceTree = "<group>"; };
 		C0DEF0A90000000000000002 /* ContentView+ForkAgentConversation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+ForkAgentConversation.swift"; sourceTree = "<group>"; };
+		GDOCKPRHS000000000000017 /* ContentView+GdockPromptHistoryPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+GdockPromptHistoryPalette.swift"; sourceTree = "<group>"; };
 		GDOCKCYCA000000000000009 /* ContentView+GdockSessionCyclerPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+GdockSessionCyclerPalette.swift"; sourceTree = "<group>"; };
 		D7AB00000000000000000004 /* ContentView+MoveTabToNewWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+MoveTabToNewWorkspace.swift"; sourceTree = "<group>"; };
 		C0DEA7710000000000000004 /* ContentView+ProCommandPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+ProCommandPalette.swift"; sourceTree = "<group>"; };
@@ -4160,6 +4174,16 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		GDOCKPIP000000000000003 /* GdockPipFloatingWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPipFloatingWindowController.swift; sourceTree = "<group>"; };
 		GDOCKPIP000000000000001 /* GdockPipFloatingWindowPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPipFloatingWindowPolicy.swift; sourceTree = "<group>"; };
 		GDOCKPIP000000000000005 /* GdockPipFloatingWindowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPipFloatingWindowTests.swift; sourceTree = "<group>"; };
+		GDOCKPRHS000000000000003 /* GdockPromptHistoryCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPromptHistoryCollector.swift; sourceTree = "<group>"; };
+		GDOCKPRHT000000000000001 /* GdockPromptHistoryCollectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPromptHistoryCollectorTests.swift; sourceTree = "<group>"; };
+		GDOCKPRHS000000000000001 /* GdockPromptHistoryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPromptHistoryEntry.swift; sourceTree = "<group>"; };
+		GDOCKPRHS000000000000005 /* GdockPromptHistoryLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPromptHistoryLayout.swift; sourceTree = "<group>"; };
+		GDOCKPRHT000000000000003 /* GdockPromptHistoryLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPromptHistoryLayoutTests.swift; sourceTree = "<group>"; };
+		GDOCKPRHS000000000000007 /* GdockPromptHistoryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPromptHistoryModel.swift; sourceTree = "<group>"; };
+		GDOCKPRHS000000000000009 /* GdockPromptHistoryOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPromptHistoryOverlayView.swift; sourceTree = "<group>"; };
+		GDOCKPRHS000000000000013 /* GdockPromptHistoryPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPromptHistoryPresenter.swift; sourceTree = "<group>"; };
+		GDOCKPRHT000000000000005 /* GdockPromptHistoryShortcutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPromptHistoryShortcutTests.swift; sourceTree = "<group>"; };
+		GDOCKPRHS000000000000011 /* GdockPromptHistoryWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPromptHistoryWindowController.swift; sourceTree = "<group>"; };
 		GDOCKACC000000000000001 /* GdockRepoGroupAccordionReconciler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRepoGroupAccordionReconciler.swift; sourceTree = "<group>"; };
 		GDOCKACC000000000000007 /* GdockRepoGroupAccordionReconcilerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRepoGroupAccordionReconcilerTests.swift; sourceTree = "<group>"; };
 		GDOCKRGAS0000000000001 /* GdockRepoGroupAccordionSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockRepoGroupAccordionSettings.swift; sourceTree = "<group>"; };
@@ -6802,6 +6826,15 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 				GDOCKCYCA000000000000005 /* GdockSessionCyclerModel.swift */,
 				GDOCKCYCA000000000000003 /* GdockSessionCycleScope.swift */,
 				GDOCKCYCA000000000000001 /* GdockCycleRing.swift */,
+				GDOCKPRHS000000000000001 /* GdockPromptHistoryEntry.swift */,
+				GDOCKPRHS000000000000003 /* GdockPromptHistoryCollector.swift */,
+				GDOCKPRHS000000000000005 /* GdockPromptHistoryLayout.swift */,
+				GDOCKPRHS000000000000007 /* GdockPromptHistoryModel.swift */,
+				GDOCKPRHS000000000000009 /* GdockPromptHistoryOverlayView.swift */,
+				GDOCKPRHS000000000000011 /* GdockPromptHistoryWindowController.swift */,
+				GDOCKPRHS000000000000013 /* GdockPromptHistoryPresenter.swift */,
+				GDOCKPRHS000000000000015 /* AppDelegate+GdockPromptHistoryShortcut.swift */,
+				GDOCKPRHS000000000000017 /* ContentView+GdockPromptHistoryPalette.swift */,
 				GDOCKQUAD0000000000001 /* TabManager+GdockRepoGroupQuad.swift */,
 				GDOCKLNCH000000000000001 /* GdockRepoGroupLaunchAction.swift */,
 				GDOCKRGAS0000000000001 /* GdockRepoGroupAccordionSettings.swift */,
@@ -8676,6 +8709,9 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				GDOCKCYCU000000000000001 /* GdockSessionAgentBadgeTests.swift */,
 				GDOCKCYCT000000000000005 /* GdockSessionCyclerShortcutTests.swift */,
 				GDOCKCYCT000000000000003 /* GdockSessionCyclerModelTests.swift */,
+				GDOCKPRHT000000000000001 /* GdockPromptHistoryCollectorTests.swift */,
+				GDOCKPRHT000000000000003 /* GdockPromptHistoryLayoutTests.swift */,
+				GDOCKPRHT000000000000005 /* GdockPromptHistoryShortcutTests.swift */,
 				GDOCKCYCT000000000000001 /* GdockSessionCycleScopeTests.swift */,
 				GDOCKSWSPT00000000000001 /* StokdWorkspaceStatePathsTests.swift */,
 				GDOCKSSOCT00000000000001 /* StokdSessionOutcomeSummarizerTests.swift */,
@@ -9633,6 +9669,7 @@ BE7A0010SIDEBARDOCKBEHAV01 /* SidebarDockBehaviorTests.swift */,
 E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				A5F100000000000000000013 /* AppDelegate+FocusedNotificationSeam.swift in Sources */,
 				C4160A040000000000000001 /* AppDelegate+FocusHistoryContextMenu.swift in Sources */,
+				GDOCKPRHS000000000000016 /* AppDelegate+GdockPromptHistoryShortcut.swift in Sources */,
 				GDOCKCYCD000000000000002 /* AppDelegate+GdockSessionCyclerShortcut.swift in Sources */,
 				3865A0063865A0063865A006 /* AppDelegate+GlobalSearch.swift in Sources */,
 				A74770010000000000000001 /* AppDelegate+MonitorMemory.swift in Sources */,
@@ -9978,6 +10015,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				CA52E0010000000000000000 /* ContentView+CanvasCommandPalette.swift in Sources */,
 				C51A720000000000000001A1 /* ContentView+CommandPaletteSurfaceMetadata.swift in Sources */,
 				C0DEF0A90000000000000001 /* ContentView+ForkAgentConversation.swift in Sources */,
+				GDOCKPRHS000000000000018 /* ContentView+GdockPromptHistoryPalette.swift in Sources */,
 				GDOCKCYCA000000000000010 /* ContentView+GdockSessionCyclerPalette.swift in Sources */,
 				D7AB00000000000000000003 /* ContentView+MoveTabToNewWorkspace.swift in Sources */,
 				C0DEA7710000000000000003 /* ContentView+ProCommandPalette.swift in Sources */,
@@ -10160,6 +10198,13 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				GDOCKGRID00000000000008 /* GdockGridSplitPlanner.swift in Sources */,
 				GDOCKPIP000000000000004 /* GdockPipFloatingWindowController.swift in Sources */,
 				GDOCKPIP000000000000002 /* GdockPipFloatingWindowPolicy.swift in Sources */,
+				GDOCKPRHS000000000000004 /* GdockPromptHistoryCollector.swift in Sources */,
+				GDOCKPRHS000000000000002 /* GdockPromptHistoryEntry.swift in Sources */,
+				GDOCKPRHS000000000000006 /* GdockPromptHistoryLayout.swift in Sources */,
+				GDOCKPRHS000000000000008 /* GdockPromptHistoryModel.swift in Sources */,
+				GDOCKPRHS000000000000010 /* GdockPromptHistoryOverlayView.swift in Sources */,
+				GDOCKPRHS000000000000014 /* GdockPromptHistoryPresenter.swift in Sources */,
+				GDOCKPRHS000000000000012 /* GdockPromptHistoryWindowController.swift in Sources */,
 				GDOCKACC000000000000002 /* GdockRepoGroupAccordionReconciler.swift in Sources */,
 				GDOCKRGAS0000000000002 /* GdockRepoGroupAccordionSettings.swift in Sources */,
 				GDOCKLNCH000000000000002 /* GdockRepoGroupLaunchAction.swift in Sources */,
@@ -11904,6 +11949,9 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				GDOCKAWSG00000000000008 /* GdockAutoWorkspaceGroupReconcilerTests.swift in Sources */,
 				GDOCKGRID00000000000002 /* GdockGridModeTests.swift in Sources */,
 				GDOCKPIP000000000000006 /* GdockPipFloatingWindowTests.swift in Sources */,
+				GDOCKPRHT000000000000002 /* GdockPromptHistoryCollectorTests.swift in Sources */,
+				GDOCKPRHT000000000000004 /* GdockPromptHistoryLayoutTests.swift in Sources */,
+				GDOCKPRHT000000000000006 /* GdockPromptHistoryShortcutTests.swift in Sources */,
 				GDOCKACC000000000000008 /* GdockRepoGroupAccordionReconcilerTests.swift in Sources */,
 				GDOCKLNCH000000000000008 /* GdockRepoGroupLaunchActionTests.swift in Sources */,
 				GDOCKQPL000000000000008 /* GdockRepoGroupQuadPlannerTests.swift in Sources */,

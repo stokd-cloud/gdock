@@ -112,6 +112,9 @@ extension KeyboardShortcutSettings.Action {
              // App-scoped by design: the cycler lists sessions in every window,
              // so it must not be resolved against the focused dock or pane.
              .gdockCycleSessionsNext, .gdockCycleSessionsPrev,
+             // App-scoped for the same reason: the overlay reads whichever
+             // pane is focused app-wide, not the focused dock.
+             .gdockShowPromptHistory,
              .openDiffViewer:
             .mainContainer
         }

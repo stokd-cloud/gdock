@@ -48,6 +48,11 @@ extension ShortcutAction {
                 localized: "shortcut.gdock.cycleSessionsPrev.label",
                 defaultValue: "Cycle Sessions Backward"
             )
+        case .gdockShowPromptHistory:
+            return String(
+                localized: "shortcut.gdock.showPromptHistory.label",
+                defaultValue: "Show Prompt History (Hold)"
+            )
         case .moveSurfaceLeft: return String(localized: "shortcut.moveSurfaceLeft.label", defaultValue: "Reorder Surface Left")
         case .moveSurfaceRight: return String(localized: "shortcut.moveSurfaceRight.label", defaultValue: "Reorder Surface Right")
         case .moveSurfaceToPreviousPane:

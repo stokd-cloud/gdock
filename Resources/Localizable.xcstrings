@@ -63821,6 +63821,40 @@
         }
       }
     },
+    "command.gdock.promptHistory.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "セッション"
+          }
+        }
+      }
+    },
+    "command.gdock.showPromptHistory.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Prompt History"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プロンプト履歴を表示"
+          }
+        }
+      }
+    },
     "command.gdock.sessionCycler.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -120714,6 +120748,74 @@
         }
       }
     },
+    "gdock.promptHistory.empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No prompts recorded for this session yet"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このセッションにはまだプロンプトの記録がありません"
+          }
+        }
+      }
+    },
+    "gdock.promptHistory.hiddenCount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld older hidden"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "古い %lld 件は非表示"
+          }
+        }
+      }
+    },
+    "gdock.promptHistory.loading" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading prompt history…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プロンプト履歴を読み込み中…"
+          }
+        }
+      }
+    },
+    "gdock.promptHistory.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your prompts"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "送信したプロンプト"
+          }
+        }
+      }
+    },
     "gdock.repoGroup.openOnGitHub" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -150227,6 +150329,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "セッションを次へ切り替え"
+          }
+        }
+      }
+    },
+    "shortcut.gdock.showPromptHistory.label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Prompt History (Hold)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プロンプト履歴を表示（長押し）"
           }
         }
       }

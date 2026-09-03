@@ -130,6 +130,7 @@ extension ShortcutAction {
             return nil
         case .gdockCycleSessionsNext: return ShortcutStroke(key: "]", command: true, shift: true)
         case .gdockCycleSessionsPrev: return ShortcutStroke(key: "[", command: true, shift: true)
+        case .gdockShowPromptHistory: return ShortcutStroke(key: "p", command: true, option: true)
         case .moveSurfaceLeft: return ShortcutStroke(key: "[", command: true, shift: true, option: true)
         case .moveSurfaceRight: return ShortcutStroke(key: "]", command: true, shift: true, option: true)
         case .moveSurfaceToPreviousPane:

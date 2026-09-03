@@ -103,6 +103,9 @@ enum KeyboardShortcutSettings {
         case gdockCycleSessionsNext = "gdock.cycleSessionsNext"
         /// Cycle backward through open agent sessions.
         case gdockCycleSessionsPrev = "gdock.cycleSessionsPrev"
+        /// Hold to show the prompts submitted to the focused session
+        /// (AX-GDOCK-PROMPT-HISTORY).
+        case gdockShowPromptHistory = "gdock.showPromptHistory"
         case moveSurfaceLeft, moveSurfaceRight
         case moveSurfaceToPreviousPane, moveSurfaceToNextPane
         case moveSurfaceToPaneLeft, moveSurfaceToPaneRight
@@ -263,6 +266,11 @@ enum KeyboardShortcutSettings {
                 return String(
                     localized: "shortcut.gdock.cycleSessionsPrev.label",
                     defaultValue: "Cycle Sessions Backward"
+                )
+            case .gdockShowPromptHistory:
+                return String(
+                    localized: "shortcut.gdock.showPromptHistory.label",
+                    defaultValue: "Show Prompt History (Hold)"
                 )
             case .moveSurfaceLeft: return String(localized: "shortcut.moveSurfaceLeft.label", defaultValue: "Reorder Surface Left")
             case .moveSurfaceRight: return String(localized: "shortcut.moveSurfaceRight.label", defaultValue: "Reorder Surface Right")
@@ -586,6 +594,8 @@ enum KeyboardShortcutSettings {
                 return StoredShortcut(key: "]", command: true, shift: true, option: false, control: false)
             case .gdockCycleSessionsPrev:
                 return StoredShortcut(key: "[", command: true, shift: true, option: false, control: false)
+            case .gdockShowPromptHistory:
+                return StoredShortcut(key: "p", command: true, shift: false, option: true, control: false)
             case .moveSurfaceLeft: return StoredShortcut(key: "[", command: true, shift: true, option: true, control: false)
             case .moveSurfaceRight: return StoredShortcut(key: "]", command: true, shift: true, option: true, control: false)
             case .moveSurfaceToPreviousPane:
