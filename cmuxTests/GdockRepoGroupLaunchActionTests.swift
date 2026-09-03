@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Testing
 
@@ -62,14 +63,13 @@ import Testing
         #expect(opened.isEmpty)
     }
 
-    /// Regression: the launcher hard-coded localhost:8167, so on `saas` it
-    /// opened `http://localhost:8167/repos/...` — a dead link into an
-    /// environment the user was not on.
-    @Test func stokdTargetFollowsTheActiveEnvironmentHost() {
+    /// Regression: the launcher used the API origin and plural `/repos` route,
+    /// which opens a JSON 404 instead of Selfactor's repository page.
+    @Test func stokdTargetOpensTheSelfactorRepositoryPage() {
         let url = Action.url(for: .stokdRepoDetail, groupName: repo, stokdBaseURL: saas)
 
-        #expect(url?.absoluteString == "https://api.stokd.cloud/repos/stokd-cloud/gdock")
-        #expect(url?.host != "localhost")
+        #expect(url?.absoluteString == "https://selfactor.io/repo/stokd-cloud/gdock")
+        #expect(url?.host != "api.stokd.cloud")
     }
 
     /// Until the environment resolves there is no correct host, and guessing
@@ -80,13 +80,17 @@ import Testing
         #expect(Action.url(for: .gitHub, groupName: repo, stokdBaseURL: nil) != nil)
     }
 
-    /// Each target needs its own glyph and its own label, or the two buttons
-    /// are indistinguishable in the header.
-    @Test func targetsHaveDistinctPresentation() {
-        let symbols = Set(Action.Target.allCases.map(\.symbolName))
+    /// Each target uses the real brand mark, not a generic SF Symbol, and the
+    /// assets must resolve from the built app bundle.
+    @Test func targetsUseTheirBundledBrandMarks() {
+        #expect(Action.Target.gitHub.iconAssetName == "GitHubLogo")
+        #expect(Action.Target.stokdRepoDetail.iconAssetName == "SelfactorLogo")
+        for target in Action.Target.allCases {
+            #expect(NSImage(named: target.iconAssetName) != nil, "\(target) brand mark should be bundled")
+        }
+
         let labels = Set(Action.Target.allCases.map(\.accessibilityLabel))
 
-        #expect(symbols.count == Action.Target.allCases.count)
         #expect(labels.count == Action.Target.allCases.count)
     }
 }
