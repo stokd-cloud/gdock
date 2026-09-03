@@ -23,7 +23,6 @@ enum SidebarDockPlacementMatrix {
         .find,
         .sessions,
         .stokdWork,
-        .stokdWorktrees,
         .stokdGlobalConfig,
         .stokdUsage,
     ]

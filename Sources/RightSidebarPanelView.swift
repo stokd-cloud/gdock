@@ -22,8 +22,6 @@ enum RightSidebarMode: String, CaseIterable, Codable, Sendable {
     /// Stokd Work — right-rail tool tab (raw value stable for persistence).
     case stokdWork
     case customSidebar = "custom-sidebar"
-    /// Stokd Worktrees — left-rail section.
-    case stokdWorktrees
     /// Stokd Global Config — left-rail section.
     case stokdGlobalConfig
     /// Stokd Usage — left-rail section.
@@ -38,7 +36,7 @@ enum RightSidebarMode: String, CaseIterable, Codable, Sendable {
         case .dock: return String(localized: "rightSidebar.mode.dock", defaultValue: "Dock")
         case .stokdWork: return String(localized: "rightSidebar.mode.stokdWork", defaultValue: "Work")
         case .customSidebar: return String(localized: "rightSidebar.mode.customSidebar", defaultValue: "Custom")
-        case .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+        case .stokdGlobalConfig, .stokdUsage:
             return StokdRailPanelKind(rightSidebarMode: self)?.displayTitle
                 ?? rawValue
         }
@@ -53,7 +51,7 @@ enum RightSidebarMode: String, CaseIterable, Codable, Sendable {
         case .dock: return "dock.rectangle"
         case .stokdWork: return "checklist"
         case .customSidebar: return "wand.and.stars"
-        case .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+        case .stokdGlobalConfig, .stokdUsage:
             return StokdRailPanelKind(rightSidebarMode: self)?.symbolName ?? "square.grid.2x2"
         }
     }
@@ -65,7 +63,7 @@ enum RightSidebarMode: String, CaseIterable, Codable, Sendable {
         case .sessions: return .switchRightSidebarToSessions
         case .feed: return .switchRightSidebarToFeed
         case .dock: return .switchRightSidebarToDock
-        case .stokdWork, .customSidebar, .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+        case .stokdWork, .customSidebar, .stokdGlobalConfig, .stokdUsage:
             return nil
         }
     }
@@ -87,7 +85,9 @@ enum RightSidebarContentMountPolicy {
 
 enum RightSidebarDockPresentationPolicy {
     /// Stacked (accordion) sections follow `gdock.rightSidebarStackedTabs`
-    /// alone; the sidebar-dock beta gate no longer participates.
+    /// alone; the sidebar-dock beta gate no longer participates. The dock
+    /// registry is still required, but the call site enforces that by
+    /// unwrapping it rather than passing its presence in here.
     static func usesStackedTabs(stackedTabsEnabled: Bool) -> Bool {
         stackedTabsEnabled
     }
@@ -109,7 +109,7 @@ enum FileExplorerRootSyncPolicy {
         case .files, .find:
             return true
         case .sessions, .feed, .dock, .stokdWork, .customSidebar,
-             .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+             .stokdGlobalConfig, .stokdUsage:
             return false
         }
     }
@@ -372,7 +372,7 @@ struct RightSidebarPanelView: View {
                     }
             case .stokdWork:
                 StokdWorkPanelView(model: tool.stokdWorkViewModel)
-            case .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+            case .stokdGlobalConfig, .stokdUsage:
                 if let kind = StokdRailPanelKind(rightSidebarMode: tool.mode) {
                     StokdRailPanelPlaceholderView(kind: kind)
                 } else {
@@ -664,7 +664,7 @@ struct RightSidebarPanelView: View {
         case .stokdWork:
             StokdWorkPanelView(model: stokdWorkViewModel)
                 .onAppear { onSyncStokdWorkRepository() }
-        case .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+        case .stokdGlobalConfig, .stokdUsage:
             if let kind = StokdRailPanelKind(rightSidebarMode: mode) {
                 StokdRailPanelPlaceholderView(kind: kind)
             } else {

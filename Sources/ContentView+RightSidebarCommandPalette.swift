@@ -157,8 +157,6 @@ extension ContentView {
             return "palette.gdock.showStokdWork"
         case .customSidebar:
             return "palette.showRightSidebarCustomSidebar"
-        case .stokdWorktrees:
-            return "palette.gdock.showStokdWorktrees"
         case .stokdGlobalConfig:
             return "palette.gdock.showStokdGlobalConfig"
         case .stokdUsage:
@@ -185,7 +183,7 @@ extension ContentView {
         case .sessions:
             return "palette.openVaultPane"
         case .feed, .dock, .stokdWork, .customSidebar,
-             .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+             .stokdGlobalConfig, .stokdUsage:
             return nil
         }
     }
@@ -199,7 +197,7 @@ extension ContentView {
         case .sessions:
             return String(localized: "command.openVaultPane.title", defaultValue: "Open Vault as Pane")
         case .feed, .dock, .stokdWork, .customSidebar,
-             .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+             .stokdGlobalConfig, .stokdUsage:
             return nil
         }
     }
