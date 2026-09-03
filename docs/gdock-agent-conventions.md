@@ -162,7 +162,7 @@ Replacing the installed app is gated on whether it is running:
 |---------------|--------|
 | Not running | Replaced silently, then launched. |
 | Running, interactive terminal | Prompted (`[y/N]`, `GDOCK_PROMPT_TIMEOUT`, default 60s). |
-| Running, answer yes / `--force-install` / `GDOCK_INSTALL=auto` | Quit first, then replace, then launch the new app. |
+| Running, answer yes / `--force-install` / `GDOCK_INSTALL=auto` | Spawn a session-detached helper, then quit. The helper waits for the installed pids to exit, replaces the bundle, and launches. This survives SIGHUP when `gdock-build` was a child of that app. |
 | Running, declined / timed out / no tty / `--no-install` / `GDOCK_INSTALL=never` | Left untouched; the build is recorded as a **pending install**. |
 
 A pending install is retried on the next run in that mode with **no rebuild**: once
@@ -173,6 +173,13 @@ successful build supersedes it.
 The quit must precede the launch. The installed bundle and the DerivedData bundle
 share bundle id `cloud.stokd.ghostty-dock`, so `open -a` against a running
 instance foregrounds the **old** process — "launched the new build" would be a lie.
+
+Do not run that quit/replace/launch sequence in the `gdock-build` process that
+issued the prompt. That process is often a descendant of `/Applications/gdock.app`;
+AppleScript `quit` closes its PTY and SIGHUPs the builder, so an in-process
+`ditto`/`open` never runs. The helper must `setsid` (or equivalent) **before**
+the quit is sent. `tests/test_gdock_install_applications.sh` case 5b sends
+SIGHUP to the builder from the osascript seam and still requires install+launch.
 
 ### Never match processes by command line
 

@@ -140,6 +140,11 @@ SEAM
 printf '%s\n' "$*" >> "$GDOCK_TEST_OSASCRIPT_LOG"
 # A real quit ends the process; model that so the pid scan goes quiet.
 rm -f "$GDOCK_TEST_RUNNING_FLAG"
+# When gdock-build runs inside the installed app, quitting the app SIGHUPs the
+# builder. Opt in so the regression case can prove the swap still finishes.
+if [[ -n "${GDOCK_TEST_QUIT_KILLS_BUILDER:-}" ]]; then
+  kill -HUP "$PPID" 2>/dev/null || true
+fi
 SEAM
 
   # Stands in for the process-table scan. Emits "<pid> <executable path>" lines,
@@ -176,6 +181,7 @@ new_env() {
   BUILT_APP="$FW/DerivedData/Build/Products/Release/gdock.app"
   BUILD_ID="build-1"
   ASSUME_TTY=""
+  QUIT_KILLS_BUILDER=""
   REUSE_REJECT=0
   REUSE_PAUSE_FLAG="$TEST/reuse-pause"
   REUSE_ENTERED="$TEST/reuse-entered"
@@ -245,8 +251,19 @@ run_gdock() {
       GDOCK_TEST_OSASCRIPT_LOG="$OSASCRIPT_LOG" \
       GDOCK_TEST_KILL_LOG="$KILL_LOG" \
       GDOCK_TEST_RUNNING_FLAG="$RUNNING_FLAG" \
+      GDOCK_TEST_QUIT_KILLS_BUILDER="$QUIT_KILLS_BUILDER" \
       "$GDOCK" "$@"
   )
+}
+
+wait_until_installed() {
+  # wait_until_installed <marker-id>
+  local expected="$1" attempt
+  for attempt in {1..100}; do
+    [[ "$(installed_marker)" == "$expected" ]] && return 0
+    sleep 0.05
+  done
+  return 1
 }
 
 # ---------------------------------------------------------------------------
@@ -372,6 +389,36 @@ case_accept_quits_and_replaces() {
   assert_eq "$(installed_marker)" "build-5" "installed bundle marker after accepted replace"
   grep -q "$APPS/gdock.app" "$OPEN_LOG" || fail "new installed app was not launched"
   assert_absent "$(pending_record 2>/dev/null || true)"
+  cleanup_env
+}
+
+# ---------------------------------------------------------------------------
+# Case 5b: answering y must finish the swap even if quitting the app SIGHUPs
+# the gdock-build process (the in-app terminal case).
+# ---------------------------------------------------------------------------
+case_accept_survives_builder_hup() {
+  begin_case "case 5b: y still replaces and launches after quit SIGHUPs the builder"
+  new_env
+  seed_installed "old-build"
+  mark_running
+  BUILD_ID="build-5b"
+  ASSUME_TTY=1
+  QUIT_KILLS_BUILDER=1
+
+  printf 'y\n' | run_gdock --build > "$TEST/out.log" 2>&1 || true
+
+  if ! wait_until_installed "build-5b"; then
+    fail "installed bundle marker after builder HUP: expected 'build-5b', got '$(installed_marker)'"
+  fi
+  local attempt
+  for attempt in {1..100}; do
+    grep -q "$APPS/gdock.app" "$OPEN_LOG" 2>/dev/null && break
+    sleep 0.05
+  done
+  grep -q "$APPS/gdock.app" "$OPEN_LOG" || fail "new installed app was not launched after builder HUP"
+  if ! grep -qi 'quit' "$OSASCRIPT_LOG" 2>/dev/null && ! [[ -s "$KILL_LOG" ]]; then
+    fail "running app was never asked to quit (osascript and kill logs are both empty)"
+  fi
   cleanup_env
 }
 
@@ -687,6 +734,7 @@ case_replace_when_not_running
 case_decline_keeps_installed
 case_pending_applied_on_next_run
 case_accept_quits_and_replaces
+case_accept_survives_builder_hup
 case_non_tty_declines
 case_tagged_never_installs
 case_unchanged_release_retags_main_artifact

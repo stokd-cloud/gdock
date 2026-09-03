@@ -29,6 +29,9 @@ MAIN_APP_BUNDLE_ID="cloud.stokd.ghostty-dock"
 # auto = replace without asking, ask = prompt when running, never = never replace.
 INSTALL_MODE="${GDOCK_INSTALL:-ask}"
 PROMPT_TIMEOUT="${GDOCK_PROMPT_TIMEOUT:-60}"
+# Set when a running-app replace is handed to a session-detached helper so the
+# parent can die on SIGHUP without skipping install+launch.
+SWAP_DELEGATED=0
 # Seams: absolute by default, overridable so the swap gate is testable without a
 # real /Applications write, a real launch, or real process signalling.
 OPEN_CMD="${GDOCK_OPEN:-/usr/bin/open}"
@@ -932,19 +935,163 @@ resolve_installed_app() {
     fi
   fi
 
-  if ! quit_installed_app; then
-    defer_install "$state_dir" "$candidate" "$candidate_fingerprint" "could not quit the running app"
+  # Quit, install, and launch cannot stay in this process: gdock-build is often
+  # a child of the installed app, and the quit SIGHUPs the builder. Hand the
+  # rest to a session-detached helper first, then ask the app to exit.
+  if ! schedule_swap_after_quit "$state_dir" "$candidate" "$candidate_fingerprint"; then
+    defer_install "$state_dir" "$candidate" "$candidate_fingerprint" "could not start the replace helper"
     return 0
   fi
-  if install_main_app "$candidate"; then
-    write_atomic_line "$state_dir/installed-fingerprint" "$candidate_fingerprint"
-    clear_pending_install "$state_dir"
-  else
-    record_pending_install "$state_dir" "$candidate" "$candidate_fingerprint"
-    echo "gdock: install failed; the build stays PENDING" >&2
+  SWAP_DELEGATED=1
+  if ! quit_installed_app; then
+    if ! wait_for_swap_done "${GDOCK_SWAP_DONE:-}"; then
+      defer_install "$state_dir" "$candidate" "$candidate_fingerprint" "could not quit the running app"
+    fi
+    return 0
   fi
+  wait_for_swap_done "${GDOCK_SWAP_DONE:-}" || true
   return 0
 }
+
+wait_for_installed_app_to_exit() {
+  local attempt
+  for attempt in {1..120}; do
+    [[ -z "$(installed_running_pids)" ]] && return 0
+    sleep 0.25
+  done
+  return 1
+}
+
+wait_for_swap_done() {
+  local done="${1:-}" attempt
+  [[ -n "$done" ]] || return 1
+  for attempt in {1..480}; do
+    [[ -f "$done" ]] && return 0
+    sleep 0.25
+  done
+  echo "gdock: timed out waiting for the detached replace helper" >&2
+  return 1
+}
+
+write_swap_done() {
+  local done="${GDOCK_SWAP_DONE:-}" status="${1:-1}"
+  [[ -n "$done" ]] || return 0
+  mkdir -p "$(dirname -- "$done")"
+  printf '%s\n' "$status" > "${done}.tmp"
+  mv -f "${done}.tmp" "$done"
+}
+
+run_detached_swap_helper() {
+  trap '' HUP INT
+  local src fingerprint state_dir launch_flag
+  src="${GDOCK_SWAP_SRC:-}"
+  fingerprint="${GDOCK_SWAP_FINGERPRINT:-}"
+  state_dir="${GDOCK_SWAP_STATE_DIR:-}"
+  launch_flag="${GDOCK_SWAP_LAUNCH:-0}"
+
+  echo "gdock: detached helper waiting for the installed app to exit..." >&2
+  if ! wait_for_installed_app_to_exit; then
+    echo "gdock: installed app still running; helper trying to quit it" >&2
+    if ! quit_installed_app; then
+      echo "gdock: helper could not quit the installed app" >&2
+      record_pending_install "$state_dir" "$src" "$fingerprint"
+      write_swap_done 1
+      return 1
+    fi
+  fi
+  if [[ ! -d "$src" ]]; then
+    echo "gdock: swap source missing: $src" >&2
+    write_swap_done 1
+    return 1
+  fi
+  if install_main_app "$src"; then
+    write_atomic_line "$state_dir/installed-fingerprint" "$fingerprint"
+    clear_pending_install "$state_dir"
+    if [[ "$launch_flag" == "1" ]]; then
+      launch_app "$(installed_app_path)"
+    fi
+    write_swap_done 0
+    return 0
+  fi
+  record_pending_install "$state_dir" "$src" "$fingerprint"
+  echo "gdock: helper install failed; the build stays PENDING" >&2
+  write_swap_done 1
+  return 1
+}
+
+daemonize_swap_helper() {
+  local self log
+  self="$(absolute_path "$0" 2>/dev/null || true)"
+  [[ -n "$self" && -x "$self" ]] || self="$0"
+  log="${GDOCK_SWAP_STATE_DIR}/swap-helper.log"
+  mkdir -p "$(dirname -- "$log")"
+  echo "gdock: continuing the replace in a detached helper" >&2
+  if command -v python3 >/dev/null 2>&1; then
+    python3 - "$self" "$log" <<'PY' || return 1
+import os, signal, sys
+
+signal.signal(signal.SIGHUP, signal.SIG_IGN)
+self, log = sys.argv[1], sys.argv[2]
+ready_r, ready_w = os.pipe()
+pid = os.fork()
+if pid > 0:
+    os.close(ready_w)
+    os.read(ready_r, 1)
+    os.close(ready_r)
+    os._exit(0)
+os.close(ready_r)
+os.setsid()
+os.write(ready_w, b"x")
+os.close(ready_w)
+if os.fork() > 0:
+    os._exit(0)
+os.chdir("/")
+devnull = os.open(os.devnull, os.O_RDWR)
+os.dup2(devnull, 0)
+logfd = os.open(log, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o644)
+os.dup2(logfd, 1)
+os.dup2(logfd, 2)
+if devnull > 2:
+    os.close(devnull)
+if logfd > 2:
+    os.close(logfd)
+env = os.environ.copy()
+env["GDOCK_INNER"] = "1"
+env["GDOCK_SWAP_HELPER"] = "1"
+os.execve(self, [self], env)
+PY
+    return 0
+  fi
+  trap '' HUP
+  nohup env GDOCK_INNER=1 GDOCK_SWAP_HELPER=1 "$self" </dev/null >>"$log" 2>&1 &
+  disown || true
+  trap - HUP
+  return 0
+}
+
+schedule_swap_after_quit() {
+  # schedule_swap_after_quit <state-dir> <src-app> <fingerprint>
+  local state_dir="$1" src="$2" fingerprint="$3"
+  record_pending_install "$state_dir" "$src" "$fingerprint"
+  export GDOCK_INSTALL_DIR="$INSTALL_DIR"
+  export GDOCK_STATE_DIR="$STATE_DIR"
+  export GDOCK_OPEN="$OPEN_CMD"
+  export GDOCK_OSASCRIPT="$OSASCRIPT_CMD"
+  export GDOCK_PS="$PS_CMD"
+  export GDOCK_KILL="$KILL_CMD"
+  export GDOCK_SWAP_SRC="$src"
+  export GDOCK_SWAP_FINGERPRINT="$fingerprint"
+  export GDOCK_SWAP_STATE_DIR="$state_dir"
+  export GDOCK_SWAP_LAUNCH="$LAUNCH"
+  export GDOCK_SWAP_DONE="$state_dir/swap-done"
+  rm -f "$GDOCK_SWAP_DONE"
+  daemonize_swap_helper
+}
+
+if [[ "${GDOCK_SWAP_HELPER:-0}" == "1" ]]; then
+  run_detached_swap_helper
+  exit $?
+fi
 
 last_app_path() {
   local app=""
@@ -1357,6 +1504,6 @@ if is_main_app_mode; then
   fi
 fi
 
-if [[ "$LAUNCH" -eq 1 ]]; then
+if [[ "$LAUNCH" -eq 1 && "$SWAP_DELEGATED" -ne 1 ]]; then
   launch_app "$launch_path"
 fi
