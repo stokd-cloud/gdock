@@ -89,7 +89,7 @@ extension RightSidebarMode {
             return dockEnabled
         case .customSidebar:
             return false
-        case .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+        case .stokdGlobalConfig, .stokdUsage:
             // Option A: the not-yet-shipped stokd rail sections are only offered
             // while the shared rails beta gate is on. Work is ungated (above).
             return stokdPanelsEnabled && SidebarDockPlacementMatrix.allows(mode: self)

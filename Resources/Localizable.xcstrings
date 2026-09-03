@@ -266389,23 +266389,6 @@
         }
       }
     },
-    "stokdRail.panel.worktrees": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Worktrees"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ワークツリー"
-          }
-        }
-      }
-    },
     "stokdRail.panel.globalConfig": {
       "extractionState": "manual",
       "localizations": {

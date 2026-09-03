@@ -7,24 +7,48 @@ import Testing
 @testable import cmux
 #endif
 
-/// Phase 1.1 — four stokd rail panel kinds, stable raw values, and placement matrix.
+/// Stokd rail panel kinds, stable raw values, and placement matrix.
+///
+/// The Worktrees kind was removed: it only ever rendered a "Coming soon"
+/// placeholder, and the real design lives in the hold-to-show worktree-panel
+/// PRDs (stokd projects c6142e5 / dec8b3c), which share none of this surface.
 @Suite("Stokd rail panel kinds")
 struct StokdRailPanelKindTests {
-    @Test func fourKindsExistWithStableRawValues() {
+    @Test func threeKindsExistWithStableRawValues() {
         let kinds = StokdRailPanelKind.allCases
-        #expect(kinds.count == 4)
+        #expect(kinds.count == 3)
         #expect(Set(kinds.map(\.rawValue)) == [
             "stokdWork",
-            "stokdWorktrees",
             "stokdGlobalConfig",
             "stokdUsage",
         ])
 
         #expect(StokdRailPanelKind(rawValue: "stokdWork") == .stokdWork)
-        #expect(StokdRailPanelKind(rawValue: "stokdWorktrees") == .stokdWorktrees)
         #expect(StokdRailPanelKind(rawValue: "stokdGlobalConfig") == .stokdGlobalConfig)
         #expect(StokdRailPanelKind(rawValue: "stokdUsage") == .stokdUsage)
         #expect(StokdRailPanelKind(rawValue: "unknown-kind") == nil)
+    }
+
+    /// The removed Worktrees surface must be gone from every addressable identity.
+    @Test func worktreesRailPanelIsRemovedEverywhere() {
+        #expect(StokdRailPanelKind(rawValue: "stokdWorktrees") == nil)
+        #expect(RightSidebarMode(rawValue: "stokdWorktrees") == nil)
+        #expect(StokdRailPanelKind.leftRailKinds == [.stokdGlobalConfig, .stokdUsage])
+        #expect(!StokdRailPanelKind.allCases.contains { $0.displayTitle == "Worktrees" })
+        #expect(!RightSidebarMode.allCases.contains { $0.label == "Worktrees" })
+
+        // No command palette entry may address the removed panel.
+        let paletteIDs = RightSidebarMode.allCases.map(ContentView.commandPaletteRightSidebarModeCommandID)
+        #expect(!paletteIDs.contains("palette.gdock.showStokdWorktrees"))
+    }
+
+    /// A snapshot written by an older build degrades to the default panel
+    /// instead of restoring an empty placeholder.
+    @Test func persistedWorktreesModeDegradesToDefault() throws {
+        let json = Data(#"{"mode":"stokdWorktrees"}"#.utf8)
+        let snapshot = try JSONDecoder().decode(SessionRightSidebarToolPanelSnapshot.self, from: json)
+        #expect(snapshot.mode == nil)
+        #expect((snapshot.mode ?? .files) == .files)
     }
 
     @Test func kindsMapToRightSidebarModesWithMatchingRawValues() {
@@ -41,8 +65,8 @@ struct StokdRailPanelKindTests {
         #expect(SidebarDockPlacementMatrix.allows(kind: .stokdWork, on: .right))
         #expect(!SidebarDockPlacementMatrix.allows(kind: .stokdWork, on: .left))
 
-        // Worktrees / Global Config / Usage → left rail sections only.
-        let leftKinds: [StokdRailPanelKind] = [.stokdWorktrees, .stokdGlobalConfig, .stokdUsage]
+        // Global Config / Usage → left rail sections only.
+        let leftKinds: [StokdRailPanelKind] = [.stokdGlobalConfig, .stokdUsage]
         for kind in leftKinds {
             #expect(SidebarDockPlacementMatrix.allows(kind: kind, on: .left))
             #expect(!SidebarDockPlacementMatrix.allows(kind: kind, on: .right))
@@ -52,7 +76,6 @@ struct StokdRailPanelKindTests {
 
         // Edge-agnostic allowlist still admits stokd modes for registry addressing.
         #expect(SidebarDockPlacementMatrix.allows(mode: .stokdWork))
-        #expect(SidebarDockPlacementMatrix.allows(mode: .stokdWorktrees))
         #expect(SidebarDockPlacementMatrix.allows(mode: .stokdGlobalConfig))
         #expect(SidebarDockPlacementMatrix.allows(mode: .stokdUsage))
 
@@ -72,7 +95,6 @@ struct StokdRailPanelKindTests {
             #expect(kind.displayTitle == kind.rightSidebarMode.label)
         }
         #expect(StokdRailPanelKind.stokdWork.displayTitle == "Work")
-        #expect(StokdRailPanelKind.stokdWorktrees.displayTitle == "Worktrees")
         #expect(StokdRailPanelKind.stokdGlobalConfig.displayTitle == "Global Config")
         #expect(StokdRailPanelKind.stokdUsage.displayTitle == "Usage")
     }
@@ -94,8 +116,6 @@ struct StokdRailPanelKindTests {
             #expect(panel.mode == kind.rightSidebarMode)
             #expect(panel.displayTitle == kind.displayTitle)
 
-            // Dedicated placeholder (no EnvironmentObject) is what rails mount for stokd kinds
-            // until Phase 4 ships real UI.
             let placeholder = StokdRailPanelPlaceholderView(kind: kind)
             _ = placeholder.body
             #expect(StokdRailPanelKind(rightSidebarMode: panel.mode) == kind)

@@ -113,7 +113,7 @@ final class RightSidebarToolPanel: Panel, ObservableObject {
             guard stokdWorkViewModelStorage != nil else { return }
             syncStokdWorkRepository(from: workspace)
         case .feed, .dock, .customSidebar,
-             .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+             .stokdGlobalConfig, .stokdUsage:
             break
         }
     }
@@ -155,7 +155,7 @@ final class RightSidebarToolPanel: Panel, ObservableObject {
                   let window = anchor.window else { return }
             _ = window.makeFirstResponder(anchor)
         case .feed, .dock, .stokdWork, .customSidebar,
-             .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+             .stokdGlobalConfig, .stokdUsage:
             break
         }
     }
@@ -178,7 +178,7 @@ final class RightSidebarToolPanel: Panel, ObservableObject {
             guard sessionIndexFocusAnchorView?.ownsKeyboardFocus(responder) == true else { return nil }
             return .panel
         case .feed, .dock, .stokdWork, .customSidebar,
-             .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+             .stokdGlobalConfig, .stokdUsage:
             return nil
         }
     }
@@ -320,7 +320,7 @@ struct RightSidebarToolPanelView: View {
             )
         case .stokdWork:
             StokdWorkPanelView(model: panel.stokdWorkViewModel)
-        case .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+        case .stokdGlobalConfig, .stokdUsage:
             if let kind = StokdRailPanelKind(rightSidebarMode: panel.mode) {
                 StokdRailPanelPlaceholderView(kind: kind)
             } else {

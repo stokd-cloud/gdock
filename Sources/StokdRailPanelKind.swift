@@ -8,10 +8,9 @@ import SwiftUI
 ///
 /// Placement (§0 layout):
 /// - ``stokdWork`` → right rail tool-tab strip
-/// - ``stokdWorktrees``, ``stokdGlobalConfig``, ``stokdUsage`` → left rail sections
+/// - ``stokdGlobalConfig``, ``stokdUsage`` → left rail sections
 enum StokdRailPanelKind: String, CaseIterable, Codable, Sendable, Hashable {
     case stokdWork
-    case stokdWorktrees
     case stokdGlobalConfig
     case stokdUsage
 
@@ -20,7 +19,7 @@ enum StokdRailPanelKind: String, CaseIterable, Codable, Sendable, Hashable {
         switch self {
         case .stokdWork:
             return .right
-        case .stokdWorktrees, .stokdGlobalConfig, .stokdUsage:
+        case .stokdGlobalConfig, .stokdUsage:
             return .left
         }
     }
@@ -29,7 +28,6 @@ enum StokdRailPanelKind: String, CaseIterable, Codable, Sendable, Hashable {
     var rightSidebarMode: RightSidebarMode {
         switch self {
         case .stokdWork: return .stokdWork
-        case .stokdWorktrees: return .stokdWorktrees
         case .stokdGlobalConfig: return .stokdGlobalConfig
         case .stokdUsage: return .stokdUsage
         }
@@ -38,7 +36,6 @@ enum StokdRailPanelKind: String, CaseIterable, Codable, Sendable, Hashable {
     init?(rightSidebarMode mode: RightSidebarMode) {
         switch mode {
         case .stokdWork: self = .stokdWork
-        case .stokdWorktrees: self = .stokdWorktrees
         case .stokdGlobalConfig: self = .stokdGlobalConfig
         case .stokdUsage: self = .stokdUsage
         case .files, .find, .sessions, .feed, .dock, .customSidebar:
@@ -50,8 +47,6 @@ enum StokdRailPanelKind: String, CaseIterable, Codable, Sendable, Hashable {
         switch self {
         case .stokdWork:
             return String(localized: "stokdRail.panel.work", defaultValue: "Work")
-        case .stokdWorktrees:
-            return String(localized: "stokdRail.panel.worktrees", defaultValue: "Worktrees")
         case .stokdGlobalConfig:
             return String(localized: "stokdRail.panel.globalConfig", defaultValue: "Global Config")
         case .stokdUsage:
@@ -62,7 +57,6 @@ enum StokdRailPanelKind: String, CaseIterable, Codable, Sendable, Hashable {
     var symbolName: String {
         switch self {
         case .stokdWork: return "checklist"
-        case .stokdWorktrees: return "externaldrive.connected.to.line.below"
         case .stokdGlobalConfig: return "gearshape.2"
         case .stokdUsage: return "chart.bar"
         }
@@ -71,15 +65,15 @@ enum StokdRailPanelKind: String, CaseIterable, Codable, Sendable, Hashable {
     /// Kinds allowed as right-rail tool tabs.
     static var rightRailKinds: [StokdRailPanelKind] { [.stokdWork] }
 
-    /// Kinds allowed as left-rail sections (seed order: Global Config → Worktrees → Usage).
+    /// Kinds allowed as left-rail sections (seed order: Global Config → Usage).
     static var leftRailKinds: [StokdRailPanelKind] {
-        [.stokdGlobalConfig, .stokdWorktrees, .stokdUsage]
+        [.stokdGlobalConfig, .stokdUsage]
     }
 }
 
 // MARK: - Feature gate (Option A — Phase 1.2)
 
-/// Enablement for stokd rail panels (Work / Worktrees / Global Config / Usage).
+/// Enablement for stokd rail panels (Work / Global Config / Usage).
 ///
 /// **Phase 1.2 decision — Option A:** Reuse `sidebar.beta.dock.enabled` rather than a
 /// dedicated `sidebar.beta.stokdPanels.enabled` key. Stokd kinds only appear when the
