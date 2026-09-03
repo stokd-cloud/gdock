@@ -58,10 +58,10 @@ import Testing
         #expect(StokdRepoDetailURL.url(forSlug: "stokd-cloud/gdock", baseURL: base, pathTemplate: "") == nil)
     }
 
-    @Test func followsTheConfiguredEnvironmentHost() {
-        let staging = URL(string: "https://stage.stokd.cloud")!
-        let url = StokdRepoDetailURL.url(forSlug: "stokd-cloud/gdock", baseURL: staging)
+    @Test func mapsTheSaaSAPIOriginToSelfactor() {
+        let saas = URL(string: "https://api.stokd.cloud")!
+        let url = StokdRepoDetailURL.url(forSlug: "stokd-cloud/gdock", baseURL: saas)
 
-        #expect(url?.absoluteString == "https://stage.stokd.cloud/repos/stokd-cloud/gdock")
+        #expect(url?.absoluteString == "https://selfactor.io/repo/stokd-cloud/gdock")
     }
 }
