@@ -9,7 +9,9 @@ struct GdockShortcutActionTests {
         #expect(ShortcutAction.gdockQuadPaneWorkspaces.rawValue == "gdock.quadPaneWorkspaces")
         #expect(ShortcutAction.gdockNextQuadPane.group == .panes)
         #expect(ShortcutAction.gdockQuadPaneWorkspaces.group == .panes)
-        #expect(ShortcutAction.gdockNextQuadPane.defaultStroke == ShortcutStroke(key: "y", command: true))
+        #expect(ShortcutAction.autoSplit.rawValue == "autoSplit")
+        #expect(ShortcutAction.autoSplit.defaultStroke == ShortcutStroke(key: "y", command: true))
+        #expect(ShortcutAction.gdockNextQuadPane.defaultStroke == nil)
         #expect(
             ShortcutAction.gdockQuadPaneWorkspaces.defaultStroke ==
                 ShortcutStroke(key: "y", command: true, shift: true)

@@ -1195,6 +1195,12 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		B900000BA1B2C3D4E5F60719 /* gdock in Copy CLI */ = {isa = PBXBuildFile; fileRef = B9000004A1B2C3D4E5F60719 /* gdock */; };
 		GDOCKAWSG00000000000004 /* GdockAutoWorkspaceGroupModeSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000003 /* GdockAutoWorkspaceGroupModeSettings.swift */; };
 		GDOCKAWSG00000000000002 /* GdockAutoWorkspaceGroupReconciler.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */; };
+		GDOCKASPL00000000000002 /* GdockAutoSplitterSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKASPL00000000000001 /* GdockAutoSplitterSettings.swift */; };
+		GDOCKASPL00000000000004 /* AutoSplitAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKASPL00000000000003 /* AutoSplitAction.swift */; };
+		GDOCKASPL00000000000006 /* AutoSplitSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKASPL00000000000005 /* AutoSplitSettingsTests.swift */; };
+		GDOCKASPL00000000000008 /* AutoSplitActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKASPL00000000000007 /* AutoSplitActionTests.swift */; };
+		GDOCKASPL0000000000000A /* AutoSplitShortcutRoutingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKASPL00000000000009 /* AutoSplitShortcutRoutingTests.swift */; };
+		GDOCKASPL0000000000000C /* AutoSplitForceButtonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKASPL0000000000000B /* AutoSplitForceButtonTests.swift */; };
 		GDOCKAWSG00000000000008 /* GdockAutoWorkspaceGroupReconcilerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000007 /* GdockAutoWorkspaceGroupReconcilerTests.swift */; };
 		GDOCKCYCA000000000000002 /* GdockCycleRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKCYCA000000000000001 /* GdockCycleRing.swift */; };
 		GDOCKGRID00000000000014 /* GdockGridModeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000013 /* GdockGridModeButton.swift */; };
@@ -4163,6 +4169,12 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		B9000004A1B2C3D4E5F60719 /* gdock */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = gdock; sourceTree = BUILT_PRODUCTS_DIR; };
 		GDOCKAWSG00000000000003 /* GdockAutoWorkspaceGroupModeSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupModeSettings.swift; sourceTree = "<group>"; };
 		GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupReconciler.swift; sourceTree = "<group>"; };
+		GDOCKASPL00000000000001 /* GdockAutoSplitterSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoSplitterSettings.swift; sourceTree = "<group>"; };
+		GDOCKASPL00000000000003 /* AutoSplitAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoSplitAction.swift; sourceTree = "<group>"; };
+		GDOCKASPL00000000000005 /* AutoSplitSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoSplitSettingsTests.swift; sourceTree = "<group>"; };
+		GDOCKASPL00000000000007 /* AutoSplitActionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoSplitActionTests.swift; sourceTree = "<group>"; };
+		GDOCKASPL00000000000009 /* AutoSplitShortcutRoutingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoSplitShortcutRoutingTests.swift; sourceTree = "<group>"; };
+		GDOCKASPL0000000000000B /* AutoSplitForceButtonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoSplitForceButtonTests.swift; sourceTree = "<group>"; };
 		GDOCKAWSG00000000000007 /* GdockAutoWorkspaceGroupReconcilerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupReconcilerTests.swift; sourceTree = "<group>"; };
 		GDOCKCYCA000000000000001 /* GdockCycleRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockCycleRing.swift; sourceTree = "<group>"; };
 		GDOCKGRID00000000000013 /* GdockGridModeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridModeButton.swift; sourceTree = "<group>"; };
@@ -6843,6 +6855,8 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 				GDOCKACC000000000000001 /* GdockRepoGroupAccordionReconciler.swift */,
 				GDOCKRWGI00000000000001 /* GdockRepoWorkspaceGroupIdentity.swift */,
 				GDOCKGRID00000000000003 /* GdockGridShape.swift */,
+				GDOCKASPL00000000000001 /* GdockAutoSplitterSettings.swift */,
+				GDOCKASPL00000000000003 /* AutoSplitAction.swift */,
 				GDOCKGRID00000000000005 /* GdockGridModeSettings.swift */,
 				GDOCKGRID00000000000007 /* GdockGridSplitPlanner.swift */,
 				GDOCKGRID00000000000009 /* GdockGridSplitAction.swift */,
@@ -8723,6 +8737,10 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				GDOCKQPL000000000000007 /* GdockRepoGroupQuadPlannerTests.swift */,
 				GDOCKACC000000000000007 /* GdockRepoGroupAccordionReconcilerTests.swift */,
 				GDOCKRWGI00000000000007 /* GdockRepoWorkspaceGroupIdentityTests.swift */,
+				GDOCKASPL00000000000005 /* AutoSplitSettingsTests.swift */,
+				GDOCKASPL00000000000007 /* AutoSplitActionTests.swift */,
+				GDOCKASPL00000000000009 /* AutoSplitShortcutRoutingTests.swift */,
+				GDOCKASPL0000000000000B /* AutoSplitForceButtonTests.swift */,
 				GDOCKGRID00000000000001 /* GdockGridModeTests.swift */,
 				GDOCKPIP000000000000005 /* GdockPipFloatingWindowTests.swift */,
 				606500010000000000000002 /* MenuBarOnlyActivationPolicyTests.swift */,
@@ -10188,6 +10206,8 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				5E55400000000000000000D1 /* FocusStealingResponderConformances.swift in Sources */,
 					C0DEFB100000000000000001 /* FocusSurfaceBroadcaster.swift in Sources */,
 				AA5269A0C0DE0002FACE0002 /* ForeignFirstResponderPolicy.swift in Sources */,
+				GDOCKASPL00000000000002 /* GdockAutoSplitterSettings.swift in Sources */,
+				GDOCKASPL00000000000004 /* AutoSplitAction.swift in Sources */,
 				GDOCKAWSG00000000000004 /* GdockAutoWorkspaceGroupModeSettings.swift in Sources */,
 				GDOCKAWSG00000000000002 /* GdockAutoWorkspaceGroupReconciler.swift in Sources */,
 				GDOCKCYCA000000000000002 /* GdockCycleRing.swift in Sources */,
@@ -11947,6 +11967,10 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				F17F00000000000000000003 /* FullWidthTabCommandTests.swift in Sources */,
 				F17F00000000000000000001 /* FullWidthTabPersistenceTests.swift in Sources */,
 				GDOCKAWSG00000000000008 /* GdockAutoWorkspaceGroupReconcilerTests.swift in Sources */,
+				GDOCKASPL00000000000006 /* AutoSplitSettingsTests.swift in Sources */,
+				GDOCKASPL00000000000008 /* AutoSplitActionTests.swift in Sources */,
+				GDOCKASPL0000000000000A /* AutoSplitShortcutRoutingTests.swift in Sources */,
+				GDOCKASPL0000000000000C /* AutoSplitForceButtonTests.swift in Sources */,
 				GDOCKGRID00000000000002 /* GdockGridModeTests.swift in Sources */,
 				GDOCKPIP000000000000006 /* GdockPipFloatingWindowTests.swift in Sources */,
 				GDOCKPRHT000000000000002 /* GdockPromptHistoryCollectorTests.swift in Sources */,

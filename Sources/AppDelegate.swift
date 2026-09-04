@@ -15081,6 +15081,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             return true
         }
 
+        if matchConfiguredShortcut(event: event, action: .autoSplit) {
+#if DEBUG
+            cmuxDebugLog("shortcut.action name=autoSplit \(debugShortcutRouteSnapshot(event: event))")
+#endif
+            if shouldSuppressSplitShortcutForTransientTerminalFocusState(direction: .right) {
+                return true
+            }
+            _ = QuadSplitAdapters.performAutoSplitSharedFocusPath(
+                preferredWindow: event.window ?? shortcutRoutingActiveWindow,
+                tabManager: tabManager
+            )
+            return true
+        }
+
         if matchConfiguredShortcut(event: event, action: .gdockNextQuadPane) {
 #if DEBUG
             cmuxDebugLog("shortcut.action name=gdockNextQuadPane \(debugShortcutRouteSnapshot(event: event))")
@@ -16116,6 +16130,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         cmuxDebugLog(line)
     }
 #endif
+
+    /// Shared main-area Auto Split entrypoint used by Cmd+Y and palette.gdock.autoSplit.
+    @discardableResult
+    func performAutoSplitShortcut(preferredWindow: NSWindow? = nil) -> Bool {
+        let targetWindow = preferredWindow ?? shortcutRoutingActiveWindow
+        let terminalContext = focusedTerminalShortcutContext(preferredWindow: targetWindow)
+        _ = synchronizeActiveMainWindowContext(preferredWindow: targetWindow)
+
+        if let terminalContext {
+            if let workspace = terminalContext.tabManager.tabs.first(where: { $0.id == terminalContext.workspaceId }),
+               workspace.layoutMode == .canvas {
+                return false
+            }
+            return terminalContext.tabManager.createAutoSplit(
+                tabId: terminalContext.workspaceId,
+                surfaceId: terminalContext.panelId,
+                focus: true
+            )
+        }
+        if let workspace = tabManager?.selectedWorkspace,
+           workspace.layoutMode == .canvas {
+            return false
+        }
+        return tabManager?.createAutoSplit(focus: true) == true
+    }
 
     /// Shared main-area Quad Split entrypoint used by shortcut, View menu, and
     /// configured-action adapters. Dock routing is handled by callers so tri-state

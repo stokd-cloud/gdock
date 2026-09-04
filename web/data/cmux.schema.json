@@ -1517,6 +1517,33 @@
         }
       }
     },
+    "gdock": {
+      "title": "gdock",
+      "description": "ghostty-dock (gdock) fork-only settings.",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "autoSplitRows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 6,
+          "default": 2,
+          "description": "Row count for Auto Split (Cmd+Y). Values outside 1–6 are clamped at runtime."
+        },
+        "autoSplitColumns": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 6,
+          "default": 2,
+          "description": "Column count for Auto Split (Cmd+Y). Values outside 1–6 are clamped at runtime."
+        },
+        "forceAutoSplitter": {
+          "type": "boolean",
+          "default": false,
+          "description": "When true, the last Split Quad tab-bar button becomes Auto Split using the configured rows and columns. Explicit Split Quad commands stay 2×2."
+        }
+      }
+    },
     "canvas": {
       "title": "canvas",
       "description": "Freeform canvas workspace layout settings.",
@@ -1689,6 +1716,7 @@
               "splitRight",
               "splitDown",
               "splitQuad",
+              "autoSplit",
               "gdock.nextQuadPane",
               "gdock.quadPaneWorkspaces",
               "toggleSplitZoom",

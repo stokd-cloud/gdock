@@ -156,6 +156,9 @@ enum KeyboardShortcutSettings {
         /// by macOS for "Look Up & data detectors" and never reaches the app's key
         /// monitor; the rest of the Cmd+D family is already taken. Settings-editable.
         case splitQuad
+        /// Parameterized terminal grid using `gdock.autoSplitRows` × `gdock.autoSplitColumns`.
+        /// Default Cmd+Y; `gdock.nextQuadPane` is unbound so the two do not collide.
+        case autoSplit
         case gdockNextQuadPane = "gdock.nextQuadPane"
         case gdockQuadPaneWorkspaces = "gdock.quadPaneWorkspaces"
         case splitBrowserRight
@@ -337,6 +340,7 @@ enum KeyboardShortcutSettings {
                 )
             case .equalizeSplits: return String(localized: "shortcut.equalizeSplits.label", defaultValue: "Equalize Splits")
             case .splitQuad: return String(localized: "shortcut.splitQuad.label", defaultValue: "Split Quad")
+            case .autoSplit: return String(localized: "shortcut.autoSplit.label", defaultValue: "Auto Split")
             case .gdockNextQuadPane:
                 return String(localized: "shortcut.gdock.nextQuadPane.label", defaultValue: "Create Next Quad Pane")
             case .gdockQuadPaneWorkspaces:
@@ -551,8 +555,10 @@ enum KeyboardShortcutSettings {
                 // D-3: ship unbound. ⌃⌘D is swallowed by macOS Look Up; the rest of
                 // the Cmd+D family is already assigned. Users rebind in Settings.
                 return .unbound
-            case .gdockNextQuadPane:
+            case .autoSplit:
                 return StoredShortcut(key: "y", command: true, shift: false, option: false, control: false)
+            case .gdockNextQuadPane:
+                return .unbound
             case .gdockQuadPaneWorkspaces:
                 return StoredShortcut(key: "y", command: true, shift: true, option: false, control: false)
             case .splitBrowserRight:

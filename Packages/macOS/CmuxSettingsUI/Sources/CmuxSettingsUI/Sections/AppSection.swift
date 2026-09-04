@@ -42,6 +42,9 @@ public struct AppSection: View {
     @State private var markdownMaxWidth: DefaultsValueModel<Int>
     @State private var canvasPaneGap: DefaultsValueModel<Int>
     @State private var canvasSnapping: DefaultsValueModel<Bool>
+    @State private var autoSplitRows: DefaultsValueModel<Int>
+    @State private var autoSplitColumns: DefaultsValueModel<Int>
+    @State private var forceAutoSplitter: DefaultsValueModel<Bool>
     @State private var fileEditorWordWrap: DefaultsValueModel<Bool>
     @State private var iMessage: DefaultsValueModel<Bool>
     @State private var reorder: DefaultsValueModel<Bool>
@@ -96,6 +99,9 @@ public struct AppSection: View {
         _markdownMaxWidth = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.markdown.maxWidth))
         _canvasPaneGap = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.canvas.paneGap))
         _canvasSnapping = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.canvas.snappingEnabled))
+        _autoSplitRows = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.gdock.autoSplitRows))
+        _autoSplitColumns = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.gdock.autoSplitColumns))
+        _forceAutoSplitter = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.gdock.forceAutoSplitter))
         _fileEditorWordWrap = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.fileEditor.wordWrap))
         _iMessage = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.app.iMessageMode))
         _reorder = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.app.reorderOnNotification))
@@ -140,7 +146,7 @@ public struct AppSection: View {
             mainCard
         }
         .task {
-            startSettingsObservation([language, appearance, appIcon, placement, inheritDir, minimalMode, keepWorkspaceOpen, firstClick, focusHistoryIncludesPanesAndTabs, fileDrop, preferredEditor, openSupported, openMarkdown, globalFontMagnification, markdownFontSize, markdownFontFamily, markdownMaxWidth, canvasPaneGap, canvasSnapping, fileEditorWordWrap, iMessage, reorder, dockBadge, menuBarOnly, showInMenuBar, paneRing, paneFlash, desktopNotifications, agentPermissionPrompt, agentTurnComplete, agentIdleReminder, soundName, soundCommand, customSoundFile, telemetry, confirmQuit, warnCloseTab, warnCloseX, hideCloseButton, renameSelects, paletteAllSurfaces])
+            startSettingsObservation([language, appearance, appIcon, placement, inheritDir, minimalMode, keepWorkspaceOpen, firstClick, focusHistoryIncludesPanesAndTabs, fileDrop, preferredEditor, openSupported, openMarkdown, globalFontMagnification, markdownFontSize, markdownFontFamily, markdownMaxWidth, canvasPaneGap, canvasSnapping, autoSplitRows, autoSplitColumns, forceAutoSplitter, fileEditorWordWrap, iMessage, reorder, dockBadge, menuBarOnly, showInMenuBar, paneRing, paneFlash, desktopNotifications, agentPermissionPrompt, agentTurnComplete, agentIdleReminder, soundName, soundCommand, customSoundFile, telemetry, confirmQuit, warnCloseTab, warnCloseX, hideCloseButton, renameSelects, paletteAllSurfaces])
             if languageAtAppear == nil { languageAtAppear = language.current }; if telemetryAtAppear == nil { telemetryAtAppear = telemetry.current }
         }
     }
@@ -481,6 +487,68 @@ public struct AppSection: View {
                     .labelsHidden()
                     .controlSize(.small)
                     .accessibilityIdentifier("SettingsCanvasSnappingToggle")
+            }
+            SettingsCardDivider()
+
+            SettingsCardRow(
+                configurationReview: .json("gdock.autoSplitRows"),
+                String(localized: "settings.gdock.autoSplitRows", defaultValue: "Auto Split Rows"),
+                subtitle: String(localized: "settings.gdock.autoSplitRows.subtitle", defaultValue: "Row count for Auto Split (Cmd+Y). Values outside 1–6 are clamped."),
+                controlWidth: Self.columnWidth
+            ) {
+                Stepper(
+                    value: Binding(
+                        get: { autoSplitRows.current },
+                        set: { autoSplitRows.set(min(max($0, 1), 6)) }
+                    ),
+                    in: 1...6
+                ) {
+                    Text(verbatim: "\(autoSplitRows.current)")
+                        .monospacedDigit()
+                        .frame(width: 28, alignment: .trailing)
+                }
+                .controlSize(.small)
+                .accessibilityIdentifier("SettingsAutoSplitRowsStepper")
+                .accessibilityLabel(
+                    String(localized: "settings.gdock.autoSplitRows", defaultValue: "Auto Split Rows")
+                )
+            }
+            SettingsCardDivider()
+
+            SettingsCardRow(
+                configurationReview: .json("gdock.autoSplitColumns"),
+                String(localized: "settings.gdock.autoSplitColumns", defaultValue: "Auto Split Columns"),
+                subtitle: String(localized: "settings.gdock.autoSplitColumns.subtitle", defaultValue: "Column count for Auto Split (Cmd+Y). Values outside 1–6 are clamped."),
+                controlWidth: Self.columnWidth
+            ) {
+                Stepper(
+                    value: Binding(
+                        get: { autoSplitColumns.current },
+                        set: { autoSplitColumns.set(min(max($0, 1), 6)) }
+                    ),
+                    in: 1...6
+                ) {
+                    Text(verbatim: "\(autoSplitColumns.current)")
+                        .monospacedDigit()
+                        .frame(width: 28, alignment: .trailing)
+                }
+                .controlSize(.small)
+                .accessibilityIdentifier("SettingsAutoSplitColumnsStepper")
+                .accessibilityLabel(
+                    String(localized: "settings.gdock.autoSplitColumns", defaultValue: "Auto Split Columns")
+                )
+            }
+            SettingsCardDivider()
+
+            SettingsCardRow(
+                configurationReview: .json("gdock.forceAutoSplitter"),
+                String(localized: "settings.gdock.forceAutoSplitter", defaultValue: "Force Auto Splitter"),
+                subtitle: String(localized: "settings.gdock.forceAutoSplitter.subtitle", defaultValue: "Replace the last Split Quad tab-bar button with Auto Split using the configured rows and columns.")
+            ) {
+                Toggle("", isOn: Binding(get: { forceAutoSplitter.current }, set: { forceAutoSplitter.set($0) }))
+                    .labelsHidden()
+                    .controlSize(.small)
+                    .accessibilityIdentifier("SettingsForceAutoSplitterToggle")
             }
             SettingsCardDivider()
 

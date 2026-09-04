@@ -3681,7 +3681,7 @@ final class Workspace: Identifiable, ObservableObject, FilePreviewTabMetadataHos
         surfaceTabBarButtonSourcePath = sourcePath
         surfaceTabBarButtonGlobalConfigPath = globalConfigPath
 
-        let bonsplitButtons = buttons.map { button in
+        let bonsplitButtons = AutoSplitAction.presentSplitButtons(buttons.map { button in
             let executable = executableButtons[button.id]
             let allowProjectLocalIcon = executable.map {
                 CmuxConfigExecutor.isTrustedSurfaceButton(
@@ -3697,7 +3697,7 @@ final class Workspace: Identifiable, ObservableObject, FilePreviewTabMetadataHos
                 globalConfigPath: globalConfigPath,
                 allowProjectLocalIcon: allowProjectLocalIcon
             )
-        }
+        })
         var configuration = bonsplitController.configuration
         guard configuration.appearance.splitButtons != bonsplitButtons else { return }
         configuration.appearance.splitButtons = bonsplitButtons
@@ -13310,7 +13310,11 @@ extension Workspace: BonsplitDelegate {
             case .newSimulator:
                 _ = newSimulatorSurface(inPane: pane, focus: true)
             case .splitQuad:
-                _ = QuadSplitAction.perform(inPane: pane, workspace: self)
+                _ = AutoSplitAction.performForSplitQuadIdentifier(
+                    CmuxSurfaceTabBarBuiltInAction.splitQuad.configID,
+                    inPane: pane,
+                    workspace: self
+                )
             case .newTerminal, .newBrowser, .splitRight, .splitDown:
                 break
             }
@@ -13421,10 +13425,10 @@ extension Workspace: BonsplitDelegate {
         // Split Quad uses bonsplit `.custom("cmux.splitQuad")` (D-5). Built-ins with a
         // non-nil bonsplitAction are not registered in surfaceTabBarCommandButtons, so
         // route the shared action here before the executable-button lookup.
-        if identifier == QuadSplitAction.customActionIdentifier
-            || identifier == "splitQuad"
-            || CmuxSurfaceTabBarBuiltInAction(configID: identifier) == .splitQuad {
-            _ = QuadSplitAction.perform(inPane: pane, workspace: self)
+        if AutoSplitAction.performForSplitQuadIdentifier(identifier, inPane: pane, workspace: self) {
+            return
+        }
+        if AutoSplitAction.isSplitQuadIdentifier(identifier) {
             return
         }
         executeSurfaceTabBarCommandButton(identifier: identifier, inPane: pane)

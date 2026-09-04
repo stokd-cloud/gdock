@@ -121,5 +121,26 @@ public struct GdockCatalogSection: SettingCatalogSection {
         userDefaultsKey: "gdock.workPanel.detailHeight"
     )
 
+    /// Row count for the Auto Split action. Runtime clamps to `1...6`.
+    public let autoSplitRows = DefaultsKey<Int>(
+        id: "gdock.autoSplitRows",
+        defaultValue: 2,
+        userDefaultsKey: "gdock.autoSplitRows"
+    )
+
+    /// Column count for the Auto Split action. Runtime clamps to `1...6`.
+    public let autoSplitColumns = DefaultsKey<Int>(
+        id: "gdock.autoSplitColumns",
+        defaultValue: 2,
+        userDefaultsKey: "gdock.autoSplitColumns"
+    )
+
+    /// When enabled, the last split-tab-bar button becomes Auto Split.
+    public let forceAutoSplitter = DefaultsKey<Bool>(
+        id: "gdock.forceAutoSplitter",
+        defaultValue: false,
+        userDefaultsKey: "gdock.forceAutoSplitter"
+    )
+
     public init() {}
 }

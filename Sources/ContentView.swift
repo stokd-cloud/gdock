@@ -8225,6 +8225,15 @@ struct ContentView: View {
         )
         contributions.append(
             CommandPaletteCommandContribution(
+                commandId: GdockAutoSplitterSettings.autoSplitCommandId,
+                title: constant(String(localized: "command.gdock.autoSplit.title", defaultValue: "Auto Split")),
+                subtitle: constant(String(localized: "command.terminalSplitRight.subtitle", defaultValue: "Terminal Layout")),
+                keywords: ["terminal", "split", "auto", "grid", "rows", "columns", "gdock"],
+                when: { $0.bool(CommandPaletteContextKeys.panelIsTerminal) }
+            )
+        )
+        contributions.append(
+            CommandPaletteCommandContribution(
                 commandId: "palette.forkAgentConversationRight",
                 title: constant(String(localized: "command.forkAgentConversationRight.title", defaultValue: "Fork Conversation to the Right")),
                 subtitle: terminalPanelSubtitle,
@@ -9181,6 +9190,15 @@ struct ContentView: View {
                 ?? AppDelegate.shared?.mainWindow(for: windowId)
                 ?? NSApp.mainWindow
             _ = QuadSplitAdapters.performSharedFocusPath(
+                preferredWindow: preferredWindow,
+                tabManager: tabManager
+            )
+        }
+        registry.register(commandId: GdockAutoSplitterSettings.autoSplitCommandId) {
+            let preferredWindow = NSApp.keyWindow
+                ?? AppDelegate.shared?.mainWindow(for: windowId)
+                ?? NSApp.mainWindow
+            _ = QuadSplitAdapters.performAutoSplitSharedFocusPath(
                 preferredWindow: preferredWindow,
                 tabManager: tabManager
             )

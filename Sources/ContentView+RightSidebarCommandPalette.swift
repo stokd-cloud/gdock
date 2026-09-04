@@ -79,6 +79,8 @@ extension ContentView {
             return .splitDown
         case "palette.terminalSplitQuad":
             return .splitQuad
+        case "palette.gdock.autoSplit":
+            return .autoSplit
         case "palette.findInDirectory":
             return .findInDirectory
         case "palette.terminalFind":
