@@ -1200,9 +1200,11 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		GDOCKGRID00000000000014 /* GdockGridModeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000013 /* GdockGridModeButton.swift */; };
 		GDOCKGRID00000000000006 /* GdockGridModeSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000005 /* GdockGridModeSettings.swift */; };
 		GDOCKGRID00000000000002 /* GdockGridModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000001 /* GdockGridModeTests.swift */; };
+		GDOCKGRID00000000000016 /* GdockGridNewSurfacePlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000015 /* GdockGridNewSurfacePlanner.swift */; };
 		GDOCKGRID00000000000004 /* GdockGridShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000003 /* GdockGridShape.swift */; };
 		GDOCKGRID00000000000010 /* GdockGridSplitAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000009 /* GdockGridSplitAction.swift */; };
 		GDOCKGRID00000000000008 /* GdockGridSplitPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000007 /* GdockGridSplitPlanner.swift */; };
+		GDOCKGRID00000000000018 /* GdockGridWorkspaceCompactionPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000017 /* GdockGridWorkspaceCompactionPlanner.swift */; };
 		GDOCKPIP000000000000004 /* GdockPipFloatingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPIP000000000000003 /* GdockPipFloatingWindowController.swift */; };
 		GDOCKPIP000000000000002 /* GdockPipFloatingWindowPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPIP000000000000001 /* GdockPipFloatingWindowPolicy.swift */; };
 		GDOCKPIP000000000000006 /* GdockPipFloatingWindowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPIP000000000000005 /* GdockPipFloatingWindowTests.swift */; };
@@ -4168,9 +4170,11 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		GDOCKGRID00000000000013 /* GdockGridModeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridModeButton.swift; sourceTree = "<group>"; };
 		GDOCKGRID00000000000005 /* GdockGridModeSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridModeSettings.swift; sourceTree = "<group>"; };
 		GDOCKGRID00000000000001 /* GdockGridModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridModeTests.swift; sourceTree = "<group>"; };
+		GDOCKGRID00000000000015 /* GdockGridNewSurfacePlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridNewSurfacePlanner.swift; sourceTree = "<group>"; };
 		GDOCKGRID00000000000003 /* GdockGridShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridShape.swift; sourceTree = "<group>"; };
 		GDOCKGRID00000000000009 /* GdockGridSplitAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridSplitAction.swift; sourceTree = "<group>"; };
 		GDOCKGRID00000000000007 /* GdockGridSplitPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridSplitPlanner.swift; sourceTree = "<group>"; };
+		GDOCKGRID00000000000017 /* GdockGridWorkspaceCompactionPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridWorkspaceCompactionPlanner.swift; sourceTree = "<group>"; };
 		GDOCKPIP000000000000003 /* GdockPipFloatingWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPipFloatingWindowController.swift; sourceTree = "<group>"; };
 		GDOCKPIP000000000000001 /* GdockPipFloatingWindowPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPipFloatingWindowPolicy.swift; sourceTree = "<group>"; };
 		GDOCKPIP000000000000005 /* GdockPipFloatingWindowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPipFloatingWindowTests.swift; sourceTree = "<group>"; };
@@ -6848,6 +6852,8 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 				GDOCKGRID00000000000009 /* GdockGridSplitAction.swift */,
 				GDOCKGRID00000000000011 /* TabManager+GdockGridMode.swift */,
 				GDOCKGRID00000000000013 /* GdockGridModeButton.swift */,
+				GDOCKGRID00000000000015 /* GdockGridNewSurfacePlanner.swift */,
+				GDOCKGRID00000000000017 /* GdockGridWorkspaceCompactionPlanner.swift */,
 				01BAA63BCC864AB59E2E8A8D /* QuadSplitAction.swift */,
 				E2167180241244A596651E6D /* QuadSplitPlanner.swift */,
 				E30750000000000000000001 /* WorkspaceTabColorResolution.swift */,
@@ -10193,9 +10199,11 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				GDOCKCYCA000000000000002 /* GdockCycleRing.swift in Sources */,
 				GDOCKGRID00000000000014 /* GdockGridModeButton.swift in Sources */,
 				GDOCKGRID00000000000006 /* GdockGridModeSettings.swift in Sources */,
+				GDOCKGRID00000000000016 /* GdockGridNewSurfacePlanner.swift in Sources */,
 				GDOCKGRID00000000000004 /* GdockGridShape.swift in Sources */,
 				GDOCKGRID00000000000010 /* GdockGridSplitAction.swift in Sources */,
 				GDOCKGRID00000000000008 /* GdockGridSplitPlanner.swift in Sources */,
+				GDOCKGRID00000000000018 /* GdockGridWorkspaceCompactionPlanner.swift in Sources */,
 				GDOCKPIP000000000000004 /* GdockPipFloatingWindowController.swift in Sources */,
 				GDOCKPIP000000000000002 /* GdockPipFloatingWindowPolicy.swift in Sources */,
 				GDOCKPRHS000000000000004 /* GdockPromptHistoryCollector.swift in Sources */,

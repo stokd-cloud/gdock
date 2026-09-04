@@ -474,3 +474,37 @@ private struct StokdModelConfigurationStateView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
+
+/// Trailing workspace-titlebar launchers for the Stokd model and workload
+/// configuration modal. These occupy the slot the Grid Mode button used to.
+struct GdockModelConfigurationTitlebarButtons: View {
+    let directory: String
+    @State private var request: StokdModelConfigurationModalRequest?
+
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(StokdModelConfigurationLaunchBar.actions) { action in
+                Button {
+                    request = StokdModelConfigurationModalRequest(initialTab: action.initialTab)
+                } label: {
+                    Image(systemName: action.symbolName)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(Color(nsColor: .secondaryLabelColor))
+                        .frame(width: 20, height: 20)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .titlebarInteractiveControl()
+                .safeHelp(action.title)
+                .accessibilityLabel(action.title)
+                .accessibilityIdentifier("RightSidebar.\(action.id)")
+            }
+        }
+        .sheet(item: $request) { item in
+            StokdModelConfigurationModalView(
+                initialTab: item.initialTab,
+                directory: directory
+            )
+        }
+    }
+}

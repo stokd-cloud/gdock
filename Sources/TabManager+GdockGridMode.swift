@@ -21,7 +21,8 @@ extension TabManager {
     /// Workspaces the shape apply vetoes (canvas, remote) are left alone.
     /// Overflow surfaces spill into new workspaces — created in the source
     /// workspace's group when it has one — which are themselves shaped, so a
-    /// shrink never hides or closes a running terminal.
+    /// shrink never hides or closes a running terminal. After shaping, real
+    /// panels are packed into the fewest workspaces that can hold them.
     func reconcileGdockGridModeNow() {
         guard GdockGridModeSettings.isEnabled() else { return }
         let shape = GdockGridModeSettings.shape()
@@ -35,6 +36,7 @@ extension TabManager {
                 pending.append(spill)
             }
         }
+        compactGdockGridWorkspaces(shape: shape)
     }
 
     /// Applies `shape` to one workspace and relocates its overflow surfaces
@@ -93,7 +95,8 @@ extension TabManager {
     // MARK: - Cmd+T routing
 
     /// Grid Mode's Cmd+T: fill the next unactivated cell of the selected
-    /// workspace, or create a new (shaped) workspace when the grid is full.
+    /// workspace, or roll the least-recently-touched real panel into another
+    /// workspace when the grid is full.
     ///
     /// Returns `false` when the mode is off or the workspace vetoes shaping
     /// (canvas, remote), in which case the legacy new-surface path runs.
@@ -104,32 +107,139 @@ extension TabManager {
             return false
         }
 
-        for paneUUID in workspace.spatiallyOrderedPaneIds {
-            let paneId = PaneID(id: paneUUID)
-            guard let tab = workspace.bonsplitController.selectedTab(inPane: paneId)
-                ?? workspace.bonsplitController.tabs(inPane: paneId).first,
-                let panelId = workspace.panelIdFromSurfaceId(tab.id),
-                workspace.isGdockGridPlaceholder(panelId: panelId) else {
-                continue
-            }
+        let orderedPanelIds = gdockGridOrderedPanelIds(in: workspace)
+        let route = GdockGridNewSurfacePlanner.route(
+            orderedPanelIds: orderedPanelIds,
+            placeholderPanelIds: Array(workspace.gdockGridPlaceholderPanelIds),
+            touchOrder: gdockGridPanelTouchOrder
+        )
+
+        switch route {
+        case .activatePlaceholder(let panelId):
+            guard let paneId = workspace.paneId(forPanelId: panelId) else { return false }
             workspace.clearSplitZoom()
             workspace.bonsplitController.focusPane(paneId)
             workspace.focusPanel(panelId)
             workspace.activateGdockGridPlaceholderIfNeeded(panelId: panelId)
+            noteGdockGridPanelTouch(panelId)
             return true
-        }
 
-        // Every cell is occupied: navigate to a fresh workspace instead of
-        // hiding a surface behind a tab.
-        let shape = GdockGridModeSettings.shape()
-        let created: Workspace?
-        if let groupId = workspace.groupId {
-            created = createWorkspaceInGroup(groupId: groupId, select: true)
-        } else {
-            created = addWorkspace(select: true)
+        case .rollOver(let panelId):
+            return gdockGridRollOver(panelId: panelId, in: workspace)
         }
-        guard let created else { return false }
-        _ = applyGdockGridShapeAndSpill(shape, to: created)
+    }
+
+    func noteGdockGridPanelTouch(_ panelId: UUID) {
+        gdockGridPanelTouchSeq += 1
+        gdockGridPanelTouchOrder[panelId] = gdockGridPanelTouchSeq
+    }
+
+    private func gdockGridOrderedPanelIds(in workspace: Workspace) -> [UUID] {
+        workspace.spatiallyOrderedPaneIds.compactMap { paneUUID in
+            let paneId = PaneID(id: paneUUID)
+            guard let tab = workspace.bonsplitController.selectedTab(inPane: paneId)
+                ?? workspace.bonsplitController.tabs(inPane: paneId).first else {
+                return nil
+            }
+            return workspace.panelIdFromSurfaceId(tab.id)
+        }
+    }
+
+    /// Creates a clean terminal in the LRU cell, moves the LRU panel into a
+    /// same-scope workspace (existing with room, or a new one that already
+    /// holds that real panel), then packs the scope.
+    private func gdockGridRollOver(panelId: UUID, in workspace: Workspace) -> Bool {
+        guard let paneId = workspace.paneId(forPanelId: panelId),
+              let appDelegate = AppDelegate.shared else {
+            return false
+        }
+        workspace.clearSplitZoom()
+        workspace.bonsplitController.focusPane(paneId)
+        let replacement = workspace.newTerminalSurface(
+            inPane: paneId,
+            focus: true,
+            inheritWorkingDirectoryFallback: true
+        )
+        guard let replacement else { return false }
+
+        let destination = gdockGridRolloverDestination(from: workspace)
+        _ = appDelegate.moveSurface(
+            panelId: panelId,
+            toWorkspace: destination.id,
+            focus: false,
+            focusWindow: false
+        )
+        let shape = GdockGridModeSettings.shape()
+        _ = applyGdockGridShapeAndSpill(shape, to: destination)
+        compactGdockGridWorkspaces(shape: shape)
+
+        if let pane = workspace.paneId(forPanelId: replacement.id) {
+            workspace.bonsplitController.focusPane(pane)
+        }
+        workspace.focusPanel(replacement.id)
+        noteGdockGridPanelTouch(replacement.id)
+        if selectedTabId != workspace.id {
+            selectTab(workspace)
+        }
         return true
+    }
+
+    private func gdockGridRolloverDestination(from workspace: Workspace) -> Workspace {
+        let sameScope = tabs.filter { other in
+            other.id != workspace.id
+                && other.groupId == workspace.groupId
+                && GdockGridSplitAction.preflight(workspace: other) == nil
+        }
+        if let existing = sameScope.first(where: { !$0.gdockGridPlaceholderPanelIds.isEmpty }) {
+            return existing
+        }
+        if let groupId = workspace.groupId,
+           let created = createWorkspaceInGroup(groupId: groupId, select: false) {
+            return created
+        }
+        return addWorkspace(select: false)
+    }
+
+    private func compactGdockGridWorkspaces(shape: GdockGridShape) {
+        let capacity = shape.cellCount
+        let eligible = tabs.filter { GdockGridSplitAction.preflight(workspace: $0) == nil }
+        let snapshots = eligible.map { workspace in
+            GdockGridWorkspaceCompactionPlanner.WorkspaceSnapshot(
+                id: workspace.id,
+                groupId: workspace.groupId,
+                panelIds: gdockGridOrderedPanelIds(in: workspace),
+                placeholderPanelIds: Array(workspace.gdockGridPlaceholderPanelIds)
+            )
+        }
+        let plan = GdockGridWorkspaceCompactionPlanner.plan(
+            workspaces: snapshots,
+            capacity: capacity,
+            groupByRepository: GdockAutoWorkspaceGroupModeSettings.isEnabled()
+        )
+        guard let appDelegate = AppDelegate.shared else { return }
+        let workspaceById = Dictionary(uniqueKeysWithValues: tabs.map { ($0.id, $0) })
+
+        for scope in plan.scopes {
+            for assignment in scope.panelAssignments {
+                guard let destination = workspaceById[assignment.workspaceId] else { continue }
+                for panelId in assignment.panelIds {
+                    guard let source = tabs.first(where: { $0.panels[panelId] != nil }),
+                          source.id != destination.id else {
+                        continue
+                    }
+                    _ = appDelegate.moveSurface(
+                        panelId: panelId,
+                        toWorkspace: destination.id,
+                        focus: false,
+                        focusWindow: false
+                    )
+                }
+                _ = applyGdockGridShapeAndSpill(shape, to: destination)
+            }
+            for surplusId in scope.surplusWorkspaceIds {
+                guard let surplus = workspaceById[surplusId], tabs.count > 1 else { continue }
+                closeWorkspace(surplus, recordHistory: false)
+            }
+        }
     }
 }

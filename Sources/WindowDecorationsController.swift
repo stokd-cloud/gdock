@@ -366,6 +366,9 @@ final class WindowDecorationsController {
             case .focusHistoryForward:
                 guard context.tabManager.canNavigateForward else { return }
                 context.tabManager.navigateForward()
+            case .gdockGrid:
+                guard let anchor = anchorView ?? window.contentView else { return }
+                GdockGridShapePickerPresenter.present(from: anchor)
             }
         }
     }
