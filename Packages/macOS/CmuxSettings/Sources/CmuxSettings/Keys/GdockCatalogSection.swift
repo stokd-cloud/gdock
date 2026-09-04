@@ -73,7 +73,7 @@ public struct GdockCatalogSection: SettingCatalogSection {
     /// Cmd+T fills the next free cell instead of adding a surface tab.
     public let gridMode = DefaultsKey<Bool>(
         id: "gdock.gridMode",
-        defaultValue: false,
+        defaultValue: true,
         userDefaultsKey: "gdock.gridMode"
     )
 

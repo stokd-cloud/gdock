@@ -269,7 +269,7 @@ import CmuxTerminalCore
         let mode = SettingCatalog().gdock.gridMode
         #expect(mode.id == "gdock.gridMode")
         #expect(mode.userDefaultsKey == "gdock.gridMode")
-        #expect(mode.defaultValue == false)
+        #expect(mode.defaultValue == true)
 
         let shape = SettingCatalog().gdock.gridModeShape
         #expect(shape.id == "gdock.gridModeShape")
