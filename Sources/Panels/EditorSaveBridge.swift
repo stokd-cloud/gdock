@@ -111,6 +111,16 @@ final class CmuxEditorSaveRegistry: @unchecked Sendable {
     /// page's serving origin matches the one the capability was minted for
     /// (exact scheme/host/port, so a localhost page on another port that
     /// learned a live token still resolves nothing).
+    /// Live editor registrations for reuse: token plus the file it is editing.
+    /// Used by Files/Find to focus an already-open Monaco panel instead of
+    /// spawning a duplicate `cmux edit`.
+    func liveEditors(now: Date = Date()) -> [(token: String, filePath: String)] {
+        lock.lock()
+        defer { lock.unlock() }
+        entries = entries.filter { isLive($0.value, now: now) }
+        return entries.map { ($0.key, $0.value.fileURL.path) }
+    }
+
     func fileURL(forToken token: String, requestOrigin: String, now: Date = Date()) -> URL? {
         lock.lock()
         defer { lock.unlock() }
