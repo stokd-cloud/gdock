@@ -35,7 +35,7 @@ Also listed in `Agents.md` so every agent session loads it.
 
 ### Feature: Grid Mode
 
-- Settings: `gdock.gridMode` (default off) and `gdock.gridModeShape`
+- Settings: `gdock.gridMode` (default on) and `gdock.gridModeShape`
   (`"<rows>x<cols>"`, default `"2x2"`, clamped to 4×4; remembered across
   restarts).
 - Palette: Enable/Disable **Grid Mode**

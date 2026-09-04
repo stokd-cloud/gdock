@@ -6,9 +6,10 @@ import Foundation
 /// of stokd TUIs — worktree, project, task, todo — all pointed at that repo.
 /// Per `AX-GDOCK-REPO-COMMAND-SURFACE` a hand-named group plans nothing.
 ///
-/// Pure planner: it decides *what* the quadrants should run. Applying the split
-/// itself stays with `QuadSplitAction`, which already owns the flattening
-/// recipe.
+/// Pure planner: it decides *what* the quadrants should run. Applying the
+/// flatten-and-overlay stays with `TabManager.launchGdockRepoGroupQuad`, which
+/// uses `GdockGridSplitAction` so an already-split workspace becomes the TUI
+/// grid rather than nesting a second 2x2 inside one leaf.
 enum GdockRepoGroupQuadPlanner {
     /// Quadrant order is `[topLeft, topRight, bottomLeft, bottomRight]`.
     static let defaultCommands = [
