@@ -100,3 +100,47 @@ import Testing
         #expect(plan?.first?.command == "a")
     }
 }
+
+/// Applying the planned quad must replace the group's anchor workspace, not
+/// nest a 2x2 inside one leaf of an existing split.
+@MainActor
+@Suite struct GdockRepoGroupQuadLaunchTests {
+    private func makeGroupedAnchor() throws -> (TabManager, UUID, Workspace) {
+        let manager = TabManager()
+        let groupId = try #require(manager.createWorkspaceGroup(
+            name: "stokd-cloud/gdock",
+            anchorWorkingDirectory: "/tmp/gdock-repo-group-quad"
+        ))
+        let group = try #require(manager.workspaceGroups.first { $0.id == groupId })
+        let anchor = try #require(manager.tabs.first { $0.id == group.anchorWorkspaceId })
+        anchor.currentDirectory = "/tmp/gdock-repo-group-quad"
+        return (manager, groupId, anchor)
+    }
+
+    @Test func launchOnAlreadySplitWorkspaceProducesFlatQuadNotNestedLeaf() throws {
+        let (manager, groupId, anchor) = try makeGroupedAnchor()
+        let rootPane = try #require(anchor.bonsplitController.allPaneIds.first)
+        #expect(QuadSplitAction.perform(inPane: rootPane, workspace: anchor))
+        #expect(anchor.bonsplitController.allPaneIds.count == 4)
+        #expect(GdockGridSplitAction.matchesShape(.quad, workspace: anchor))
+
+        #expect(manager.launchGdockRepoGroupQuad(groupId: groupId))
+
+        #expect(anchor.bonsplitController.allPaneIds.count == 4)
+        #expect(GdockGridSplitAction.matchesShape(.quad, workspace: anchor))
+        for paneId in anchor.bonsplitController.allPaneIds {
+            #expect(anchor.bonsplitController.tabs(inPane: paneId).count == 1)
+        }
+    }
+
+    @Test func relaunchOfAlreadyDealtQuadDoesNotAddPanes() throws {
+        let (manager, groupId, anchor) = try makeGroupedAnchor()
+
+        #expect(manager.launchGdockRepoGroupQuad(groupId: groupId))
+        #expect(anchor.bonsplitController.allPaneIds.count == 4)
+
+        #expect(!manager.launchGdockRepoGroupQuad(groupId: groupId))
+        #expect(anchor.bonsplitController.allPaneIds.count == 4)
+        #expect(GdockGridSplitAction.matchesShape(.quad, workspace: anchor))
+    }
+}
