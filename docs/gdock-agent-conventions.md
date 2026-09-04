@@ -43,16 +43,22 @@ Also listed in `Agents.md` so every agent session loads it.
 - Shortcuts: **Create Next Quad Pane** (`gdock.nextQuadPane`, default
   `Cmd+Y`) and **Create Quad Pane Workspaces**
   (`gdock.quadPaneWorkspaces`, default `Cmd+Shift+Y`).
-- Titlebar: a grid-shape picker button (trailing edge of the workspace
-  titlebar) renders while the mode is on; picking a shape re-shapes every
-  workspace (`GdockGridSplitAction` + `TabManager+GdockGridMode`).
+- Titlebar: a grid-shape picker button sits immediately after Focus Forward
+  in the left workspace control strip. Picking a shape enables Grid Mode if
+  it was off and re-shapes every workspace (`GdockGridSplitAction` +
+  `TabManager+GdockGridMode`). The trailing workspace titlebar hosts the
+  Model Configuration and Workload Configuration launchers.
 - When on: every workspace is kept in the enforced grid. Cells with no
   surface hold **unactivated placeholder terminals**
   (`heldForStartupRestoreAdmission` — no PTY until the cell is focused).
   Cmd+T fills the next unactivated cell; when every cell is occupied it
-  creates a new shaped workspace (in the same workspace group, when any)
-  and navigates there. Shrinking the shape spills surplus surfaces into a
-  new workspace — Grid Mode never hides a surface behind another.
+  rolls the least-recently-touched real panel into a same-scope workspace
+  and creates a clean panel in the vacated cell. Real panels pack into the
+  fewest workspaces that can hold them (overall, or per repository group
+  when Auto Workspace Group Mode is on). A workspace of only unstarted
+  placeholders is never retained. Shrinking the shape spills surplus
+  surfaces into another workspace — Grid Mode never hides a surface behind
+  another.
 
 ### Feature: Stokd Work panel (right sidebar)
 

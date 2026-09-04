@@ -22,6 +22,8 @@ struct RightSidebarDockPresentationTests {
         defaults.set(true, forKey: RightSidebarDockPresentationSettings.userDefaultsKey)
         #expect(RightSidebarDockPresentationSettings.isStackedTabsEnabled(defaults: defaults))
         #expect(RightSidebarDockPresentationPolicy.usesStackedTabs(stackedTabsEnabled: true))
+        #expect(RightSidebarDockPresentationPolicy.hidesModeBar(stackedTabsEnabled: true))
+        #expect(!RightSidebarDockPresentationPolicy.hidesModeBar(stackedTabsEnabled: false))
     }
 
     @Test func allSidebarToolsIncludingWorkAreStackable() {

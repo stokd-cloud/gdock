@@ -1,14 +1,43 @@
+import AppKit
 import SwiftUI
 
-/// Titlebar button for gdock Grid Mode: shows the enforced shape and opens
-/// the grid-size picker popover. Mounted in the workspace titlebar's trailing
-/// region and rendered only while `gdock.gridMode` is enabled.
+/// Presents the Grid Mode shape picker from an AppKit anchor (minimal-mode
+/// click proxy and other non-SwiftUI titlebar lanes).
+enum GdockGridShapePickerPresenter {
+    @MainActor
+    private static var presented: NSPopover?
+
+    @MainActor
+    static func present(from anchorView: NSView) {
+        presented?.performClose(nil)
+        let popover = NSPopover()
+        popover.behavior = .transient
+        let shape = GdockGridModeSettings.shape()
+        let host = NSHostingController(
+            rootView: GdockGridShapeSelectorView(initialShape: shape) { selected in
+                GdockGridModeSettings.setShape(selected)
+                if !GdockGridModeSettings.isEnabled() {
+                    GdockGridModeSettings.setEnabled(true)
+                }
+                popover.performClose(nil)
+            }
+        )
+        popover.contentViewController = host
+        popover.contentSize = NSSize(width: 220, height: 200)
+        presented = popover
+        popover.show(relativeTo: anchorView.bounds, of: anchorView, preferredEdge: .minY)
+    }
+}
+
+/// Titlebar button for gdock Grid Mode: sits immediately after Focus Forward
+/// in the left control strip and opens the grid-size picker.
 ///
 /// Native SwiftUI `.popover` is safe here (no first-responder text field),
 /// matching `ShortcutDiscoveryButton`.
 struct GdockGridModeTitlebarButton: View {
-    @AppStorage(GdockGridModeSettings.userDefaultsKey)
-    private var gridModeEnabled = GdockGridModeSettings.defaultEnabled
+    let titlebarConfig: TitlebarControlsStyleConfig
+    let foregroundColor: Color
+
     @AppStorage(GdockGridModeSettings.shapeUserDefaultsKey)
     private var shapeRaw = GdockGridModeSettings.shapeCatalogKey.defaultValue
 
@@ -24,33 +53,29 @@ struct GdockGridModeTitlebarButton: View {
     )
 
     var body: some View {
-        if gridModeEnabled {
-            Button {
-                isPopoverPresented.toggle()
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "square.grid.2x2")
-                        .font(.system(size: 11, weight: .medium))
-                    Text(shape.displayText)
-                        .cmuxFont(size: 11, weight: .semibold)
-                }
-                .foregroundColor(Color(nsColor: .secondaryLabelColor))
-                .padding(.horizontal, 6)
-                .padding(.vertical, 3)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .popover(isPresented: $isPopoverPresented, arrowEdge: .bottom) {
-                GdockGridShapeSelectorView(initialShape: shape) { selected in
-                    isPopoverPresented = false
-                    GdockGridModeSettings.setShape(selected)
-                }
-            }
-            .titlebarInteractiveControl()
-            .safeHelp(helpText)
-            .accessibilityLabel(helpText)
-            .accessibilityIdentifier("GdockGridModeTitlebarButton")
+        TitlebarControlButton(
+            config: titlebarConfig,
+            foregroundColor: foregroundColor,
+            accessibilityIdentifier: "GdockGridModeTitlebarButton",
+            accessibilityLabel: helpText,
+            action: { isPopoverPresented.toggle() }
+        ) {
+            CmuxSystemSymbolImage(
+                systemName: "square.grid.2x2",
+                pointSize: titlebarConfig.iconSize,
+                weight: HeaderChromeIconStyle.weight
+            )
         }
+        .popover(isPresented: $isPopoverPresented, arrowEdge: .bottom) {
+            GdockGridShapeSelectorView(initialShape: shape) { selected in
+                isPopoverPresented = false
+                GdockGridModeSettings.setShape(selected)
+                if !GdockGridModeSettings.isEnabled() {
+                    GdockGridModeSettings.setEnabled(true)
+                }
+            }
+        }
+        .safeHelp(helpText)
     }
 }
 

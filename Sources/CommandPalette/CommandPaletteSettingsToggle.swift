@@ -873,17 +873,6 @@ enum CommandPaletteSettingsToggleCommands {
                 defaultsKey: RightSidebarBetaFeatureSettings.dockEnabledKey
             ),
             CommandPaletteSettingToggleDescriptor(
-                commandId: commandIdPrefix + "sidebarDock",
-                settingsKey: "betaFeatures.sidebarDock",
-                title: {
-                    String(localized: "settings.betaFeatures.sidebarDock", defaultValue: "Sidebar Dock Spaces")
-                },
-                sectionTitle: beta,
-                keywords: ["betaFeatures.sidebarDock", "sidebar.beta.dock.enabled", "sidebar", "dock", "spaces", "rails", "sections", "beta"],
-                defaultValue: RightSidebarBetaFeatureSettings.defaultSidebarDockEnabled,
-                defaultsKey: RightSidebarBetaFeatureSettings.sidebarDockEnabledKey
-            ),
-            CommandPaletteSettingToggleDescriptor(
                 commandId: commandIdPrefix + "claudeCodeIntegration",
                 settingsKey: "automation.claudeCodeIntegration",
                 title: {

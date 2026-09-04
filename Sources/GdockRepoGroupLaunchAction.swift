@@ -24,6 +24,14 @@ enum GdockRepoGroupLaunchAction {
             }
         }
 
+        /// Bundled brand-mark asset used by the header glyph.
+        var iconAssetName: String {
+            switch self {
+            case .gitHub: return "GitHubLogo"
+            case .stokdRepoDetail: return "SelfactorLogo"
+            }
+        }
+
         var accessibilityLabel: String {
             switch self {
             case .gitHub:

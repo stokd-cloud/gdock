@@ -124,18 +124,51 @@ struct RightSidebarSectionLayout: Equatable, Sendable {
         return heights
     }
 
-    /// Drags the separator above `index`, moving space between it and the
-    /// expanded section above. No-op when either neighbour is collapsed.
+    /// Inserts any missing stackable modes and drops modes that are no longer
+    /// stackable, preserving order, collapse, and weights of sections that stay.
+    mutating func reconcileStackableModes(_ modes: [RightSidebarMode]) {
+        let allowed = Set(modes)
+        sections.removeAll { !allowed.contains($0.mode) }
+        for mode in modes where !contains(mode) {
+            insert(mode, at: sections.count)
+        }
+    }
+
+    /// Moves the section at `index`, or the collapsed run it starts, to `destination`.
+    mutating func moveBlock(startingAt index: Int, to destination: Int) {
+        guard sections.indices.contains(index) else { return }
+        var end = index
+        if sections[index].isCollapsed {
+            while end + 1 < sections.count, sections[end + 1].isCollapsed {
+                end += 1
+            }
+        }
+        let block = Array(sections[index...end])
+        sections.removeSubrange(index...end)
+        var dest = destination
+        if dest > index {
+            dest -= block.count
+        }
+        dest = max(0, min(dest, sections.count))
+        sections.insert(contentsOf: block, at: dest)
+    }
+
+    /// Drags the top of `sections[index]`.
+    ///
+    /// Valid only when the immediately preceding section is expanded. A
+    /// collapsed run moves as one block against the next expanded section.
+    /// Dragging an internal collapsed boundary is a no-op.
     mutating func resize(dividerAbove index: Int, by delta: CGFloat, totalHeight: CGFloat) {
         guard index > 0, index < sections.count else { return }
-        guard let above = sections[..<index].lastIndex(where: { !$0.isCollapsed }),
-              !sections[index].isCollapsed else {
+        guard !sections[index - 1].isCollapsed else { return }
+        guard let below = sections[index...].firstIndex(where: { !$0.isCollapsed }) else {
             return
         }
+        let above = index - 1
 
         let heights = resolvedHeights(totalHeight: totalHeight)
         let aboveContent = heights[above] - Self.headerHeight
-        let belowContent = heights[index] - Self.headerHeight
+        let belowContent = heights[below] - Self.headerHeight
 
         // Clamp so neither neighbour is driven under its minimum.
         let lowerBound = -(aboveContent - Self.minContentHeight)
@@ -148,11 +181,11 @@ struct RightSidebarSectionLayout: Equatable, Sendable {
         guard newAbove > 0, newBelow > 0 else { return }
 
         // Re-express as weights, preserving the pair's combined weight.
-        let pairWeight = sections[above].weight + sections[index].weight
+        let pairWeight = sections[above].weight + sections[below].weight
         let contentTotal = newAbove + newBelow
         guard contentTotal > 0 else { return }
         sections[above].weight = max(pairWeight * (newAbove / contentTotal), 0.0001)
-        sections[index].weight = max(pairWeight * (newBelow / contentTotal), 0.0001)
+        sections[below].weight = max(pairWeight * (newBelow / contentTotal), 0.0001)
     }
 
     /// Insertion index for a drop landing at `y` within a stack `totalHeight`
