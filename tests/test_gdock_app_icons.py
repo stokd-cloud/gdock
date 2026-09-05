@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """AX-GDOCK-ICONS-SOURCE: shipped raster icons match design/gdock-{light,dark}.png.
 
-The canonical sources are 1024x1024 mockups (cube on silver/black squircle, no
-glow). AppIconLight/Dark, AppIcon.appiconset 512@2x(+_dark), and the iOS
-AppIcon/AppIconDark files must be pixel-identical to those sources. Smaller
-sizes must exist at the documented pixel dimensions. Debug 512@2x must keep the
-cube (not the old cmux chevron) under a DEV banner.
+The canonical sources are 1024x1024 mockups (3D isometric cube on a light/dark
+platform, transparent corners, no glow). AppIconLight/Dark, AppIcon.appiconset
+512@2x(+_dark), and the iOS AppIcon/AppIconDark files must be pixel-identical
+to those sources. Smaller sizes must exist at the documented pixel dimensions.
+Debug 512@2x must keep the cube (not the old cmux chevron) under a DEV banner.
 """
 
 from __future__ import annotations
@@ -34,12 +34,11 @@ IOS_ICONSETS = (
     os.path.join(ROOT, "ios", "cmux", "Assets.xcassets", "AppIcon-Demo.appiconset"),
 )
 
-LIGHT_CENTER = (224, 224, 224)
-DARK_CENTER = (31, 31, 31)
-CUBE_LEFT = (5, 207, 255)
-CENTER = (512, 512)
-LEFT_FACE = (300, 512)
-TOLERANCE = 8
+LIGHT_PLATFORM = (242, 240, 243)
+DARK_PLATFORM = (40, 47, 57)
+PLATFORM = (512, 850)
+CUBE_TOP = (512, 100)
+TOLERANCE = 16
 
 SIZES = [
     ("16.png", 16),
@@ -85,50 +84,35 @@ def pixels_equal(a: Image.Image, b: Image.Image, label: str) -> None:
         fail(f"{label}: pixels differ")
 
 
-def luma(pixel: tuple[int, ...]) -> float:
-    return 0.2126 * pixel[0] + 0.7152 * pixel[1] + 0.0722 * pixel[2]
+def is_cube_cyan(pixel: tuple[int, int, int]) -> bool:
+    return pixel[0] <= 120 and pixel[1] >= 180 and pixel[2] >= 220
 
 
-def expect_sharp_top_bevel(img: Image.Image, label: str, min_delta: float = 40.0) -> None:
-    """Adobe-style inner tray: a bright top lip, then a hard well drop."""
-    for y in range(img.size[1]):
-        if img.getpixel((512, y))[3] > 200:
-            samples = [luma(img.getpixel((512, y + k))) for k in range(22)]
-            delta = max(samples[:6]) - min(samples[:22])
-            if delta < min_delta:
-                fail(
-                    f"{label}: top-rim luma delta {delta:.1f} < {min_delta} "
-                    "(smeared bevel, not a hard inner tray)"
-                )
-            return
-    fail(f"{label}: no opaque pixel on x=512")
-
-
-def expect_center(path: str, expected: tuple[int, int, int], label: str) -> Image.Image | None:
+def expect_source(path: str, platform: tuple[int, int, int], label: str) -> Image.Image | None:
     img = load(path)
     if img is None:
         return None
     if img.size != (1024, 1024):
         fail(f"{label}: size {img.size} != (1024, 1024)")
-    actual = rgb(img.getpixel(CENTER))
-    if not close(actual, expected):
-        fail(f"{label}: center {actual} != {expected} (±{TOLERANCE})")
+    if img.getpixel((2, 2))[3] != 0:
+        fail(f"{label}: corner (2,2) must stay transparent")
+    actual_platform = rgb(img.getpixel(PLATFORM))
+    if not close(actual_platform, platform):
+        fail(f"{label}: platform {PLATFORM} {actual_platform} != {platform} (±{TOLERANCE})")
+    actual_cube = rgb(img.getpixel(CUBE_TOP))
+    if not is_cube_cyan(actual_cube):
+        fail(
+            f"{label}: cube-top {CUBE_TOP} {actual_cube} is not cyan "
+            "(R≤120, G≥180, B≥220)"
+        )
     return img
 
 
 def main() -> int:
-    light_src = expect_center(LIGHT_SRC, LIGHT_CENTER, "design/gdock-light.png")
-    dark_src = expect_center(DARK_SRC, DARK_CENTER, "design/gdock-dark.png")
-    if light_src is not None:
-        expect_sharp_top_bevel(light_src, "design/gdock-light.png")
-        if light_src.getpixel((2, 2))[3] != 0:
-            fail("design/gdock-light.png: corner (2,2) must stay transparent")
-    if dark_src is not None:
-        expect_sharp_top_bevel(dark_src, "design/gdock-dark.png")
-        if dark_src.getpixel((2, 2))[3] != 0:
-            fail("design/gdock-dark.png: corner (2,2) must stay transparent")
-    light_set = expect_center(LIGHT_IMAGESET, LIGHT_CENTER, "AppIconLight.png")
-    dark_set = expect_center(DARK_IMAGESET, DARK_CENTER, "AppIconDark.png")
+    light_src = expect_source(LIGHT_SRC, LIGHT_PLATFORM, "design/gdock-light.png")
+    dark_src = expect_source(DARK_SRC, DARK_PLATFORM, "design/gdock-dark.png")
+    light_set = expect_source(LIGHT_IMAGESET, LIGHT_PLATFORM, "AppIconLight.png")
+    dark_set = expect_source(DARK_IMAGESET, DARK_PLATFORM, "AppIconDark.png")
 
     if light_src is not None and light_set is not None:
         pixels_equal(light_src, light_set, "AppIconLight.png vs design/gdock-light.png")
@@ -164,11 +148,11 @@ def main() -> int:
     if debug is not None:
         if debug.size != (1024, 1024):
             fail(f"AppIcon-Debug 512@2x.png: size {debug.size} != (1024, 1024)")
-        face = rgb(debug.getpixel(LEFT_FACE))
-        if not close(face, CUBE_LEFT):
+        face = rgb(debug.getpixel(CUBE_TOP))
+        if not is_cube_cyan(face):
             fail(
-                f"AppIcon-Debug 512@2x.png: left cube face {face} != {CUBE_LEFT} "
-                "(still the old chevron, or not derived from the new light mockup)"
+                f"AppIcon-Debug 512@2x.png: cube-top {CUBE_TOP} {face} is not cyan "
+                "(still the old chevron, or DEV banner covers the cube)"
             )
 
     if FAILURES:
