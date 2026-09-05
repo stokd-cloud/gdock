@@ -53,6 +53,24 @@ final class FileExplorerNSOutlineView: NSOutlineView {
         super.keyDown(with: event)
     }
 
+    @objc func copy(_ sender: Any?) {
+        fileExplorerCoordinator?.copySelectedFiles()
+    }
+
+    @objc func paste(_ sender: Any?) {
+        fileExplorerCoordinator?.pasteFiles()
+    }
+
+    override func validateUserInterfaceItem(_ item: any NSValidatedUserInterfaceItem) -> Bool {
+        if item.action == #selector(copy(_:)) {
+            return fileExplorerCoordinator?.canCopyFiles() ?? false
+        }
+        if item.action == #selector(paste(_:)) {
+            return fileExplorerCoordinator?.canPasteFiles() ?? false
+        }
+        return super.validateUserInterfaceItem(item)
+    }
+
     override func performKeyEquivalent(with event: NSEvent) -> Bool {
         if quickSearchActive,
            RightSidebarKeyboardNavigation.isPlainPrintableText(event),

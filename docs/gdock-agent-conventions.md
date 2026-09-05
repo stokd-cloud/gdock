@@ -457,6 +457,36 @@ hand-edit a single size.
 4. Icon Composer (`AppIcon.icon`) keeps the cube glyph only (no baked
    squircle); raster sets use the full mockups.
 
+## AX-FILES-CLIPBOARD-FINDER-STYLE
+
+Files Copy and Paste MUST transfer filesystem objects via file-URL pasteboard,
+never path strings, and MUST share one `FileExplorerFileClipboard` path across
+Cmd+C/V and context menus.
+
+### Why
+
+- Copy Path writes a string, so Cmd+C in Files cannot paste a real file into
+  Files, Finder, or another folder.
+- Duplicate copy logic per menu vs NSResponder would drift.
+
+### How to apply
+
+1. `FileExplorerFileClipboard` owns destination, unique names, local-only
+   gating, self-paste skip, pasteboard file-URL write/read, and FileManager
+   copy.
+2. `FileExplorerNSOutlineView` and `FileExplorerSearchResultsTableView`
+   implement NSResponder `copy:`/`paste:` and context-menu Copy/Paste through
+   that planner.
+3. Copy Path stays a separate string action. Remote SSH must not copy or paste
+   files. After paste, `FileExplorerStore.refreshDirectory(at:)` reloads the
+   destination. Unique names follow Finder: `name copy.ext`, then
+   `name copy N.ext`.
+
+### Acceptance Checks
+
+- `xcodebuild -project cmux.xcodeproj -scheme cmux-unit -destination 'platform=macOS' -derivedDataPath /tmp/cmux-files-clipboard -only-testing:cmuxTests/FileExplorerFileClipboardTests test`
+- `./scripts/lint-pbxproj-test-wiring.sh`
+
 ### Acceptance Checks
 
 - Runnable: `python3 tests/test_gdock_app_icons.py` exits 0.

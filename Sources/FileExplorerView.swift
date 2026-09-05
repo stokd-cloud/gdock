@@ -131,6 +131,71 @@ struct FileExplorerPanelView: NSViewRepresentable {
             }
         }
 
+        private var isLocalProvider: Bool {
+            store.provider is LocalFileExplorerProvider
+        }
+
+        func canCopyFiles() -> Bool {
+            FileExplorerFileClipboard.canCopy(
+                isLocal: isLocalProvider,
+                selectedPaths: selectedClipboardItems().map(\.path)
+            )
+        }
+
+        func canPasteFiles() -> Bool {
+            FileExplorerFileClipboard.canPaste(
+                isLocal: isLocalProvider,
+                pasteboardHasFiles: FileExplorerFileClipboard.pasteboardHasFiles(.general)
+            )
+        }
+
+        func copySelectedFiles() {
+            let items = selectedClipboardItems()
+            guard FileExplorerFileClipboard.canCopy(isLocal: isLocalProvider, selectedPaths: items.map(\.path)) else {
+                return
+            }
+            FileExplorerFileClipboard.writeFileURLs(
+                items.map { URL(fileURLWithPath: $0.path) },
+                to: .general
+            )
+        }
+
+        func pasteFiles() {
+            let items = selectedClipboardItems()
+            let anchor = items.first(where: { $0.path == store.selectedPath }) ?? items.first
+            do {
+                if let dest = try FileExplorerFileClipboard.paste(
+                    isLocal: isLocalProvider,
+                    rootPath: store.rootPath,
+                    selections: items,
+                    anchor: anchor
+                ) {
+                    store.refreshDirectory(at: dest)
+                }
+            } catch {
+                #if DEBUG
+                NSLog("[FileExplorer] paste failed: \(error)")
+                #endif
+            }
+        }
+
+        private func selectedClipboardItems() -> [FileExplorerFileClipboard.Item] {
+            if let outlineView {
+                let selected = outlineView.selectedRowIndexes.compactMap { row -> FileExplorerFileClipboard.Item? in
+                    guard let node = outlineView.item(atRow: row) as? FileExplorerNode else { return nil }
+                    return FileExplorerFileClipboard.Item(path: node.path, isDirectory: node.isDirectory)
+                }
+                if !selected.isEmpty {
+                    return selected
+                }
+            }
+            return store.selectedPaths.sorted().map { path in
+                var isDir: ObjCBool = false
+                FileManager.default.fileExists(atPath: path, isDirectory: &isDir)
+                return FileExplorerFileClipboard.Item(path: path, isDirectory: isDir.boolValue)
+            }
+        }
+
         @MainActor
         @discardableResult
         func handleModeShortcut(_ mode: RightSidebarMode, in window: NSWindow?) -> Bool {
@@ -560,6 +625,9 @@ struct FileExplorerPanelView: NSViewRepresentable {
             let clickedRow = outlineView.clickedRow
             guard clickedRow >= 0,
                   let node = outlineView.item(atRow: clickedRow) as? FileExplorerNode else { return }
+            if !outlineView.selectedRowIndexes.contains(clickedRow) {
+                outlineView.selectRowIndexes(IndexSet(integer: clickedRow), byExtendingSelection: false)
+            }
 
             let isLocal = store.provider is LocalFileExplorerProvider
 
@@ -585,6 +653,25 @@ struct FileExplorerPanelView: NSViewRepresentable {
             }
 
             menu.addFileExplorerInsertPathItems(target: self, representedObject: node, insertAction: #selector(contextMenuInsertPath(_:)), insertRelativeAction: #selector(contextMenuInsertRelativePath(_:)))
+
+            if isLocal {
+                let copyItem = NSMenuItem(
+                    title: String(localized: "fileExplorer.contextMenu.copy", defaultValue: "Copy"),
+                    action: #selector(contextMenuCopyFiles(_:)),
+                    keyEquivalent: ""
+                )
+                copyItem.target = self
+                menu.addItem(copyItem)
+
+                let pasteItem = NSMenuItem(
+                    title: String(localized: "fileExplorer.contextMenu.paste", defaultValue: "Paste"),
+                    action: #selector(contextMenuPasteFiles(_:)),
+                    keyEquivalent: ""
+                )
+                pasteItem.target = self
+                pasteItem.isEnabled = canPasteFiles()
+                menu.addItem(pasteItem)
+            }
 
             let copyPathItem = NSMenuItem(
                 title: String(localized: "fileExplorer.contextMenu.copyPath", defaultValue: "Copy Path"),
@@ -613,6 +700,14 @@ struct FileExplorerPanelView: NSViewRepresentable {
         @objc private func contextMenuRevealInFinder(_ sender: NSMenuItem) {
             guard let node = sender.representedObject as? FileExplorerNode else { return }
             FileExternalOpenAction.revealInFinder(fileURL: URL(fileURLWithPath: node.path))
+        }
+
+        @objc private func contextMenuCopyFiles(_ sender: NSMenuItem) {
+            copySelectedFiles()
+        }
+
+        @objc private func contextMenuPasteFiles(_ sender: NSMenuItem) {
+            pasteFiles()
         }
 
         @objc private func contextMenuCopyPath(_ sender: NSMenuItem) {
@@ -838,6 +933,18 @@ final class FileExplorerContainerView: NSView {
         searchResultsView.onFocus = { [weak self] in
             guard let self else { return }
             self.coordinator.noteKeyboardFocus(mode: self.representedRightSidebarMode(), in: self.window)
+        }
+        searchResultsView.onCopyFiles = { [weak self] in
+            self?.copySelectedSearchResultFiles()
+        }
+        searchResultsView.onPasteFiles = { [weak self] in
+            self?.pasteFilesIntoSearchSelection()
+        }
+        searchResultsView.canCopyFiles = { [weak self] in
+            self?.canCopySelectedSearchResultFiles() ?? false
+        }
+        searchResultsView.canPasteFiles = { [weak self] in
+            self?.canPasteFilesIntoSearchSelection() ?? false
         }
         searchResultsView.onModeShortcut = { [weak coordinator] mode, window in
             coordinator?.handleModeShortcut(mode, in: window) ?? false
@@ -1497,6 +1604,67 @@ final class FileExplorerContainerView: NSView {
         FileExternalOpenAction.revealInFinder(fileURL: URL(fileURLWithPath: result.path))
     }
 
+    @objc private func contextMenuCopySearchResultFiles(_ sender: NSMenuItem) {
+        copySelectedSearchResultFiles()
+    }
+
+    @objc private func contextMenuPasteSearchResultFiles(_ sender: NSMenuItem) {
+        pasteFilesIntoSearchSelection()
+    }
+
+    private func selectedSearchClipboardItems() -> [FileExplorerFileClipboard.Item] {
+        searchResultsView.selectedRowIndexes.compactMap { row in
+            guard row >= 0, row < searchSnapshot.results.count else { return nil }
+            let path = searchSnapshot.results[row].path
+            var isDir: ObjCBool = false
+            FileManager.default.fileExists(atPath: path, isDirectory: &isDir)
+            return FileExplorerFileClipboard.Item(path: path, isDirectory: isDir.boolValue)
+        }
+    }
+
+    private func canCopySelectedSearchResultFiles() -> Bool {
+        FileExplorerFileClipboard.canCopy(
+            isLocal: currentProviderIsLocal,
+            selectedPaths: selectedSearchClipboardItems().map(\.path)
+        )
+    }
+
+    private func canPasteFilesIntoSearchSelection() -> Bool {
+        FileExplorerFileClipboard.canPaste(
+            isLocal: currentProviderIsLocal,
+            pasteboardHasFiles: FileExplorerFileClipboard.pasteboardHasFiles(.general)
+        )
+    }
+
+    private func copySelectedSearchResultFiles() {
+        let items = selectedSearchClipboardItems()
+        guard FileExplorerFileClipboard.canCopy(isLocal: currentProviderIsLocal, selectedPaths: items.map(\.path)) else {
+            return
+        }
+        FileExplorerFileClipboard.writeFileURLs(
+            items.map { URL(fileURLWithPath: $0.path) },
+            to: .general
+        )
+    }
+
+    private func pasteFilesIntoSearchSelection() {
+        let items = selectedSearchClipboardItems()
+        do {
+            if let dest = try FileExplorerFileClipboard.paste(
+                isLocal: currentProviderIsLocal,
+                rootPath: coordinator.store.rootPath,
+                selections: items,
+                anchor: items.first
+            ) {
+                coordinator.store.refreshDirectory(at: dest)
+            }
+        } catch {
+            #if DEBUG
+            NSLog("[FileExplorer] search paste failed: \(error)")
+            #endif
+        }
+    }
+
     @objc private func contextMenuCopySearchResultPath(_ sender: NSMenuItem) {
         guard let result = searchResult(forMenuItem: sender) else { return }
         GhosttyApp.terminalPasteboard.writeString(
@@ -1645,6 +1813,25 @@ extension FileExplorerContainerView: NSSearchFieldDelegate, NSTableViewDataSourc
         menu.addItem(.separator())
 
         menu.addFileExplorerInsertPathItems(target: self, representedObject: NSNumber(value: row), insertAction: #selector(contextMenuInsertSearchResultPath(_:)), insertRelativeAction: #selector(contextMenuInsertSearchResultRelativePath(_:)))
+
+        if currentProviderIsLocal {
+            let copyItem = NSMenuItem(
+                title: String(localized: "fileExplorer.contextMenu.copy", defaultValue: "Copy"),
+                action: #selector(contextMenuCopySearchResultFiles(_:)),
+                keyEquivalent: ""
+            )
+            copyItem.target = self
+            menu.addItem(copyItem)
+
+            let pasteItem = NSMenuItem(
+                title: String(localized: "fileExplorer.contextMenu.paste", defaultValue: "Paste"),
+                action: #selector(contextMenuPasteSearchResultFiles(_:)),
+                keyEquivalent: ""
+            )
+            pasteItem.target = self
+            pasteItem.isEnabled = canPasteFilesIntoSearchSelection()
+            menu.addItem(pasteItem)
+        }
 
         let copyPathItem = NSMenuItem(
             title: String(localized: "fileExplorer.contextMenu.copyPath", defaultValue: "Copy Path"),
