@@ -930,6 +930,24 @@ final class FileExplorerStore: ObservableObject {
         loadTasks[rootPath] = task
     }
 
+    /// Reloads one directory after a paste so the new names appear without
+    /// waiting on the root-only FileWatcher.
+    func refreshDirectory(at path: String) {
+        if path == rootPath || nodesByPath[path] == nil {
+            reload()
+            return
+        }
+        guard let node = nodesByPath[path], node.isDirectory else {
+            reload()
+            return
+        }
+        node.children = nil
+        loadTasks[path]?.cancel()
+        loadTasks.removeValue(forKey: path)
+        loadingPaths.remove(path)
+        expand(node: node)
+    }
+
     func expand(node: FileExplorerNode) {
         guard node.isDirectory else { return }
         expandedPaths.insert(node.path)

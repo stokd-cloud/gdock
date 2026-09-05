@@ -7,6 +7,10 @@ final class FileExplorerSearchResultsTableView: NSTableView {
     var onCommit: (() -> Void)?
     var onFocus: (() -> Void)?
     var onModeShortcut: ((RightSidebarMode, NSWindow?) -> Bool)?
+    var onCopyFiles: (() -> Void)?
+    var onPasteFiles: (() -> Void)?
+    var canCopyFiles: (() -> Bool)?
+    var canPasteFiles: (() -> Bool)?
 
     override func becomeFirstResponder() -> Bool {
         let result = super.becomeFirstResponder()
@@ -48,6 +52,24 @@ final class FileExplorerSearchResultsTableView: NSTableView {
             return
         }
         super.keyDown(with: event)
+    }
+
+    @objc func copy(_ sender: Any?) {
+        onCopyFiles?()
+    }
+
+    @objc func paste(_ sender: Any?) {
+        onPasteFiles?()
+    }
+
+    override func validateUserInterfaceItem(_ item: any NSValidatedUserInterfaceItem) -> Bool {
+        if item.action == #selector(copy(_:)) {
+            return canCopyFiles?() ?? false
+        }
+        if item.action == #selector(paste(_:)) {
+            return canPasteFiles?() ?? false
+        }
+        return super.validateUserInterfaceItem(item)
     }
 
     override func performKeyEquivalent(with event: NSEvent) -> Bool {
