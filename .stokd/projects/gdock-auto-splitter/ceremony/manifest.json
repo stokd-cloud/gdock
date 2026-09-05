@@ -1,0 +1,15 @@
+{
+  "tier": "C1",
+  "contract_ids": [
+    "VAL-AUTOSPLIT-001",
+    "VAL-FORCE-001",
+    "VAL-I18N-DOCS-001",
+    "VAL-SETTINGS-001",
+    "VAL-SHORTCUT-001"
+  ],
+  "investigator_lanes": false,
+  "contract_review_passes": 1,
+  "terminal_review": "not_required",
+  "status": "failed",
+  "error": "contract-review pass 1 (pass_1) failed: failed to parse contract-review verdict JSON: missing field `verdict` at line 1 column 3408; exit_code=Some(0) stdout_tail=t\":0,\"user\":0,\"system\":0},\"refused\":{\"depth_limit\":0,\"concurrency_limit\":0,\"budget\":0},\"by_type\":{}},\"is_error\":false,\"num_turns\":20,\"subtype\":\"success\",\"api_error_status\":null,\"result\":\"Disposition accepted: **needs-input**.\\n\\n**Contract review pass_1 verdict: `needs_revision`** (JSON emitted above). This session mutated nothing — the review skill is read-only, and the uncommitted Auto Split implementation on this branch predates the review.\\n\\n**Blocking finding — requires your decision:** VAL-SHORTCUT-001 and the PRD both rest on the claim that no default Cmd+Y binding exists. It does. On `main`, `gdock.nextQuadPane` (\\\"Create Next Quad Pane\\\") ships default Cmd+Y (`Sources/KeyboardShortcutSettings.swift:554`, `ShortcutAction+Defaults.swift:108`, `GdockShortcutActionTests.swift:12`, `docs/gdock-agent-conventions.md:43`). As written, the assertion's \\\"no collision\\\" criterion is satisfied by *deleting the incumbent binding* — which is what the in-flight worktree does, including rewriting the pre-existing guard test to `defaultStroke == nil`.\\n\\n**Question for you:** does Auto Split take Cmd+Y (and what does `gdock.nextQuadPane` get instead), or does Auto Split ship on a different stroke?\\n\\nOther required revisions before tasks are trusted:\\n- Split `VAL-AUTOSPLIT-001` (bundles topology, veto/no-partial-mutation, and Dock ownership isolation — the last isn't even in its Behavior line) and `VAL-I18N-DOCS-001` (localization + docs accuracy + test wiring + build gate, four oracles).\\n- Add missing assertions: incumbent-binding preservation, the Grid Mode veto the implementation introduced with no contract coverage, and `palette.gdock.autoSplit` shared-path routing.\\n- Strengthen evidence floors — \\\"docs/schema grep\\\" and \\\"Settings UI inspection\\\" can't prove the accuracy AC-1.5.b demands.\",\"ttft_ms\":2418,\"type\":\"result\",\"duration_ms\":332924,\"uuid\":\"b05cb447-aa34-4702-86f7-07a4976863bb\",\"ttft_stream_ms\":1601,\"time_to_request_ms\":245,\"queued_turn_count\":0}\n"
+}
