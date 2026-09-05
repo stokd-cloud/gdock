@@ -85,6 +85,25 @@ def pixels_equal(a: Image.Image, b: Image.Image, label: str) -> None:
         fail(f"{label}: pixels differ")
 
 
+def luma(pixel: tuple[int, ...]) -> float:
+    return 0.2126 * pixel[0] + 0.7152 * pixel[1] + 0.0722 * pixel[2]
+
+
+def expect_sharp_top_bevel(img: Image.Image, label: str, min_delta: float = 40.0) -> None:
+    """Adobe-style inner tray: a bright top lip, then a hard well drop."""
+    for y in range(img.size[1]):
+        if img.getpixel((512, y))[3] > 200:
+            samples = [luma(img.getpixel((512, y + k))) for k in range(22)]
+            delta = max(samples[:6]) - min(samples[:22])
+            if delta < min_delta:
+                fail(
+                    f"{label}: top-rim luma delta {delta:.1f} < {min_delta} "
+                    "(smeared bevel, not a hard inner tray)"
+                )
+            return
+    fail(f"{label}: no opaque pixel on x=512")
+
+
 def expect_center(path: str, expected: tuple[int, int, int], label: str) -> Image.Image | None:
     img = load(path)
     if img is None:
@@ -100,6 +119,14 @@ def expect_center(path: str, expected: tuple[int, int, int], label: str) -> Imag
 def main() -> int:
     light_src = expect_center(LIGHT_SRC, LIGHT_CENTER, "design/gdock-light.png")
     dark_src = expect_center(DARK_SRC, DARK_CENTER, "design/gdock-dark.png")
+    if light_src is not None:
+        expect_sharp_top_bevel(light_src, "design/gdock-light.png")
+        if light_src.getpixel((2, 2))[3] != 0:
+            fail("design/gdock-light.png: corner (2,2) must stay transparent")
+    if dark_src is not None:
+        expect_sharp_top_bevel(dark_src, "design/gdock-dark.png")
+        if dark_src.getpixel((2, 2))[3] != 0:
+            fail("design/gdock-dark.png: corner (2,2) must stay transparent")
     light_set = expect_center(LIGHT_IMAGESET, LIGHT_CENTER, "AppIconLight.png")
     dark_set = expect_center(DARK_IMAGESET, DARK_CENTER, "AppIconDark.png")
 
