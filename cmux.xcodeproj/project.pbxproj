@@ -1108,6 +1108,8 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		FE5996030000000000000002 /* FileExplorerNSOutlineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE5996030000000000000001 /* FileExplorerNSOutlineView.swift */; };
 		D0E200000000000000000001 /* FileExplorerOpenRouting.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E100000000000000000001 /* FileExplorerOpenRouting.swift */; };
 		D0E200000000000000000004 /* FileExplorerOpenRoutingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E100000000000000000004 /* FileExplorerOpenRoutingTests.swift */; };
+		GDOCKEDIT00000000000002 /* GdockEditorReusePlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKEDIT00000000000001 /* GdockEditorReusePlanner.swift */; };
+		GDOCKEDIT00000000000004 /* GdockEditorReuseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKEDIT00000000000003 /* GdockEditorReuseTests.swift */; };
 		828800020000000000000002 /* FileExplorerPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828800020000000000000001 /* FileExplorerPalette.swift */; };
 		FE002101 /* FileExplorerRootResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE002001 /* FileExplorerRootResolverTests.swift */; };
 		9F8A6669D6F54F0EA8E8BEB8 /* FileExplorerRootSyncPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120A1EF846214C938416846E /* FileExplorerRootSyncPolicyTests.swift */; };
@@ -4082,6 +4084,8 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		FE5996030000000000000001 /* FileExplorerNSOutlineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerNSOutlineView.swift; sourceTree = "<group>"; };
 		D0E100000000000000000001 /* FileExplorerOpenRouting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerOpenRouting.swift; sourceTree = "<group>"; };
 		D0E100000000000000000004 /* FileExplorerOpenRoutingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerOpenRoutingTests.swift; sourceTree = "<group>"; };
+		GDOCKEDIT00000000000001 /* GdockEditorReusePlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockEditorReusePlanner.swift; sourceTree = "<group>"; };
+		GDOCKEDIT00000000000003 /* GdockEditorReuseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockEditorReuseTests.swift; sourceTree = "<group>"; };
 		828800020000000000000001 /* FileExplorerPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerPalette.swift; sourceTree = "<group>"; };
 		FE002001 /* FileExplorerRootResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerRootResolverTests.swift; sourceTree = "<group>"; };
 		120A1EF846214C938416846E /* FileExplorerRootSyncPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerRootSyncPolicyTests.swift; sourceTree = "<group>"; };
@@ -10149,6 +10153,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				FE001105 /* FileExplorerKeyboardShortcuts.swift in Sources */,
 				FE5996030000000000000002 /* FileExplorerNSOutlineView.swift in Sources */,
 				D0E200000000000000000001 /* FileExplorerOpenRouting.swift in Sources */,
+				GDOCKEDIT00000000000002 /* GdockEditorReusePlanner.swift in Sources */,
 				828800020000000000000002 /* FileExplorerPalette.swift in Sources */,
 				FE5996040000000000000002 /* FileExplorerRowView.swift in Sources */,
 				FE001103 /* FileExplorerSearchController.swift in Sources */,
@@ -11943,6 +11948,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				C11B00000000000000000012 /* FileExplorerFileClipboardTests.swift in Sources */,
 				FE002112 /* FileExplorerGitStatusProviderTests.swift in Sources */,
 				D0E200000000000000000004 /* FileExplorerOpenRoutingTests.swift in Sources */,
+				GDOCKEDIT00000000000004 /* GdockEditorReuseTests.swift in Sources */,
 				FE002101 /* FileExplorerRootResolverTests.swift in Sources */,
 				9F8A6669D6F54F0EA8E8BEB8 /* FileExplorerRootSyncPolicyTests.swift in Sources */,
 				F5996002A1B2C3D4E5F60001 /* FileExplorerShortcutSettingsTests.swift in Sources */,
