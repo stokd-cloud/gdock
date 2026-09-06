@@ -1010,6 +1010,32 @@ struct WorkspaceGroupTests {
         #expect(RenderableSystemSymbol.resolvedWorkspaceGroupIcon(explicit: "not.an.sf.symbol", configured: nil) == "folder.fill")
     }
 
+    /// Repository groups use a repo glyph, not a folder, when no icon is set.
+    @Test func repositoryGroupFallsBackToARepositoryGlyph() {
+        #expect(
+            RenderableSystemSymbol.resolvedWorkspaceGroupIcon(
+                explicit: nil,
+                configured: nil,
+                isRepositoryGroup: true
+            ) == RenderableSystemSymbol.defaultRepositoryGroupIcon
+        )
+        #expect(RenderableSystemSymbol.defaultRepositoryGroupIcon != "folder.fill")
+        #expect(
+            RenderableSystemSymbol.resolvedWorkspaceGroupIcon(
+                explicit: nil,
+                configured: nil,
+                isRepositoryGroup: false
+            ) == "folder.fill"
+        )
+        #expect(
+            RenderableSystemSymbol.resolvedWorkspaceGroupIcon(
+                explicit: "leaf.fill",
+                configured: nil,
+                isRepositoryGroup: true
+            ) == "leaf.fill"
+        )
+    }
+
     @Test func setWorkspaceGroupIconDropsInvalidSymbols() {
         let manager = makeTabManager()
         let groupId = manager.createWorkspaceGroup(

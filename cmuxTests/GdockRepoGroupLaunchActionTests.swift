@@ -93,4 +93,13 @@ import Testing
 
         #expect(labels.count == Action.Target.allCases.count)
     }
+
+    /// The header draws the bundled mark, not the leftover SF Symbol.
+    @Test func headerGlyphUsesTheBundledBrandMark() {
+        for target in Action.Target.allCases {
+            let glyph = target.headerGlyphImage(pointSize: 12)
+            #expect(glyph != nil, "\(target) header glyph should resolve")
+            #expect(glyph?.isTemplate == true, "\(target) header glyph should tint")
+        }
+    }
 }

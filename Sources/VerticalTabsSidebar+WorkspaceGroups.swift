@@ -20,7 +20,8 @@ extension VerticalTabsSidebar {
         let effectiveColor = group.customColor ?? resolvedConfig?.color
         let effectiveIcon = RenderableSystemSymbol.resolvedWorkspaceGroupIcon(
             explicit: group.iconSymbol,
-            configured: resolvedConfig?.iconSymbol
+            configured: resolvedConfig?.iconSymbol,
+            isRepositoryGroup: GdockRepoGroupLaunchAction.isAvailable(groupName: group.name)
         )
         let multiSelectionBackgroundStyle = sidebarWorkspaceRowBackgroundStyle(
             activeTabIndicatorStyle: settings.activeTabIndicatorStyle,
@@ -276,7 +277,8 @@ extension VerticalTabsSidebar {
         let effectiveColor = group.customColor ?? resolvedConfig?.color
         let effectiveIcon = RenderableSystemSymbol.resolvedWorkspaceGroupIcon(
             explicit: group.iconSymbol,
-            configured: resolvedConfig?.iconSymbol
+            configured: resolvedConfig?.iconSymbol,
+            isRepositoryGroup: GdockRepoGroupLaunchAction.isAvailable(groupName: group.name)
         )
         let multiSelectionBackgroundStyle = sidebarWorkspaceRowBackgroundStyle(
             activeTabIndicatorStyle: settings.activeTabIndicatorStyle,
@@ -449,6 +451,9 @@ extension VerticalTabsSidebar {
                 let resolved = placement
                     ?? UserDefaultsSettingsClient(defaults: .standard).value(for: SettingCatalog().workspaceGroups.newWorkspacePlacement)
                 _ = tabManager.createWorkspaceInGroup(groupId: groupId, placement: resolved)
+            },
+            onLaunchRepoTarget: { [groupName = snapshot.name] target in
+                GdockRepoGroupLaunchAction.openUsingActiveEnvironment(target, groupName: groupName)
             },
             onRunResolvedItem: { [weak tabManager, groupId = snapshot.groupId] item in
                 guard let tabManager else { return }

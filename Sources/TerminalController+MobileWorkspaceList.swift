@@ -491,7 +491,8 @@ extension TerminalController {
             .iconSymbol
         return RenderableSystemSymbol.resolvedWorkspaceGroupIcon(
             explicit: group.iconSymbol,
-            configured: configured
+            configured: configured,
+            isRepositoryGroup: GdockRepoWorkspaceGroupIdentity.isRepositoryGroup(name: group.name)
         )
     }
 }
