@@ -355,7 +355,9 @@ final class AppIconSettingsTests: XCTestCase {
         XCTAssertEqual(stopObservationCallCount, 1)
     }
 
-    func testApplyAutomaticStartsObservationAndNotifiesDockTilePlugin() {
+    func testApplyAutomaticRestoresSystemIconAndNotifiesDockTilePlugin() {
+        var receivedRuntimeIcon: NSImage? = NSImage(size: NSSize(width: 8, height: 8))
+        var runtimeIconSetCount = 0
         var dockTileNotificationCount = 0
         var startObservationCallCount = 0
         var stopObservationCallCount = 0
@@ -363,11 +365,12 @@ final class AppIconSettingsTests: XCTestCase {
         let environment = AppIconSettings.Environment(
             isApplicationFinishedLaunching: { true },
             imageForMode: { mode in
-                XCTFail("Automatic mode should not request a manual icon image: \(mode.rawValue)")
+                XCTFail("Automatic mode should not request a baked raster: \(mode.rawValue)")
                 return nil
             },
-            setApplicationIconImage: { _ in
-                XCTFail("Automatic mode should delegate live updates to the appearance observer")
+            setApplicationIconImage: { icon in
+                receivedRuntimeIcon = icon
+                runtimeIconSetCount += 1
             },
             startAppearanceObservation: {
                 startObservationCallCount += 1
@@ -382,9 +385,11 @@ final class AppIconSettingsTests: XCTestCase {
 
         AppIconSettings.applyIcon(.automatic, environment: environment)
 
+        XCTAssertEqual(runtimeIconSetCount, 1)
+        XCTAssertNil(receivedRuntimeIcon)
         XCTAssertEqual(dockTileNotificationCount, 1)
-        XCTAssertEqual(startObservationCallCount, 1)
-        XCTAssertEqual(stopObservationCallCount, 0)
+        XCTAssertEqual(startObservationCallCount, 0)
+        XCTAssertEqual(stopObservationCallCount, 1)
     }
 
     func testApplyDarkBeforeLaunchDoesNotTouchRuntimeIconState() {

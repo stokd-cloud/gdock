@@ -5333,7 +5333,6 @@ enum AppIconLaunchState {
 enum AppIconSettings {
     static let modeKey = "appIconMode"
     static let defaultMode: AppIconMode = .automatic
-    private static let dockTileIconDidChangeNotification = Notification.Name("cloud.stokd.ghostty-dockIconDidChange")
     private static var liveEnvironmentProvider: () -> Environment = { .live() }
 
     private static func isRunningUnderXCTest(_ env: [String: String] = ProcessInfo.processInfo.environment) -> Bool {
@@ -5351,7 +5350,7 @@ enum AppIconSettings {
     struct Environment {
         let isApplicationFinishedLaunching: () -> Bool
         let imageForMode: (AppIconMode) -> NSImage?
-        let setApplicationIconImage: (NSImage) -> Void
+        let setApplicationIconImage: (NSImage?) -> Void
         let startAppearanceObservation: () -> Void
         let stopAppearanceObservation: () -> Void
         let notifyDockTilePlugin: () -> Void
@@ -5377,7 +5376,7 @@ enum AppIconSettings {
                 notifyDockTilePlugin: {
                     guard !AppIconSettings.isRunningUnderXCTest() else { return }
                     DistributedNotificationCenter.default().postNotificationName(
-                        AppIconSettings.dockTileIconDidChangeNotification,
+                        AppIconRuntimeOverride.didChangeNotification,
                         object: nil,
                         userInfo: nil,
                         deliverImmediately: true
@@ -5404,7 +5403,8 @@ enum AppIconSettings {
 
         switch mode {
         case .automatic:
-            environment.startAppearanceObservation()
+            environment.stopAppearanceObservation()
+            environment.setApplicationIconImage(nil)
         case .light:
             environment.stopAppearanceObservation()
             guard let icon = environment.imageForMode(.light) else { return }

@@ -7,6 +7,9 @@ into the AppIconLight/Dark imagesets and iOS AppIcon sets, and overlays DEV /
 NIGHTLY banners for the Debug and Nightly icon sets.
 
 Do not synthesize a glow or rebuild the mark from design/cmux-icon-chevron.png.
+
+Also copies the light/dark mockups and a glass cube glyph into AppIcon.icon/Assets
+for Tahoe Default / Dark / Tinted+Clear appearances.
 """
 
 from __future__ import annotations
@@ -35,6 +38,7 @@ IOS_SETS = (
     os.path.join(REPO, "ios", "cmux", "Assets.xcassets", "AppIcon.appiconset"),
     os.path.join(REPO, "ios", "cmux", "Assets.xcassets", "AppIcon-Demo.appiconset"),
 )
+ICON_ASSETS = os.path.join(REPO, "AppIcon.icon", "Assets")
 
 ORANGE = (255, 107, 0, 255)
 PURPLE = (140, 60, 220, 255)
@@ -169,6 +173,11 @@ def main() -> int:
     print("AppIcon-Nightly:")
     nightly_1024 = overlay_banner(light, "NIGHTLY", PURPLE)
     write_set(nightly_1024, NIGHTLY_SET)
+
+    print("AppIcon.icon:")
+    copy_1024(LIGHT_SRC, os.path.join(ICON_ASSETS, "gdock-light.png"))
+    copy_1024(DARK_SRC, os.path.join(ICON_ASSETS, "gdock-dark.png"))
+    write_tinted(os.path.join(ICON_ASSETS, "cube-glyph.png"))
 
     print("generated raster icons from design/gdock-{light,dark}.png")
     return 0
