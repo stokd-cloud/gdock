@@ -4,8 +4,8 @@ import SwiftUI
 
 /// Pure-AppKit group header cell for the sidebar workspace table.
 ///
-/// Renders the collapsible group/folder header (pin, chevron, tinted icon,
-/// name, unread capsule, hover-revealed plus button) without any SwiftUI
+/// Renders the collapsible group/folder header (chevron, tinted icon, name,
+/// pin, unread capsule, hover-revealed plus button) without any SwiftUI
 /// hosting so scroll, hover, and reconfigure stay off the AttributeGraph.
 /// Layout is manual: subviews are created once and framed in `layout()`.
 @MainActor
@@ -273,6 +273,13 @@ final class SidebarGroupHeaderTableCellView: NSTableCellView {
     var dropIndicatorPaintForTesting: (top: Bool, bottom: Bool) {
         (!topDropIndicator.isHidden, !bottomDropIndicator.isHidden)
     }
+
+    var pinHiddenForTesting: Bool { pinImageView.isHidden }
+    var pinFrameForTesting: NSRect { pinImageView.frame }
+    var nameFrameForTesting: NSRect { nameField.frame }
+    var nameFontForTesting: NSFont? { nameField.font }
+    var unreadBadgeHiddenForTesting: Bool { unreadBadgeView.isHidden }
+    var unreadBadgeFrameForTesting: NSRect { unreadBadgeView.frame }
 #endif
 
     private func updatePlusVisibility() {
@@ -409,10 +416,6 @@ final class SidebarGroupHeaderTableCellView: NSTableCellView {
             NSRect(x: x, y: midY - size / 2, width: size, height: size)
         }
 
-        if !pinImageView.isHidden {
-            pinImageView.frame = centered(metrics.iconFrame)
-            x = pinImageView.frame.maxX + 4
-        }
         chevronButton.frame = centered(metrics.chevronFrame)
         x = chevronButton.frame.maxX + 4
 
@@ -441,21 +444,35 @@ final class SidebarGroupHeaderTableCellView: NSTableCellView {
             )
         }
 
+        // Pin sits after the name and before the unread badge so the chevron
+        // column stays aligned between pinned and unpinned groups.
+        let pinSide: CGFloat = pinImageView.isHidden ? 0 : metrics.iconFrame
+        let pinGap: CGFloat = pinSide > 0 ? 6 : 0
+        let badgeReserve = badgeSize.width > 0 ? badgeSize.width + 6 : 0
         let nameAvailable = max(0, (trailingControlsMinX - 4) - x
-            - (badgeSize.width > 0 ? badgeSize.width + 6 : 0))
+            - pinSide - pinGap - badgeReserve)
         let nameSize = nameField.attributedStringValue.size()
         // The field owns ALL remaining width (truncation only when genuinely
-        // out of space); the badge tracks the measured text width instead.
+        // out of space); pin and badge track the measured text width instead.
         nameField.frame = NSRect(
             x: x,
             y: midY - ceil(nameSize.height) / 2,
             width: nameAvailable,
             height: ceil(nameSize.height)
         )
+        var afterNameX = x + min(ceil(nameSize.width), nameAvailable)
+        if !pinImageView.isHidden {
+            pinImageView.frame = NSRect(
+                x: afterNameX + 6,
+                y: midY - pinSide / 2,
+                width: pinSide,
+                height: pinSide
+            )
+            afterNameX = pinImageView.frame.maxX
+        }
         if !unreadBadgeView.isHidden {
-            let badgeX = x + min(ceil(nameSize.width), nameAvailable) + 6
             unreadBadgeView.frame = NSRect(
-                x: badgeX,
+                x: afterNameX + 6,
                 y: midY - badgeSize.height / 2,
                 width: badgeSize.width,
                 height: badgeSize.height
