@@ -448,10 +448,21 @@ Debug / Nightly banner variants are a resize or overlay of those sources. Do
 not synthesize a glow, recolor the cube from the old cmux chevron, or
 hand-edit a single size.
 
+Tahoe Icon & widget style is shipped from `AppIcon.icon`: Default is the light
+mockup, Dark is the dark mockup, and Clear/Tinted use a glass cube glyph.
+Automatic in-app icon mode must leave the system bundle icon in place so those
+styles can apply.
+
 ### Why
 
-- The light and dark mockups are the product icon. The previous generator
-  rebuilt dark from a Figma chevron plus glow and drifted from the mockups.
+- The light and dark mockups are the product icon for Default and Dark Icon
+  & widget styles. The previous generator rebuilt dark from a Figma chevron
+  plus glow and drifted from the mockups.
+- Clear and Tinted cannot restyle a baked 3D raster; those styles need a
+  glass-enabled cube glyph with no platform.
+- Painting `AppIconLight`/`AppIconDark` onto the Dock or
+  `applicationIconImage` in automatic mode freezes every Tahoe style on one
+  image.
 - One pair of sources keeps Dock, Finder, Settings picker, iOS, and
   Debug / Nightly icons the same mark.
 
@@ -461,11 +472,33 @@ hand-edit a single size.
    (1024x1024 RGBA).
 2. Run `python3 scripts/generate_app_icons.py` to resize into
    `AppIcon.appiconset` (light + dark), the `AppIconLight` / `AppIconDark`
-   imagesets, the iOS AppIcon sets, and Debug / Nightly banner variants.
+   imagesets, the iOS AppIcon sets, Debug / Nightly banner variants, and
+   `AppIcon.icon/Assets`.
 3. Do not edit individual size PNGs by hand. Do not call the old
    glow-from-chevron path in `generate_dark_icon.py`.
-4. Icon Composer (`AppIcon.icon`) keeps the cube glyph only (no baked
-   squircle); raster sets use the full mockups.
+4. Icon Composer `AppIcon.icon` and `AppIcon-Debug.icon`: Default layer =
+   light mockup, Dark layer = dark mockup (hidden outside Dark), Tinted/Clear
+   layer = cube glyph with `glass` true (hidden outside tinted). Fill is
+   `system-light` with dark fill-specialization `system-dark`. Both `.icon`
+   bundles must be in the cmux target Resources phase (tagged reloads use
+   `AppIcon-Debug`). Set
+   `ASSETCATALOG_OTHER_FLAGS=--enable-icon-stack-fallback-generation=disabled`.
+5. Automatic runtime mode restores the system bundle icon
+   (`applicationIconImage = nil`, dock tile `showDefaultAppIcon`). Light/Dark
+   pins still use the 3D rasters.
+
+### Acceptance Checks
+
+- Runnable: `python3 tests/test_gdock_app_icons.py` exits 0.
+- `AppIconLight.png` equals `design/gdock-light.png` and `AppIconDark.png`
+  equals `design/gdock-dark.png`.
+- `AppIcon.icon` Default uses the light mockup, Dark uses the dark mockup,
+  Tinted/Clear uses the glass cube glyph.
+- Automatic mode does not set a baked raster as `applicationIconImage`.
+- Light center is ~ `(224,224,224)` and dark center is ~ `(31,31,31)`;
+  neither center is cyan-glow.
+- `scripts/generate_dark_icon.py` does not composite
+  `design/cmux-icon-chevron.png`.
 
 ## AX-FILES-CLIPBOARD-FINDER-STYLE
 
@@ -496,13 +529,3 @@ Cmd+C/V and context menus.
 
 - `xcodebuild -project cmux.xcodeproj -scheme cmux-unit -destination 'platform=macOS' -derivedDataPath /tmp/cmux-files-clipboard -only-testing:cmuxTests/FileExplorerFileClipboardTests test`
 - `./scripts/lint-pbxproj-test-wiring.sh`
-
-### Acceptance Checks
-
-- Runnable: `python3 tests/test_gdock_app_icons.py` exits 0.
-- `AppIconLight.png` equals `design/gdock-light.png` and `AppIconDark.png`
-  equals `design/gdock-dark.png`.
-- Light center is ~ `(224,224,224)` and dark center is ~ `(31,31,31)`;
-  neither center is cyan-glow.
-- `scripts/generate_dark_icon.py` does not composite
-  `design/cmux-icon-chevron.png`.

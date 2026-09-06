@@ -1,29 +1,7 @@
 import AppKit
 import CoreServices
 
-private let cmuxAppIconDidChangeNotification = Notification.Name("com.cmuxterm.appIconDidChange")
 private let cmuxAppIconModeKey = "appIconMode"
-
-private enum DockTileAppIconMode: String {
-    case automatic
-    case light
-    case dark
-
-    init(defaultsValue: String?) {
-        self = Self(rawValue: defaultsValue ?? "") ?? .automatic
-    }
-
-    func imageName(isDarkAppearance: Bool) -> NSImage.Name? {
-        switch self {
-        case .automatic:
-            return isDarkAppearance ? NSImage.Name("AppIconDark") : NSImage.Name("AppIconLight")
-        case .light:
-            return NSImage.Name("AppIconLight")
-        case .dark:
-            return NSImage.Name("AppIconDark")
-        }
-    }
-}
 
 final class CmuxDockTilePlugin: NSObject, NSDockTilePlugIn {
     // The plugin can stay alive while the app remains in the Dock, even after quit.
@@ -59,7 +37,7 @@ final class CmuxDockTilePlugin: NSObject, NSDockTilePlugIn {
         updateDockTile(dockTile)
 
         iconChangeObserver = DistributedNotificationCenter.default().addObserver(
-            forName: cmuxAppIconDidChangeNotification,
+            forName: AppIconRuntimeOverride.didChangeNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
@@ -105,15 +83,15 @@ final class CmuxDockTilePlugin: NSObject, NSDockTilePlugIn {
     private func updateDockTile(_ dockTile: NSDockTile) {
         Self.assertMainQueue()
 
-        let mode = DockTileAppIconMode(defaultsValue: appDefaults?.string(forKey: cmuxAppIconModeKey))
-        let isDarkAppearance = NSApp?.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
         guard let appBundleURL else {
             dockTile.showDefaultAppIcon()
             return
         }
 
-        guard let imageName = mode.imageName(isDarkAppearance: isDarkAppearance),
-              let icon = appBundle?.image(forResource: imageName) else {
+        guard let imageName = AppIconRuntimeOverride.rasterResourceName(
+                modeRawValue: appDefaults?.string(forKey: cmuxAppIconModeKey)
+              ),
+              let icon = appBundle?.image(forResource: NSImage.Name(imageName)) else {
             if shouldPersistBundleIcon {
                 NSWorkspace.shared.setIcon(nil, forFile: appBundleURL.path, options: [])
                 NSWorkspace.shared.noteFileSystemChanged(appBundleURL.path)

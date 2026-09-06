@@ -247,8 +247,11 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		A11EAA000000000000000000 /* AppearanceSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11EAA000000000000000001 /* AppearanceSettingsTests.swift */; };
 		C97160000000000000000001 /* AppHostProcessReceipt.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97160000000000000000002 /* AppHostProcessReceipt.swift */; };
 		C8046FF15781CC7E4F8EAEA6 /* AppHostWindowReleaseGuardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FAA194471B7BA157FB4660 /* AppHostWindowReleaseGuardTests.swift */; };
+		ICDBG001 /* AppIcon-Debug.icon in Resources */ = {isa = PBXBuildFile; fileRef = ICDBG002 /* AppIcon-Debug.icon */; };
+		IC000001 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = IC000002 /* AppIcon.icon */; };
 		A7206E010000000000000001 /* AppIconAppearanceObserverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7206E020000000000000001 /* AppIconAppearanceObserverTests.swift */; };
 		D1320AA0D1320AA0D1320AA1 /* AppIconDockTilePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1320AA0D1320AA0D1320AA4 /* AppIconDockTilePlugin.swift */; };
+		ICSTY001 /* AppIconDockTilePresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ICSTY002 /* AppIconDockTilePresentationTests.swift */; };
 		A5001621 /* AppleScriptSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5001620 /* AppleScriptSupport.swift */; };
 		A5001A02A1B2C3D4E5F60718 /* AppWindowBackdropControllerDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5001A03A1B2C3D4E5F60718 /* AppWindowBackdropControllerDependencies.swift */; };
 		A5001A00A1B2C3D4E5F60718 /* AppWindowChromeComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5001A01A1B2C3D4E5F60718 /* AppWindowChromeComposition.swift */; };
@@ -262,6 +265,11 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		7C592156DCB3419BB95383E5 /* AutoNamingEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7752D68A758642EFA282C208 /* AutoNamingEngineTests.swift */; };
 		A4ECF22C62724853A72D6BDE /* AutoNamingGrokAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07EC52007B2144C59C047774 /* AutoNamingGrokAdapterTests.swift */; };
 		74AB3F34FE3B4974A3A5D264 /* AutoNamingHookPayloadAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46792DAA478444ED87B17B31 /* AutoNamingHookPayloadAdapterTests.swift */; };
+		GDOCKASPL00000000000004 /* AutoSplitAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKASPL00000000000003 /* AutoSplitAction.swift */; };
+		GDOCKASPL00000000000008 /* AutoSplitActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKASPL00000000000007 /* AutoSplitActionTests.swift */; };
+		GDOCKASPL0000000000000C /* AutoSplitForceButtonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKASPL0000000000000B /* AutoSplitForceButtonTests.swift */; };
+		GDOCKASPL00000000000006 /* AutoSplitSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKASPL00000000000005 /* AutoSplitSettingsTests.swift */; };
+		GDOCKASPL0000000000000A /* AutoSplitShortcutRoutingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKASPL00000000000009 /* AutoSplitShortcutRoutingTests.swift */; };
 		B00FC393AB29CFA85FB6D9F5 /* BackgroundPrimeStartableSurfaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0673572C53588696D70F32A9 /* BackgroundPrimeStartableSurfaceTests.swift */; };
 		C0DE35860000000000000001 /* BackgroundWorkspacePrimeCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE35860000000000000002 /* BackgroundWorkspacePrimeCoordinator.swift */; };
 		A50012F1 /* Backport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50012F0 /* Backport.swift */; };
@@ -1195,14 +1203,9 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		F17F00000000000000000003 /* FullWidthTabCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F17F00000000000000000004 /* FullWidthTabCommandTests.swift */; };
 		F17F00000000000000000001 /* FullWidthTabPersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F17F00000000000000000002 /* FullWidthTabPersistenceTests.swift */; };
 		B900000BA1B2C3D4E5F60719 /* gdock in Copy CLI */ = {isa = PBXBuildFile; fileRef = B9000004A1B2C3D4E5F60719 /* gdock */; };
+		GDOCKASPL00000000000002 /* GdockAutoSplitterSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKASPL00000000000001 /* GdockAutoSplitterSettings.swift */; };
 		GDOCKAWSG00000000000004 /* GdockAutoWorkspaceGroupModeSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000003 /* GdockAutoWorkspaceGroupModeSettings.swift */; };
 		GDOCKAWSG00000000000002 /* GdockAutoWorkspaceGroupReconciler.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */; };
-		GDOCKASPL00000000000002 /* GdockAutoSplitterSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKASPL00000000000001 /* GdockAutoSplitterSettings.swift */; };
-		GDOCKASPL00000000000004 /* AutoSplitAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKASPL00000000000003 /* AutoSplitAction.swift */; };
-		GDOCKASPL00000000000006 /* AutoSplitSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKASPL00000000000005 /* AutoSplitSettingsTests.swift */; };
-		GDOCKASPL00000000000008 /* AutoSplitActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKASPL00000000000007 /* AutoSplitActionTests.swift */; };
-		GDOCKASPL0000000000000A /* AutoSplitShortcutRoutingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKASPL00000000000009 /* AutoSplitShortcutRoutingTests.swift */; };
-		GDOCKASPL0000000000000C /* AutoSplitForceButtonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKASPL0000000000000B /* AutoSplitForceButtonTests.swift */; };
 		GDOCKAWSG00000000000008 /* GdockAutoWorkspaceGroupReconcilerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000007 /* GdockAutoWorkspaceGroupReconcilerTests.swift */; };
 		GDOCKCYCA000000000000002 /* GdockCycleRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKCYCA000000000000001 /* GdockCycleRing.swift */; };
 		GDOCKEDIT00000000000002 /* GdockEditorReusePlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKEDIT00000000000001 /* GdockEditorReusePlanner.swift */; };
@@ -3303,9 +3306,11 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		A11EAA000000000000000001 /* AppearanceSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceSettingsTests.swift; sourceTree = "<group>"; };
 		C97160000000000000000002 /* AppHostProcessReceipt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHostProcessReceipt.swift; sourceTree = "<group>"; };
 		B3FAA194471B7BA157FB4660 /* AppHostWindowReleaseGuardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHostWindowReleaseGuardTests.swift; sourceTree = "<group>"; };
+		ICDBG002 /* AppIcon-Debug.icon */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AppIcon-Debug.icon; sourceTree = "<group>"; };
 		IC000002 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder; path = AppIcon.icon; sourceTree = "<group>"; };
 		A7206E020000000000000001 /* AppIconAppearanceObserverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconAppearanceObserverTests.swift; sourceTree = "<group>"; };
 		D1320AA0D1320AA0D1320AA4 /* AppIconDockTilePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconDockTilePlugin.swift; sourceTree = "<group>"; };
+		ICSTY002 /* AppIconDockTilePresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconDockTilePresentationTests.swift; sourceTree = "<group>"; };
 		A5001620 /* AppleScriptSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleScriptSupport.swift; sourceTree = "<group>"; };
 		A5001A03A1B2C3D4E5F60718 /* AppWindowBackdropControllerDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windowing/AppWindowBackdropControllerDependencies.swift; sourceTree = "<group>"; };
 		A5001A01A1B2C3D4E5F60718 /* AppWindowChromeComposition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windowing/AppWindowChromeComposition.swift; sourceTree = "<group>"; };
@@ -3319,6 +3324,11 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		7752D68A758642EFA282C208 /* AutoNamingEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoNamingEngineTests.swift; sourceTree = "<group>"; };
 		07EC52007B2144C59C047774 /* AutoNamingGrokAdapterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoNamingGrokAdapterTests.swift; sourceTree = "<group>"; };
 		46792DAA478444ED87B17B31 /* AutoNamingHookPayloadAdapterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoNamingHookPayloadAdapterTests.swift; sourceTree = "<group>"; };
+		GDOCKASPL00000000000003 /* AutoSplitAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoSplitAction.swift; sourceTree = "<group>"; };
+		GDOCKASPL00000000000007 /* AutoSplitActionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoSplitActionTests.swift; sourceTree = "<group>"; };
+		GDOCKASPL0000000000000B /* AutoSplitForceButtonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoSplitForceButtonTests.swift; sourceTree = "<group>"; };
+		GDOCKASPL00000000000005 /* AutoSplitSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoSplitSettingsTests.swift; sourceTree = "<group>"; };
+		GDOCKASPL00000000000009 /* AutoSplitShortcutRoutingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoSplitShortcutRoutingTests.swift; sourceTree = "<group>"; };
 		0673572C53588696D70F32A9 /* BackgroundPrimeStartableSurfaceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundPrimeStartableSurfaceTests.swift; sourceTree = "<group>"; };
 		C0DE35860000000000000002 /* BackgroundWorkspacePrimeCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundWorkspacePrimeCoordinator.swift; sourceTree = "<group>"; };
 		A50012F0 /* Backport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Backport.swift; sourceTree = "<group>"; };
@@ -4175,14 +4185,9 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		F17F00000000000000000004 /* FullWidthTabCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullWidthTabCommandTests.swift; sourceTree = "<group>"; };
 		F17F00000000000000000002 /* FullWidthTabPersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullWidthTabPersistenceTests.swift; sourceTree = "<group>"; };
 		B9000004A1B2C3D4E5F60719 /* gdock */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = gdock; sourceTree = BUILT_PRODUCTS_DIR; };
+		GDOCKASPL00000000000001 /* GdockAutoSplitterSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoSplitterSettings.swift; sourceTree = "<group>"; };
 		GDOCKAWSG00000000000003 /* GdockAutoWorkspaceGroupModeSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupModeSettings.swift; sourceTree = "<group>"; };
 		GDOCKAWSG00000000000001 /* GdockAutoWorkspaceGroupReconciler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupReconciler.swift; sourceTree = "<group>"; };
-		GDOCKASPL00000000000001 /* GdockAutoSplitterSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoSplitterSettings.swift; sourceTree = "<group>"; };
-		GDOCKASPL00000000000003 /* AutoSplitAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoSplitAction.swift; sourceTree = "<group>"; };
-		GDOCKASPL00000000000005 /* AutoSplitSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoSplitSettingsTests.swift; sourceTree = "<group>"; };
-		GDOCKASPL00000000000007 /* AutoSplitActionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoSplitActionTests.swift; sourceTree = "<group>"; };
-		GDOCKASPL00000000000009 /* AutoSplitShortcutRoutingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoSplitShortcutRoutingTests.swift; sourceTree = "<group>"; };
-		GDOCKASPL0000000000000B /* AutoSplitForceButtonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoSplitForceButtonTests.swift; sourceTree = "<group>"; };
 		GDOCKAWSG00000000000007 /* GdockAutoWorkspaceGroupReconcilerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupReconcilerTests.swift; sourceTree = "<group>"; };
 		GDOCKCYCA000000000000001 /* GdockCycleRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockCycleRing.swift; sourceTree = "<group>"; };
 		GDOCKEDIT00000000000001 /* GdockEditorReusePlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockEditorReusePlanner.swift; sourceTree = "<group>"; };
@@ -6348,6 +6353,7 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 				087C454FFF74443AB06942C3 /* Resources */,
 				A5001101 /* Assets.xcassets */,
 				IC000002 /* AppIcon.icon */,
+				ICDBG002 /* AppIcon-Debug.icon */,
 				A5001016 /* GhosttyKit.xcframework */,
 				A5001017 /* ghostty.h */,
 				A5001018 /* cmux-Bridging-Header.h */,
@@ -8720,6 +8726,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 					A6D1F0400000000000000001 /* ReleasingWindowControllerTests.swift */,
 					CAFE00000000000000000005 /* CaffeineControllerTests.swift */,
 					A7206E020000000000000001 /* AppIconAppearanceObserverTests.swift */,
+					ICSTY002 /* AppIconDockTilePresentationTests.swift */,
 					A11EAA000000000000000001 /* AppearanceSettingsTests.swift */,
 					A7206B020000000000000001 /* SystemAppearanceObserverTests.swift */,
 					6313FACE0000000000000001 /* PaneMemoryGuardrailTests.swift */,
@@ -9390,6 +9397,8 @@ BE7A0010SIDEBARDOCKBEHAV01 /* SidebarDockBehaviorTests.swift */,
 			files = (
 				A9E020000000000000000006 /* agent-session-react in Resources */,
 				A9E020000000000000000007 /* agent-session-solid in Resources */,
+				ICDBG001 /* AppIcon-Debug.icon in Resources */,
+				IC000001 /* AppIcon.icon in Resources */,
 				A5001100 /* Assets.xcassets in Resources */,
 				A5001623 /* cmux.sdef in Resources */,
 				FEED0A00000000000000F007 /* feed-tui in Resources */,
@@ -9744,6 +9753,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				A5001A00A1B2C3D4E5F60718 /* AppWindowChromeComposition.swift in Sources */,
 				961300000000000000000003 /* AttributedString+SidebarRowLinks.swift in Sources */,
 					D9FEC58D5BACCF76459F1BBE /* AuthEnvironment.swift in Sources */,
+				GDOCKASPL00000000000004 /* AutoSplitAction.swift in Sources */,
 					C0DE35860000000000000001 /* BackgroundWorkspacePrimeCoordinator.swift in Sources */,
 					A50012F1 /* Backport.swift in Sources */,
 				74060000000000000000001B /* BonsplitConfiguration+RemoteTmuxEmbedded.swift in Sources */,
@@ -10226,7 +10236,6 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 					C0DEFB100000000000000001 /* FocusSurfaceBroadcaster.swift in Sources */,
 				AA5269A0C0DE0002FACE0002 /* ForeignFirstResponderPolicy.swift in Sources */,
 				GDOCKASPL00000000000002 /* GdockAutoSplitterSettings.swift in Sources */,
-				GDOCKASPL00000000000004 /* AutoSplitAction.swift in Sources */,
 				GDOCKAWSG00000000000004 /* GdockAutoWorkspaceGroupModeSettings.swift in Sources */,
 				GDOCKAWSG00000000000002 /* GdockAutoWorkspaceGroupReconciler.swift in Sources */,
 				GDOCKCYCA000000000000002 /* GdockCycleRing.swift in Sources */,
@@ -11742,12 +11751,17 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				A11EAA000000000000000000 /* AppearanceSettingsTests.swift in Sources */,
 				C8046FF15781CC7E4F8EAEA6 /* AppHostWindowReleaseGuardTests.swift in Sources */,
 				A7206E010000000000000001 /* AppIconAppearanceObserverTests.swift in Sources */,
+				ICSTY001 /* AppIconDockTilePresentationTests.swift in Sources */,
 				A47E00010000000000000001 /* AuthEnvironmentTests.swift in Sources */,
 				AA9457BF0000000000000001 /* AutoNamingClaudeArgumentsTests.swift in Sources */,
 				FF068325E8A04E51A30AE9BA /* AutoNamingCodexAdapterTests.swift in Sources */,
 				7C592156DCB3419BB95383E5 /* AutoNamingEngineTests.swift in Sources */,
 				A4ECF22C62724853A72D6BDE /* AutoNamingGrokAdapterTests.swift in Sources */,
 				74AB3F34FE3B4974A3A5D264 /* AutoNamingHookPayloadAdapterTests.swift in Sources */,
+				GDOCKASPL00000000000008 /* AutoSplitActionTests.swift in Sources */,
+				GDOCKASPL0000000000000C /* AutoSplitForceButtonTests.swift in Sources */,
+				GDOCKASPL00000000000006 /* AutoSplitSettingsTests.swift in Sources */,
+				GDOCKASPL0000000000000A /* AutoSplitShortcutRoutingTests.swift in Sources */,
 				B00FC393AB29CFA85FB6D9F5 /* BackgroundPrimeStartableSurfaceTests.swift in Sources */,
 				D3622000A1B2C3D4E5F60718 /* BrowserArrowKeyForwardingTests.swift in Sources */,
 				8054B0030000000000000003 /* BrowserAutomationRecoveryLifecycleTests.swift in Sources */,
@@ -11990,10 +12004,6 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				F17F00000000000000000003 /* FullWidthTabCommandTests.swift in Sources */,
 				F17F00000000000000000001 /* FullWidthTabPersistenceTests.swift in Sources */,
 				GDOCKAWSG00000000000008 /* GdockAutoWorkspaceGroupReconcilerTests.swift in Sources */,
-				GDOCKASPL00000000000006 /* AutoSplitSettingsTests.swift in Sources */,
-				GDOCKASPL00000000000008 /* AutoSplitActionTests.swift in Sources */,
-				GDOCKASPL0000000000000A /* AutoSplitShortcutRoutingTests.swift in Sources */,
-				GDOCKASPL0000000000000C /* AutoSplitForceButtonTests.swift in Sources */,
 				GDOCKEDIT00000000000004 /* GdockEditorReuseTests.swift in Sources */,
 				GDOCKGRID00000000000002 /* GdockGridModeTests.swift in Sources */,
 				GDOCKPIP000000000000006 /* GdockPipFloatingWindowTests.swift in Sources */,
@@ -12581,6 +12591,7 @@ BE7A0010SIDEBARDOCKBEHAV02 /* SidebarDockBehaviorTests.swift in Sources */,
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-Debug";
+				ASSETCATALOG_OTHER_FLAGS = "--enable-icon-stack-fallback-generation=disabled";
 				CMUX_AUTH_CALLBACK_SCHEME = "cmux-dev";
 				CMUX_IROH_RELAY_POLICY_KEY_ID = "cmux-staging-relay-policy-2026-07";
 				CMUX_IROH_RELAY_POLICY_NEXT_KEY_ID = "cmux-staging-relay-policy-2026-08";
@@ -12632,6 +12643,7 @@ BE7A0010SIDEBARDOCKBEHAV02 /* SidebarDockBehaviorTests.swift in Sources */,
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_OTHER_FLAGS = "--enable-icon-stack-fallback-generation=disabled";
 				CMUX_AUTH_CALLBACK_SCHEME = cmux;
 				CMUX_IROH_RELAY_POLICY_KEY_ID = "cmux-production-relay-policy-2026-07";
 				CMUX_IROH_RELAY_POLICY_NEXT_KEY_ID = "cmux-production-relay-policy-2026-08";
