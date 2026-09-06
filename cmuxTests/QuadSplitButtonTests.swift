@@ -124,7 +124,7 @@ struct QuadSplitButtonTests {
 
         #expect(KeyboardShortcutSettings.Action.gdockNextQuadPane.rawValue == "gdock.nextQuadPane")
         #expect(KeyboardShortcutSettings.Action.gdockQuadPaneWorkspaces.rawValue == "gdock.quadPaneWorkspaces")
-        #expect(KeyboardShortcutSettings.shortcut(for: .gdockNextQuadPane) == StoredShortcut(key: "y", command: true, shift: false, option: false, control: false))
+        #expect(KeyboardShortcutSettings.shortcut(for: .gdockNextQuadPane).isUnbound)
         #expect(KeyboardShortcutSettings.shortcut(for: .gdockQuadPaneWorkspaces) == StoredShortcut(key: "y", command: true, shift: true, option: false, control: false))
         #expect(KeyboardShortcutSettings.publicShortcutActions.contains(.gdockNextQuadPane))
         #expect(KeyboardShortcutSettings.publicShortcutActions.contains(.gdockQuadPaneWorkspaces))
@@ -142,7 +142,7 @@ struct QuadSplitButtonTests {
         #expect(ShortcutAction.gdockQuadPaneWorkspaces.rawValue == "gdock.quadPaneWorkspaces")
         #expect(ShortcutAction.gdockNextQuadPane.group == .panes)
         #expect(ShortcutAction.gdockQuadPaneWorkspaces.group == .panes)
-        #expect(ShortcutAction.gdockNextQuadPane.defaultStroke == ShortcutStroke(key: "y", command: true, shift: false, option: false, control: false))
+        #expect(ShortcutAction.gdockNextQuadPane.defaultStroke == nil)
         #expect(ShortcutAction.gdockQuadPaneWorkspaces.defaultStroke == ShortcutStroke(key: "y", command: true, shift: true, option: false, control: false))
     }
 

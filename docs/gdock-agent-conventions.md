@@ -40,9 +40,9 @@ Also listed in `Agents.md` so every agent session loads it.
   restarts).
 - Palette: Enable/Disable **Grid Mode**
   (`palette.toggleSetting.gdock.gridMode`).
-- Shortcuts: **Create Next Quad Pane** (`gdock.nextQuadPane`, default
-  `Cmd+Y`) and **Create Quad Pane Workspaces**
-  (`gdock.quadPaneWorkspaces`, default `Cmd+Shift+Y`).
+- Shortcuts: **Create Next Quad Pane** (`gdock.nextQuadPane`, unbound by
+  default so it does not collide with Auto Split Cmd+Y) and **Create Quad
+  Pane Workspaces** (`gdock.quadPaneWorkspaces`, default `Cmd+Shift+Y`).
 - Titlebar: a grid-shape picker button sits immediately after Focus Forward
   in the left workspace control strip. Picking a shape enables Grid Mode if
   it was off and re-shapes every workspace (`GdockGridSplitAction` +
@@ -59,6 +59,16 @@ Also listed in `Agents.md` so every agent session loads it.
   placeholders is never retained. Shrinking the shape spills surplus
   surfaces into another workspace — Grid Mode never hides a surface behind
   another.
+
+### Feature: Auto Split
+
+- Settings: `gdock.autoSplitRows` / `gdock.autoSplitColumns` (default `2`,
+  clamped `1...6`) and `gdock.forceAutoSplitter` (default off).
+- Palette: Auto Split (`palette.gdock.autoSplit`); Force Auto Splitter
+  toggle (`palette.toggleSetting.gdock.forceAutoSplitter`).
+- Shortcut: **Auto Split** (`autoSplit`, default `Cmd+Y`).
+- When Grid Mode is on, Auto Split vetoes so it does not fight the
+  enforced grid. Explicit Split Quad remains 2×2.
 
 ### Feature: Stokd Work panel (right sidebar)
 

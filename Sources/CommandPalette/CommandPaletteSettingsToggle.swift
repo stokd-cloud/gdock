@@ -790,6 +790,36 @@ enum CommandPaletteSettingsToggleCommands {
                 }
             ),
             CommandPaletteSettingToggleDescriptor(
+                commandId: GdockAutoSplitterSettings.forceCommandId,
+                settingsKey: GdockAutoSplitterSettings.forceKey.id,
+                title: {
+                    String(
+                        localized: "settings.gdock.forceAutoSplitter",
+                        defaultValue: "Force Auto Splitter"
+                    )
+                },
+                sectionTitle: gdock,
+                keywords: [
+                    "gdock.forceAutoSplitter",
+                    "gdock",
+                    "auto",
+                    "split",
+                    "force",
+                    "quad",
+                    "grid",
+                    "rows",
+                    "columns",
+                ],
+                defaultValue: GdockAutoSplitterSettings.defaultForceEnabled,
+                defaultsKey: GdockAutoSplitterSettings.forceKey.userDefaultsKey,
+                didSet: { _, _, notificationCenter in
+                    notificationCenter.post(
+                        name: GdockAutoSplitterSettings.didChangeNotification,
+                        object: nil
+                    )
+                }
+            ),
+            CommandPaletteSettingToggleDescriptor(
                 commandId: GdockGridModeSettings.commandId,
                 settingsKey: GdockGridModeSettings.settingsKey,
                 title: {

@@ -70,11 +70,6 @@ extension DockSplitStore {
         didRequestCustomAction identifier: String,
         inPane pane: PaneID
     ) {
-        guard identifier == QuadSplitAction.customActionIdentifier
-            || identifier == "splitQuad"
-            || CmuxSurfaceTabBarBuiltInAction(configID: identifier) == .splitQuad else {
-            return
-        }
-        _ = QuadSplitAction.perform(inPane: pane, dock: self)
+        _ = AutoSplitAction.performForSplitQuadIdentifier(identifier, inPane: pane, dock: self)
     }
 }

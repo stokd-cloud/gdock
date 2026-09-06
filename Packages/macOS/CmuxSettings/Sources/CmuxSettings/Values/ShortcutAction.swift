@@ -129,6 +129,7 @@ public enum ShortcutAction: String, CaseIterable, Sendable, Hashable, SettingCod
     case equalizeSplits
     /// True 2×2 terminal grid. Unbound by default (D-3); Settings-editable.
     case splitQuad
+    case autoSplit
     case gdockNextQuadPane = "gdock.nextQuadPane"
     case gdockQuadPaneWorkspaces = "gdock.quadPaneWorkspaces"
     case splitBrowserRight

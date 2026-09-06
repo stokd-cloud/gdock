@@ -2,6 +2,23 @@
 
 Global app preferences live in `~/.config/cmux/cmux.json`.
 
+## `gdock.autoSplitRows`, `gdock.autoSplitColumns`, and `gdock.forceAutoSplitter`
+
+ghostty-dock (gdock) Auto Split builds a `rows × columns` terminal grid from the focused pane. Defaults are `2` rows, `2` columns, and Force Auto Splitter off. Values outside `1...6` clamp at runtime; `1 × 1` is a no-op.
+
+```json
+{
+  "gdock": {
+    "autoSplitRows": 2,
+    "autoSplitColumns": 3,
+    "forceAutoSplitter": false
+  }
+}
+```
+
+- Cmd+Y (`shortcuts.bindings.autoSplit`) runs Auto Split. Unbind or rebind with `"autoSplit": null` or another stroke.
+- Force Auto Splitter replaces only the last Split Quad tab-bar button. View menu, context menu, `palette.terminalSplitQuad`, a user-bound `splitQuad` shortcut, and CLI/socket `quad` stay 2×2.
+
 ## `mobile.artifactFolderAccess`
 
 Controls which files and folders cmux on iOS may browse after a chat references a directory or a directory path appears in a terminal.

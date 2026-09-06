@@ -4047,6 +4047,29 @@ class TabManager: ObservableObject {
         return createQuadSplit(tabId: selectedTabId, surfaceId: focusedPanelId, focus: focus)
     }
 
+    /// Create the configured Auto Split grid from an explicit source panel.
+    @discardableResult
+    func createAutoSplit(tabId: UUID, surfaceId: UUID, focus: Bool = true) -> Bool {
+        guard let tab = tabs.first(where: { $0.id == tabId }),
+              tab.panels[surfaceId] != nil,
+              let paneId = tab.paneId(forPanelId: surfaceId) else { return false }
+        sentryBreadcrumb("split.create", data: ["direction": "autoSplit"])
+        let didCreate = AutoSplitAction.perform(inPane: paneId, workspace: tab)
+        if didCreate, !focus, tab.bonsplitController.allPaneIds.contains(where: { $0 == paneId }) {
+            tab.bonsplitController.focusPane(paneId)
+        }
+        return didCreate
+    }
+
+    /// Create Auto Split from the currently focused terminal panel.
+    @discardableResult
+    func createAutoSplit(focus: Bool = true) -> Bool {
+        guard let selectedTabId,
+              let tab = tabs.first(where: { $0.id == selectedTabId }),
+              let focusedPanelId = tab.focusedPanelId else { return false }
+        return createAutoSplit(tabId: selectedTabId, surfaceId: focusedPanelId, focus: focus)
+    }
+
     /// Advance the target workspace one step toward a 2x2 terminal layout.
     ///
     /// This is the shared action behind gdock's Cmd-Y shortcut: a single pane

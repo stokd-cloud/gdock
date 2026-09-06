@@ -30,7 +30,7 @@ extension KeyboardShortcutSettings.Action {
              .clearScreenKeepScrollback,
              .focusLeft, .focusRight, .focusUp, .focusDown,
              .focusPreviousPane, .focusNextPane,
-             .splitRight, .splitDown, .splitQuad,
+             .splitRight, .splitDown, .splitQuad, .autoSplit,
              .gdockNextQuadPane, .gdockQuadPaneWorkspaces,
              .toggleSplitZoom,
              .equalizeSplits,
@@ -259,6 +259,18 @@ extension AppDelegate {
             return .handled(success: false)
         }
         let success = QuadSplitAction.perform(inPane: pane, dock: store)
+        return .handled(success: success)
+    }
+
+    /// Routes Auto Split to the focused Dock with the same tri-state semantics.
+    func routeAutoSplitToFocusedDock(preferredWindow: NSWindow?) -> DockRouteOutcome {
+        guard let store = focusedDockStoreForShortcut(preferredWindow: preferredWindow) else {
+            return .notApplicable
+        }
+        guard let pane = store.resolvePane(requestedPaneID: nil) else {
+            return .handled(success: false)
+        }
+        let success = AutoSplitAction.perform(inPane: pane, dock: store)
         return .handled(success: success)
     }
 

@@ -642,7 +642,7 @@ enum QuadSplitAction {
     static var defaultSplitActionButtons: [BonsplitConfiguration.SplitActionButton] {
         var buttons = BonsplitConfiguration.SplitActionButton.defaults
         buttons.append(quadSplitActionButton)
-        return buttons
+        return AutoSplitAction.presentSplitButtons(buttons)
     }
 
     static var quadSplitActionButton: BonsplitConfiguration.SplitActionButton {

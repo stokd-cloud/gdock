@@ -74,6 +74,27 @@ extension Array where Element == CuratedSettingEntry {
                 paths: ["canvas.snappingEnabled"],
                 synonyms: "canvas.snappingEnabled canvas snap snapping enabled edges drag resize align panes freeform layout"
             ),
+            .init(
+                section: .app,
+                id: "auto-split-rows",
+                title: String(localized: "settings.gdock.autoSplitRows", defaultValue: "Auto Split Rows"),
+                paths: ["gdock.autoSplitRows"],
+                synonyms: "gdock.autoSplitRows auto split rows grid cmd+y"
+            ),
+            .init(
+                section: .app,
+                id: "auto-split-columns",
+                title: String(localized: "settings.gdock.autoSplitColumns", defaultValue: "Auto Split Columns"),
+                paths: ["gdock.autoSplitColumns"],
+                synonyms: "gdock.autoSplitColumns auto split columns grid cmd+y"
+            ),
+            .init(
+                section: .app,
+                id: "force-auto-splitter",
+                title: String(localized: "settings.gdock.forceAutoSplitter", defaultValue: "Force Auto Splitter"),
+                paths: ["gdock.forceAutoSplitter"],
+                synonyms: "gdock.forceAutoSplitter force auto splitter split quad button"
+            ),
             .init(section: .app, id: "dock-badge", title: "Dock Badge", synonyms: "notifications.dockBadge badge dock unread count icon notifications red bubble"),
             .init(section: .app, id: "show-menu-bar", title: "Show in Menu Bar", synonyms: "notifications.showInMenuBar menubar menu bar status item tray extra"),
             .init(section: .app, id: "unread-pane-ring", title: "Unread Pane Ring", synonyms: "notifications.unreadPaneRing blue border unread ring notification pane outline"),

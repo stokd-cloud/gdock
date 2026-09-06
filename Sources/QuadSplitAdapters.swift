@@ -111,6 +111,26 @@ enum QuadSplitAdapters {
     }
 
     @discardableResult
+    static func performAutoSplitSharedFocusPath(
+        preferredWindow: NSWindow?,
+        tabManager: TabManager?
+    ) -> Bool {
+        let window = preferredWindow ?? NSApp.keyWindow ?? NSApp.mainWindow
+        if let appDelegate = AppDelegate.shared {
+            switch appDelegate.routeAutoSplitToFocusedDock(preferredWindow: window) {
+            case .handled(let success):
+                return success
+            case .notApplicable:
+                break
+            }
+            if appDelegate.performAutoSplitShortcut(preferredWindow: window) {
+                return true
+            }
+        }
+        return tabManager?.createAutoSplit(focus: true) == true
+    }
+
+    @discardableResult
     static func performNextQuadPaneSharedFocusPath(
         preferredWindow: NSWindow?,
         tabManager: TabManager?
