@@ -27,7 +27,7 @@
 
 ### Feature: Auto Workspace Group Mode
 
-- Setting: `gdock.autoWorkspaceGroupMode` (default off).
+- Setting: `gdock.autoWorkspaceGroupMode` (default on).
 - Palette: Enable/Disable **Auto Workspace Group Mode** (`palette.toggleSetting.gdock.autoWorkspaceGroupMode`).
 - When on: non-anchor workspaces whose cwd is inside a GitHub-remote repo are placed in a workspace group named `owner/repo` (primary remote: origin → upstream → others). A group anchor is the group's header and is never moved into another group, but it is not exempt: an anchor that owns nothing else renames its group to the repo it moved to, and an anchor with siblings sheds the panels that diverged (always keeping one, so the header survives). Focus follows an extracted panel only when it is the panel the user is working in.
 
@@ -58,7 +58,9 @@ Also listed in `Agents.md` so every agent session loads it.
   when Auto Workspace Group Mode is on). A workspace of only unstarted
   placeholders is never retained. Shrinking the shape spills surplus
   surfaces into another workspace — Grid Mode never hides a surface behind
-  another.
+  another. Vertical, horizontal, and quad split icons are hidden. User
+  split / new-tab / quad-split entrypoints are no-ops. Panel-header
+  double-click still toggles split-zoom. See AX-GDOCK-GRID-LOCK-MODE.
 
 ### Feature: Auto Split
 
@@ -224,6 +226,78 @@ without Xcode, a real `/Applications` write, or real signalling.
 installed one.
 
 Contract: `AX-GDOCK-INSTALLED-APP-SWAP-GATE`.
+
+## AX-GDOCK-GRID-LOCK-MODE
+
+While `gdock.gridMode` is on, the workspace tree is locked to the enforced
+grid. Vertical, horizontal, and quad split icons MUST be absent from pane
+headers. User split, new-tab, and quad-split entrypoints MUST be no-ops.
+Panel-header double-click zoom remains. Programmatic
+`GdockGridSplitAction` still mutates the tree.
+
+### Why
+
+Grid Mode is a locked layout, not a starting point for more splits. The
+pane-header vertical, horizontal, and quad icons plus stacked tabs keep
+offering a tree the mode is supposed to forbid. Double-click zoom is the
+one user exception and already exists.
+
+### How to apply
+
+1. While `gdock.gridMode` is on, set `showSplitButtons` false and strip
+   `splitRight` / `splitDown` / `splitQuad` from the pane-header button
+   list, including hover.
+2. Make user split, new-tab, and quad-split entrypoints (tab bar,
+   shortcut, palette, context menu) no-ops.
+3. Keep `allowSplits` true so `GdockGridSplitAction` is not vetoed.
+4. Cmd+T fills the next unactivated cell or rolls a real panel into
+   another workspace and never stacks a tab in a cell.
+5. Panel-header double-click still toggles split-zoom.
+
+### Acceptance Checks
+
+- Runnable:
+  `./scripts/test-unit.sh test -only-testing:cmuxTests/GdockGridModeTests`
+  covers hidden split chrome, blocked user splits, and split-zoom.
+- Dispatching splitRight, splitDown, splitQuad, and new-tab while Grid
+  Mode is on leaves bonsplit pane count and tab-per-pane count unchanged.
+- `GdockGridSplitAction.applyShape` still returns success or
+  alreadyShaped, not allowSplitsDisabled.
+
+## AX-GDOCK-AUTO-GROUP-SPAWN-BOUNDED
+
+Auto Workspace Group Mode MUST NOT unbounded-create workspaces or live
+PTYs. One reconcile MAY create at most one new header workspace per
+`owner/repo` slug. Grid placeholder cells MUST NOT be extracted. Grid
+compaction MUST NOT close a group-header workspace.
+`gdock.autoWorkspaceGroupMode` defaults on only after these bounds exist.
+
+### Why
+
+Turning Auto Workspace Group Mode on calls `createWorkspaceGroup`, which
+inserts a new live terminal workspace per `owner/repo`. Grid Mode then
+2x2-fills that workspace. Placeholder cells can be extracted, and
+compaction can close a group header, which retriggers grouping. That is
+the sidebar-filling spawn.
+
+### How to apply
+
+1. One reconcile may create at most one new header workspace per
+   `owner/repo` slug.
+2. Skip `gdockGridPlaceholderPanelIds` from auto-group extract.
+3. Grid compaction with `groupByRepository` must retain every
+   group-anchor workspace.
+4. Flip `gdock.autoWorkspaceGroupMode` default to true only in the same
+   change as these bounds.
+
+### Acceptance Checks
+
+- Runnable:
+  `./scripts/test-unit.sh test -only-testing:cmuxTests/GdockAutoWorkspaceGroupReconcilerTests -only-testing:cmuxTests/GdockGridModeTests`
+- Reconciler plan skips panels listed as grid placeholders.
+- Compaction planner with `groupByRepository` retains every group-anchor
+  id even when that workspace has fewer real panels than capacity.
+- Catalog default for `gdock.autoWorkspaceGroupMode` is true.
 
 ## AX-GDOCK-QUAD-SHORTCUT-WORKSPACE-VISIBILITY
 

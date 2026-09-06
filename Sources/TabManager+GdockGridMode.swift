@@ -85,6 +85,9 @@ extension TabManager {
             lastGdockGridModeEnabled = enabled
             lastGdockGridModeShape = shape
         }
+        for workspace in tabs {
+            workspace.applyGdockGridLockChrome()
+        }
         guard enabled else { return }
         if !force, lastGdockGridModeEnabled == true, lastGdockGridModeShape == shape {
             return
@@ -203,10 +206,12 @@ extension TabManager {
     private func compactGdockGridWorkspaces(shape: GdockGridShape) {
         let capacity = shape.cellCount
         let eligible = tabs.filter { GdockGridSplitAction.preflight(workspace: $0) == nil }
+        let anchorIds = Set(workspaceGroups.map(\.anchorWorkspaceId))
         let snapshots = eligible.map { workspace in
             GdockGridWorkspaceCompactionPlanner.WorkspaceSnapshot(
                 id: workspace.id,
                 groupId: workspace.groupId,
+                isGroupAnchor: anchorIds.contains(workspace.id),
                 panelIds: gdockGridOrderedPanelIds(in: workspace),
                 placeholderPanelIds: Array(workspace.gdockGridPlaceholderPanelIds)
             )
@@ -238,6 +243,9 @@ extension TabManager {
             }
             for surplusId in scope.surplusWorkspaceIds {
                 guard let surplus = workspaceById[surplusId], tabs.count > 1 else { continue }
+                if workspaceGroups.contains(where: { $0.anchorWorkspaceId == surplusId }) {
+                    continue
+                }
                 closeWorkspace(surplus, recordHistory: false)
             }
         }

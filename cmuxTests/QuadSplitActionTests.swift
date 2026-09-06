@@ -15,6 +15,14 @@ import Testing
 /// focus, leaf replacement, preflight veto catalog, and late failure.
 @Suite("Quad split action", .serialized)
 struct QuadSplitActionTests {
+    @MainActor
+    private func withGridModeDisabled(_ body: () throws -> Void) rethrows {
+        let previous = GdockGridModeSettings.isEnabled()
+        GdockGridModeSettings.setEnabled(false)
+        defer { GdockGridModeSettings.setEnabled(previous) }
+        try body()
+    }
+
     @Test("perform is callable on a workspace")
     @MainActor
     func performIsCallableOnWorkspace() throws {
@@ -28,6 +36,7 @@ struct QuadSplitActionTests {
     @Test("one-pane fixture becomes four panes with one terminal each")
     @MainActor
     func quadSplitProducesFourPanes() throws {
+        try withGridModeDisabled {
         let manager = TabManager()
         let workspace = try #require(manager.selectedWorkspace)
         let rootPane = try #require(workspace.bonsplitController.allPaneIds.first)
@@ -45,11 +54,13 @@ struct QuadSplitActionTests {
             #expect(workspace.terminalPanel(for: panelId) != nil)
         }
         #expect(workspace.panels[originalPanelId] != nil)
+        }
     }
 
     @Test("true 2x2 topology: H(V,V) with focus on bottom-right")
     @MainActor
     func quadSplitProducesTrueTwoByTwoTopology() throws {
+        try withGridModeDisabled {
         let manager = TabManager()
         let workspace = try #require(manager.selectedWorkspace)
         let rootPane = try #require(workspace.bonsplitController.allPaneIds.first)
@@ -94,6 +105,7 @@ struct QuadSplitActionTests {
         let focusedPane = try #require(workspace.bonsplitController.focusedPaneId)
         #expect(focusedPane.id.uuidString == bottomRight.id)
         #expect(workspace.focusedPanelId != originalPanelId)
+        }
     }
 
     @Test("allowSplits false is an atomic veto")
@@ -164,6 +176,7 @@ struct QuadSplitActionTests {
     @Test("quad flattens an existing topology without dropping panels")
     @MainActor
     func quadFlattensExistingTopologyWithoutDroppingPanels() throws {
+        try withGridModeDisabled {
         let manager = TabManager()
         let workspace = try #require(manager.selectedWorkspace)
         let leftPanelId = try #require(workspace.focusedPanelId)
@@ -182,6 +195,7 @@ struct QuadSplitActionTests {
         // Existing content survives the flatten/re-deal.
         #expect(workspace.panels[leftPanelId] != nil)
         #expect(workspace.panels[rightPanel.id] != nil)
+        }
     }
 
     @Test("recipe source shape is pinned: flat workspace path and legacy fallback")
@@ -212,55 +226,62 @@ struct QuadSplitActionTests {
     @Test("createQuadSplit on TabManager shares the action")
     @MainActor
     func tabManagerCreateQuadSplitSharesAction() throws {
-        let manager = TabManager()
-        let workspace = try #require(manager.selectedWorkspace)
-        let panelId = try #require(workspace.focusedPanelId)
-        #expect(manager.createQuadSplit(tabId: workspace.id, surfaceId: panelId, focus: true))
-        #expect(workspace.bonsplitController.allPaneIds.count == 4)
+        try withGridModeDisabled {
+            let manager = TabManager()
+            let workspace = try #require(manager.selectedWorkspace)
+            let panelId = try #require(workspace.focusedPanelId)
+            #expect(manager.createQuadSplit(tabId: workspace.id, surfaceId: panelId, focus: true))
+            #expect(workspace.bonsplitController.allPaneIds.count == 4)
+        }
     }
 
     @Test("createNextQuadPane advances one pane at a time")
     @MainActor
     func createNextQuadPaneAdvancesOnePaneAtATime() throws {
-        let manager = TabManager()
-        let workspace = try #require(manager.selectedWorkspace)
-        #expect(workspace.bonsplitController.allPaneIds.count == 1)
+        try withGridModeDisabled {
+            let manager = TabManager()
+            let workspace = try #require(manager.selectedWorkspace)
+            #expect(workspace.bonsplitController.allPaneIds.count == 1)
 
-        #expect(manager.createNextQuadPane(focus: true))
-        #expect(workspace.bonsplitController.allPaneIds.count == 2)
-        #expect(Self.rootSplitOrientation(workspace) == "horizontal")
+            #expect(manager.createNextQuadPane(focus: true))
+            #expect(workspace.bonsplitController.allPaneIds.count == 2)
+            #expect(Self.rootSplitOrientation(workspace) == "horizontal")
 
-        #expect(manager.createNextQuadPane(focus: true))
-        #expect(workspace.bonsplitController.allPaneIds.count == 3)
+            #expect(manager.createNextQuadPane(focus: true))
+            #expect(workspace.bonsplitController.allPaneIds.count == 3)
 
-        #expect(manager.createNextQuadPane(focus: true))
-        #expect(workspace.bonsplitController.allPaneIds.count == 4)
-        #expect(Self.isTrueTwoByTwo(workspace))
+            #expect(manager.createNextQuadPane(focus: true))
+            #expect(workspace.bonsplitController.allPaneIds.count == 4)
+            #expect(Self.isTrueTwoByTwo(workspace))
+        }
     }
 
     @Test("createNextQuadPane rolls over complete quad to same-directory workspace")
     @MainActor
     func createNextQuadPaneRollsOverCompleteQuadToSameDirectoryWorkspace() throws {
-        let manager = TabManager()
-        let workspace = try #require(manager.selectedWorkspace)
-        workspace.currentDirectory = "/tmp/gdock-quad-rollover"
-        let rootPane = try #require(workspace.bonsplitController.allPaneIds.first)
-        #expect(QuadSplitAction.perform(inPane: rootPane, workspace: workspace))
-        #expect(Self.isTrueTwoByTwo(workspace))
+        try withGridModeDisabled {
+            let manager = TabManager()
+            let workspace = try #require(manager.selectedWorkspace)
+            workspace.currentDirectory = "/tmp/gdock-quad-rollover"
+            let rootPane = try #require(workspace.bonsplitController.allPaneIds.first)
+            #expect(QuadSplitAction.perform(inPane: rootPane, workspace: workspace))
+            #expect(Self.isTrueTwoByTwo(workspace))
 
-        let countBefore = manager.tabs.count
-        #expect(manager.createNextQuadPane(focus: true))
+            let countBefore = manager.tabs.count
+            #expect(manager.createNextQuadPane(focus: true))
 
-        let newWorkspace = try #require(manager.selectedWorkspace)
-        #expect(manager.tabs.count == countBefore + 1)
-        #expect(newWorkspace.id != workspace.id)
-        #expect(newWorkspace.currentDirectory == "/tmp/gdock-quad-rollover")
-        #expect(newWorkspace.bonsplitController.allPaneIds.count == 1)
+            let newWorkspace = try #require(manager.selectedWorkspace)
+            #expect(manager.tabs.count == countBefore + 1)
+            #expect(newWorkspace.id != workspace.id)
+            #expect(newWorkspace.currentDirectory == "/tmp/gdock-quad-rollover")
+            #expect(newWorkspace.bonsplitController.allPaneIds.count == 1)
+        }
     }
 
     @Test("createQuadPaneWorkspaces normalizes four existing panes")
     @MainActor
     func createQuadPaneWorkspacesNormalizesFourExistingPanes() throws {
+        try withGridModeDisabled {
         let manager = TabManager()
         let workspace = try #require(manager.selectedWorkspace)
         let first = try #require(workspace.focusedPanelId)
@@ -275,11 +296,13 @@ struct QuadSplitActionTests {
         #expect(manager.tabs.count == 1)
         #expect(workspace.bonsplitController.allPaneIds.count == 4)
         #expect(Self.isTrueTwoByTwo(workspace))
+        }
     }
 
     @Test("createQuadPaneWorkspaces batches more than four panes without losing panels")
     @MainActor
     func createQuadPaneWorkspacesBatchesMoreThanFourPanesWithoutLosingPanels() throws {
+        try withGridModeDisabled {
         let manager = TabManager()
         let workspace = try #require(manager.selectedWorkspace)
         workspace.currentDirectory = "/tmp/gdock-quad-batches"
@@ -301,6 +324,7 @@ struct QuadSplitActionTests {
         #expect(secondWorkspace.bonsplitController.allPaneIds.count == 2)
         let panelIdsAfter = Set(manager.tabs.flatMap { $0.panels.keys })
         #expect(panelIdsAfter == panelIdsBefore)
+        }
     }
 
     // MARK: - VAL-QUAD-004: complete veto catalog (table-driven)
@@ -407,6 +431,7 @@ struct QuadSplitActionTests {
     @Test("injected late failure after step 1 leaves partial state and logs failure")
     @MainActor
     func lateFailureAfterStep1IsExplicit() throws {
+        try withGridModeDisabled {
         QuadSplitAction.resetTestingHooks()
         defer { QuadSplitAction.resetTestingHooks() }
 
@@ -428,11 +453,13 @@ struct QuadSplitActionTests {
         #expect(workspace.bonsplitController.allPaneIds.count != 1)
         // Recipe must not claim success and must not continue to four panes.
         #expect(workspace.bonsplitController.allPaneIds.count != 4)
+        }
     }
 
     @Test("injected late failure after step 2 leaves partial state and logs failure")
     @MainActor
     func lateFailureAfterStep2IsExplicit() throws {
+        try withGridModeDisabled {
         QuadSplitAction.resetTestingHooks()
         defer { QuadSplitAction.resetTestingHooks() }
 
@@ -452,6 +479,7 @@ struct QuadSplitActionTests {
         }))
         #expect(workspace.bonsplitController.allPaneIds.count != 1)
         #expect(workspace.bonsplitController.allPaneIds.count != 4)
+        }
     }
 
     @Test("Dock late failure after step 1 is explicit and does not fall through")

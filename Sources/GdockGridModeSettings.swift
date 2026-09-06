@@ -54,3 +54,18 @@ enum GdockGridModeSettings {
         notificationCenter.post(name: didChangeNotification, object: nil)
     }
 }
+
+/// User-facing Grid Mode lock: hide split chrome and reject tree mutations
+/// except programmatic `GdockGridSplitAction` and panel-header split-zoom.
+enum GdockGridLock {
+    static func showsSplitButtons(gridModeEnabled: Bool) -> Bool {
+        !gridModeEnabled
+    }
+
+    static func blocksUserTreeMutation(
+        gridModeEnabled: Bool,
+        isApplyingGridShape: Bool
+    ) -> Bool {
+        gridModeEnabled && !isApplyingGridShape
+    }
+}

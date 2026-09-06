@@ -31,7 +31,8 @@ extension TabManager {
                     guard !trimmed.isEmpty, tab.panels[panelId] != nil else { return nil }
                     return GdockAutoWorkspaceGroupReconciler.PanelSnapshot(
                         id: panelId,
-                        currentDirectory: trimmed
+                        currentDirectory: trimmed,
+                        isGridPlaceholder: tab.gdockGridPlaceholderPanelIds.contains(panelId)
                     )
                 }
                 .sorted { $0.id.uuidString < $1.id.uuidString }

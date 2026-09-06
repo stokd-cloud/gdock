@@ -4012,6 +4012,12 @@ class TabManager: ObservableObject {
     /// Create a new split from an explicit source panel.
     @discardableResult
     func createSplit(tabId: UUID, surfaceId: UUID, direction: SplitDirection, focus: Bool = true) -> UUID? {
+        if GdockGridLock.blocksUserTreeMutation(
+            gridModeEnabled: GdockGridModeSettings.isEnabled(),
+            isApplyingGridShape: false
+        ) {
+            return nil
+        }
         guard let tab = tabs.first(where: { $0.id == tabId }),
               tab.panels[surfaceId] != nil else { return nil }
         tab.clearSplitZoom()
@@ -4023,6 +4029,12 @@ class TabManager: ObservableObject {
     /// ``QuadSplitAction``. Returns whether the full grid was produced.
     @discardableResult
     func createQuadSplit(tabId: UUID, surfaceId: UUID, focus: Bool = true) -> Bool {
+        if GdockGridLock.blocksUserTreeMutation(
+            gridModeEnabled: GdockGridModeSettings.isEnabled(),
+            isApplyingGridShape: false
+        ) {
+            return false
+        }
         guard let tab = tabs.first(where: { $0.id == tabId }),
               tab.panels[surfaceId] != nil,
               let paneId = tab.paneId(forPanelId: surfaceId) else { return false }
@@ -4077,6 +4089,12 @@ class TabManager: ObservableObject {
     /// 2x2 rolls over to a fresh same-directory workspace.
     @discardableResult
     func createNextQuadPane(tabId: UUID, surfaceId: UUID, focus: Bool = true) -> Bool {
+        if GdockGridLock.blocksUserTreeMutation(
+            gridModeEnabled: GdockGridModeSettings.isEnabled(),
+            isApplyingGridShape: false
+        ) {
+            return false
+        }
         guard let workspace = tabs.first(where: { $0.id == tabId }),
               workspace.panels[surfaceId] != nil,
               workspace.layoutMode != .canvas else { return false }
