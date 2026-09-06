@@ -8,7 +8,7 @@ import Testing
 @testable import cmux
 #endif
 
-@Suite("File explorer Finder-style file copy/paste")
+@Suite("File explorer Finder-style file copy/paste/trash")
 struct FileExplorerFileClipboardTests {
     private func item(_ path: String, isDirectory: Bool) -> FileExplorerFileClipboard.Item {
         FileExplorerFileClipboard.Item(path: path, isDirectory: isDirectory)
@@ -224,6 +224,168 @@ struct FileExplorerFileClipboardTests {
         try await waitFor("destination listing includes pasted file") {
             Set(store.rootNodes.map(\.name)) == ["a.txt", "b.txt"]
         }
+    }
+
+    // MARK: - Trash gating
+
+    @Test func trashDisabledForRemoteProvider() {
+        #expect(
+            FileExplorerFileTrash.canTrash(
+                isLocal: false,
+                selectedPaths: ["/repo/a.txt"],
+                rootPath: "/repo"
+            ) == false
+        )
+    }
+
+    @Test func trashRequiresLocalSelectionInsideRoot() {
+        #expect(
+            FileExplorerFileTrash.canTrash(
+                isLocal: true,
+                selectedPaths: [],
+                rootPath: "/repo"
+            ) == false
+        )
+        #expect(
+            FileExplorerFileTrash.canTrash(
+                isLocal: true,
+                selectedPaths: ["/repo"],
+                rootPath: "/repo"
+            ) == false
+        )
+        #expect(
+            FileExplorerFileTrash.canTrash(
+                isLocal: true,
+                selectedPaths: ["/repo/a.txt"],
+                rootPath: "/repo"
+            ) == true
+        )
+    }
+
+    @Test func refusesWorkspaceRootAndPathsOutsideRoot() {
+        #expect(!FileExplorerFileTrash.isStrictlyInsideRoot("/repo", rootPath: "/repo"))
+        #expect(!FileExplorerFileTrash.isStrictlyInsideRoot("/repo/", rootPath: "/repo"))
+        #expect(!FileExplorerFileTrash.isStrictlyInsideRoot("/other/a.txt", rootPath: "/repo"))
+        #expect(FileExplorerFileTrash.isStrictlyInsideRoot("/repo/a.txt", rootPath: "/repo"))
+        #expect(FileExplorerFileTrash.isStrictlyInsideRoot("/repo/src/inner", rootPath: "/repo"))
+        #expect(
+            FileExplorerFileTrash.trashablePaths(
+                selectedPaths: ["/repo", "/other/a.txt", "/repo/a.txt"],
+                rootPath: "/repo"
+            ) == ["/repo/a.txt"]
+        )
+    }
+
+    @Test func pruneNestedKeepsAncestorOnly() {
+        #expect(
+            FileExplorerFileTrash.pruneNested([
+                "/repo/src/a.txt",
+                "/repo/src",
+                "/repo/README.md",
+            ]) == ["/repo/README.md", "/repo/src"]
+        )
+    }
+
+    // MARK: - FileManager trash
+
+    @Test func trashesFileAndDirectory() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("gdock-files-trash-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let file = root.appendingPathComponent("note.txt")
+        try Data("hello".utf8).write(to: file)
+        let folder = root.appendingPathComponent("pkg", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        try Data("inner".utf8).write(to: folder.appendingPathComponent("inner.txt"))
+
+        let parents = try FileExplorerFileTrash.trash(
+            isLocal: true,
+            rootPath: root.path,
+            selectedPaths: [file.path, folder.path]
+        )
+
+        #expect(parents.map(standardized) == [standardized(root.path)])
+        #expect(!FileManager.default.fileExists(atPath: file.path))
+        #expect(!FileManager.default.fileExists(atPath: folder.path))
+        #expect(FileManager.default.fileExists(atPath: root.path))
+    }
+
+    @Test func nestedSelectionTrashesAncestorOnce() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("gdock-files-trash-nested-\(UUID().uuidString)", isDirectory: true)
+        let folder = root.appendingPathComponent("src", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let child = folder.appendingPathComponent("a.txt")
+        try Data("a".utf8).write(to: child)
+        let sibling = root.appendingPathComponent("keep.txt")
+        try Data("keep".utf8).write(to: sibling)
+
+        let parents = try FileExplorerFileTrash.trash(
+            isLocal: true,
+            rootPath: root.path,
+            selectedPaths: [folder.path, child.path]
+        )
+
+        #expect(parents.map(standardized) == [standardized(root.path)])
+        #expect(!FileManager.default.fileExists(atPath: folder.path))
+        #expect(!FileManager.default.fileExists(atPath: child.path))
+        #expect(try String(contentsOf: sibling, encoding: .utf8) == "keep")
+    }
+
+    @Test func doesNotTrashWhenRemoteEvenIfPathsLookLocal() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("gdock-files-trash-remote-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let file = root.appendingPathComponent("a.txt")
+        try Data("a".utf8).write(to: file)
+
+        let parents = try FileExplorerFileTrash.trash(
+            isLocal: false,
+            rootPath: root.path,
+            selectedPaths: [file.path]
+        )
+        #expect(parents.isEmpty)
+        #expect(FileManager.default.fileExists(atPath: file.path))
+    }
+
+    // MARK: - Store refresh
+
+    @Test @MainActor func refreshDirectoryRemovesTrashedChild() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("gdock-files-trash-refresh-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let keep = root.appendingPathComponent("keep.txt")
+        let gone = root.appendingPathComponent("gone.txt")
+        try Data("keep".utf8).write(to: keep)
+        try Data("gone".utf8).write(to: gone)
+
+        let store = FileExplorerStore()
+        store.setProviderForTesting(LocalFileExplorerProvider())
+        store.setRootPath(root.path)
+        try await waitFor("root loaded") {
+            Set(store.rootNodes.map(\.name)) == ["gone.txt", "keep.txt"]
+        }
+
+        let parents = try FileExplorerFileTrash.trash(
+            isLocal: true,
+            rootPath: root.path,
+            selectedPaths: [gone.path]
+        )
+        #expect(parents.map(standardized) == [standardized(root.path)])
+        store.refreshDirectory(at: root.path)
+        try await waitFor("trashed file disappears from listing") {
+            store.rootNodes.map(\.name) == ["keep.txt"]
+        }
+    }
+
+    private func standardized(_ path: String) -> String {
+        URL(fileURLWithPath: path).standardizedFileURL.path
     }
 
     private func waitFor(

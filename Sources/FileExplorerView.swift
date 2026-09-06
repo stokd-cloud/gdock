@@ -149,6 +149,14 @@ struct FileExplorerPanelView: NSViewRepresentable {
             )
         }
 
+        func canTrashFiles() -> Bool {
+            FileExplorerFileTrash.canTrash(
+                isLocal: isLocalProvider,
+                selectedPaths: selectedClipboardItems().map(\.path),
+                rootPath: store.rootPath
+            )
+        }
+
         func copySelectedFiles() {
             let items = selectedClipboardItems()
             guard FileExplorerFileClipboard.canCopy(isLocal: isLocalProvider, selectedPaths: items.map(\.path)) else {
@@ -175,6 +183,26 @@ struct FileExplorerPanelView: NSViewRepresentable {
             } catch {
                 #if DEBUG
                 NSLog("[FileExplorer] paste failed: \(error)")
+                #endif
+            }
+        }
+
+        func trashSelectedFiles() {
+            let items = selectedClipboardItems()
+            do {
+                let parents = try FileExplorerFileTrash.trash(
+                    isLocal: isLocalProvider,
+                    rootPath: store.rootPath,
+                    selectedPaths: items.map(\.path)
+                )
+                guard !parents.isEmpty else { return }
+                store.select(node: nil)
+                for parent in parents {
+                    store.refreshDirectory(at: parent)
+                }
+            } catch {
+                #if DEBUG
+                NSLog("[FileExplorer] trash failed: \(error)")
                 #endif
             }
         }
@@ -671,6 +699,15 @@ struct FileExplorerPanelView: NSViewRepresentable {
                 pasteItem.target = self
                 pasteItem.isEnabled = canPasteFiles()
                 menu.addItem(pasteItem)
+
+                let deleteItem = NSMenuItem(
+                    title: String(localized: "fileExplorer.contextMenu.delete", defaultValue: "Move to Trash"),
+                    action: #selector(contextMenuTrashFiles(_:)),
+                    keyEquivalent: ""
+                )
+                deleteItem.target = self
+                deleteItem.isEnabled = canTrashFiles()
+                menu.addItem(deleteItem)
             }
 
             let copyPathItem = NSMenuItem(
@@ -708,6 +745,10 @@ struct FileExplorerPanelView: NSViewRepresentable {
 
         @objc private func contextMenuPasteFiles(_ sender: NSMenuItem) {
             pasteFiles()
+        }
+
+        @objc private func contextMenuTrashFiles(_ sender: NSMenuItem) {
+            trashSelectedFiles()
         }
 
         @objc private func contextMenuCopyPath(_ sender: NSMenuItem) {
@@ -940,11 +981,17 @@ final class FileExplorerContainerView: NSView {
         searchResultsView.onPasteFiles = { [weak self] in
             self?.pasteFilesIntoSearchSelection()
         }
+        searchResultsView.onTrashFiles = { [weak self] in
+            self?.trashSelectedSearchResultFiles()
+        }
         searchResultsView.canCopyFiles = { [weak self] in
             self?.canCopySelectedSearchResultFiles() ?? false
         }
         searchResultsView.canPasteFiles = { [weak self] in
             self?.canPasteFilesIntoSearchSelection() ?? false
+        }
+        searchResultsView.canTrashFiles = { [weak self] in
+            self?.canTrashSelectedSearchResultFiles() ?? false
         }
         searchResultsView.onModeShortcut = { [weak coordinator] mode, window in
             coordinator?.handleModeShortcut(mode, in: window) ?? false
@@ -1612,6 +1659,10 @@ final class FileExplorerContainerView: NSView {
         pasteFilesIntoSearchSelection()
     }
 
+    @objc private func contextMenuTrashSearchResultFiles(_ sender: NSMenuItem) {
+        trashSelectedSearchResultFiles()
+    }
+
     private func selectedSearchClipboardItems() -> [FileExplorerFileClipboard.Item] {
         searchResultsView.selectedRowIndexes.compactMap { row in
             guard row >= 0, row < searchSnapshot.results.count else { return nil }
@@ -1633,6 +1684,14 @@ final class FileExplorerContainerView: NSView {
         FileExplorerFileClipboard.canPaste(
             isLocal: currentProviderIsLocal,
             pasteboardHasFiles: FileExplorerFileClipboard.pasteboardHasFiles(.general)
+        )
+    }
+
+    private func canTrashSelectedSearchResultFiles() -> Bool {
+        FileExplorerFileTrash.canTrash(
+            isLocal: currentProviderIsLocal,
+            selectedPaths: selectedSearchClipboardItems().map(\.path),
+            rootPath: coordinator.store.rootPath
         )
     }
 
@@ -1661,6 +1720,27 @@ final class FileExplorerContainerView: NSView {
         } catch {
             #if DEBUG
             NSLog("[FileExplorer] search paste failed: \(error)")
+            #endif
+        }
+    }
+
+    private func trashSelectedSearchResultFiles() {
+        let items = selectedSearchClipboardItems()
+        do {
+            let parents = try FileExplorerFileTrash.trash(
+                isLocal: currentProviderIsLocal,
+                rootPath: coordinator.store.rootPath,
+                selectedPaths: items.map(\.path)
+            )
+            guard !parents.isEmpty else { return }
+            coordinator.store.select(node: nil)
+            for parent in parents {
+                coordinator.store.refreshDirectory(at: parent)
+            }
+            scheduleSearchRefresh()
+        } catch {
+            #if DEBUG
+            NSLog("[FileExplorer] search trash failed: \(error)")
             #endif
         }
     }
@@ -1831,6 +1911,15 @@ extension FileExplorerContainerView: NSSearchFieldDelegate, NSTableViewDataSourc
             pasteItem.target = self
             pasteItem.isEnabled = canPasteFilesIntoSearchSelection()
             menu.addItem(pasteItem)
+
+            let deleteItem = NSMenuItem(
+                title: String(localized: "fileExplorer.contextMenu.delete", defaultValue: "Move to Trash"),
+                action: #selector(contextMenuTrashSearchResultFiles(_:)),
+                keyEquivalent: ""
+            )
+            deleteItem.target = self
+            deleteItem.isEnabled = canTrashSelectedSearchResultFiles()
+            menu.addItem(deleteItem)
         }
 
         let copyPathItem = NSMenuItem(

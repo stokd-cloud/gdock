@@ -1,7 +1,7 @@
 import AppKit
 import Foundation
 
-/// Finder-style file copy/paste for the Files pane. Copy Path remains a
+/// Finder-style file copy/paste/trash for the Files pane. Copy Path remains a
 /// separate string action; this type always writes file URLs.
 struct FileExplorerFileClipboard {
     struct Item: Equatable, Sendable {
@@ -150,5 +150,83 @@ struct FileExplorerFileClipboard {
         guard !copies.isEmpty else { return nil }
         try performCopies(copies, fileManager: fileManager)
         return destPath
+    }
+}
+
+/// Finder-style Move to Trash for the Files pane. Always uses `trashItem`
+/// (recoverable); never `removeItem`.
+enum FileExplorerFileTrash {
+    static func canTrash(isLocal: Bool, selectedPaths: [String], rootPath: String) -> Bool {
+        isLocal && !trashablePaths(selectedPaths: selectedPaths, rootPath: rootPath).isEmpty
+    }
+
+    static func isStrictlyInsideRoot(_ path: String, rootPath: String) -> Bool {
+        let path = URL(fileURLWithPath: path).standardizedFileURL.path
+        let root = URL(fileURLWithPath: rootPath).standardizedFileURL.path
+        guard !root.isEmpty else { return false }
+        if root == "/" {
+            return path != "/"
+        }
+        return path.hasPrefix(root + "/")
+    }
+
+    static func pruneNested(_ paths: [String]) -> [String] {
+        let items = paths.map { path in
+            (original: path, std: URL(fileURLWithPath: path).standardizedFileURL.path)
+        }
+        let unique = Dictionary(grouping: items, by: \.std).values.compactMap(\.first)
+        let sorted = unique.sorted { $0.std < $1.std }
+        var kept: [(original: String, std: String)] = []
+        for item in sorted {
+            if kept.contains(where: { item.std == $0.std || item.std.hasPrefix($0.std + "/") }) {
+                continue
+            }
+            kept.append(item)
+        }
+        return kept.map(\.original)
+    }
+
+    static func trashablePaths(selectedPaths: [String], rootPath: String) -> [String] {
+        pruneNested(selectedPaths.filter { isStrictlyInsideRoot($0, rootPath: rootPath) })
+    }
+
+    static func parentDirectories(of paths: [String]) -> [String] {
+        Array(Set(paths.map { URL(fileURLWithPath: $0).deletingLastPathComponent().path })).sorted()
+    }
+
+    static func isCommandDelete(_ event: NSEvent) -> Bool {
+        let flags = event.modifierFlags.intersection([.command, .shift, .option, .control])
+        return flags == .command && event.keyCode == 51
+    }
+
+    /// Trashes every trashable selection. Returns parent directories that
+    /// should be reloaded. Throws only when every attempted trash failed.
+    @discardableResult
+    static func trash(
+        isLocal: Bool,
+        rootPath: String,
+        selectedPaths: [String],
+        fileManager: FileManager = .default
+    ) throws -> [String] {
+        let targets = trashablePaths(selectedPaths: selectedPaths, rootPath: rootPath)
+        guard isLocal, !targets.isEmpty else { return [] }
+        var trashed: [String] = []
+        var firstError: Error?
+        for path in targets {
+            let url = URL(fileURLWithPath: path)
+            guard fileManager.fileExists(atPath: url.path) else { continue }
+            do {
+                try fileManager.trashItem(at: url, resultingItemURL: nil)
+                trashed.append(path)
+            } catch {
+                if firstError == nil {
+                    firstError = error
+                }
+            }
+        }
+        if trashed.isEmpty, let firstError {
+            throw firstError
+        }
+        return parentDirectories(of: trashed)
     }
 }

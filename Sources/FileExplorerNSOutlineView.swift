@@ -47,6 +47,12 @@ final class FileExplorerNSOutlineView: NSOutlineView {
             return
         }
 
+        if FileExplorerFileTrash.isCommandDelete(event) {
+            endQuickSearch()
+            fileExplorerCoordinator?.trashSelectedFiles()
+            return
+        }
+
         if RightSidebarKeyboardNavigation.isPlainPrintableText(event) {
             return
         }
@@ -61,12 +67,19 @@ final class FileExplorerNSOutlineView: NSOutlineView {
         fileExplorerCoordinator?.pasteFiles()
     }
 
+    @objc func delete(_ sender: Any?) {
+        fileExplorerCoordinator?.trashSelectedFiles()
+    }
+
     override func validateUserInterfaceItem(_ item: any NSValidatedUserInterfaceItem) -> Bool {
         if item.action == #selector(copy(_:)) {
             return fileExplorerCoordinator?.canCopyFiles() ?? false
         }
         if item.action == #selector(paste(_:)) {
             return fileExplorerCoordinator?.canPasteFiles() ?? false
+        }
+        if item.action == #selector(delete(_:)) {
+            return fileExplorerCoordinator?.canTrashFiles() ?? false
         }
         return super.validateUserInterfaceItem(item)
     }
@@ -91,6 +104,11 @@ final class FileExplorerNSOutlineView: NSOutlineView {
         if let action = RightSidebarKeyboardNavigation.disclosureAction(for: event) {
             endQuickSearch()
             fileExplorerCoordinator?.performDisclosureAction(action, in: self)
+            return true
+        }
+        if FileExplorerFileTrash.isCommandDelete(event) {
+            endQuickSearch()
+            fileExplorerCoordinator?.trashSelectedFiles()
             return true
         }
         return super.performKeyEquivalent(with: event)

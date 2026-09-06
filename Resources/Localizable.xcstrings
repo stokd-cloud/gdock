@@ -119372,6 +119372,23 @@
         }
       }
     },
+    "fileExplorer.contextMenu.delete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move to Trash"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ゴミ箱に入れる"
+          }
+        }
+      }
+    },
     "fileExplorer.contextMenu.copyPath" : {
       "extractionState" : "manual",
       "localizations" : {

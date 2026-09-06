@@ -461,13 +461,17 @@ hand-edit a single size.
 
 Files Copy and Paste MUST transfer filesystem objects via file-URL pasteboard,
 never path strings, and MUST share one `FileExplorerFileClipboard` path across
-Cmd+C/V and context menus.
+Cmd+C/V and context menus. Files Delete MUST move selections to Trash through
+one `FileExplorerFileTrash` path across Cmd+Delete, NSResponder `delete:`, and
+both Files/Find context menus.
 
 ### Why
 
 - Copy Path writes a string, so Cmd+C in Files cannot paste a real file into
   Files, Finder, or another folder.
-- Duplicate copy logic per menu vs NSResponder would drift.
+- Duplicate copy/trash logic per menu vs NSResponder would drift.
+- Permanent `removeItem` is unrecoverable; Finder-style Trash is the Files
+  explorer delete.
 
 ### How to apply
 
@@ -475,12 +479,15 @@ Cmd+C/V and context menus.
    gating, self-paste skip, pasteboard file-URL write/read, and FileManager
    copy.
 2. `FileExplorerNSOutlineView` and `FileExplorerSearchResultsTableView`
-   implement NSResponder `copy:`/`paste:` and context-menu Copy/Paste through
-   that planner.
-3. Copy Path stays a separate string action. Remote SSH must not copy or paste
-   files. After paste, `FileExplorerStore.refreshDirectory(at:)` reloads the
-   destination. Unique names follow Finder: `name copy.ext`, then
+   implement NSResponder `copy:`/`paste:`/`delete:` and context-menu
+   Copy/Paste/Move to Trash through those planners.
+3. Copy Path stays a separate string action. Remote SSH must not copy, paste,
+   or trash files. After paste, `FileExplorerStore.refreshDirectory(at:)`
+   reloads the destination. Unique names follow Finder: `name copy.ext`, then
    `name copy N.ext`.
+4. `FileExplorerFileTrash` owns nested-selection prune, workspace-root
+   exclusion, outside-root refusal, and `FileManager.trashItem`. After trash,
+   refresh each parent directory (and Find results when Find is open).
 
 ### Acceptance Checks
 

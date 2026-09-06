@@ -9,8 +9,10 @@ final class FileExplorerSearchResultsTableView: NSTableView {
     var onModeShortcut: ((RightSidebarMode, NSWindow?) -> Bool)?
     var onCopyFiles: (() -> Void)?
     var onPasteFiles: (() -> Void)?
+    var onTrashFiles: (() -> Void)?
     var canCopyFiles: (() -> Bool)?
     var canPasteFiles: (() -> Bool)?
+    var canTrashFiles: (() -> Bool)?
 
     override func becomeFirstResponder() -> Bool {
         let result = super.becomeFirstResponder()
@@ -48,6 +50,10 @@ final class FileExplorerSearchResultsTableView: NSTableView {
             onMoveSelection?(delta)
             return
         }
+        if FileExplorerFileTrash.isCommandDelete(event) {
+            onTrashFiles?()
+            return
+        }
         if RightSidebarKeyboardNavigation.isPlainPrintableText(event) {
             return
         }
@@ -62,12 +68,19 @@ final class FileExplorerSearchResultsTableView: NSTableView {
         onPasteFiles?()
     }
 
+    @objc func delete(_ sender: Any?) {
+        onTrashFiles?()
+    }
+
     override func validateUserInterfaceItem(_ item: any NSValidatedUserInterfaceItem) -> Bool {
         if item.action == #selector(copy(_:)) {
             return canCopyFiles?() ?? false
         }
         if item.action == #selector(paste(_:)) {
             return canPasteFiles?() ?? false
+        }
+        if item.action == #selector(delete(_:)) {
+            return canTrashFiles?() ?? false
         }
         return super.validateUserInterfaceItem(item)
     }
@@ -76,6 +89,10 @@ final class FileExplorerSearchResultsTableView: NSTableView {
         if handleOpenSelectionShortcut(event) { return true }
         if let delta = RightSidebarKeyboardNavigation.moveDelta(for: event) {
             onMoveSelection?(delta)
+            return true
+        }
+        if FileExplorerFileTrash.isCommandDelete(event) {
+            onTrashFiles?()
             return true
         }
         return super.performKeyEquivalent(with: event)
