@@ -390,7 +390,40 @@ import CmuxSettings
         let key = SettingCatalog().gdock.autoWorkspaceGroupMode
         #expect(key.id == "gdock.autoWorkspaceGroupMode")
         #expect(key.userDefaultsKey == "gdock.autoWorkspaceGroupMode")
-        #expect(key.defaultValue == false)
+        #expect(key.defaultValue == true)
+    }
+
+    @Test func skipsGridPlaceholderPanelsWhenExtracting() {
+        let groupId = UUID()
+        let workspaceId = UUID()
+        let home = UUID()
+        let placeholder = UUID()
+        let plan = GdockAutoWorkspaceGroupReconciler.plan(
+            workspaces: [
+                .init(
+                    id: workspaceId,
+                    currentDirectory: "/tmp/a",
+                    groupId: groupId,
+                    isGroupAnchor: false,
+                    panels: [
+                        .init(id: home, currentDirectory: "/tmp/a"),
+                        .init(
+                            id: placeholder,
+                            currentDirectory: "/tmp/b",
+                            isGridPlaceholder: true
+                        ),
+                    ]
+                ),
+            ],
+            groups: [
+                .init(id: groupId, name: repoA),
+            ],
+            slugForDirectory: slugMap([
+                ("/tmp/a", repoA),
+                ("/tmp/b", repoB),
+            ])
+        )
+        #expect(plan.isEmpty)
     }
 
     @Test func paletteToggleUsesGdockPrefixedCommandId() throws {

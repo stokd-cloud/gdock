@@ -9,7 +9,7 @@ public struct GdockCatalogSection: SettingCatalogSection {
     /// are automatically placed into a workspace group named `owner/repo`.
     public let autoWorkspaceGroupMode = DefaultsKey<Bool>(
         id: "gdock.autoWorkspaceGroupMode",
-        defaultValue: false,
+        defaultValue: true,
         userDefaultsKey: "gdock.autoWorkspaceGroupMode"
     )
 

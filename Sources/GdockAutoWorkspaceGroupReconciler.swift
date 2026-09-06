@@ -37,10 +37,14 @@ enum GdockAutoWorkspaceGroupReconciler {
     struct PanelSnapshot: Equatable, Sendable {
         let id: UUID
         let currentDirectory: String
+        /// Grid Mode unactivated cells. Auto-group must not extract these into
+        /// new workspaces (AX-GDOCK-AUTO-GROUP-SPAWN-BOUNDED).
+        let isGridPlaceholder: Bool
 
-        init(id: UUID, currentDirectory: String) {
+        init(id: UUID, currentDirectory: String, isGridPlaceholder: Bool = false) {
             self.id = id
             self.currentDirectory = currentDirectory
+            self.isGridPlaceholder = isGridPlaceholder
         }
     }
 
@@ -146,8 +150,9 @@ enum GdockAutoWorkspaceGroupReconciler {
                 }
             }
 
-            guard workspace.panels.count > 1 else { continue }
-            let divergent = workspace.panels.compactMap { panel -> (UUID, String)? in
+            let extractable = workspace.panels.filter { !$0.isGridPlaceholder }
+            guard extractable.count > 1 else { continue }
+            let divergent = extractable.compactMap { panel -> (UUID, String)? in
                 guard let slug = normalizedSlug(panel.currentDirectory), slug != homeSlug else {
                     return nil
                 }
@@ -155,7 +160,7 @@ enum GdockAutoWorkspaceGroupReconciler {
             }
             // Emptying the anchor would take the group's header with it, so the
             // trailing divergent panel stays behind.
-            for (panelId, slug) in divergent.prefix(workspace.panels.count - 1) {
+            for (panelId, slug) in divergent.prefix(extractable.count - 1) {
                 extractions.append(
                     .extractPanel(panelId: panelId, fromWorkspaceId: workspace.id, slug: slug)
                 )
@@ -168,9 +173,10 @@ enum GdockAutoWorkspaceGroupReconciler {
 
             // A workspace already grouped under a repo slug treats that slug as
             // its home, so a retargeted panel — not the workspace — is what moves.
+            let extractable = workspace.panels.filter { !$0.isGridPlaceholder }
             if let homeSlug = workspace.groupId.flatMap({ groupNameById[$0] }).flatMap(repositorySlug(from:)),
-               workspace.panels.count > 1 {
-                let divergent = workspace.panels.compactMap { panel -> (UUID, String)? in
+               extractable.count > 1 {
+                let divergent = extractable.compactMap { panel -> (UUID, String)? in
                     guard let slug = normalizedSlug(panel.currentDirectory), slug != homeSlug else {
                         return nil
                     }
@@ -178,7 +184,7 @@ enum GdockAutoWorkspaceGroupReconciler {
                 }
                 // Every panel moving means the workspace itself moved; fall through
                 // to the whole-workspace path rather than emptying it panel by panel.
-                if !divergent.isEmpty, divergent.count < workspace.panels.count {
+                if !divergent.isEmpty, divergent.count < extractable.count {
                     for (panelId, slug) in divergent {
                         extractions.append(
                             .extractPanel(panelId: panelId, fromWorkspaceId: workspace.id, slug: slug)

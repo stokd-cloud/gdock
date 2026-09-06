@@ -3107,10 +3107,13 @@ final class Workspace: Identifiable, ObservableObject, FilePreviewTabMetadataHos
             renderingMode: renderingMode,
             paneBorderColorHex: PaneChromeSettings.paneBorderColorHex()
         )
+        let locked = GdockGridModeSettings.isEnabled()
         return BonsplitConfiguration.Appearance(
             tabBarHeight: WindowChromeMetrics.bonsplitTabBarHeight,
             tabTitleFontSize: tabTitleFontSize,
             dividerHitExpansion: PortalSplitDividerRegion.dividerHitExpansion,
+            showSplitButtons: GdockGridLock.showsSplitButtons(gridModeEnabled: locked),
+            splitButtons: locked ? [] : BonsplitConfiguration.SplitActionButton.defaults,
             splitButtonBackdropEffect: Self.bonsplitSplitButtonBackdropEffect(),
             splitButtonTooltips: Self.currentSplitButtonTooltips(),
             enableAnimations: false,
@@ -3681,7 +3684,7 @@ final class Workspace: Identifiable, ObservableObject, FilePreviewTabMetadataHos
         surfaceTabBarButtonSourcePath = sourcePath
         surfaceTabBarButtonGlobalConfigPath = globalConfigPath
 
-        let bonsplitButtons = AutoSplitAction.presentSplitButtons(buttons.map { button in
+        let presentedButtons = AutoSplitAction.presentSplitButtons(buttons.map { button in
             let executable = executableButtons[button.id]
             let allowProjectLocalIcon = executable.map {
                 CmuxConfigExecutor.isTrustedSurfaceButton(
@@ -3699,8 +3702,39 @@ final class Workspace: Identifiable, ObservableObject, FilePreviewTabMetadataHos
             )
         })
         var configuration = bonsplitController.configuration
-        guard configuration.appearance.splitButtons != bonsplitButtons else { return }
+        let locked = GdockGridModeSettings.isEnabled()
+        let bonsplitButtons = locked ? [] : presentedButtons
+        let showSplitButtons = GdockGridLock.showsSplitButtons(gridModeEnabled: locked)
+        guard configuration.appearance.splitButtons != bonsplitButtons
+            || configuration.appearance.showSplitButtons != showSplitButtons else { return }
         configuration.appearance.splitButtons = bonsplitButtons
+        configuration.appearance.showSplitButtons = showSplitButtons
+        bonsplitController.configuration = configuration
+    }
+
+    func applyGdockGridLockChrome() {
+        if GdockGridModeSettings.isEnabled() {
+            var configuration = bonsplitController.configuration
+            let showSplitButtons = false
+            let splitButtons: [BonsplitConfiguration.SplitActionButton] = []
+            guard configuration.appearance.showSplitButtons != showSplitButtons
+                || configuration.appearance.splitButtons != splitButtons else { return }
+            configuration.appearance.showSplitButtons = showSplitButtons
+            configuration.appearance.splitButtons = splitButtons
+            bonsplitController.configuration = configuration
+            return
+        }
+        if surfaceTabBarButtonConfiguration != nil {
+            reapplySurfaceTabBarButtonsForFeatureFlags()
+            return
+        }
+        var configuration = bonsplitController.configuration
+        guard configuration.appearance.showSplitButtons != true
+            || configuration.appearance.splitButtons.isEmpty else { return }
+        configuration.appearance.showSplitButtons = true
+        if configuration.appearance.splitButtons.isEmpty {
+            configuration.appearance.splitButtons = QuadSplitAction.defaultSplitActionButtons
+        }
         bonsplitController.configuration = configuration
     }
 
@@ -12891,6 +12925,12 @@ extension Workspace: BonsplitDelegate {
     }
 
     func splitTabBar(_ controller: BonsplitController, shouldSplitPane pane: PaneID, orientation: SplitOrientation) -> Bool {
+        if GdockGridLock.blocksUserTreeMutation(
+            gridModeEnabled: GdockGridModeSettings.isEnabled(),
+            isApplyingGridShape: isApplyingGdockGridShape
+        ) {
+            return false
+        }
         // In a remote tmux mirror, split means tmux `split-window`; always veto
         // local splits so the mirror never gains an orphan pane.
         guard isRemoteTmuxMirror else { return true }
@@ -13406,6 +13446,14 @@ extension Workspace: BonsplitDelegate {
     }
 
     func splitTabBar(_ controller: BonsplitController, didRequestNewTab kind: String, inPane pane: PaneID) {
+        if GdockGridLock.blocksUserTreeMutation(
+            gridModeEnabled: GdockGridModeSettings.isEnabled(),
+            isApplyingGridShape: isApplyingGdockGridShape
+        ) {
+            if kind == "browser" { return }
+            _ = owningTabManager?.gdockGridModeRouteNewSurface()
+            return
+        }
         switch kind {
         case "terminal":
             _ = newTerminalSurface(inPane: pane, inheritWorkingDirectoryFallback: true)

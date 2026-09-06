@@ -292,4 +292,89 @@ import CmuxTerminalCore
         #expect(descriptor.settingsKey == "gdock.gridMode")
         #expect(descriptor.commandId.hasPrefix("palette.toggleSetting.gdock."))
     }
+
+    // MARK: - Grid lock (AX-GDOCK-GRID-LOCK-MODE)
+
+    @Test func gridLockHidesSplitButtonsAndBlocksUserSplits() {
+        #expect(GdockGridLock.showsSplitButtons(gridModeEnabled: true) == false)
+        #expect(GdockGridLock.showsSplitButtons(gridModeEnabled: false) == true)
+        #expect(
+            GdockGridLock.blocksUserTreeMutation(
+                gridModeEnabled: true,
+                isApplyingGridShape: false
+            )
+        )
+        #expect(
+            !GdockGridLock.blocksUserTreeMutation(
+                gridModeEnabled: true,
+                isApplyingGridShape: true
+            )
+        )
+        #expect(
+            !GdockGridLock.blocksUserTreeMutation(
+                gridModeEnabled: false,
+                isApplyingGridShape: false
+            )
+        )
+    }
+
+    @Test func autoGroupCompactionRetainsGroupAnchors() {
+        let groupA = UUID()
+        let anchor = UUID(), member = UUID()
+        let panel = UUID()
+        let plan = GdockGridWorkspaceCompactionPlanner.plan(
+            workspaces: [
+                .init(
+                    id: member,
+                    groupId: groupA,
+                    isGroupAnchor: false,
+                    panelIds: [panel],
+                    placeholderPanelIds: []
+                ),
+                .init(
+                    id: anchor,
+                    groupId: groupA,
+                    isGroupAnchor: true,
+                    panelIds: [],
+                    placeholderPanelIds: []
+                ),
+            ],
+            capacity: 4,
+            groupByRepository: true
+        )
+        #expect(plan.scopes.count == 1)
+        #expect(Set(plan.scopes[0].retainedWorkspaceIds) == [member, anchor])
+        #expect(plan.scopes[0].surplusWorkspaceIds.isEmpty)
+    }
+
+    @Test @MainActor
+    func gridModeWorkspaceHidesSplitChromeAndRejectsUserSplits() throws {
+        let previous = GdockGridModeSettings.isEnabled()
+        GdockGridModeSettings.setEnabled(true)
+        defer { GdockGridModeSettings.setEnabled(previous) }
+
+        let manager = TabManager()
+        let workspace = try #require(manager.selectedWorkspace)
+        let pane = try #require(workspace.bonsplitController.allPaneIds.first)
+        #expect(workspace.bonsplitController.configuration.appearance.showSplitButtons == false)
+        #expect(workspace.bonsplitController.configuration.appearance.splitButtons.isEmpty)
+        #expect(
+            workspace.splitTabBar(
+                workspace.bonsplitController,
+                shouldSplitPane: pane,
+                orientation: .horizontal
+            ) == false
+        )
+        let paneCount = workspace.bonsplitController.allPaneIds.count
+        #expect(manager.createSplit(direction: .right) == nil)
+        #expect(workspace.bonsplitController.allPaneIds.count == paneCount)
+        #expect(manager.createQuadSplit() == false)
+        #expect(workspace.bonsplitController.allPaneIds.count == paneCount)
+
+        let apply = GdockGridSplitAction.applyShape(.quad, to: workspace)
+        #expect(apply == .success(overflowPanelIds: []) || apply == .alreadyShaped)
+        #expect(GdockGridSplitAction.applyShape(.quad, to: workspace) != .vetoed(.allowSplitsDisabled))
+        let zoomPanel = try #require(workspace.focusedPanelId)
+        #expect(workspace.toggleSplitZoom(panelId: zoomPanel))
+    }
 }

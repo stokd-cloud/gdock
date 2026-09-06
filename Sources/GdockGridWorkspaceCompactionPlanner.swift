@@ -10,12 +10,27 @@ enum GdockGridWorkspaceCompactionPlanner {
     struct WorkspaceSnapshot: Equatable, Sendable {
         let id: UUID
         let groupId: UUID?
+        let isGroupAnchor: Bool
         let panelIds: [UUID]
         let placeholderPanelIds: [UUID]
 
         var realPanelIds: [UUID] {
             let placeholders = Set(placeholderPanelIds)
             return panelIds.filter { !placeholders.contains($0) }
+        }
+
+        init(
+            id: UUID,
+            groupId: UUID?,
+            isGroupAnchor: Bool = false,
+            panelIds: [UUID],
+            placeholderPanelIds: [UUID]
+        ) {
+            self.id = id
+            self.groupId = groupId
+            self.isGroupAnchor = isGroupAnchor
+            self.panelIds = panelIds
+            self.placeholderPanelIds = placeholderPanelIds
         }
     }
 
@@ -65,11 +80,18 @@ enum GdockGridWorkspaceCompactionPlanner {
         let needed = realPanels.isEmpty
             ? 0
             : (realPanels.count + capacity - 1) / capacity
-        let retainedIds = Array(workspaces.prefix(needed).map(\.id))
-        let surplusIds = Array(workspaces.dropFirst(needed).map(\.id))
+        let packedIds = Array(workspaces.prefix(needed).map(\.id))
+        let packed = Set(packedIds)
+        let anchorIds = workspaces.filter(\.isGroupAnchor).map(\.id)
+        var retainedIds = packedIds
+        for anchorId in anchorIds where !packed.contains(anchorId) {
+            retainedIds.append(anchorId)
+        }
+        let retained = Set(retainedIds)
+        let surplusIds = workspaces.map(\.id).filter { !retained.contains($0) }
         var assignments: [PanelAssignment] = []
         var offset = 0
-        for workspaceId in retainedIds {
+        for workspaceId in packedIds {
             let slice = Array(realPanels.dropFirst(offset).prefix(capacity))
             assignments.append(PanelAssignment(workspaceId: workspaceId, panelIds: slice))
             offset += slice.count

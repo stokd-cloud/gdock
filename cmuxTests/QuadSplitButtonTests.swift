@@ -30,6 +30,10 @@ struct QuadSplitButtonTests {
     @Test("every dispatch site handles the case")
     @MainActor
     func everyQuadDispatchSiteHandlesTheCase() throws {
+        let previousGrid = GdockGridModeSettings.isEnabled()
+        GdockGridModeSettings.setEnabled(false)
+        defer { GdockGridModeSettings.setEnabled(previousGrid) }
+
         let resolved = CmuxResolvedConfigAction.builtIn(.splitQuad)
         #expect(!resolved.title.isEmpty)
         #expect(resolved.keywords.contains("quad") || resolved.keywords.contains("split"))
