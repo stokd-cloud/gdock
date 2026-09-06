@@ -177,7 +177,11 @@ final class SidebarGroupHeaderTableCellView: NSTableCellView {
                 : String(localized: "workspaceGroup.collapse.a11y", defaultValue: "Collapse group")
         )
 
-        let iconSymbol = RenderableSystemSymbol.resolvedWorkspaceGroupIcon(explicit: model.iconSymbol, configured: nil)
+        let iconSymbol = RenderableSystemSymbol.resolvedWorkspaceGroupIcon(
+            explicit: model.iconSymbol,
+            configured: nil,
+            isRepositoryGroup: GdockRepoGroupLaunchAction.isAvailable(groupName: model.name)
+        )
         iconImageView.image = RenderableSystemSymbol.configuredAppKitImage(
             systemName: iconSymbol,
             pointSize: GlobalFontMagnification.scaledSize(metrics.iconFontSize, percent: percent),
@@ -228,10 +232,8 @@ final class SidebarGroupHeaderTableCellView: NSTableCellView {
         for (target, button) in launcherButtons {
             button.isHidden = !isRepositoryGroup
             guard isRepositoryGroup else { continue }
-            button.glyphImage = RenderableSystemSymbol.configuredAppKitImage(
-                systemName: target.symbolName,
-                pointSize: GlobalFontMagnification.scaledSize(metrics.plusFontSize, percent: percent),
-                weight: .medium
+            button.glyphImage = target.headerGlyphImage(
+                pointSize: GlobalFontMagnification.scaledSize(metrics.plusFontSize, percent: percent)
             )
             button.contentTintColor = .secondaryLabelColor
             button.setAccessibilityLabel(target.accessibilityLabel)

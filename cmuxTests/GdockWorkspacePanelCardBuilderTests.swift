@@ -371,4 +371,87 @@ import Testing
     @Test func compactDurationNeverGoesNegative() {
         #expect(GdockAgentSessionCardMetadata.compactDuration(-500) == "0s")
     }
+
+    // MARK: - Agent kind without PID keys
+
+    /// A live pane whose title is a known agent still qualifies when the
+    /// workspace has not yet recorded PID keys for it.
+    @Test func aKnownAgentTitleQualifiesWithoutPIDKeys() {
+        #expect(
+            Builder.agentKindRaw(fromAgentPIDKeys: [], panelTitle: "Grok") == "grok"
+        )
+        #expect(
+            Builder.agentKindRaw(fromAgentPIDKeys: [], panelTitle: "Claude Code") == "claude"
+        )
+        #expect(
+            Builder.agentKindRaw(fromAgentPIDKeys: [], panelTitle: "codex") == "codex"
+        )
+    }
+
+    @Test func shellTitlesDoNotQualifyAsAgents() {
+        for title in ["zsh", "bash", "fish", "Tab", ""] {
+            #expect(
+                Builder.agentKindRaw(fromAgentPIDKeys: [], panelTitle: title) == nil,
+                "\(title) is not an agent"
+            )
+        }
+    }
+
+    @Test func pidKeysWinOverThePanelTitle() {
+        #expect(
+            Builder.agentKindRaw(
+                fromAgentPIDKeys: ["codex.session-1"],
+                panelTitle: "Grok"
+            ) == "codex"
+        )
+    }
+
+    // MARK: - Current-repo listing scope
+
+    @Test func aRepoGroupCardsEveryMemberWorkspace() {
+        let focused = UUID()
+        let sibling = UUID()
+        let group = UUID()
+        let ids = GdockWorkspacePanelCardListing.workspaceIdsToCard(
+            focusedWorkspaceId: focused,
+            workspaces: [
+                (id: focused, groupId: group),
+                (id: sibling, groupId: group),
+            ],
+            groups: [(id: group, name: "stokd-cloud/gdock", memberIds: [focused, sibling])]
+        )
+
+        #expect(ids == [focused, sibling])
+    }
+
+    @Test func aHandNamedGroupCardsOnlyTheFocusedWorkspace() {
+        let focused = UUID()
+        let sibling = UUID()
+        let group = UUID()
+        let ids = GdockWorkspacePanelCardListing.workspaceIdsToCard(
+            focusedWorkspaceId: focused,
+            workspaces: [
+                (id: focused, groupId: group),
+                (id: sibling, groupId: group),
+            ],
+            groups: [(id: group, name: "Scratch", memberIds: [focused, sibling])]
+        )
+
+        #expect(ids == [focused])
+    }
+
+    @Test func anUngroupedWorkspaceCardsOnlyItself() {
+        let focused = UUID()
+        let other = UUID()
+        let ids = GdockWorkspacePanelCardListing.workspaceIdsToCard(
+            focusedWorkspaceId: focused,
+            workspaces: [
+                (id: focused, groupId: nil),
+                (id: other, groupId: nil),
+            ],
+            groups: []
+        )
+
+        #expect(ids == [focused])
+    }
 }

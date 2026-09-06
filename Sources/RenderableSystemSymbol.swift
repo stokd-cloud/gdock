@@ -4,6 +4,8 @@ import SwiftUI
 
 enum RenderableSystemSymbol {
     static let defaultWorkspaceGroupIcon = "folder.fill"
+    /// Default glyph for a repository (`owner/repo`) workspace group.
+    static let defaultRepositoryGroupIcon = "book.closed.fill"
     static let defaultSurfaceTabIcon = "doc.text"
     private static let minimumRasterPointSize: CGFloat = 1
     private static let negativeRenderabilityRetryInterval: TimeInterval = 60
@@ -118,12 +120,16 @@ enum RenderableSystemSymbol {
     }
 
     @MainActor
-    static func resolvedWorkspaceGroupIcon(explicit: String?, configured: String?) -> String {
+    static func resolvedWorkspaceGroupIcon(
+        explicit: String?,
+        configured: String?,
+        isRepositoryGroup: Bool = false
+    ) -> String {
         for candidate in [explicit, configured] {
             guard let normalized = normalized(candidate) else { continue }
             return normalized
         }
-        return defaultWorkspaceGroupIcon
+        return isRepositoryGroup ? defaultRepositoryGroupIcon : defaultWorkspaceGroupIcon
     }
 
     @MainActor

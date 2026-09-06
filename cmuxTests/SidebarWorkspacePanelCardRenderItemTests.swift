@@ -233,4 +233,40 @@ struct SidebarWorkspacePanelCardRenderItemTests {
                 == Item.numberedWorkspaceIndexById(from: withRows)
         )
     }
+
+    // MARK: - Repo-wide stacks
+
+    /// Every carded workspace in the current repo gets a stack, not only the
+    /// focused one. Unfocused sibling rows still stand in for their agents.
+    @Test func stacksReplaceEveryCardedWorkspaceRowInARepoGroup() throws {
+        let manager = makeTabManager()
+        manager.addWorkspace(autoWelcomeIfNeeded: false)
+        manager.addWorkspace(autoWelcomeIfNeeded: false)
+        let originalIds = manager.tabs.map(\.id)
+        let groupId = try #require(manager.createWorkspaceGroup(
+            name: "stokd-cloud/gdock",
+            childWorkspaceIds: [originalIds[0], originalIds[1]]
+        ))
+        let group = try #require(manager.workspaceGroups.first { $0.id == groupId })
+        let focused = originalIds[0]
+        let sibling = originalIds[1]
+        let focusedPanel = UUID()
+        let siblingPanel = UUID()
+
+        let items = Item.renderItems(
+            tabs: manager.tabs,
+            groupsById: groupsById(manager),
+            panelCardPanelIdsByWorkspaceId: [
+                focused: [focusedPanel],
+                sibling: [siblingPanel],
+            ]
+        )
+
+        let stackMap = Dictionary(uniqueKeysWithValues: stacks(items).map { ($0.workspaceId, $0.panelIds) })
+        #expect(stackMap[focused] == [focusedPanel])
+        #expect(stackMap[sibling] == [siblingPanel])
+        #expect(!workspaceRowIds(items).contains(focused))
+        #expect(!workspaceRowIds(items).contains(sibling))
+        #expect(group.anchorWorkspaceId != focused || stacks(items).contains { $0.workspaceId == focused })
+    }
 }

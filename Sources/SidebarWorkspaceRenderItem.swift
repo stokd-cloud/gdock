@@ -13,8 +13,8 @@ import Foundation
 enum SidebarWorkspaceRenderItem {
     case groupHeader(groupId: UUID, anchorWorkspaceId: UUID)
     case workspace(workspaceId: UUID)
-    /// The focused workspace's agent-session cards, as one selection-ringed
-    /// stack that stands in for that workspace's ordinary row.
+    /// A workspace's agent-session cards, as one selection-ringed stack that
+    /// stands in for that workspace's ordinary row.
     ///
     /// It replaces the row rather than sitting beneath it: the mockup shows one
     /// ringed container of cards where the workspace row used to be, and
@@ -81,37 +81,48 @@ enum SidebarWorkspaceRenderItem {
         focusedWorkspaceId: UUID?,
         panelCardPanelIds: [UUID]
     ) -> [SidebarWorkspaceRenderItem] {
-        let base = renderItems(tabs: tabs, groupsById: groupsById)
-        guard let focusedWorkspaceId, !panelCardPanelIds.isEmpty else { return base }
-
-        let stack = SidebarWorkspaceRenderItem.panelCardStack(
-            workspaceId: focusedWorkspaceId,
-            panelIds: panelCardPanelIds
+        var byWorkspace: [UUID: [UUID]] = [:]
+        if let focusedWorkspaceId, !panelCardPanelIds.isEmpty {
+            byWorkspace[focusedWorkspaceId] = panelCardPanelIds
+        }
+        return renderItems(
+            tabs: tabs,
+            groupsById: groupsById,
+            panelCardPanelIdsByWorkspaceId: byWorkspace
         )
+    }
+
+    /// Same replacement rule as the focused-workspace overload, applied to
+    /// every workspace that has cards — the current-repo listing.
+    static func renderItems(
+        tabs: [Workspace],
+        groupsById: [UUID: WorkspaceGroup],
+        panelCardPanelIdsByWorkspaceId: [UUID: [UUID]]
+    ) -> [SidebarWorkspaceRenderItem] {
+        let base = renderItems(tabs: tabs, groupsById: groupsById)
+        let carded = panelCardPanelIdsByWorkspaceId.filter { !$0.value.isEmpty }
+        guard !carded.isEmpty else { return base }
 
         var result: [SidebarWorkspaceRenderItem] = []
-        result.reserveCapacity(base.count + 1)
-        var placed = false
+        result.reserveCapacity(base.count)
         for item in base {
             switch item {
-            case .workspace(let workspaceId) where workspaceId == focusedWorkspaceId && !placed:
-                // The stack takes the row's place; the workspace is not drawn
-                // twice.
-                result.append(stack)
-                placed = true
-            case .groupHeader(_, let anchorWorkspaceId) where anchorWorkspaceId == focusedWorkspaceId && !placed:
-                // A group anchor has no row of its own, so the stack follows
-                // the header instead of replacing anything.
+            case .workspace(let workspaceId):
+                if let panelIds = carded[workspaceId] {
+                    result.append(.panelCardStack(workspaceId: workspaceId, panelIds: panelIds))
+                } else {
+                    result.append(item)
+                }
+            case .groupHeader(_, let anchorWorkspaceId):
                 result.append(item)
-                result.append(stack)
-                placed = true
-            default:
+                if let panelIds = carded[anchorWorkspaceId] {
+                    result.append(.panelCardStack(workspaceId: anchorWorkspaceId, panelIds: panelIds))
+                }
+            case .panelCardStack:
                 result.append(item)
             }
         }
-        // A focused workspace hidden inside a collapsed group has no visible
-        // row to stand in for, so it contributes no stack.
-        return placed ? result : base
+        return result
     }
 
     static func renderItems(

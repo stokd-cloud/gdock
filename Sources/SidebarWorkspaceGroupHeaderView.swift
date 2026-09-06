@@ -79,6 +79,7 @@ struct SidebarWorkspaceGroupHeaderView: View, Equatable {
     let onToggleCollapsed: () -> Void
     let onFocusAnchor: (NSEvent.ModifierFlags) -> Void
     let onTapPlus: () -> Void
+    let onLaunchRepoTarget: (GdockRepoGroupLaunchAction.Target) -> Void
     let onRunResolvedItem: (CmuxResolvedConfigMenuAction) -> Void
     let onRename: () -> Void
     let onTogglePinned: () -> Void
@@ -114,7 +115,17 @@ struct SidebarWorkspaceGroupHeaderView: View, Equatable {
     }
 
     private var displayedIconSymbol: String {
-        RenderableSystemSymbol.resolvedWorkspaceGroupIcon(explicit: iconSymbol, configured: nil)
+        RenderableSystemSymbol.resolvedWorkspaceGroupIcon(
+            explicit: iconSymbol,
+            configured: nil,
+            isRepositoryGroup: GdockRepoGroupLaunchAction.isAvailable(groupName: name)
+        )
+    }
+
+    private var repoLauncherTargets: [GdockRepoGroupLaunchAction.Target] {
+        GdockRepoGroupLaunchAction.isAvailable(groupName: name)
+            ? [.stokdRepoDetail, .gitHub]
+            : []
     }
 
     private var shortcutHintPillText: String? {
@@ -211,6 +222,25 @@ struct SidebarWorkspaceGroupHeaderView: View, Equatable {
             )))
 
             let plusVisible = isPointerHovering && !contextMenuVisible && !showsShortcutHint
+            ForEach(repoLauncherTargets, id: \.self) { target in
+                Button {
+                    onLaunchRepoTarget(target)
+                } label: {
+                    Image(target.iconAssetName)
+                        .renderingMode(.template)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .foregroundStyle(.secondary)
+                        .frame(width: metrics.plusFrame, height: metrics.plusFrame)
+                        .contentShape(Rectangle())
+                        .opacity(plusVisible ? 1 : 0)
+                }
+                .buttonStyle(.plain)
+                .frame(width: metrics.plusFrame, height: metrics.plusFrame)
+                .allowsHitTesting(plusVisible)
+                .accessibilityHidden(!plusVisible)
+                .accessibilityLabel(Text(target.accessibilityLabel))
+            }
             Button(action: onTapPlus) {
                 CmuxSystemSymbolImage(
                     systemName: "plus",

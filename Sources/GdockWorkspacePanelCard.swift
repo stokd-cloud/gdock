@@ -1,8 +1,9 @@
 import AppKit
 import Foundation
 
-/// One card describing an agent session running in a panel of the focused
-/// workspace.
+/// One card describing an agent session running in a panel of a workspace in
+/// the current repository (or the focused workspace when it is not in a
+/// repository group).
 ///
 /// Cards are emitted only for panels that are actually running an agent
 /// (AX-GDOCK-PANEL-CARD-SESSION-SUMMARY): a plain shell panel gets no card, so a
@@ -302,5 +303,78 @@ enum GdockWorkspacePanelCardBuilder {
                 sessionSummary: summariesByPanelId[panel.panelId]
             )
         }
+    }
+
+    /// Agent kind for a pane: live PID keys first, then a known-agent title.
+    ///
+    /// Keys are `"<kind>.<sessionId>"` (`Workspace+PanelLifecycle`). A pane
+    /// whose title is a built-in coding agent still qualifies when the
+    /// workspace has not yet recorded PID keys for it. Shell titles never do.
+    static func agentKindRaw(
+        fromAgentPIDKeys keys: Set<String>,
+        panelTitle: String = ""
+    ) -> String? {
+        for key in keys.sorted() {
+            let kind = key.split(separator: ".", maxSplits: 1).first.map(String.init) ?? ""
+            let trimmed = kind.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { return trimmed }
+        }
+        return agentKindRaw(fromPanelTitle: panelTitle)
+    }
+
+    /// Matches a pane title against built-in coding-agent identities.
+    ///
+    /// Exact id / displayName / launchKind / basename, or that token as the
+    /// first word of a longer title (`"Claude Code — waiting"`). Shell names
+    /// are refused even if they would otherwise be legal vault ids.
+    static func agentKindRaw(fromPanelTitle panelTitle: String) -> String? {
+        let trimmed = panelTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        let lowered = trimmed.lowercased()
+        if Self.shellTitles.contains(lowered) { return nil }
+
+        for definition in CmuxTaskManagerCodingAgentDefinition.builtIns {
+            let aliases = ([definition.id, definition.displayName]
+                + definition.launchKinds
+                + definition.directBasenames)
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
+                .filter { !$0.isEmpty }
+            for alias in aliases {
+                if lowered == alias { return definition.id }
+                if lowered.hasPrefix(alias + " ")
+                    || lowered.hasPrefix(alias + "—")
+                    || lowered.hasPrefix(alias + "-")
+                    || lowered.hasPrefix(alias + "·") {
+                    return definition.id
+                }
+            }
+        }
+        return nil
+    }
+
+    private static let shellTitles: Set<String> = [
+        "zsh", "bash", "fish", "sh", "tab", "ksh", "csh", "tcsh",
+    ]
+}
+
+/// Which workspaces contribute agent-session cards for the current view.
+///
+/// A focused workspace in a repository group cards every member of that group.
+/// Ungrouped workspaces and hand-named groups stay focused-only.
+enum GdockWorkspacePanelCardListing {
+    static func workspaceIdsToCard(
+        focusedWorkspaceId: UUID?,
+        workspaces: [(id: UUID, groupId: UUID?)],
+        groups: [(id: UUID, name: String, memberIds: [UUID])]
+    ) -> [UUID] {
+        guard let focusedWorkspaceId else { return [] }
+        guard let workspace = workspaces.first(where: { $0.id == focusedWorkspaceId }),
+              let groupId = workspace.groupId,
+              let group = groups.first(where: { $0.id == groupId }),
+              GdockRepoWorkspaceGroupIdentity.isRepositoryGroup(name: group.name)
+        else {
+            return [focusedWorkspaceId]
+        }
+        return group.memberIds
     }
 }

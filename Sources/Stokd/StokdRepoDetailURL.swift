@@ -40,6 +40,19 @@ enum StokdRepoDetailURL {
         let template = pathTemplate.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !template.isEmpty, template.contains("{slug}") else { return nil }
 
+        // The SaaS API origin serves JSON, not the repo page. Default-template
+        // links go to Selfactor; a custom template still rides the given base
+        // so operators can point at a different path without losing the host.
+        if baseURL.host == "api.stokd.cloud" {
+            let normalizedDefault = defaultPathTemplate.hasPrefix("/")
+                ? defaultPathTemplate
+                : "/" + defaultPathTemplate
+            let normalizedTemplate = template.hasPrefix("/") ? template : "/" + template
+            if normalizedTemplate == normalizedDefault {
+                return URL(string: "https://selfactor.io/repo/\(validated)")
+            }
+        }
+
         let path = template.replacingOccurrences(of: "{slug}", with: validated)
         guard var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false) else {
             return nil

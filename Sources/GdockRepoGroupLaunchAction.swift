@@ -10,7 +10,7 @@ import Foundation
 @MainActor
 enum GdockRepoGroupLaunchAction {
     /// Where a launcher button points.
-    enum Target: String, CaseIterable, Sendable {
+    enum Target: String, CaseIterable, Sendable, Hashable {
         /// The repository's page on GitHub.
         case gitHub
         /// The repository's detail page in the active stokd environment.
@@ -30,6 +30,25 @@ enum GdockRepoGroupLaunchAction {
             case .gitHub: return "GitHubLogo"
             case .stokdRepoDetail: return "SelfactorLogo"
             }
+        }
+
+        /// Header glyph: bundled brand mark, sized and templated so it tints
+        /// like the surrounding SF Symbols. Falls back to `symbolName` only
+        /// when the asset is missing from the bundle.
+        @MainActor
+        func headerGlyphImage(pointSize: CGFloat) -> NSImage? {
+            if let named = NSImage(named: iconAssetName) {
+                let image = (named.copy() as? NSImage) ?? named
+                let size = max(1, pointSize)
+                image.size = NSSize(width: size, height: size)
+                image.isTemplate = true
+                return image
+            }
+            return RenderableSystemSymbol.configuredAppKitImage(
+                systemName: symbolName,
+                pointSize: pointSize,
+                weight: .medium
+            )
         }
 
         var accessibilityLabel: String {
