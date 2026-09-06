@@ -140,17 +140,6 @@ struct SidebarWorkspaceGroupHeaderView: View, Equatable {
         let _ = { sidebarLazyContractProbe.groupHeaderRowBody?() }()
 #endif
         HStack(spacing: 4) {
-            if isPinned {
-                CmuxSystemSymbolImage(
-                    magnified: "pin.fill",
-                    pointSize: metrics.pinnedIconFontSize,
-                    weight: .semibold
-                )
-                .foregroundStyle(.secondary)
-                .frame(width: metrics.iconFrame, height: metrics.iconFrame)
-                .safeHelp(pinnedGroupTooltip)
-                .accessibilityLabel(Text(pinnedGroupTooltip))
-            }
             CmuxSystemSymbolImage(
                 systemName: isCollapsed ? "chevron.right" : "chevron.down",
                 pointSize: metrics.chevronFontSize,
@@ -185,6 +174,17 @@ struct SidebarWorkspaceGroupHeaderView: View, Equatable {
                     .foregroundStyle(isAnchorActive ? Color.primary : Color.primary.opacity(0.9))
                     .lineLimit(1)
                     .truncationMode(.tail)
+                if isPinned {
+                    CmuxSystemSymbolImage(
+                        magnified: "pin.fill",
+                        pointSize: metrics.pinnedIconFontSize,
+                        weight: .semibold
+                    )
+                    .foregroundStyle(.secondary)
+                    .frame(width: metrics.iconFrame, height: metrics.iconFrame)
+                    .safeHelp(pinnedGroupTooltip)
+                    .accessibilityLabel(Text(pinnedGroupTooltip))
+                }
                 if anchorUnreadCount > 0 {
                     Text("\(anchorUnreadCount)")
                         .cmuxFont(size: metrics.unreadFontSize, weight: .semibold)

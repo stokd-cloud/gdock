@@ -2113,4 +2113,79 @@ struct SidebarPinnedIndicatorColorTests {
 
         #expect(groupPin.contentTintColor == workspacePin.contentTintColor)
     }
+
+    @Test
+    func pinnedGroupPlacesPinAfterNameBeforeUnreadBadge() {
+        let cell = SidebarGroupHeaderTableCellView()
+        cell.configurePresentation(model: makePinnedGroupModel(unreadCount: 3))
+        cell.frame = NSRect(x: 0, y: 0, width: 280, height: 32)
+        cell.layoutSubtreeIfNeeded()
+
+        #expect(!cell.pinHiddenForTesting)
+        #expect(!cell.unreadBadgeHiddenForTesting)
+        // Name starts at the leading content edge; the pin follows it and the
+        // unread badge follows the pin. The old leading-pin layout fails this.
+        #expect(cell.nameFrameForTesting.minX < cell.pinFrameForTesting.minX)
+        #expect(cell.pinFrameForTesting.maxX <= cell.unreadBadgeFrameForTesting.minX)
+    }
+
+    @Test
+    func unpinnedGroupHidesPin() {
+        let cell = SidebarGroupHeaderTableCellView()
+        cell.configurePresentation(model: makePinnedGroupModel(isPinned: false, unreadCount: 2))
+        cell.frame = NSRect(x: 0, y: 0, width: 280, height: 32)
+        cell.layoutSubtreeIfNeeded()
+
+        #expect(cell.pinHiddenForTesting)
+        #expect(!cell.unreadBadgeHiddenForTesting)
+    }
+
+    @Test
+    func groupNameFontIsLargerThanWorkspaceTitleFont() throws {
+        let workspaceCell = SidebarAppKitRowCellTests.configuredCell(
+            model: SidebarAppKitRowCellTests.makeModel()
+        )
+        let groupCell = SidebarGroupHeaderTableCellView()
+        groupCell.configurePresentation(model: makePinnedGroupModel())
+
+        let workspaceTitle = try #require(workspaceCell.titleFontForTesting?.pointSize)
+        let groupName = try #require(groupCell.nameFontForTesting?.pointSize)
+        #expect(groupName > workspaceTitle)
+    }
+
+    private func makePinnedGroupModel(
+        isPinned: Bool = true,
+        unreadCount: Int = 0
+    ) -> SidebarGroupHeaderRowModel {
+        SidebarGroupHeaderRowModel(
+            groupId: UUID(),
+            anchorWorkspaceId: UUID(),
+            name: "Pinned Group",
+            iconSymbol: "folder",
+            tintHex: nil,
+            isCollapsed: false,
+            isPinned: isPinned,
+            isAnchorActive: false,
+            isMultiSelected: false,
+            multiSelectionBackgroundStyle: .clear,
+            memberCount: 1,
+            anchorUnreadCount: unreadCount,
+            canMarkRead: false,
+            canMarkUnread: false,
+            hasLatestNotifications: false,
+            canMarkAllRead: false,
+            canMarkAllUnread: false,
+            shortcutHintText: nil,
+            shortcutHintXOffset: 0,
+            shortcutHintYOffset: 0,
+            fontScale: 1,
+            globalFontMagnificationPercent: 100,
+            cwdContextMenuItems: [],
+            rowSpacing: 2,
+            isFirstRow: true,
+            isBeingDragged: false,
+            topDropIndicatorVisible: false,
+            bottomDropIndicatorVisible: false
+        )
+    }
 }
