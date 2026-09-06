@@ -50,6 +50,7 @@ enum TitlebarControlsHitRegions {
         let cloudMenuWidth = TitlebarNewWorkspaceCloudSplitButtonMetrics.dropdownWidth(config: config)
         let focusBackX = cloudMenuX + cloudMenuWidth + config.spacing
         let focusForwardX = focusBackX + config.buttonSize + config.spacing
+        let gridX = focusForwardX + config.buttonSize + config.spacing
 
         let minX: CGFloat = switch slot {
         case .toggleSidebar:
@@ -64,13 +65,15 @@ enum TitlebarControlsHitRegions {
             focusBackX
         case .focusHistoryForward:
             focusForwardX
+        case .gdockGrid:
+            gridX
         }
         let width: CGFloat = switch slot {
         case .newTab:
             newTabWidth
         case .cloudVM:
             cloudMenuWidth
-        case .toggleSidebar, .showNotifications, .focusHistoryBack, .focusHistoryForward:
+        case .toggleSidebar, .showNotifications, .focusHistoryBack, .focusHistoryForward, .gdockGrid:
             config.buttonSize
         }
         return minX...(minX + width)
@@ -240,7 +243,7 @@ final class MinimalModeSidebarControlActionView: NSView {
             _ = AppDelegate.shared?.showFocusHistoryContextMenu(anchorView: self, event: event, direction: .back)
         case .focusHistoryForward:
             _ = AppDelegate.shared?.showFocusHistoryContextMenu(anchorView: self, event: event, direction: .forward)
-        case .showNotifications:
+        case .showNotifications, .gdockGrid:
             super.rightMouseDown(with: event)
         }
     }

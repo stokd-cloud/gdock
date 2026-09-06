@@ -17,8 +17,11 @@ enum GdockRepoGroupAccordionReconciler {
         let id: UUID
         let name: String
         let isCollapsed: Bool
-        /// A pinned group is the user saying "keep this one where I can see
-        /// it", which outranks the accordion.
+        /// Pinning orders a group above the unpinned tier; it does not exempt
+        /// it from the accordion. A pinned repo group collapses like any other
+        /// when the selection moves to a different repo, and stays open only
+        /// while it owns the selection. Carried so tests can assert exactly
+        /// that.
         let isPinned: Bool
 
         init(id: UUID, name: String, isCollapsed: Bool, isPinned: Bool) {
@@ -44,7 +47,7 @@ enum GdockRepoGroupAccordionReconciler {
     ///     `nil` when the selection is an ungrouped workspace.
     ///   - isEnabled: The `gdock.repoGroupAccordion` setting.
     /// - Returns: The expand of the selected group followed by the collapse of
-    ///   every other expanded, unpinned repository group. Empty when the
+    ///   every other expanded repository group, pinned or not. Empty when the
     ///   feature is off, the selection is ungrouped, or the selected group is
     ///   not a repository group.
     static func plan(
@@ -68,8 +71,10 @@ enum GdockRepoGroupAccordionReconciler {
             mutations.append(.expand(groupId: selected.id))
         }
         for group in groups where group.id != selectedGroupId {
-            guard !group.isPinned,
-                  !group.isCollapsed,
+            // Pinned is a sort tier, not an exemption: the accordion's promise
+            // is "one repo's work at a time", and a pinned repo left open
+            // breaks that promise exactly when it is pinned to the top.
+            guard !group.isCollapsed,
                   GdockRepoWorkspaceGroupIdentity.isRepositoryGroup(name: group.name) else {
                 continue
             }

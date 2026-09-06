@@ -22,7 +22,8 @@ public struct GdockCatalogSection: SettingCatalogSection {
 
     /// When enabled, selecting a workspace expands its repository group and
     /// collapses the other repository groups, so the sidebar shows one repo's
-    /// work at a time. Hand-named and pinned groups are never touched.
+    /// work at a time. Hand-named groups are never touched; a pinned repo
+    /// group collapses like any other unless it owns the selection.
     public let repoGroupAccordion = DefaultsKey<Bool>(
         id: "gdock.repoGroupAccordion",
         defaultValue: true,
@@ -72,7 +73,7 @@ public struct GdockCatalogSection: SettingCatalogSection {
     /// Cmd+T fills the next free cell instead of adding a surface tab.
     public let gridMode = DefaultsKey<Bool>(
         id: "gdock.gridMode",
-        defaultValue: false,
+        defaultValue: true,
         userDefaultsKey: "gdock.gridMode"
     )
 

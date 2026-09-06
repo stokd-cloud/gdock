@@ -85,6 +85,9 @@ export function EditorApp({
       // one frame so focus lands after the initial layout/paint.
       requestAnimationFrame(() => editor.focus());
 
+      const win = window as unknown as Record<string, unknown>;
+      win.__cmuxEditorFind = () => editor.trigger("cmuxMenu", "actions.find", null);
+
       let contentListener: monaco.IDisposable | null = null;
       let removeSaveShortcut: (() => void) | null = null;
       let removeTitleSync: (() => void) | null = null;
@@ -125,7 +128,6 @@ export function EditorApp({
         // and the standard undo/redo chords here, so the app's Edit menu can
         // never shadow Monaco's own model undo (WKWebView's native undo: does
         // nothing useful for a Monaco buffer).
-        const win = window as unknown as Record<string, unknown>;
         win.__cmuxEditorRequestSave = () => saveController.requestSave();
         win.__cmuxEditorUndo = () => editor.trigger("cmuxMenu", "undo", null);
         win.__cmuxEditorRedo = () => editor.trigger("cmuxMenu", "redo", null);
@@ -136,6 +138,7 @@ export function EditorApp({
         };
       }
       return () => {
+        delete win.__cmuxEditorFind;
         removeTitleSync?.();
         removeSaveShortcut?.();
         contentListener?.dispose();

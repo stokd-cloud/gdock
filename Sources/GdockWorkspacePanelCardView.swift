@@ -58,7 +58,16 @@ struct GdockWorkspacePanelCardView: View, Equatable {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 4, style: .continuous)
-                .strokeBorder(cardStroke, lineWidth: card.isSelected ? 1 : 0.5)
+                .strokeBorder(
+                    cardStroke,
+                    style: StrokeStyle(
+                        lineWidth: card.isSelected ? 1 : 0.5,
+                        // A card for a background tab is drawn with a dashed
+                        // edge: same content, but the eye can tell it is not
+                        // one of the panes on screen.
+                        dash: card.isVisible ? [] : [3, 2]
+                    )
+                )
         )
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
@@ -222,6 +231,12 @@ struct GdockWorkspacePanelCardView: View, Equatable {
             parts.append(String(
                 localized: "gdock.panelCard.selected.a11y",
                 defaultValue: "selected pane"
+            ))
+        }
+        if !card.isVisible {
+            parts.append(String(
+                localized: "gdock.panelCard.backgroundTab.a11y",
+                defaultValue: "in a background tab"
             ))
         }
         return parts.joined(separator: ", ")

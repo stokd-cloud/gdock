@@ -35,7 +35,7 @@ Also listed in `Agents.md` so every agent session loads it.
 
 ### Feature: Grid Mode
 
-- Settings: `gdock.gridMode` (default off) and `gdock.gridModeShape`
+- Settings: `gdock.gridMode` (default on) and `gdock.gridModeShape`
   (`"<rows>x<cols>"`, default `"2x2"`, clamped to 4×4; remembered across
   restarts).
 - Palette: Enable/Disable **Grid Mode**
@@ -43,6 +43,22 @@ Also listed in `Agents.md` so every agent session loads it.
 - Shortcuts: **Create Next Quad Pane** (`gdock.nextQuadPane`, unbound by
   default so it does not collide with Auto Split Cmd+Y) and **Create Quad
   Pane Workspaces** (`gdock.quadPaneWorkspaces`, default `Cmd+Shift+Y`).
+- Titlebar: a grid-shape picker button sits immediately after Focus Forward
+  in the left workspace control strip. Picking a shape enables Grid Mode if
+  it was off and re-shapes every workspace (`GdockGridSplitAction` +
+  `TabManager+GdockGridMode`). The trailing workspace titlebar hosts the
+  Model Configuration and Workload Configuration launchers.
+- When on: every workspace is kept in the enforced grid. Cells with no
+  surface hold **unactivated placeholder terminals**
+  (`heldForStartupRestoreAdmission` — no PTY until the cell is focused).
+  Cmd+T fills the next unactivated cell; when every cell is occupied it
+  rolls the least-recently-touched real panel into a same-scope workspace
+  and creates a clean panel in the vacated cell. Real panels pack into the
+  fewest workspaces that can hold them (overall, or per repository group
+  when Auto Workspace Group Mode is on). A workspace of only unstarted
+  placeholders is never retained. Shrinking the shape spills surplus
+  surfaces into another workspace — Grid Mode never hides a surface behind
+  another.
 
 ### Feature: Auto Split
 
@@ -53,16 +69,6 @@ Also listed in `Agents.md` so every agent session loads it.
 - Shortcut: **Auto Split** (`autoSplit`, default `Cmd+Y`).
 - When Grid Mode is on, Auto Split vetoes so it does not fight the
   enforced grid. Explicit Split Quad remains 2×2.
-- Titlebar: a grid-shape picker button (trailing edge of the workspace
-  titlebar) renders while the mode is on; picking a shape re-shapes every
-  workspace (`GdockGridSplitAction` + `TabManager+GdockGridMode`).
-- When on: every workspace is kept in the enforced grid. Cells with no
-  surface hold **unactivated placeholder terminals**
-  (`heldForStartupRestoreAdmission` — no PTY until the cell is focused).
-  Cmd+T fills the next unactivated cell; when every cell is occupied it
-  creates a new shaped workspace (in the same workspace group, when any)
-  and navigates there. Shrinking the shape spills surplus surfaces into a
-  new workspace — Grid Mode never hides a surface behind another.
 
 ### Feature: Stokd Work panel (right sidebar)
 
@@ -304,10 +310,16 @@ sidebar as an immutable value reduced above the lazy-list boundary.
    rather than inventing a session.
 6. Reduce to `GdockWorkspacePanelCard` above the lazy-list boundary. A card view
    holds no store reference and reads no observable state.
-7. Emit a card only for a pane actually running an agent — one with a non-empty
-   `agentPIDKeysByPanelId` entry. A plain shell pane gets no card, so a
-   four-pane workspace with one agent shows one card rather than four rows of
-   nothing.
+7. Emit a card only for a panel actually running an agent — one with a
+   non-empty `agentPIDKeysByPanelId` entry. A plain shell panel gets no card,
+   so a four-pane workspace with one agent shows one card rather than four rows
+   of nothing. Enumerate EVERY panel of every pane (`tabs(inPane:)`), not just
+   the tab each pane is showing: an agent parked in a background tab is still
+   a session in this workspace, and the stack is the one place all of them are
+   listed. A card's identity is the panel, never the pane. A background-tab
+   card carries `isVisible == false` and is drawn with a dashed edge so it
+   reads as "here, but not on screen"; the selected card is the panel the
+   focused pane is showing.
 8. Render the cards as ONE selection-ringed stack that stands in for the focused
    workspace's own row, not as sibling rows beneath it. Drawing both would show
    that workspace twice. Because the stack *is* that row it stays in the
@@ -345,7 +357,8 @@ sidebar as an immutable value reduced above the lazy-list boundary.
   fails if the tier above it is removed, and an empty descriptor list yields
   nil.
 - Population: a workspace of four panes where one runs an agent yields exactly
-  one card; a workspace with no agent panes yields none.
+  one card; a workspace with no agent panes yields none; an agent in a
+  background tab yields a card marked not visible, ordered with its pane.
 - Structure: when a stack is emitted the focused workspace contributes no
   ordinary row, and `numberedWorkspaceIndexById` is identical to the all-rows
   arrangement.
@@ -453,6 +466,36 @@ hand-edit a single size.
    glow-from-chevron path in `generate_dark_icon.py`.
 4. Icon Composer (`AppIcon.icon`) keeps the cube glyph only (no baked
    squircle); raster sets use the full mockups.
+
+## AX-FILES-CLIPBOARD-FINDER-STYLE
+
+Files Copy and Paste MUST transfer filesystem objects via file-URL pasteboard,
+never path strings, and MUST share one `FileExplorerFileClipboard` path across
+Cmd+C/V and context menus.
+
+### Why
+
+- Copy Path writes a string, so Cmd+C in Files cannot paste a real file into
+  Files, Finder, or another folder.
+- Duplicate copy logic per menu vs NSResponder would drift.
+
+### How to apply
+
+1. `FileExplorerFileClipboard` owns destination, unique names, local-only
+   gating, self-paste skip, pasteboard file-URL write/read, and FileManager
+   copy.
+2. `FileExplorerNSOutlineView` and `FileExplorerSearchResultsTableView`
+   implement NSResponder `copy:`/`paste:` and context-menu Copy/Paste through
+   that planner.
+3. Copy Path stays a separate string action. Remote SSH must not copy or paste
+   files. After paste, `FileExplorerStore.refreshDirectory(at:)` reloads the
+   destination. Unique names follow Finder: `name copy.ext`, then
+   `name copy N.ext`.
+
+### Acceptance Checks
+
+- `xcodebuild -project cmux.xcodeproj -scheme cmux-unit -destination 'platform=macOS' -derivedDataPath /tmp/cmux-files-clipboard -only-testing:cmuxTests/FileExplorerFileClipboardTests test`
+- `./scripts/lint-pbxproj-test-wiring.sh`
 
 ### Acceptance Checks
 

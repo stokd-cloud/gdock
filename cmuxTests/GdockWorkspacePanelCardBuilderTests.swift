@@ -11,7 +11,7 @@ import Testing
 /// the mockup's content (AC5/AC6).
 @Suite struct GdockWorkspacePanelCardBuilderTests {
     private typealias Builder = GdockWorkspacePanelCardBuilder
-    private typealias Pane = GdockWorkspacePanelCardBuilder.PaneInput
+    private typealias Pane = GdockWorkspacePanelCardBuilder.PanelInput
 
     /// A pane running an agent. `agentKindRaw` is what makes a pane eligible.
     private func agentPane(
@@ -19,12 +19,12 @@ import Testing
         directory: String = "/repo",
         kind: String = "claude"
     ) -> Pane {
-        Pane(paneId: UUID(), title: title, directory: directory, agentKindRaw: kind)
+        Pane(panelId: UUID(), title: title, directory: directory, agentKindRaw: kind)
     }
 
     /// A plain shell pane: no agent, therefore no card.
     private func shellPane(_ title: String, directory: String = "/repo") -> Pane {
-        Pane(paneId: UUID(), title: title, directory: directory)
+        Pane(panelId: UUID(), title: title, directory: directory)
     }
 
     private func summary(
@@ -58,28 +58,28 @@ import Testing
         let agent = agentPane("claude")
         let panes = [shellPane("zsh"), agent, shellPane("zsh"), shellPane("zsh")]
 
-        let cards = Builder.cards(panes: panes, focusedPaneId: agent.paneId)
+        let cards = Builder.cards(panels: panes, focusedPanelId: agent.panelId)
 
         #expect(cards.count == 1)
-        #expect(cards[0].id == agent.paneId)
+        #expect(cards[0].id == agent.panelId)
         #expect(cards[0].isSelected)
     }
 
     @Test func aWorkspaceWithNoAgentPanesProducesNoCards() {
         let panes = [shellPane("a"), shellPane("b"), shellPane("c")]
 
-        #expect(Builder.cards(panes: panes, focusedPaneId: panes[0].paneId).isEmpty)
+        #expect(Builder.cards(panels: panes, focusedPanelId: panes[0].panelId).isEmpty)
     }
 
     @Test func noPanesProducesNoCards() {
-        #expect(Builder.cards(panes: [], focusedPaneId: nil).isEmpty)
+        #expect(Builder.cards(panels: [], focusedPanelId: nil).isEmpty)
     }
 
     /// A blank or whitespace agent kind is not an agent.
     @Test func aBlankAgentKindDoesNotQualify() {
         for kind in ["", "   "] {
-            let pane = Pane(paneId: UUID(), title: "t", directory: "/repo", agentKindRaw: kind)
-            #expect(Builder.cards(panes: [pane], focusedPaneId: pane.paneId).isEmpty)
+            let pane = Pane(panelId: UUID(), title: "t", directory: "/repo", agentKindRaw: kind)
+            #expect(Builder.cards(panels: [pane], focusedPanelId: pane.panelId).isEmpty)
         }
     }
 
@@ -89,9 +89,9 @@ import Testing
         let third = agentPane("task")
         let panes = [shellPane("zsh"), first, shellPane("zsh"), second, third]
 
-        let cards = Builder.cards(panes: panes, focusedPaneId: second.paneId)
+        let cards = Builder.cards(panels: panes, focusedPanelId: second.panelId)
 
-        #expect(cards.map(\.id) == [first.paneId, second.paneId, third.paneId])
+        #expect(cards.map(\.id) == [first.panelId, second.panelId, third.panelId])
         // Indices are over the carded panes, not the original pane list, so the
         // stack numbers 0..n-1 with no gaps where shells were skipped.
         #expect(cards.map(\.index) == [0, 1, 2])
@@ -102,7 +102,7 @@ import Testing
     @Test func exactlyOneCardIsSelected() {
         let panes = [agentPane("a"), agentPane("b"), agentPane("c")]
 
-        let cards = Builder.cards(panes: panes, focusedPaneId: panes[1].paneId)
+        let cards = Builder.cards(panels: panes, focusedPanelId: panes[1].panelId)
 
         #expect(cards.filter(\.isSelected).count == 1)
         #expect(cards[1].isSelected)
@@ -114,7 +114,7 @@ import Testing
         let shell = shellPane("zsh")
         let panes = [shell, agentPane("a"), agentPane("b")]
 
-        let cards = Builder.cards(panes: panes, focusedPaneId: shell.paneId)
+        let cards = Builder.cards(panels: panes, focusedPanelId: shell.panelId)
 
         #expect(cards.filter(\.isSelected).count == 1)
         #expect(cards[0].isSelected)
@@ -124,7 +124,7 @@ import Testing
         let panes = [agentPane("a"), agentPane("b")]
 
         for focus in [nil, UUID()] {
-            let cards = Builder.cards(panes: panes, focusedPaneId: focus)
+            let cards = Builder.cards(panels: panes, focusedPanelId: focus)
             #expect(cards.filter(\.isSelected).count == 1)
             #expect(cards[0].isSelected)
         }
@@ -134,7 +134,7 @@ import Testing
 
     @Test func carriesPaneMetadataAndAgentKindThrough() {
         let input = Pane(
-            paneId: UUID(),
+            panelId: UUID(),
             title: "claude",
             directory: "/opt/gdock",
             branch: "task/60c40f3",
@@ -142,7 +142,7 @@ import Testing
             sessionState: "running"
         )
 
-        let cards = Builder.cards(panes: [input], focusedPaneId: input.paneId)
+        let cards = Builder.cards(panels: [input], focusedPanelId: input.panelId)
 
         #expect(cards[0].title == "claude")
         #expect(cards[0].branch == "task/60c40f3")
@@ -159,9 +159,9 @@ import Testing
         let expected = summary("interactive-claude-1-2")
 
         let cards = Builder.cards(
-            panes: [one, two],
-            focusedPaneId: one.paneId,
-            summariesByPaneId: [one.paneId: expected]
+            panels: [one, two],
+            focusedPanelId: one.panelId,
+            summariesByPanelId: [one.panelId: expected]
         )
 
         #expect(cards[0].sessionSummary == expected)
@@ -172,9 +172,9 @@ import Testing
         let visible = agentPane("claude")
 
         let cards = Builder.cards(
-            panes: [visible],
-            focusedPaneId: visible.paneId,
-            summariesByPaneId: [UUID(): summary("stranger")]
+            panels: [visible],
+            focusedPanelId: visible.panelId,
+            summariesByPanelId: [UUID(): summary("stranger")]
         )
 
         #expect(cards.count == 1)
@@ -192,13 +192,40 @@ import Testing
         )
 
         let cards = Builder.cards(
-            panes: [gdock, mono],
-            focusedPaneId: gdock.paneId,
+            panels: [gdock, mono],
+            focusedPanelId: gdock.panelId,
             workItemsByDirectory: ["/opt/gdock": item]
         )
 
         #expect(cards[0].workItem == item)
         #expect(cards[1].workItem == nil)
+    }
+
+    // MARK: - Background tabs
+
+    /// An agent parked behind another tab of the same pane is still a session
+    /// in this workspace: it gets a card, marked not visible, in pane order.
+    @Test func backgroundTabAgentsGetCardsMarkedNotVisible() {
+        let shown = agentPane("claude")
+        let hidden = Pane(panelId: UUID(), title: "codex", directory: "/repo", agentKindRaw: "codex", isVisible: false)
+        let hiddenShell = Pane(panelId: UUID(), title: "zsh", directory: "/repo", isVisible: false)
+
+        let cards = Builder.cards(panels: [shown, hidden, hiddenShell], focusedPanelId: shown.panelId)
+
+        #expect(cards.map(\.id) == [shown.panelId, hidden.panelId])
+        #expect(cards.map(\.isVisible) == [true, false])
+        #expect(cards.map(\.isSelected) == [true, false])
+    }
+
+    /// Focus lands on the panel the focused pane is showing, never on a
+    /// background tab of that pane.
+    @Test func aBackgroundTabIsNeverTheSelectedCardUnlessFocused() {
+        let hidden = Pane(panelId: UUID(), title: "codex", directory: "/repo", agentKindRaw: "codex", isVisible: false)
+        let shown = agentPane("claude")
+
+        let cards = Builder.cards(panels: [hidden, shown], focusedPanelId: shown.panelId)
+
+        #expect(cards.first { $0.isSelected }?.id == shown.panelId)
     }
 
     // MARK: - Glyph resolution (AC6)

@@ -132,6 +132,10 @@ enum GdockGridSplitAction {
 
         _ = workspace.owningTabManager?.equalizeSplits(tabId: workspace.id)
 
+        for paneId in workspace.bonsplitController.allPaneIds {
+            _ = workspace.bonsplitController.setFullWidthTabMode(true, inPane: paneId)
+        }
+
         // Leave focus where the user was: the anchor cell's lead surface.
         if let finalAnchorPane = workspace.paneId(forPanelId: anchorPanelId) {
             workspace.bonsplitController.focusPane(finalAnchorPane)
@@ -171,6 +175,18 @@ enum GdockGridSplitAction {
         }
         workspace.gdockGridPlaceholderPanelIds.insert(panel.id)
         return workspace.paneId(forPanelId: panel.id)
+    }
+
+    /// Placeholder cells keep appearance, cwd, and environment from the
+    /// source terminal but never inherit a command or initial input.
+    nonisolated static func placeholderConfigTemplate(
+        from inherited: CmuxSurfaceConfigTemplate
+    ) -> CmuxSurfaceConfigTemplate {
+        var clean = inherited
+        clean.command = nil
+        clean.initialInput = nil
+        clean.waitAfterCommand = false
+        return clean
     }
 
     /// Converts a live Bonsplit snapshot into the planner's structural mirror.

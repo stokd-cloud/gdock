@@ -10207,6 +10207,7 @@ final class Workspace: Identifiable, ObservableObject, FilePreviewTabMetadataHos
             "Workspace.focusPanel panelId=\(panelId.uuidString) focusedPane=\(pane) trigger=\(triggerLabel) transactionId=\(transactionLabel)"
         )
 #endif
+        owningTabManager?.noteGdockGridPanelTouch(panelId)
         guard let tabId = surfaceIdFromPanelId(panelId) else { return }
         // In canvas mode, focusing a panel also brings it forward as its
         // pane's selected tab so focus and visibility never diverge.

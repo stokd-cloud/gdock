@@ -141,6 +141,16 @@ import Testing
         #expect(subject.sections == before)
     }
 
+    @Test func movingACollapsedHeaderMovesTheWholeRun() {
+        var subject = layout([.files, .find, .sessions, .stokdWork])
+        subject.setCollapsed(true, for: .find)
+        subject.setCollapsed(true, for: .sessions)
+        subject.moveBlock(startingAt: 1, to: 4)
+        #expect(subject.modes == [.files, .stokdWork, .find, .sessions])
+        #expect(subject.sections[2].isCollapsed)
+        #expect(subject.sections[3].isCollapsed)
+    }
+
     @Test func stackedPresentationReconcilesEveryStackableToolAndPreservesState() {
         var subject = layout([.files, .find])
         subject.setCollapsed(true, for: .files)

@@ -1214,6 +1214,10 @@ struct TitlebarControlsView: View {
             }
             .safeHelp(KeyboardShortcutSettings.Action.focusHistoryForward.tooltip(String(localized: "menu.history.focusForward", defaultValue: "Focus Forward")))
 
+            GdockGridModeTitlebarButton(
+                titlebarConfig: config,
+                foregroundColor: foregroundColor
+            )
         }
 
         let paddedContent = content.padding(config.groupPadding)
@@ -1605,6 +1609,8 @@ struct HiddenTitlebarSidebarControlsView: View {
                     )
                     guard availability.canNavigateForward else { return }
                     onFocusHistoryForward()
+                case .gdockGrid:
+                    GdockGridShapePickerPresenter.present(from: anchorView)
                 }
             }
             .frame(

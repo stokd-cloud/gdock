@@ -47,10 +47,10 @@ struct SidebarWorkspacePanelCardRenderItemTests {
         }
     }
 
-    private func stacks(_ items: [Item]) -> [(workspaceId: UUID, paneIds: [UUID])] {
+    private func stacks(_ items: [Item]) -> [(workspaceId: UUID, panelIds: [UUID])] {
         items.compactMap {
-            guard case .panelCardStack(let workspaceId, let paneIds) = $0 else { return nil }
-            return (workspaceId, paneIds)
+            guard case .panelCardStack(let workspaceId, let panelIds) = $0 else { return nil }
+            return (workspaceId, panelIds)
         }
     }
 
@@ -63,19 +63,19 @@ struct SidebarWorkspacePanelCardRenderItemTests {
         manager.addWorkspace(autoWelcomeIfNeeded: false)
         let ids = manager.tabs.map(\.id)
         let focused = try #require(ids.first)
-        let paneIds = [UUID(), UUID()]
+        let panelIds = [UUID(), UUID()]
 
         let items = Item.renderItems(
             tabs: manager.tabs,
             groupsById: groupsById(manager),
             focusedWorkspaceId: focused,
-            panelCardPaneIds: paneIds
+            panelCardPanelIds: panelIds
         )
 
         #expect(!workspaceRowIds(items).contains(focused))
         #expect(stacks(items).count == 1)
         #expect(stacks(items).first?.workspaceId == focused)
-        #expect(stacks(items).first?.paneIds == paneIds)
+        #expect(stacks(items).first?.panelIds == panelIds)
     }
 
     /// The stack sits exactly where the row was, so the sidebar order does not
@@ -92,7 +92,7 @@ struct SidebarWorkspacePanelCardRenderItemTests {
             tabs: manager.tabs,
             groupsById: groupsById(manager),
             focusedWorkspaceId: focused,
-            panelCardPaneIds: [UUID()]
+            panelCardPanelIds: [UUID()]
         )
 
         #expect(items.count == base.count)
@@ -110,7 +110,7 @@ struct SidebarWorkspacePanelCardRenderItemTests {
             tabs: manager.tabs,
             groupsById: groupsById(manager),
             focusedWorkspaceId: focused,
-            panelCardPaneIds: [UUID()]
+            panelCardPanelIds: [UUID()]
         )
 
         #expect(workspaceRowIds(items) == ids.filter { $0 != focused })
@@ -128,7 +128,7 @@ struct SidebarWorkspacePanelCardRenderItemTests {
             tabs: manager.tabs,
             groupsById: groupsById(manager),
             focusedWorkspaceId: focused,
-            panelCardPaneIds: []
+            panelCardPanelIds: []
         )
 
         #expect(items.map(\.id) == base.map(\.id))
@@ -144,7 +144,7 @@ struct SidebarWorkspacePanelCardRenderItemTests {
             tabs: manager.tabs,
             groupsById: groupsById(manager),
             focusedWorkspaceId: nil,
-            panelCardPaneIds: [UUID()]
+            panelCardPanelIds: [UUID()]
         )
 
         #expect(items.map(\.id) == base.map(\.id))
@@ -162,7 +162,7 @@ struct SidebarWorkspacePanelCardRenderItemTests {
             tabs: manager.tabs,
             groupsById: groupsById(manager),
             focusedWorkspaceId: hidden,
-            panelCardPaneIds: [UUID()]
+            panelCardPanelIds: [UUID()]
         )
 
         #expect(stacks(items).isEmpty)
@@ -176,7 +176,7 @@ struct SidebarWorkspacePanelCardRenderItemTests {
     @Test func theStackIsAReorderableRow() {
         #expect(Item.workspace(workspaceId: UUID()).isReorderableRow)
         #expect(Item.groupHeader(groupId: UUID(), anchorWorkspaceId: UUID()).isReorderableRow)
-        #expect(Item.panelCardStack(workspaceId: UUID(), paneIds: [UUID()]).isReorderableRow)
+        #expect(Item.panelCardStack(workspaceId: UUID(), panelIds: [UUID()]).isReorderableRow)
     }
 
     /// Identity is the workspace, not the panes, so cards appearing and
@@ -184,8 +184,8 @@ struct SidebarWorkspacePanelCardRenderItemTests {
     @Test func stackIdentityIsStableAcrossCardChanges() {
         let workspaceId = UUID()
 
-        let one = Item.panelCardStack(workspaceId: workspaceId, paneIds: [UUID()]).id
-        let two = Item.panelCardStack(workspaceId: workspaceId, paneIds: [UUID(), UUID()]).id
+        let one = Item.panelCardStack(workspaceId: workspaceId, panelIds: [UUID()]).id
+        let two = Item.panelCardStack(workspaceId: workspaceId, panelIds: [UUID(), UUID()]).id
 
         #expect(one == two)
     }
@@ -195,7 +195,7 @@ struct SidebarWorkspacePanelCardRenderItemTests {
     @Test func stackIdentityNeverCollidesWithTheWorkspaceRow() {
         let workspaceId = UUID()
 
-        let stack = Item.panelCardStack(workspaceId: workspaceId, paneIds: [UUID()]).id
+        let stack = Item.panelCardStack(workspaceId: workspaceId, panelIds: [UUID()]).id
         let row = Item.workspace(workspaceId: workspaceId).id
         let group = Item.groupHeader(groupId: workspaceId, anchorWorkspaceId: workspaceId).id
 
@@ -205,7 +205,7 @@ struct SidebarWorkspacePanelCardRenderItemTests {
 
     @Test func theStackReportsItsOwningWorkspace() {
         let workspaceId = UUID()
-        let item = Item.panelCardStack(workspaceId: workspaceId, paneIds: [UUID()])
+        let item = Item.panelCardStack(workspaceId: workspaceId, panelIds: [UUID()])
 
         #expect(item.rowWorkspaceId == workspaceId)
     }
@@ -223,7 +223,7 @@ struct SidebarWorkspacePanelCardRenderItemTests {
         ]
         let withStack: [Item] = [
             .workspace(workspaceId: a),
-            .panelCardStack(workspaceId: b, paneIds: [UUID(), UUID()]),
+            .panelCardStack(workspaceId: b, panelIds: [UUID(), UUID()]),
             .workspace(workspaceId: c),
         ]
 

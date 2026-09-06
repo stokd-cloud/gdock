@@ -44,6 +44,9 @@ final class FileExplorerFileOpenCoordinator {
             isEditorCommandAvailable: cliURL != nil
         ) {
         case .monacoEditor:
+            if focusExistingMonacoEditor(filePath: filePath, in: workspace) {
+                return
+            }
             if let cliURL,
                launchMonacoEditor(filePath: filePath, cliURL: cliURL, workspace: workspace) {
                 return
@@ -99,6 +102,40 @@ final class FileExplorerFileOpenCoordinator {
                 NSSound.beep()
             }
         }
+    }
+
+    /// Focuses an already-open Monaco panel for `filePath` when one exists.
+    @discardableResult
+    private func focusExistingMonacoEditor(filePath: String, in workspace: Workspace) -> Bool {
+        let live = CmuxEditorSaveRegistry.shared.liveEditors()
+        guard !live.isEmpty else { return false }
+        let openEditors: [(panelId: UUID, filePath: String)] = workspace.panels.values.compactMap { panel in
+            guard let browser = panel as? BrowserPanel, browser.editorPageActive else { return nil }
+            guard let token = Self.editorToken(from: browser.currentURL) else { return nil }
+            guard let path = live.first(where: { $0.token == token })?.filePath else { return nil }
+            return (browser.id, path)
+        }
+        guard let panelId = GdockEditorReusePlanner.panelIdToFocus(
+            filePath: filePath,
+            openEditors: openEditors
+        ) else {
+            return false
+        }
+        AppDelegate.shared?.tabManager?.focusSurface(tabId: workspace.id, surfaceId: panelId)
+        return true
+    }
+
+    /// Diff-viewer custom scheme uses the token as host; the HTTP form uses
+    /// the first path component.
+    private static func editorToken(from url: URL?) -> String? {
+        guard let url else { return nil }
+        if url.scheme == CmuxDiffViewerURLSchemeHandler.scheme {
+            return url.host
+        }
+        if url.scheme?.lowercased() == "http", url.host == "127.0.0.1" {
+            return url.path.split(separator: "/").first.map(String.init)
+        }
+        return url.host
     }
 
     /// Spawns the bundled CLI's `cmux edit` against this app's control socket.

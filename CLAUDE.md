@@ -16,6 +16,8 @@ This checkout is the **ghostty-dock** fork (product short name **gdock**), based
 - Upstream cmux keys that already exist are grandfathered; do not rename them.
 - See also `docs/gdock-agent-conventions.md`.
 
+**Work branches come only from stokd.** Start every change with `stokd task create` + `stokd task start` (or `stokd project start`), which cuts the `task/<hash>-<slug>` branch and worktree. Never obtain a branch with `git checkout -b`, `sgit checkout <name>`, or an allowlisted pattern such as `feature/*` or `recovery/*`: those pass the branch-name guard but leave the work with no work item, no sanction, and a disposition that stokd will attach to the wrong task. If the guard blocks a branch, create the task; do not pick another pattern.
+
 ## Initial setup
 
 `./scripts/setup.sh` initializes submodules, builds GhosttyKit, and installs the pbxproj normalization pre-commit hook.

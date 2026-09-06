@@ -254,3 +254,12 @@ enum AutoSplitAction {
         return .success
     }
 }
+
+// MARK: - Dock selected panel helper
+
+private extension DockSplitStore {
+    func selectedPanelId(inPane pane: PaneID) -> UUID? {
+        guard let tab = bonsplitController.selectedTab(inPane: pane) else { return nil }
+        return surfaceIdToPanelId[tab.id]
+    }
+}

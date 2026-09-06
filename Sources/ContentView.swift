@@ -2273,9 +2273,10 @@ struct ContentView: View {
 
                     Spacer()
 
-                    // gdock Grid Mode: shape picker, rendered only while the
-                    // mode is enabled (see GdockGridModeTitlebarButton).
-                    GdockGridModeTitlebarButton()
+                    GdockModelConfigurationTitlebarButtons(
+                        directory: tabManager.selectedWorkspace?.currentDirectory
+                            ?? FileManager.default.currentDirectoryPath
+                    )
 
                 }
                 .frame(height: titlebarContentHeight)
@@ -11502,7 +11503,7 @@ struct VerticalTabsSidebar: View, Equatable {
         let visibleWorkspaceRowIds: [UUID]
         /// Per-pane cards for the focused workspace, keyed by pane id. Reduced
         /// here, above the lazy-list boundary, so card rows read only values.
-        let panelCardsByPaneId: [UUID: GdockWorkspacePanelCard]
+        let panelCardsByPanelId: [UUID: GdockWorkspacePanelCard]
 
         var workspaceIds: [UUID] { tabIds }
     }
@@ -11617,69 +11618,47 @@ struct VerticalTabsSidebar: View, Equatable {
         let panelCardSummariesEnabled = GdockPanelCardSessionSummarySettings.isEnabled()
         let panelCards: [GdockWorkspacePanelCard] = focusedWorkspaceForCards.map { workspace in
             let branch = workspace.gitBranch?.branch
-            var summariesByPaneId: [UUID: StokdSessionOutcomeSummary] = [:]
-            let panes = workspace.bonsplitController.allPaneIds
-                .compactMap { paneId -> GdockWorkspacePanelCardBuilder.PaneInput? in
-                    guard let panelId = workspace.bonsplitController.selectedTab(inPane: paneId)?.id.uuid else {
-                        return nil
-                    }
-                    // Resolve through the workspace's own accessors, not the
-                    // raw reporting maps: `panelDirectories` / `panelTitles`
-                    // are only populated once a pane reports via shell
-                    // integration, so reading them directly left the card
-                    // blank and skipped the summary lookup entirely.
-                    let directory = workspace.effectivePanelDirectory(
-                        panelId: panelId,
-                        localFallback: workspace.currentDirectory
-                    ) ?? ""
-                    // Only panes actually running an agent get a card; the
-                    // agent kind also selects the card's glyph.
-                    let agentPIDKeys = workspace.agentPIDKeysByPanelId[panelId] ?? []
-                    let agentKindRaw = Self.panelCardAgentKindRaw(fromAgentPIDKeys: agentPIDKeys)
-                    // A pane is bound to its session by the agent pids the
-                    // workspace already tracks for that panel, so two panes in
-                    // one directory do not both claim the same session.
-                    var summary: StokdSessionOutcomeSummary?
-                    if panelCardSummariesEnabled, agentKindRaw != nil, !directory.isEmpty {
-                        let agentPIDs = agentPIDKeys.compactMap { workspace.agentPIDs[$0] }
-                        summary = sessionOutcomesStore.summary(
-                            forDirectory: directory,
-                            agentPIDs: agentPIDs
-                        )
-                        if let summary {
-                            summariesByPaneId[paneId.id] = summary
-                        }
-                    }
-                    return GdockWorkspacePanelCardBuilder.PaneInput(
-                        paneId: paneId.id,
-                        title: workspace.resolvedPanelTitle(
+            var summariesByPanelId: [UUID: StokdSessionOutcomeSummary] = [:]
+            let controller = workspace.bonsplitController
+            // The panel the focused pane is showing is the selected card.
+            let focusedPanelId = controller.focusedPaneId.flatMap { controller.selectedTab(inPane: $0)?.id.uuid }
+            // Every panel in every pane, background tabs included: an agent
+            // parked behind another tab is still a session in this workspace
+            // and the stack is where all of them are listed.
+            let panels = controller.allPaneIds
+                .flatMap { paneId -> [GdockWorkspacePanelCardBuilder.PanelInput] in
+                    let visiblePanelId = controller.selectedTab(inPane: paneId)?.id.uuid
+                    return controller.tabs(inPane: paneId).compactMap { tab in
+                        let panelId = tab.id.uuid
+                        return Self.panelCardInput(
+                            workspace: workspace,
                             panelId: panelId,
-                            fallback: workspace.panelTitles[panelId] ?? ""
-                        ),
-                        directory: directory,
-                        branch: branch,
-                        agentKindRaw: agentKindRaw,
-                        sessionState: summary.flatMap(Self.panelCardSessionState(for:))
-                    )
+                            branch: branch,
+                            isVisible: panelId == visiblePanelId,
+                            summariesEnabled: panelCardSummariesEnabled,
+                            sessionOutcomesStore: sessionOutcomesStore,
+                            summariesByPanelId: &summariesByPanelId
+                        )
+                    }
                 }
             // Reads above used the last published snapshot; this feeds the next
             // build. All filesystem work happens off the main thread inside the
             // store, and the interval guard collapses repeat calls.
             if panelCardSummariesEnabled {
                 sessionOutcomesStore.refreshIfNeeded(
-                    directories: panes
+                    directories: panels
                         .filter { $0.agentKindRaw != nil }
                         .map(\.directory)
                         .filter { !$0.isEmpty }
                 )
             }
             return GdockWorkspacePanelCardBuilder.cards(
-                panes: panes,
-                focusedPaneId: workspace.bonsplitController.focusedPaneId?.id,
-                summariesByPaneId: summariesByPaneId
+                panels: panels,
+                focusedPanelId: focusedPanelId,
+                summariesByPanelId: summariesByPanelId
             )
         } ?? []
-        let panelCardsByPaneId = Dictionary(
+        let panelCardsByPanelId = Dictionary(
             panelCards.map { ($0.id, $0) },
             uniquingKeysWith: { first, _ in first }
         )
@@ -11687,7 +11666,7 @@ struct VerticalTabsSidebar: View, Equatable {
             tabs: tabs,
             groupsById: workspaceGroupById,
             focusedWorkspaceId: focusedWorkspaceForCards?.id,
-            panelCardPaneIds: panelCards.map(\.id)
+            panelCardPanelIds: panelCards.map(\.id)
         )
         let numberedWorkspaceIndexById = SidebarWorkspaceRenderItem.numberedWorkspaceIndexById(
             from: workspaceRenderItems
@@ -11746,7 +11725,7 @@ struct VerticalTabsSidebar: View, Equatable {
             workspaceGroupMenuSnapshot: workspaceGroupMenuSnapshot,
             workspaceRenderItems: workspaceRenderItems,
             visibleWorkspaceRowIds: visibleWorkspaceRowIds,
-            panelCardsByPaneId: panelCardsByPaneId
+            panelCardsByPanelId: panelCardsByPanelId
         )
         let _ = SidebarProfilingSignposts.end(signpost)
         ZStack(alignment: .bottomLeading) {
@@ -12323,8 +12302,8 @@ struct VerticalTabsSidebar: View, Equatable {
                     listSnapshot: listSnapshot,
                     renderContext: renderContext
                 )
-            case .panelCardStack(let workspaceId, let paneIds):
-                let cards = paneIds.compactMap { renderContext.panelCardsByPaneId[$0] }
+            case .panelCardStack(let workspaceId, let panelIds):
+                let cards = panelIds.compactMap { renderContext.panelCardsByPanelId[$0] }
                 guard !cards.isEmpty else { return nil }
                 return panelCardStackTableRowConfiguration(
                     cards: cards,
@@ -12333,6 +12312,56 @@ struct VerticalTabsSidebar: View, Equatable {
                 )
             }
         }
+    }
+
+    /// One panel's card input, resolved through the workspace's own accessors
+    /// rather than the raw reporting maps: `panelDirectories` / `panelTitles`
+    /// are only populated once a panel reports via shell integration, so
+    /// reading them directly left the card blank and skipped the summary
+    /// lookup entirely.
+    ///
+    /// Also binds the panel to its stokd session (by the agent pids the
+    /// workspace already tracks for that panel, so two panels in one directory
+    /// do not both claim the same session) and records the summary in
+    /// `summariesByPanelId` for the builder.
+    @MainActor
+    private static func panelCardInput(
+        workspace: Workspace,
+        panelId: UUID,
+        branch: String?,
+        isVisible: Bool,
+        summariesEnabled: Bool,
+        sessionOutcomesStore: StokdSessionOutcomesStore,
+        summariesByPanelId: inout [UUID: StokdSessionOutcomeSummary]
+    ) -> GdockWorkspacePanelCardBuilder.PanelInput {
+        let directory = workspace.effectivePanelDirectory(
+            panelId: panelId,
+            localFallback: workspace.currentDirectory
+        ) ?? ""
+        // Only panels actually running an agent get a card; the agent kind
+        // also selects the card's glyph.
+        let agentPIDKeys = workspace.agentPIDKeysByPanelId[panelId] ?? []
+        let agentKindRaw = panelCardAgentKindRaw(fromAgentPIDKeys: agentPIDKeys)
+        var summary: StokdSessionOutcomeSummary?
+        if summariesEnabled, agentKindRaw != nil, !directory.isEmpty {
+            let agentPIDs = agentPIDKeys.compactMap { workspace.agentPIDs[$0] }
+            summary = sessionOutcomesStore.summary(forDirectory: directory, agentPIDs: agentPIDs)
+            if let summary {
+                summariesByPanelId[panelId] = summary
+            }
+        }
+        return GdockWorkspacePanelCardBuilder.PanelInput(
+            panelId: panelId,
+            title: workspace.resolvedPanelTitle(
+                panelId: panelId,
+                fallback: workspace.panelTitles[panelId] ?? ""
+            ),
+            directory: directory,
+            branch: branch,
+            agentKindRaw: agentKindRaw,
+            sessionState: summary.flatMap(panelCardSessionState(for:)),
+            isVisible: isVisible
+        )
     }
 
     /// Agent kind recorded on a pane's agent PID keys, or nil when the pane

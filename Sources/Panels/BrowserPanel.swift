@@ -6916,6 +6916,10 @@ extension BrowserPanel {
     // MARK: - Find in Page
 
     func startFind() {
+        if GdockEditorFindDispatch.target(editorPageActive: editorPageActive) == .monacoWidget {
+            webView.evaluateJavaScript("window.__cmuxEditorFind && window.__cmuxEditorFind();")
+            return
+        }
         clearBrowserFocusMode(reason: "startFind")
         preferredFocusIntent = .findField
         let created = searchState == nil

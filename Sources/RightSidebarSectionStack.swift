@@ -10,6 +10,7 @@ struct RightSidebarSectionStack<Content: View>: View {
     @Binding var layout: RightSidebarSectionLayout
     /// Returns a section to the mode bar.
     let onReturnToModeBar: (RightSidebarMode) -> Void
+    var showsReturnToModeBar: Bool = true
     @ViewBuilder let content: (RightSidebarMode) -> Content
 
     /// Live separator drag, so the layout is committed once per gesture step
@@ -28,7 +29,9 @@ struct RightSidebarSectionStack<Content: View>: View {
                     }
                     sectionView(
                         section: section,
-                        height: heights.indices.contains(index) ? heights[index] : RightSidebarSectionLayout.headerHeight
+                        index: index,
+                        height: heights.indices.contains(index) ? heights[index] : RightSidebarSectionLayout.headerHeight,
+                        totalHeight: totalHeight
                     )
                 }
             }
@@ -40,10 +43,12 @@ struct RightSidebarSectionStack<Content: View>: View {
 
     private func sectionView(
         section: RightSidebarSectionLayout.Section,
-        height: CGFloat
+        index: Int,
+        height: CGFloat,
+        totalHeight: CGFloat
     ) -> some View {
         VStack(spacing: 0) {
-            header(for: section)
+            header(for: section, index: index, totalHeight: totalHeight)
             if !section.isCollapsed {
                 content(section.mode)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -53,7 +58,11 @@ struct RightSidebarSectionStack<Content: View>: View {
         .frame(height: height, alignment: .top)
     }
 
-    private func header(for section: RightSidebarSectionLayout.Section) -> some View {
+    private func header(
+        for section: RightSidebarSectionLayout.Section,
+        index: Int,
+        totalHeight: CGFloat
+    ) -> some View {
         HStack(spacing: 4) {
             Image(systemName: section.isCollapsed ? "chevron.right" : "chevron.down")
                 .font(.system(size: 9, weight: .bold))
@@ -64,23 +73,25 @@ struct RightSidebarSectionStack<Content: View>: View {
                 .font(.system(size: 11, weight: .semibold))
                 .lineLimit(1)
             Spacer(minLength: 0)
-            Button {
-                onReturnToModeBar(section.mode)
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 9, weight: .semibold))
-            }
-            .buttonStyle(.plain)
-            .opacity(0.6)
-            .accessibilityLabel(
-                String.localizedStringWithFormat(
-                    String(
-                        localized: "rightSidebar.section.returnToModeBar",
-                        defaultValue: "Return %@ to the tool bar"
-                    ),
-                    section.mode.label
+            if showsReturnToModeBar {
+                Button {
+                    onReturnToModeBar(section.mode)
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 9, weight: .semibold))
+                }
+                .buttonStyle(.plain)
+                .opacity(0.6)
+                .accessibilityLabel(
+                    String.localizedStringWithFormat(
+                        String(
+                            localized: "rightSidebar.section.returnToModeBar",
+                            defaultValue: "Return %@ to the tool bar"
+                        ),
+                        section.mode.label
+                    )
                 )
-            )
+            }
         }
         .padding(.horizontal, 8)
         .frame(height: RightSidebarSectionLayout.headerHeight)
@@ -89,6 +100,17 @@ struct RightSidebarSectionStack<Content: View>: View {
         .onTapGesture {
             layout.toggleCollapse(section.mode)
         }
+        .gesture(
+            DragGesture(minimumDistance: 6)
+                .onEnded { value in
+                    let originY = layout.resolvedHeights(totalHeight: totalHeight)
+                        .prefix(index)
+                        .reduce(0, +)
+                    let dropY = originY + value.location.y
+                    let destination = layout.insertionIndex(forDropAt: dropY, totalHeight: totalHeight)
+                    layout.moveBlock(startingAt: index, to: destination)
+                }
+        )
         .accessibilityIdentifier("RightSidebar.section.\(section.mode.rawValue)")
     }
 

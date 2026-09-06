@@ -816,6 +816,7 @@ enum MinimalModeSidebarControlActionSlot: Int, CaseIterable {
     case cloudVM
     case focusHistoryBack
     case focusHistoryForward
+    case gdockGrid
 
     var accessibilityIdentifier: String {
         switch self {
@@ -831,6 +832,8 @@ enum MinimalModeSidebarControlActionSlot: Int, CaseIterable {
             return "titlebarControl.focusHistoryBack"
         case .focusHistoryForward:
             return "titlebarControl.focusHistoryForward"
+        case .gdockGrid:
+            return "GdockGridModeTitlebarButton"
         }
     }
 
@@ -848,6 +851,8 @@ enum MinimalModeSidebarControlActionSlot: Int, CaseIterable {
             return String(localized: "menu.history.focusBack", defaultValue: "Focus Back")
         case .focusHistoryForward:
             return String(localized: "menu.history.focusForward", defaultValue: "Focus Forward")
+        case .gdockGrid:
+            return String(localized: "gdock.gridMode.button.help", defaultValue: "Grid Mode shape")
         }
     }
 
@@ -865,6 +870,8 @@ enum MinimalModeSidebarControlActionSlot: Int, CaseIterable {
             return "focusHistoryBack"
         case .focusHistoryForward:
             return "focusHistoryForward"
+        case .gdockGrid:
+            return "gdockGrid"
         }
     }
 
@@ -872,7 +879,7 @@ enum MinimalModeSidebarControlActionSlot: Int, CaseIterable {
         switch self {
         case .toggleSidebar, .newTab, .cloudVM, .focusHistoryBack, .focusHistoryForward:
             return true
-        case .showNotifications:
+        case .showNotifications, .gdockGrid:
             return false
         }
     }

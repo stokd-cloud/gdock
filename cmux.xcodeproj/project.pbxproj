@@ -1099,6 +1099,8 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		FE002110 /* FileExplorerDoubleClickActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE002010 /* FileExplorerDoubleClickActionTests.swift */; };
 		FE5996080000000000000002 /* FileExplorerExternalOpenMenuItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE5996080000000000000001 /* FileExplorerExternalOpenMenuItems.swift */; };
 		FE5996090000000000000002 /* FileExplorerExternalOpenRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE5996090000000000000001 /* FileExplorerExternalOpenRequest.swift */; };
+		C11B00000000000000000002 /* FileExplorerFileClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C11B00000000000000000001 /* FileExplorerFileClipboard.swift */; };
+		C11B00000000000000000012 /* FileExplorerFileClipboardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C11B00000000000000000011 /* FileExplorerFileClipboardTests.swift */; };
 		D0E200000000000000000002 /* FileExplorerFileOpenCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E100000000000000000002 /* FileExplorerFileOpenCoordinator.swift */; };
 		FE002112 /* FileExplorerGitStatusProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE002012 /* FileExplorerGitStatusProviderTests.swift */; };
 		FE5996020000000000000002 /* FileExplorerHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE5996020000000000000001 /* FileExplorerHeaderView.swift */; };
@@ -1203,12 +1205,16 @@ C0DE71B10000000000000001 /* AppDelegate+AgentChatNotifications.swift in Sources 
 		GDOCKASPL0000000000000C /* AutoSplitForceButtonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKASPL0000000000000B /* AutoSplitForceButtonTests.swift */; };
 		GDOCKAWSG00000000000008 /* GdockAutoWorkspaceGroupReconcilerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKAWSG00000000000007 /* GdockAutoWorkspaceGroupReconcilerTests.swift */; };
 		GDOCKCYCA000000000000002 /* GdockCycleRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKCYCA000000000000001 /* GdockCycleRing.swift */; };
+		GDOCKEDIT00000000000002 /* GdockEditorReusePlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKEDIT00000000000001 /* GdockEditorReusePlanner.swift */; };
+		GDOCKEDIT00000000000004 /* GdockEditorReuseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKEDIT00000000000003 /* GdockEditorReuseTests.swift */; };
 		GDOCKGRID00000000000014 /* GdockGridModeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000013 /* GdockGridModeButton.swift */; };
 		GDOCKGRID00000000000006 /* GdockGridModeSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000005 /* GdockGridModeSettings.swift */; };
 		GDOCKGRID00000000000002 /* GdockGridModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000001 /* GdockGridModeTests.swift */; };
+		GDOCKGRID00000000000016 /* GdockGridNewSurfacePlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000015 /* GdockGridNewSurfacePlanner.swift */; };
 		GDOCKGRID00000000000004 /* GdockGridShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000003 /* GdockGridShape.swift */; };
 		GDOCKGRID00000000000010 /* GdockGridSplitAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000009 /* GdockGridSplitAction.swift */; };
 		GDOCKGRID00000000000008 /* GdockGridSplitPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000007 /* GdockGridSplitPlanner.swift */; };
+		GDOCKGRID00000000000018 /* GdockGridWorkspaceCompactionPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKGRID00000000000017 /* GdockGridWorkspaceCompactionPlanner.swift */; };
 		GDOCKPIP000000000000004 /* GdockPipFloatingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPIP000000000000003 /* GdockPipFloatingWindowController.swift */; };
 		GDOCKPIP000000000000002 /* GdockPipFloatingWindowPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPIP000000000000001 /* GdockPipFloatingWindowPolicy.swift */; };
 		GDOCKPIP000000000000006 /* GdockPipFloatingWindowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GDOCKPIP000000000000005 /* GdockPipFloatingWindowTests.swift */; };
@@ -4073,6 +4079,8 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		FE002010 /* FileExplorerDoubleClickActionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerDoubleClickActionTests.swift; sourceTree = "<group>"; };
 		FE5996080000000000000001 /* FileExplorerExternalOpenMenuItems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerExternalOpenMenuItems.swift; sourceTree = "<group>"; };
 		FE5996090000000000000001 /* FileExplorerExternalOpenRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerExternalOpenRequest.swift; sourceTree = "<group>"; };
+		C11B00000000000000000001 /* FileExplorerFileClipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerFileClipboard.swift; sourceTree = "<group>"; };
+		C11B00000000000000000011 /* FileExplorerFileClipboardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerFileClipboardTests.swift; sourceTree = "<group>"; };
 		D0E100000000000000000002 /* FileExplorerFileOpenCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerFileOpenCoordinator.swift; sourceTree = "<group>"; };
 		FE002012 /* FileExplorerGitStatusProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerGitStatusProviderTests.swift; sourceTree = "<group>"; };
 		FE5996020000000000000001 /* FileExplorerHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileExplorerHeaderView.swift; sourceTree = "<group>"; };
@@ -4177,12 +4185,16 @@ C0DE71B10000000000000002 /* AppDelegate+AgentChatNotifications.swift */ = {isa =
 		GDOCKASPL0000000000000B /* AutoSplitForceButtonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoSplitForceButtonTests.swift; sourceTree = "<group>"; };
 		GDOCKAWSG00000000000007 /* GdockAutoWorkspaceGroupReconcilerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockAutoWorkspaceGroupReconcilerTests.swift; sourceTree = "<group>"; };
 		GDOCKCYCA000000000000001 /* GdockCycleRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockCycleRing.swift; sourceTree = "<group>"; };
+		GDOCKEDIT00000000000001 /* GdockEditorReusePlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockEditorReusePlanner.swift; sourceTree = "<group>"; };
+		GDOCKEDIT00000000000003 /* GdockEditorReuseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockEditorReuseTests.swift; sourceTree = "<group>"; };
 		GDOCKGRID00000000000013 /* GdockGridModeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridModeButton.swift; sourceTree = "<group>"; };
 		GDOCKGRID00000000000005 /* GdockGridModeSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridModeSettings.swift; sourceTree = "<group>"; };
 		GDOCKGRID00000000000001 /* GdockGridModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridModeTests.swift; sourceTree = "<group>"; };
+		GDOCKGRID00000000000015 /* GdockGridNewSurfacePlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridNewSurfacePlanner.swift; sourceTree = "<group>"; };
 		GDOCKGRID00000000000003 /* GdockGridShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridShape.swift; sourceTree = "<group>"; };
 		GDOCKGRID00000000000009 /* GdockGridSplitAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridSplitAction.swift; sourceTree = "<group>"; };
 		GDOCKGRID00000000000007 /* GdockGridSplitPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridSplitPlanner.swift; sourceTree = "<group>"; };
+		GDOCKGRID00000000000017 /* GdockGridWorkspaceCompactionPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockGridWorkspaceCompactionPlanner.swift; sourceTree = "<group>"; };
 		GDOCKPIP000000000000003 /* GdockPipFloatingWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPipFloatingWindowController.swift; sourceTree = "<group>"; };
 		GDOCKPIP000000000000001 /* GdockPipFloatingWindowPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPipFloatingWindowPolicy.swift; sourceTree = "<group>"; };
 		GDOCKPIP000000000000005 /* GdockPipFloatingWindowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GdockPipFloatingWindowTests.swift; sourceTree = "<group>"; };
@@ -6862,6 +6874,8 @@ BE7A0010SIDEBARDOCKLIVE01 /* SidebarDockLiveSectionSemanticsTests.swift */ = {is
 				GDOCKGRID00000000000009 /* GdockGridSplitAction.swift */,
 				GDOCKGRID00000000000011 /* TabManager+GdockGridMode.swift */,
 				GDOCKGRID00000000000013 /* GdockGridModeButton.swift */,
+				GDOCKGRID00000000000015 /* GdockGridNewSurfacePlanner.swift */,
+				GDOCKGRID00000000000017 /* GdockGridWorkspaceCompactionPlanner.swift */,
 				01BAA63BCC864AB59E2E8A8D /* QuadSplitAction.swift */,
 				E2167180241244A596651E6D /* QuadSplitPlanner.swift */,
 				E30750000000000000000001 /* WorkspaceTabColorResolution.swift */,
@@ -7921,7 +7935,9 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 					828800020000000000000001 /* FileExplorerPalette.swift */,
 				FE001005 /* FileExplorerKeyboardShortcuts.swift */,
 				D0E100000000000000000002 /* FileExplorerFileOpenCoordinator.swift */,
+				C11B00000000000000000001 /* FileExplorerFileClipboard.swift */,
 				D0E100000000000000000001 /* FileExplorerOpenRouting.swift */,
+				GDOCKEDIT00000000000001 /* GdockEditorReusePlanner.swift */,
 				FE5996030000000000000001 /* FileExplorerNSOutlineView.swift */,
 				FE5996040000000000000001 /* FileExplorerRowView.swift */,
 				FE001003 /* FileExplorerSearchController.swift */,
@@ -8363,6 +8379,7 @@ E3309A02 /* AppDelegate+EqualizeSplitsShortcut.swift */,
 				D3610B020000000000000002 /* AgentSessionAutoResumeSwiftTests.swift */,
 				A9E010000000000000000005 /* AgentExecutableResolverTests.swift */,
 				D0E100000000000000000004 /* FileExplorerOpenRoutingTests.swift */,
+				GDOCKEDIT00000000000003 /* GdockEditorReuseTests.swift */,
 				A9E030000000000000000001 /* AgentSessionSocketSurfaceTests.swift */,
 				C51A720000000000000000B2 /* SimulatorPanelIntegrationTests.swift */,
 				C51A760000000000000000D2 /* SimulatorPanelThemeTests.swift */,
@@ -9030,6 +9047,7 @@ BE7A0010SIDEBARDOCKBEHAV01 /* SidebarDockBehaviorTests.swift */,
 				FE002001 /* FileExplorerRootResolverTests.swift */,
 				828800010000000000000001 /* FileExplorerStyleContrastTests.swift */,
 				FE002002 /* FileExplorerStoreTests.swift */,
+				C11B00000000000000000011 /* FileExplorerFileClipboardTests.swift */,
 				FE002010 /* FileExplorerDoubleClickActionTests.swift */,
 				FE002003 /* FileSearchRipgrepParserTests.swift */,
 				9BD519CFE74530A46DF0925D /* MobileHostAuthorizationTests.swift */,
@@ -10143,6 +10161,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				C40410010000000000000021 /* FileExplorerDoubleClickActionSettings.swift in Sources */,
 				FE5996080000000000000002 /* FileExplorerExternalOpenMenuItems.swift in Sources */,
 				FE5996090000000000000002 /* FileExplorerExternalOpenRequest.swift in Sources */,
+				C11B00000000000000000002 /* FileExplorerFileClipboard.swift in Sources */,
 				D0E200000000000000000002 /* FileExplorerFileOpenCoordinator.swift in Sources */,
 				FE5996020000000000000002 /* FileExplorerHeaderView.swift in Sources */,
 				FE001105 /* FileExplorerKeyboardShortcuts.swift in Sources */,
@@ -10211,11 +10230,14 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				GDOCKAWSG00000000000004 /* GdockAutoWorkspaceGroupModeSettings.swift in Sources */,
 				GDOCKAWSG00000000000002 /* GdockAutoWorkspaceGroupReconciler.swift in Sources */,
 				GDOCKCYCA000000000000002 /* GdockCycleRing.swift in Sources */,
+				GDOCKEDIT00000000000002 /* GdockEditorReusePlanner.swift in Sources */,
 				GDOCKGRID00000000000014 /* GdockGridModeButton.swift in Sources */,
 				GDOCKGRID00000000000006 /* GdockGridModeSettings.swift in Sources */,
+				GDOCKGRID00000000000016 /* GdockGridNewSurfacePlanner.swift in Sources */,
 				GDOCKGRID00000000000004 /* GdockGridShape.swift in Sources */,
 				GDOCKGRID00000000000010 /* GdockGridSplitAction.swift in Sources */,
 				GDOCKGRID00000000000008 /* GdockGridSplitPlanner.swift in Sources */,
+				GDOCKGRID00000000000018 /* GdockGridWorkspaceCompactionPlanner.swift in Sources */,
 				GDOCKPIP000000000000004 /* GdockPipFloatingWindowController.swift in Sources */,
 				GDOCKPIP000000000000002 /* GdockPipFloatingWindowPolicy.swift in Sources */,
 				GDOCKPRHS000000000000004 /* GdockPromptHistoryCollector.swift in Sources */,
@@ -11938,6 +11960,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				FEEDC1A50000000000000003 /* FeedEventClassifier.swift in Sources */,
 				D0B10018A1B2C3D4E5F60001 /* FileDropOverlayViewTests.swift in Sources */,
 				FE002110 /* FileExplorerDoubleClickActionTests.swift in Sources */,
+				C11B00000000000000000012 /* FileExplorerFileClipboardTests.swift in Sources */,
 				FE002112 /* FileExplorerGitStatusProviderTests.swift in Sources */,
 				D0E200000000000000000004 /* FileExplorerOpenRoutingTests.swift in Sources */,
 				FE002101 /* FileExplorerRootResolverTests.swift in Sources */,
@@ -11971,6 +11994,7 @@ E3309A01 /* AppDelegate+EqualizeSplitsShortcut.swift in Sources */,
 				GDOCKASPL00000000000008 /* AutoSplitActionTests.swift in Sources */,
 				GDOCKASPL0000000000000A /* AutoSplitShortcutRoutingTests.swift in Sources */,
 				GDOCKASPL0000000000000C /* AutoSplitForceButtonTests.swift in Sources */,
+				GDOCKEDIT00000000000004 /* GdockEditorReuseTests.swift in Sources */,
 				GDOCKGRID00000000000002 /* GdockGridModeTests.swift in Sources */,
 				GDOCKPIP000000000000006 /* GdockPipFloatingWindowTests.swift in Sources */,
 				GDOCKPRHT000000000000002 /* GdockPromptHistoryCollectorTests.swift in Sources */,

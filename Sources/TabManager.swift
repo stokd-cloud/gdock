@@ -427,6 +427,9 @@ class TabManager: ObservableObject {
     var lastGdockGridModeEnabled: Bool?
     /// Last observed `gdock.gridModeShape` (gates edge work).
     var lastGdockGridModeShape: GdockGridShape?
+    /// Monotonic New Surface / focus touch ranks for Grid Mode LRU rollover.
+    var gdockGridPanelTouchOrder: [UUID: Int] = [:]
+    var gdockGridPanelTouchSeq: Int = 0
     let nativeSSHConnectionBroker: NativeSSHConnectionBroker
     let agentChatResumeIntentRecorder: any AgentChatResumeIntentRecording
 

@@ -1,0 +1,171 @@
+{
+  "slug": "gdock-auto-splitter",
+  "title": "Gdock Auto Splitter",
+  "status": "active",
+  "created_at": "2026-09-04T01:37:59.835635+00:00",
+  "storage_mode": "database",
+  "error_message": null,
+  "progress_log": [
+    "[2026-09-04T01:38:02.648127+00:00] Project created; PRD written to prd.md; phases extracted; review files written to phases/"
+  ],
+  "review_mode": "complete",
+  "workspace_root": "/opt/worktrees/stokd-cloud/gdock/project-a2204cf-gdock-auto-splitter",
+  "phases": [
+    {
+      "phase_number": 1,
+      "purpose": "One unattended pass that adds the settings, shared Auto Split action,",
+      "title": "Ship Auto Splitter",
+      "work_items": [
+        {
+          "acceptance_criteria": "- AC-1.1.a: With empty defaults/config, settings resolve to rows `2`, columns `2`,\n  force `false`.\n- AC-1.1.b: Values below `1` clamp to `1`; values above `6` clamp to `6`.\n- AC-1.1.c: `cmux.json` supports `gdock.autoSplitRows`,\n  `gdock.autoSplitColumns`, and `gdock.forceAutoSplitter` without unknown-key\n  validation errors.\n- AC-1.1.d: Settings UI exposes two numeric controls and one toggle, all\n  localized and live-updating the same catalog keys.\n- AC-1.1.e: New tests are present in the target; `./scripts/lint-pbxproj-test-wiring.sh`\n  exits 0.",
+          "acceptance_tests": "- Test-1.1.a: Unit/TDD - add `AutoSplitSettingsTests` and observe red before\n  implementation, then green after implementation.\n- Test-1.1.b: Unit - table-driven clamp cases for rows and columns.\n- Test-1.1.c: Integration - JSON settings store accepts/readbacks the new keys.\n- Test-1.1.d: UI/model - Settings section exposes localized rows/columns/toggle\n  descriptors and writes the catalog keys.\n- Test-1.1.e: Regression - pbxproj wiring script confirms new tests compile.",
+          "dependencies": [],
+          "implementation_details": "- Add `gdock.autoSplitRows`, `gdock.autoSplitColumns`, and\n  `gdock.forceAutoSplitter` to `GdockCatalogSection`.\n- Add a runtime accessor, tentatively `GdockAutoSplitterSettings`, mirroring the\n  existing `GdockAutoWorkspaceGroupModeSettings` pattern.\n- Define shared constants for row/column defaults and bounds:\n  default rows `2`, default columns `2`, min `1`, max `6`.\n- Add Settings UI controls: numeric steppers/inputs for rows and columns, and a\n  toggle for Force Auto Splitter. Values write through the settings store, not\n  ad hoc UserDefaults calls from views.\n- Add command-palette toggle descriptor\n  `palette.toggleSetting.gdock.forceAutoSplitter`.\n- Update schema/config support so `cmux.json` recognizes the three keys.\n- Failure modes: missing config returns defaults; invalid config clamps; settings\n  view never mutates state from body computations.",
+          "item_number": "1.1",
+          "targets": [
+            "VAL-SETTINGS-001"
+          ],
+          "title": "Add gdock Auto Split settings",
+          "verification_commands": "set -euo pipefail\nrg -n 'gdock\\.autoSplitRows|gdock\\.autoSplitColumns|gdock\\.forceAutoSplitter' \\\n  Packages/macOS/CmuxSettings Sources web/data docs Resources\n./scripts/lint-pbxproj-test-wiring.sh\nCMUX_SKIP_ZIG_BUILD=1 ./scripts/test-unit.sh \\\n  -only-testing:cmuxTests/AutoSplitSettingsTests test"
+        },
+        {
+          "acceptance_criteria": "- AC-1.2.a: `2 x 2` Auto Split yields the same observable pane count, source\n  preservation, and focus result as current Split Quad.\n- AC-1.2.b: `1 x 2`, `2 x 1`, and `2 x 3` produce the expected pane counts and\n  row/column topology in main workspace tests.\n- AC-1.2.c: Dock-targeted Auto Split mutates Dock only and never grows the main\n  workspace tree.\n- AC-1.2.d: Known vetoes return failure without local partial mutation or remote\n  command side effects.\n- AC-1.2.e: Existing `QuadSplitActionTests`, `QuadSplitButtonTests`, and\n  `QuadSplitAdapterRoutingTests` still pass.",
+          "acceptance_tests": "- Test-1.2.a: Unit/TDD - `AutoSplitActionTests` red before generalized action,\n  green after.\n- Test-1.2.b: Unit - topology table for row/column shapes and clamped values.\n- Test-1.2.c: Integration - Dock ownership harness proves Dock-only mutation.\n- Test-1.2.d: Regression - veto catalog asserts unchanged pane trees and no\n  remote command log growth.\n- Test-1.2.e: Regression - existing quad suites prove fixed 2x2 behavior remains.",
+          "dependencies": [
+            "1.1"
+          ],
+          "implementation_details": "- Add a shared action/model path, tentatively `AutoSplitAction`, that accepts a\n  resolved rows/columns shape and a target owner.\n- Keep the existing Split Quad behavior by either delegating `2 x 2` to the new\n  generalized action or by sharing a lower-level grid builder. Do not copy a\n  separate mutation algorithm into each entrypoint.\n- Preserve current known veto behavior from `QuadSplitAction` where applicable:\n  missing target, split-disabled, canvas mode, noninteractive/transient focus,\n  remote mirror/connecting/disconnected/unresolved, empty Dock source, and\n  delegate restrictions.\n- For a successful `rows x columns` split, preserve the original source surface\n  in the top-left cell, create terminal surfaces for the remaining cells, and\n  focus the bottom-right cell unless the caller requested focus restoration.\n- `1 x 1` returns false/no-op without beeping from model code; UI callers decide\n  whether to present feedback.\n- Record enough DEBUG instrumentation for dogfood to collect before/after pane\n  counts and owner kind without invoking a test-only alternate algorithm.",
+          "item_number": "1.2",
+          "targets": [
+            "VAL-AUTOSPLIT-001"
+          ],
+          "title": "Implement the shared Auto Split action",
+          "verification_commands": "set -euo pipefail\n./scripts/lint-pbxproj-test-wiring.sh\nCMUX_SKIP_ZIG_BUILD=1 ./scripts/test-unit.sh \\\n  -only-testing:cmuxTests/AutoSplitActionTests \\\n  -only-testing:cmuxTests/QuadSplitActionTests \\\n  -only-testing:cmuxTests/QuadSplitButtonTests \\\n  -only-testing:cmuxTests/QuadSplitAdapterRoutingTests test"
+        },
+        {
+          "acceptance_criteria": "- AC-1.3.a: Cmd+Y triggers Auto Split with default rows/columns in a focused main\n  pane.\n- AC-1.3.b: Cmd+Y triggers Auto Split in a focused Dock pane and does not fall\n  through to main after Dock failure.\n- AC-1.3.c: `shortcuts.bindings.autoSplit` can override or unbind the action.\n- AC-1.3.d: No other default public shortcut equals Cmd+Y.\n- AC-1.3.e: Settings/search/docs expose Auto Split as a keyboard shortcut.",
+          "acceptance_tests": "- Test-1.3.a: Unit/TDD - `AutoSplitShortcutRoutingTests` red before action\n  registration/routing, green after.\n- Test-1.3.b: Integration - Dock-focused NSEvent path produces Dock topology.\n- Test-1.3.c: Settings package - `ShortcutAction.autoSplit.defaultStroke` is Cmd+Y\n  and config override/unbind works.\n- Test-1.3.d: Regression - iterate public actions and assert no Cmd+Y default\n  collision.\n- Test-1.3.e: Docs/schema/shortcut-data grep.",
+          "dependencies": [
+            "1.2"
+          ],
+          "implementation_details": "- Add `autoSplit` to `KeyboardShortcutSettings.Action` with default\n  `StoredShortcut(key: \"y\", command: true)`.\n- Add matching settings package action/defaults, settings-visible action, schema\n  enum entry, web shortcut data, and configuration docs.\n- Add a default-conflict test that fails if any other public action uses Cmd+Y.\n- Route the shortcut through the same shared focus path used by Auto Split's\n  menu/palette/button adapters.\n- Add a command-palette one-shot command `palette.gdock.autoSplit` for discovery\n  if the local command-palette registry pattern supports it without adding a\n  duplicate mutation path. If added, it invokes the same action as Cmd+Y.\n- Explicit user overrides and unbinds in Settings or `cmux.json` take precedence\n  over the default Cmd+Y.",
+          "item_number": "1.3",
+          "targets": [
+            "VAL-SHORTCUT-001"
+          ],
+          "title": "Add Cmd+Y Auto Split shortcut and command discovery",
+          "verification_commands": "set -euo pipefail\nrg -n 'autoSplit|Cmd\\+Y|cmd\\+y|gdock\\.autoSplit' \\\n  Sources Packages/macOS/CmuxSettings web/data docs Resources\n./scripts/lint-pbxproj-test-wiring.sh\nCMUX_SKIP_ZIG_BUILD=1 ./scripts/test-unit.sh \\\n  -only-testing:cmuxTests/AutoSplitShortcutRoutingTests \\\n  -only-testing:Packages/macOS/CmuxSettings/Tests/CmuxSettingsTests/ShortcutActionNumberedDigitTests test"
+        },
+        {
+          "acceptance_criteria": "- AC-1.4.a: Force off: default button list and Dock appearance still end with\n  Split Quad and fixed 2x2 behavior.\n- AC-1.4.b: Force on: the last button renders as Auto Split with row/column\n  tooltip/accessibility text and invokes configured rows/columns.\n- AC-1.4.c: A custom surface-tab-bar config that includes `cmux.splitQuad`\n  follows force mode; a custom config that omits it is not modified.\n- AC-1.4.d: Explicit Split Quad menu/palette/context/CLI paths still create\n  exactly 2x2 even when force is on.\n- AC-1.4.e: Remote-tmux embedded lane still exposes only supported split buttons.",
+          "acceptance_tests": "- Test-1.4.a: Unit/TDD - `AutoSplitForceButtonTests` red before force resolver,\n  green after.\n- Test-1.4.b: Integration - Workspace and Dock split-tab-bar custom action paths\n  produce `rows x columns` only when force is enabled.\n- Test-1.4.c: Config regression - custom button list inclusion/omission behavior.\n- Test-1.4.d: Regression - explicit Split Quad adapters remain fixed 2x2.\n- Test-1.4.e: Artifact/UI dogfood - tagged DEBUG app screenshot/debug payload\n  shows the off/on button and topology difference.",
+          "dependencies": [
+            "1.1",
+            "1.2",
+            "1.3"
+          ],
+          "implementation_details": "- Resolve the last split-tab-bar button from settings at presentation time so\n  force-mode changes update without relaunch.\n- With force off, preserve current button id/order/icon/tooltip/action:\n  `cmux.splitQuad`, `square.split.2x2`, localized \"Split Quad\", fixed 2x2.\n- With force on, present the last button as Auto Split with a distinct grid icon\n  plus compact rows/columns badge where feasible, and a localized tooltip such as\n  \"Auto Split (2 rows x 3 columns)\".\n- When force is on and the user clicks that last button, invoke the shared Auto\n  Split action with current rows/columns.\n- Keep explicit Split Quad command surfaces fixed at 2x2, including View menu,\n  context menu, `palette.terminalSplitQuad`, user-bound `splitQuad`, and\n  CLI/socket `quad`.\n- Keep remote-tmux embedded split buttons filtered so Auto Split does not appear\n  as a local custom action in remote lanes.",
+          "item_number": "1.4",
+          "targets": [
+            "VAL-FORCE-001"
+          ],
+          "title": "Force the split-tab-bar button into Auto Split mode",
+          "verification_commands": "set -euo pipefail\n./scripts/lint-pbxproj-test-wiring.sh\nCMUX_SKIP_ZIG_BUILD=1 ./scripts/test-unit.sh \\\n  -only-testing:cmuxTests/AutoSplitForceButtonTests \\\n  -only-testing:cmuxTests/QuadSplitButtonTests \\\n  -only-testing:cmuxTests/QuadSplitAdapterRoutingTests test"
+        },
+        {
+          "acceptance_criteria": "- AC-1.5.a: Every new `Resources/Localizable.xcstrings` key has non-empty\n  localized values for all locale codes already present in the catalog.\n- AC-1.5.b: `docs/configuration.md`, `web/data/cmux.schema.json`, and\n  `web/data/cmux-shortcuts.ts` mention Auto Split settings/shortcut accurately.\n- AC-1.5.c: `./scripts/lint-pbxproj-test-wiring.sh` exits 0.\n- AC-1.5.d: Focused Auto Split and existing Quad Split tests pass with nonzero\n  test execution.\n- AC-1.5.e: `CMUX_SKIP_ZIG_BUILD=1 ./scripts/reload.sh --tag gdock-auto-splitter`\n  exits 0.",
+          "acceptance_tests": "- Test-1.5.a: Artifact - parse `Resources/Localizable.xcstrings` and assert new\n  keys cover every locale in the catalog.\n- Test-1.5.b: Docs/schema grep.\n- Test-1.5.c: Regression - pbxproj test wiring.\n- Test-1.5.d: Integration - focused `cmux-unit` suites.\n- Test-1.5.e: Build - tagged reload script.",
+          "dependencies": [
+            "1.1",
+            "1.2",
+            "1.3",
+            "1.4"
+          ],
+          "implementation_details": "- Add localized strings for Settings rows, command-palette entries, shortcut\n  label/description, Auto Split tooltip/accessibility text, and any failure/no-op\n  text introduced by this feature.\n- Update every locale already present in `Resources/Localizable.xcstrings`.\n- Update `web/data/cmux-shortcuts.ts`, `web/data/cmux.schema.json`, and\n  `docs/configuration.md` for the new settings and shortcut.\n- Run focused tests, pbxproj wiring, localization audit, and a tagged build.\n- If launching for dogfood, use `./scripts/reload.sh --tag gdock-auto-splitter`\n  or `--launch`; never use an untagged app.",
+          "item_number": "1.5",
+          "targets": [
+            "VAL-I18N-DOCS-001"
+          ],
+          "title": "Localize, document, build, and dogfood",
+          "verification_commands": "set -euo pipefail\npython3 - <<'PY'\nimport json\nfrom pathlib import Path\ncatalog = json.loads(Path(\"Resources/Localizable.xcstrings\").read_text())\nall_locales = sorted({\n    locale\n    for entry in catalog.get(\"strings\", {}).values()\n    for locale in (entry.get(\"localizations\") or {}).keys()\n})\nprefixes = (\n    \"settings.gdock.autoSplit\",\n    \"settings.gdock.forceAutoSplitter\",\n    \"shortcut.autoSplit\",\n    \"command.gdock.autoSplit\",\n    \"workspace.tooltip.autoSplit\",\n)\nmatched = {\n    key: value\n    for key, value in catalog.get(\"strings\", {}).items()\n    if key.startswith(prefixes)\n}\nassert matched, \"no Auto Split localization keys found\"\nmissing = []\nfor key, value in matched.items():\n    locs = value.get(\"localizations\") or {}\n    for locale in all_locales:\n        unit = (locs.get(locale) or {}).get(\"stringUnit\") or {}\n        if not unit.get(\"value\"):\n            missing.append(f\"{key}:{locale}\")\nassert not missing, \"missing localizations: \" + \", \".join(missing)\nprint(\"localized keys:\", len(matched), \"locales:\", len(all_locales))\nPY\nrg -n 'gdock\\.autoSplitRows|gdock\\.autoSplitColumns|gdock\\.forceAutoSplitter|autoSplit|Cmd\\+Y' \\\n  docs/configuration.md web/data/cmux.schema.json web/data/cmux-shortcuts.ts\n./scripts/lint-pbxproj-test-wiring.sh\nCMUX_SKIP_ZIG_BUILD=1 ./scripts/test-unit.sh \\\n  -only-testing:cmuxTests/AutoSplitSettingsTests \\\n  -only-testing:cmuxTests/AutoSplitActionTests \\\n  -only-testing:cmuxTests/AutoSplitShortcutRoutingTests \\\n  -only-testing:cmuxTests/AutoSplitForceButtonTests \\\n  -only-testing:cmuxTests/QuadSplitActionTests \\\n  -only-testing:cmuxTests/QuadSplitButtonTests \\\n  -only-testing:cmuxTests/QuadSplitAdapterRoutingTests test\nCMUX_SKIP_ZIG_BUILD=1 ./scripts/reload.sh --tag gdock-auto-splitter"
+        }
+      ]
+    }
+  ],
+  "project_id": "028f1e74-6746-4907-8947-eb9b702a6f71",
+  "hash_short": "a2204cf",
+  "contract": [
+    {
+      "behavior": "Missing user config returns rows `2`, columns `2`, force `false`; persisted/UserDefaults and `cmux.json` values override those defaults; invalid row/column values are clamped to `1...6`; `1 x 1` is treated as a no-op shape.",
+      "evidence": "Focused settings tests, schema validation, Settings UI inspection, and `cmux.json` readback showing `gdock.autoSplitRows`, `gdock.autoSplitColumns`, and `gdock.forceAutoSplitter`.",
+      "fail": "Missing keys, wrong defaults, unbounded pane counts, or fork-owned keys placed under upstream prefixes.",
+      "id": "VAL-SETTINGS-001",
+      "needs": "none",
+      "oracle": null,
+      "raw": "**VAL-SETTINGS-001** - Auto Split settings are gdock-owned, bounded, and user-configurable.\nSurface: library\nNeeds: none\nBehavior: Missing user config returns rows `2`, columns `2`, force `false`;\n  persisted/UserDefaults and `cmux.json` values override those defaults; invalid\n  row/column values are clamped to `1...6`; `1 x 1` is treated as a no-op shape.\nEvidence: Focused settings tests, schema validation, Settings UI inspection, and\n  `cmux.json` readback showing `gdock.autoSplitRows`, `gdock.autoSplitColumns`,\n  and `gdock.forceAutoSplitter`.\nRigor: R2\nWhy: Behavior changes settings persistence and user-facing configuration, so it\n  needs persisted evidence and independent validation beyond implementer logs.\nFail: Missing keys, wrong defaults, unbounded pane counts, or fork-owned keys\n  placed under upstream prefixes.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "Auto Split settings are gdock-owned, bounded, and user-configurable."
+    },
+    {
+      "behavior": "With no user override, Cmd+Y invokes Auto Split for the focused main or Dock pane; the action is visible/editable in Settings, supported by `shortcuts.bindings`, documented in shortcut data/docs, and has no default shortcut collision. User overrides and explicit unbinds take precedence.",
+      "evidence": "Shortcut registry tests, NSEvent routing tests, settings package tests, schema enum validation, and docs/shortcut data diff.",
+      "fail": "Cmd+Y does nothing, collides with another default action, bypasses `KeyboardShortcutSettings`, or cannot be customized/unbound.",
+      "id": "VAL-SHORTCUT-001",
+      "needs": "VAL-SETTINGS-001",
+      "oracle": null,
+      "raw": "**VAL-SHORTCUT-001** - Cmd+Y triggers Auto Split through the configurable shortcut system.\nSurface: artifact\nNeeds: VAL-SETTINGS-001\nBehavior: With no user override, Cmd+Y invokes Auto Split for the focused main or\n  Dock pane; the action is visible/editable in Settings, supported by\n  `shortcuts.bindings`, documented in shortcut data/docs, and has no default\n  shortcut collision. User overrides and explicit unbinds take precedence.\nEvidence: Shortcut registry tests, NSEvent routing tests, settings package tests,\n  schema enum validation, and docs/shortcut data diff.\nRigor: R2\nWhy: A default keyboard shortcut is a product-wide input contract that must be\n  independently validated against conflict and routing behavior.\nFail: Cmd+Y does nothing, collides with another default action, bypasses\n  `KeyboardShortcutSettings`, or cannot be customized/unbound.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "artifact",
+      "title": "Cmd+Y triggers Auto Split through the configurable shortcut system."
+    },
+    {
+      "behavior": "Auto Split replaces the focused source pane with a deterministic `rows x columns` terminal grid; preserves the original surface in the top-left cell; creates the remaining cells as new terminals; focuses the bottom-right cell by default; returns failure without local partial mutation for known vetoes and remote-tmux unsupported lanes.",
+      "evidence": "Table-driven main/Dock Auto Split tests for `1 x 2`, `2 x 1`, `2 x 2`, `2 x 3`, and clamped invalid values; existing Split Quad tests remain green by delegating 2x2 behavior through the same action family.",
+      "fail": "Duplicate per-entrypoint algorithms, partial remote/local grids on veto, lost original surface, wrong focus target, or Split Quad regressions.",
+      "id": "VAL-AUTOSPLIT-001",
+      "needs": "VAL-SETTINGS-001",
+      "oracle": null,
+      "raw": "**VAL-AUTOSPLIT-001** - Auto Split creates the configured terminal grid through one shared path.\nSurface: library\nNeeds: VAL-SETTINGS-001\nBehavior: Auto Split replaces the focused source pane with a deterministic\n  `rows x columns` terminal grid; preserves the original surface in the top-left\n  cell; creates the remaining cells as new terminals; focuses the bottom-right\n  cell by default; returns failure without local partial mutation for known vetoes\n  and remote-tmux unsupported lanes.\nEvidence: Table-driven main/Dock Auto Split tests for `1 x 2`, `2 x 1`, `2 x 2`,\n  `2 x 3`, and clamped invalid values; existing Split Quad tests remain green by\n  delegating 2x2 behavior through the same action family.\nRigor: R2\nWhy: The pane tree mutation affects live terminals and Dock ownership; validator\n  coverage must prove topology and failure behavior, not just symbol presence.\nFail: Duplicate per-entrypoint algorithms, partial remote/local grids on veto,\n  lost original surface, wrong focus target, or Split Quad regressions.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "Auto Split creates the configured terminal grid through one shared path."
+    },
+    {
+      "behavior": "With `gdock.forceAutoSplitter == false`, the last split-tab-bar button remains the current Split Quad button and produces a 2x2 grid. With `gdock.forceAutoSplitter == true`, that button renders as Auto Split with a distinct icon/badge/tooltip that reflects the configured rows/columns, and clicking it invokes Auto Split. Explicit Split Quad menu/palette/context/CLI paths continue to produce a fixed 2x2 grid.",
+      "evidence": "Button model tests, Dock appearance tests, tab-bar custom-action tests, and a tagged DEBUG dogfood command/screenshot showing the off/on visual and topology difference.",
+      "fail": "Force off changes current UI, force on still creates only 2x2, explicit Split Quad surfaces are silently remapped, or the button text/icon is not accessibility/localization safe.",
+      "id": "VAL-FORCE-001",
+      "needs": "VAL-SETTINGS-001, VAL-AUTOSPLIT-001",
+      "oracle": null,
+      "raw": "**VAL-FORCE-001** - Force Auto Splitter changes only the last split button into Auto Split.\nSurface: artifact\nNeeds: VAL-SETTINGS-001, VAL-AUTOSPLIT-001\nBehavior: With `gdock.forceAutoSplitter == false`, the last split-tab-bar button\n  remains the current Split Quad button and produces a 2x2 grid. With\n  `gdock.forceAutoSplitter == true`, that button renders as Auto Split with a\n  distinct icon/badge/tooltip that reflects the configured rows/columns, and\n  clicking it invokes Auto Split. Explicit Split Quad menu/palette/context/CLI\n  paths continue to produce a fixed 2x2 grid.\nEvidence: Button model tests, Dock appearance tests, tab-bar custom-action tests,\n  and a tagged DEBUG dogfood command/screenshot showing the off/on visual and\n  topology difference.\nRigor: R2\nWhy: This is visible UI behavior with compatibility risk for existing Split Quad\n  entrypoints, so both visual state and mutation target must be validated.\nFail: Force off changes current UI, force on still creates only 2x2, explicit\n  Split Quad surfaces are silently remapped, or the button text/icon is not\n  accessibility/localization safe.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "artifact",
+      "title": "Force Auto Splitter changes only the last split button into Auto Split."
+    },
+    {
+      "behavior": "New Settings rows, command-palette entries, shortcut labels, tooltips, context/help text, docs, schema descriptions, and web shortcut data are present and localized according to each touched artifact's supported locales; focused tests are wired and a tagged gdock build succeeds.",
+      "evidence": "Localization catalog parser output, docs/schema grep, `./scripts/lint-pbxproj-test-wiring.sh`, focused test commands, and `CMUX_SKIP_ZIG_BUILD=1 ./scripts/reload.sh --tag gdock-auto-splitter`.",
+      "fail": "Bare English UI strings, missing locale entries, unwired tests, stale docs/schema, or relying on `defaultValue` as translation coverage.",
+      "id": "VAL-I18N-DOCS-001",
+      "needs": "VAL-SETTINGS-001, VAL-SHORTCUT-001, VAL-FORCE-001",
+      "oracle": null,
+      "raw": "**VAL-I18N-DOCS-001** - User-facing strings, docs, and build gates cover the feature.\nSurface: artifact\nNeeds: VAL-SETTINGS-001, VAL-SHORTCUT-001, VAL-FORCE-001\nBehavior: New Settings rows, command-palette entries, shortcut labels, tooltips,\n  context/help text, docs, schema descriptions, and web shortcut data are present\n  and localized according to each touched artifact's supported locales; focused\n  tests are wired and a tagged gdock build succeeds.\nEvidence: Localization catalog parser output, docs/schema grep, `./scripts/lint-pbxproj-test-wiring.sh`,\n  focused test commands, and `CMUX_SKIP_ZIG_BUILD=1 ./scripts/reload.sh --tag gdock-auto-splitter`.\nRigor: R2\nWhy: Documentation and localization are user-facing contract surfaces and build\n  validation must prove the app and test target both compile.\nFail: Bare English UI strings, missing locale entries, unwired tests, stale\n  docs/schema, or relying on `defaultValue` as translation coverage.\n\n---",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "artifact",
+      "title": "User-facing strings, docs, and build gates cover the feature."
+    }
+  ],
+  "ceremony_tier": "C1",
+  "phase_id": "a2204cf-gdock-auto-splitter"
+}

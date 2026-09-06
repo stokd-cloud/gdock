@@ -91,6 +91,12 @@ enum RightSidebarDockPresentationPolicy {
     static func usesStackedTabs(stackedTabsEnabled: Bool) -> Bool {
         stackedTabsEnabled
     }
+
+    /// Stacked mode removes the tab/mode rail so every stackable tool is
+    /// visible at once.
+    static func hidesModeBar(stackedTabsEnabled: Bool) -> Bool {
+        stackedTabsEnabled
+    }
 }
 
 extension RightSidebarMode {
@@ -175,7 +181,6 @@ struct RightSidebarPanelView: View {
     /// Empty means the sidebar renders exactly as it always has.
     @State private var sectionLayout = RightSidebarSectionLayout()
     @State private var keyboardShortcutSettingsObserver = KeyboardShortcutSettingsObserver.shared
-    @State private var stokdConfigurationModal: StokdModelConfigurationModalRequest?
     private let alwaysShowShortcutHints = ShortcutHintDebugSettings().alwaysShowHints
     private let closeShortcutHintXOffset = ShortcutHintDebugSettings.defaultRightSidebarCloseHintX
     private let closeShortcutHintYOffset = ShortcutHintDebugSettings.defaultRightSidebarCloseHintY
@@ -237,17 +242,11 @@ struct RightSidebarPanelView: View {
 
     var body: some View {
         Group {
-            if usesStackedTabsPresentation, let registry = dockRegistry {
-                dockRailBody(registry: registry)
+            if usesStackedTabsPresentation {
+                stackedSectionsBody
             } else {
                 legacyModeBarBody
             }
-        }
-        .sheet(item: $stokdConfigurationModal) { request in
-            StokdModelConfigurationModalView(
-                initialTab: request.initialTab,
-                directory: stokdModelConfigurationDirectory
-            )
         }
         .shortcutHintVisibilityAnimation(value: focusShortcutHintAnimationValue)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -468,7 +467,6 @@ struct RightSidebarPanelView: View {
                     }
                 }
                 Spacer(minLength: 0)
-                stokdModelConfigurationButtons
                 if fileExplorerState.mode.canOpenAsPane {
                     openAsPaneButton(mode: fileExplorerState.mode)
                 }
@@ -486,28 +484,6 @@ struct RightSidebarPanelView: View {
             isVisible: true,
             titlebarHeight: titlebarHeight
         )
-    }
-
-    private var stokdModelConfigurationButtons: some View {
-        HStack(spacing: RightSidebarChromeMetrics.headerControlSpacing) {
-            ForEach(StokdModelConfigurationLaunchBar.actions) { action in
-                Button {
-                    stokdConfigurationModal = StokdModelConfigurationModalRequest(initialTab: action.initialTab)
-                } label: {
-                    HeaderChromeIconStyle.symbol(action.symbolName)
-                }
-                .buttonStyle(RightSidebarHeaderIconButtonStyle(iconGeometryKeyPrefix: "rightSidebarHeader\(action.id)Icon"))
-                .frame(
-                    width: RightSidebarChromeMetrics.headerControlSize,
-                    height: RightSidebarChromeMetrics.headerControlSize
-                )
-                .rightSidebarHeaderControlAlignment()
-                .safeHelp(action.title)
-                .accessibilityLabel(action.title)
-                .accessibilityIdentifier("RightSidebar.\(action.id)")
-                .titlebarInteractiveControl()
-            }
-        }
     }
 
     private func openAsPaneButton(mode: RightSidebarMode) -> some View {
@@ -619,6 +595,30 @@ struct RightSidebarPanelView: View {
         }
     }
 
+    /// Sidebar split into sections: the still-selected tool on top, then each
+    /// tool that has been dragged down out of the mode bar (legacy path).
+    private var stackedContent: some View {
+        VStack(spacing: 0) {
+            if !sectionLayout.contains(fileExplorerState.mode) {
+                toolContent(for: fileExplorerState.mode)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                Rectangle()
+                    .fill(Color.primary.opacity(0.12))
+                    .frame(height: 1)
+            }
+            RightSidebarSectionStack(
+                layout: $sectionLayout,
+                onReturnToModeBar: { mode in
+                    sectionLayout.remove(mode)
+                },
+                content: { mode in
+                    toolContent(for: mode)
+                }
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
     @ViewBuilder
     private var contentForMode: some View {
         if RightSidebarContentMountPolicy.shouldMountContent(isRightSidebarVisible: fileExplorerState.isVisible, hasMountedContent: hasMountedRightSidebarContent) {
@@ -675,38 +675,53 @@ struct RightSidebarPanelView: View {
         }
     }
 
-    /// Sidebar split into sections: the still-selected tool on top, then each
-    /// tool that has been dragged down out of the mode bar.
-    private var stackedContent: some View {
-        VStack(spacing: 0) {
-            if !sectionLayout.contains(fileExplorerState.mode) {
-                toolContent(for: fileExplorerState.mode)
+    /// All stackable tools mounted at once, with no tab/mode rail.
+    private var stackedSectionsBody: some View {
+        let showingExcludedNonRail =
+            fileExplorerState.mode == .feed
+            || fileExplorerState.mode == .dock
+            || fileExplorerState.mode == .customSidebar
+
+        return VStack(spacing: 0) {
+            stackedChrome
+                .rightSidebarChromeBottomBorder()
+            if showingExcludedNonRail {
+                contentForMode
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                Rectangle()
-                    .fill(Color.primary.opacity(0.12))
-                    .frame(height: 1)
+            } else {
+                RightSidebarSectionStack(
+                    layout: $sectionLayout,
+                    onReturnToModeBar: { _ in },
+                    showsReturnToModeBar: false,
+                    content: { mode in
+                        toolContent(for: mode)
+                    }
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            RightSidebarSectionStack(
-                layout: $sectionLayout,
-                onReturnToModeBar: { mode in
-                    sectionLayout.remove(mode)
-                },
-                content: { mode in
-                    toolContent(for: mode)
-                }
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .onAppear {
+            sectionLayout.reconcileStackableModes(RightSidebarMode.stackableModes)
+        }
+        .onChange(of: rightSidebarStackedTabsEnabled) { _, enabled in
+            if enabled {
+                sectionLayout.reconcileStackableModes(RightSidebarMode.stackableModes)
+            }
+        }
+    }
+
+    private var stackedChrome: some View {
+        HStack(spacing: RightSidebarChromeMetrics.headerControlSpacing) {
+            Spacer(minLength: 0)
+            closeButton
+        }
+        .rightSidebarChromeBar(leadingPadding: 4, trailingPadding: 6, height: titlebarHeight)
+        .background(TitlebarDoubleClickMonitorView())
+        .accessibilityIdentifier("RightSidebarStackedChrome")
     }
 
     private var sessionIndexDirectory: String? {
         sessionIndexStore.currentDirectory
-    }
-
-    private var stokdModelConfigurationDirectory: String {
-        sessionIndexDirectory
-            ?? tabManager.selectedWorkspace?.currentDirectory
-            ?? FileManager.default.currentDirectoryPath
     }
 
     /// Renders this window's own Dock (created lazily on first show); no
