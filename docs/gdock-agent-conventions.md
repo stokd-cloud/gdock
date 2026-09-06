@@ -476,11 +476,12 @@ styles can apply.
    `AppIcon.icon/Assets`.
 3. Do not edit individual size PNGs by hand. Do not call the old
    glow-from-chevron path in `generate_dark_icon.py`.
-4. Icon Composer `AppIcon.icon`: Default layer = light mockup, Dark layer =
-   dark mockup (hidden outside Dark), Tinted/Clear layer = cube glyph with
-   `glass` true (hidden outside tinted). Fill is `system-light` with dark
-   fill-specialization `system-dark`. The `.icon` bundle must be in the cmux
-   target Resources phase. Set
+4. Icon Composer `AppIcon.icon` and `AppIcon-Debug.icon`: Default layer =
+   light mockup, Dark layer = dark mockup (hidden outside Dark), Tinted/Clear
+   layer = cube glyph with `glass` true (hidden outside tinted). Fill is
+   `system-light` with dark fill-specialization `system-dark`. Both `.icon`
+   bundles must be in the cmux target Resources phase (tagged reloads use
+   `AppIcon-Debug`). Set
    `ASSETCATALOG_OTHER_FLAGS=--enable-icon-stack-fallback-generation=disabled`.
 5. Automatic runtime mode restores the system bundle icon
    (`applicationIconImage = nil`, dock tile `showDefaultAppIcon`). Light/Dark

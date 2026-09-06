@@ -39,6 +39,7 @@ IOS_SETS = (
     os.path.join(REPO, "ios", "cmux", "Assets.xcassets", "AppIcon-Demo.appiconset"),
 )
 ICON_ASSETS = os.path.join(REPO, "AppIcon.icon", "Assets")
+DEBUG_ICON_ASSETS = os.path.join(REPO, "AppIcon-Debug.icon", "Assets")
 
 ORANGE = (255, 107, 0, 255)
 PURPLE = (140, 60, 220, 255)
@@ -178,6 +179,10 @@ def main() -> int:
     copy_1024(LIGHT_SRC, os.path.join(ICON_ASSETS, "gdock-light.png"))
     copy_1024(DARK_SRC, os.path.join(ICON_ASSETS, "gdock-dark.png"))
     write_tinted(os.path.join(ICON_ASSETS, "cube-glyph.png"))
+    print("AppIcon-Debug.icon:")
+    copy_1024(LIGHT_SRC, os.path.join(DEBUG_ICON_ASSETS, "gdock-light.png"))
+    copy_1024(DARK_SRC, os.path.join(DEBUG_ICON_ASSETS, "gdock-dark.png"))
+    write_tinted(os.path.join(DEBUG_ICON_ASSETS, "cube-glyph.png"))
 
     print("generated raster icons from design/gdock-{light,dark}.png")
     return 0

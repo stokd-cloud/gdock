@@ -32,6 +32,8 @@ DEBUG_1024 = os.path.join(
 )
 ICON_JSON = os.path.join(ROOT, "AppIcon.icon", "icon.json")
 ICON_ASSETS = os.path.join(ROOT, "AppIcon.icon", "Assets")
+DEBUG_ICON_JSON = os.path.join(ROOT, "AppIcon-Debug.icon", "icon.json")
+DEBUG_ICON_ASSETS = os.path.join(ROOT, "AppIcon-Debug.icon", "Assets")
 IOS_ICONSETS = (
     os.path.join(ROOT, "ios", "cmux", "Assets.xcassets", "AppIcon.appiconset"),
     os.path.join(ROOT, "ios", "cmux", "Assets.xcassets", "AppIcon-Demo.appiconset"),
@@ -129,25 +131,31 @@ def find_layer(layers: list[dict], image_name: str) -> dict | None:
     return None
 
 
-def expect_icon_composer(light_src: Image.Image | None, dark_src: Image.Image | None) -> None:
-    if not os.path.isfile(ICON_JSON):
-        fail("missing AppIcon.icon/icon.json")
+def expect_icon_composer(
+    light_src: Image.Image | None,
+    dark_src: Image.Image | None,
+    icon_json: str = ICON_JSON,
+    icon_assets: str = ICON_ASSETS,
+    label: str = "AppIcon.icon",
+) -> None:
+    if not os.path.isfile(icon_json):
+        fail(f"missing {label}/icon.json")
         return
-    with open(ICON_JSON, encoding="utf-8") as handle:
+    with open(icon_json, encoding="utf-8") as handle:
         data = json.load(handle)
 
     default_fill = spec_value(data.get("fill-specializations"), None) or data.get("fill")
     dark_fill = spec_value(data.get("fill-specializations"), "dark")
     if default_fill not in ("system-light", "automatic"):
-        fail(f"AppIcon.icon default fill {default_fill!r} is not system-light/automatic")
+        fail(f"{label} default fill {default_fill!r} is not system-light/automatic")
     if dark_fill != "system-dark":
-        fail(f"AppIcon.icon dark fill {dark_fill!r} is not system-dark")
+        fail(f"{label} dark fill {dark_fill!r} is not system-dark")
 
     layers = icon_layers(data)
     light_layer = find_layer(layers, "gdock-light.png")
     dark_layer = find_layer(layers, "gdock-dark.png")
     if light_layer is None:
-        fail("AppIcon.icon has no Default layer gdock-light.png")
+        fail(f"{label} has no Default layer gdock-light.png")
     else:
         if layer_hidden(light_layer, None):
             fail("gdock-light.png must be visible in Default")
@@ -156,7 +164,7 @@ def expect_icon_composer(light_src: Image.Image | None, dark_src: Image.Image | 
         if not layer_hidden(light_layer, "tinted"):
             fail("gdock-light.png must be hidden in Tinted/Clear")
     if dark_layer is None:
-        fail("AppIcon.icon has no Dark layer gdock-dark.png")
+        fail(f"{label} has no Dark layer gdock-dark.png")
     else:
         if not layer_hidden(dark_layer, None):
             fail("gdock-dark.png must be hidden in Default")
@@ -172,7 +180,7 @@ def expect_icon_composer(light_src: Image.Image | None, dark_src: Image.Image | 
         and layer_glass(layer)
     ]
     if not glyph_layers:
-        fail("AppIcon.icon has no glass-enabled cube glyph for Tinted/Clear")
+        fail(f"{label} has no glass-enabled cube glyph for Tinted/Clear")
     else:
         glyph = glyph_layers[0]
         if not layer_hidden(glyph, None):
@@ -182,12 +190,12 @@ def expect_icon_composer(light_src: Image.Image | None, dark_src: Image.Image | 
         if layer_hidden(glyph, "tinted"):
             fail("cube glyph must be visible in Tinted/Clear")
 
-    light_asset = load(os.path.join(ICON_ASSETS, "gdock-light.png"))
-    dark_asset = load(os.path.join(ICON_ASSETS, "gdock-dark.png"))
+    light_asset = load(os.path.join(icon_assets, "gdock-light.png"))
+    dark_asset = load(os.path.join(icon_assets, "gdock-dark.png"))
     if light_src is not None and light_asset is not None:
-        pixels_equal(light_src, light_asset, "AppIcon.icon/Assets/gdock-light.png")
+        pixels_equal(light_src, light_asset, f"{label}/Assets/gdock-light.png")
     if dark_src is not None and dark_asset is not None:
-        pixels_equal(dark_src, dark_asset, "AppIcon.icon/Assets/gdock-dark.png")
+        pixels_equal(dark_src, dark_asset, f"{label}/Assets/gdock-dark.png")
 
 
 def expect_source(path: str, platform: tuple[int, int, int], label: str) -> Image.Image | None:
@@ -247,6 +255,13 @@ def main() -> int:
             pixels_equal(dark_src, ios_dark, f"{label}/AppIconDark.png vs design/gdock-dark.png")
 
     expect_icon_composer(light_src, dark_src)
+    expect_icon_composer(
+        light_src,
+        dark_src,
+        icon_json=DEBUG_ICON_JSON,
+        icon_assets=DEBUG_ICON_ASSETS,
+        label="AppIcon-Debug.icon",
+    )
 
     debug = load(DEBUG_1024)
     if debug is not None:
