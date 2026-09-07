@@ -1448,6 +1448,9 @@ struct SessionTerminalPanelSnapshot: Codable, Sendable {
     /// Whether the agent process was actively running when this snapshot was captured.
     /// Nil means unknown (legacy snapshots); treated as true for backwards compatibility.
     var wasAgentRunning: Bool?
+    /// An unused Grid Mode cell has no shell or agent startup to resume.
+    /// Missing/false preserves ordinary terminal behavior for older snapshots.
+    var isGdockGridPlaceholder: Bool?
 
     init(
         workingDirectory: String? = nil,
@@ -1462,7 +1465,8 @@ struct SessionTerminalPanelSnapshot: Codable, Sendable {
         textBoxDraft: SessionTextBoxInputDraftSnapshot? = nil,
         isRemoteTerminal: Bool? = nil,
         remotePTYSessionID: String? = nil,
-        wasAgentRunning: Bool? = nil
+        wasAgentRunning: Bool? = nil,
+        isGdockGridPlaceholder: Bool? = nil
     ) {
         self.workingDirectory = workingDirectory
         self.fontSize = fontSize
@@ -1477,6 +1481,7 @@ struct SessionTerminalPanelSnapshot: Codable, Sendable {
         self.isRemoteTerminal = isRemoteTerminal
         self.remotePTYSessionID = remotePTYSessionID
         self.wasAgentRunning = wasAgentRunning
+        self.isGdockGridPlaceholder = isGdockGridPlaceholder
     }
 }
 

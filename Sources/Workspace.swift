@@ -198,6 +198,12 @@ extension Workspace {
         excludingStableIdentities: Set<UUID> = [],
         startupRestoreCommitOwner: WorkspaceTerminalStartupRestoreCommitOwner = .workspaceTopology
     ) -> [UUID: UUID] {
+        // Restoring saved topology is not a user split. Keep the exemption
+        // through pane selection and final focus restoration as well: those
+        // callbacks must not activate dormant cells while rebuilding them.
+        let wasApplyingGridShape = isApplyingGdockGridShape
+        isApplyingGdockGridShape = true
+        defer { isApplyingGdockGridShape = wasApplyingGridShape }
         let previousSuppressClosedPanelHistory = suppressClosedPanelHistory
         suppressClosedPanelHistory = true
         defer { suppressClosedPanelHistory = previousSuppressClosedPanelHistory }
@@ -217,6 +223,7 @@ extension Workspace {
         debugSessionSnapshotSyntheticScrollbackByPanelId.removeAll(keepingCapacity: false)
 #endif
         terminalStartupRestoreCoordinator.removeAllRestores()
+        gdockGridPlaceholderPanelIds.removeAll()
         surfaceResumeBindingsByPanelId.removeAll(keepingCapacity: false)
         restoredGuardedWorkingDirectoriesByPanelId.removeAll(keepingCapacity: false)
         restoredPanelTitleBoundariesByPanelId.removeAll(keepingCapacity: false)
@@ -643,7 +650,8 @@ extension Workspace {
                 textBoxDraft: terminalPanel.sessionTextBoxDraftSnapshot(),
                 isRemoteTerminal: activeRemoteTerminalSurfaceIds.contains(panelId),
                 remotePTYSessionID: remotePTYSessionIDForSnapshot(panelId: panelId),
-                wasAgentRunning: agentWasRunning
+                wasAgentRunning: agentWasRunning,
+                isGdockGridPlaceholder: gdockGridPlaceholderPanelIds.contains(panelId) ? true : nil
             )
             browserSnapshot = nil
             markdownSnapshot = nil
@@ -1393,6 +1401,55 @@ extension Workspace {
                 restoresLegacyRemoteDirectoryWithoutProvenance(snapshot))
         switch snapshot.type {
         case .terminal:
+            if snapshot.terminal?.isGdockGridPlaceholder == true,
+               remoteConfiguration == nil, !isRemoteTmuxMirror {
+                // A dormant local cell never owns agent/tmux resume work or
+                // inherited command input. Use the normal local creation path
+                // without entering the structured startup-restore coordinator.
+                let wasApplyingGridShape = isApplyingGdockGridShape
+                isApplyingGdockGridShape = true
+                defer { isApplyingGdockGridShape = wasApplyingGridShape }
+                let keepDormant = GdockGridModeSettings.isEnabled()
+                let savedDirectory = restoresUntrustedSavedDirectory
+                    ? nil
+                    : (snapshot.terminal?.workingDirectory ?? snapshot.directory)
+                let reusableSurfaceId = GhosttyApp.terminalSurfaceRegistry.surface(id: snapshot.id) == nil
+                    ? snapshot.id : nil
+                guard let terminalPanel = newTerminalSurfaceLocal(
+                    inPane: paneId,
+                    focus: false,
+                    workingDirectory: OneShotTerminalLauncherStore.enterableWorkingDirectory(
+                        savedDirectory ?? currentDirectory
+                    ),
+                    initialCommand: nil,
+                    tmuxStartCommand: nil,
+                    initialInput: nil,
+                    startupRestoreAgent: nil,
+                    startupEnvironment: [:],
+                    runtimeSpawnPolicy: keepDormant ? .heldForStartupRestoreAdmission : .pacedSessionRestore,
+                    autoRefreshMetadata: false,
+                    preserveFocusWhenUnfocused: false,
+                    remotePTYSessionID: nil,
+                    suppressWorkspaceRemoteStartupCommand: true,
+                    restoredSurfaceId: reusableSurfaceId,
+                    terminalFontSizeCreationPolicy: .sessionRestore(
+                        overrideBasePoints: snapshot.terminal?.fontSize,
+                        representedChangeTokens: Set(snapshot.terminal?.fontSizeChangeTokens ?? [])
+                    ),
+                    inheritWorkingDirectoryFallback: false,
+                    workingDirectoryFallbackSourcePanelId: nil,
+                    allowTextBoxFocusDefault: false,
+                    configTemplateOverride: GdockGridSplitAction.placeholderConfigTemplate(
+                        from: inheritedTerminalConfig(inPane: paneId) ?? CmuxSurfaceConfigTemplate()
+                    )
+                ) else { return nil }
+                if keepDormant {
+                    gdockGridPlaceholderPanelIds.insert(terminalPanel.id)
+                }
+                terminalPanel.restoreSessionTextBoxDraft(snapshot.terminal?.textBoxDraft)
+                applySessionPanelMetadata(snapshot, toPanelId: terminalPanel.id)
+                return terminalPanel.id
+            }
             let snapshotRestorableAgent = snapshot.terminal?.agent
             let persistedResumeBinding = snapshot.terminal?.resumeBinding
             let restorableAgent = Self.restorableAgentForSessionRestore(
@@ -8082,14 +8139,15 @@ final class Workspace: Identifiable, ObservableObject, FilePreviewTabMetadataHos
         terminalFontSizeCreationPolicy: TerminalFontSizeCreationPolicy,
         inheritWorkingDirectoryFallback: Bool,
         workingDirectoryFallbackSourcePanelId: UUID?,
-        allowTextBoxFocusDefault: Bool
+        allowTextBoxFocusDefault: Bool,
+        configTemplateOverride: CmuxSurfaceConfigTemplate? = nil
     ) -> TerminalPanel? {
         let shouldFocusNewTab = focus ?? (bonsplitController.focusedPaneId == paneId)
         let previousFocusedPanelId = focusedPanelId
         let previousHostedView = focusedTerminalInputTarget()?.panel.hostedView
 
         var inheritedConfig = terminalFontSizeCreationPolicy.applying(
-            to: inheritedTerminalConfig(inPane: paneId)
+            to: configTemplateOverride ?? inheritedTerminalConfig(inPane: paneId)
         )
         let requestedInitialCommand = initialCommand?.trimmingCharacters(in: .whitespacesAndNewlines)
         let explicitInitialCommand = (requestedInitialCommand?.isEmpty == false) ? requestedInitialCommand : nil
