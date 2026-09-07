@@ -62,6 +62,7 @@ run_plan() {
 run_plan
 DEFAULT_PLAN="$PLAN_OUT"
 assert_contains "$DEFAULT_PLAN" "configuration: Release" "default plan"
+assert_contains "$DEFAULT_PLAN" "app icon: AppIcon"$'\n' "default icon"
 assert_contains "$DEFAULT_PLAN" "/Build/Products/Release/" "default plan app path"
 assert_contains "$DEFAULT_PLAN" "/gdock.app" "default plan app name"
 assert_not_contains "$DEFAULT_PLAN" "/Build/Products/Debug/" "default plan app path"
@@ -72,6 +73,7 @@ assert_not_contains "$DEFAULT_PLAN" "STUB_XCODEBUILD_INVOKED" "default plan must
 run_plan --tag "$TAG"
 TAG_PLAN="$PLAN_OUT"
 assert_contains "$TAG_PLAN" "configuration: Release" "tagged plan"
+assert_contains "$TAG_PLAN" "app icon: AppIcon-Debug" "tagged icon"
 assert_contains "$TAG_PLAN" "/gdock ${TAG}.app" "tagged plan app name"
 assert_not_contains "$TAG_PLAN" "gdock DEV" "tagged plan must not use DEV"
 assert_not_contains "$TAG_PLAN" "STUB_XCODEBUILD_INVOKED" "tagged plan must not build"
@@ -80,6 +82,7 @@ assert_not_contains "$TAG_PLAN" "STUB_XCODEBUILD_INVOKED" "tagged plan must not 
 run_plan --debug
 DEBUG_PLAN="$PLAN_OUT"
 assert_contains "$DEBUG_PLAN" "configuration: Debug" "debug plan"
+assert_contains "$DEBUG_PLAN" "app icon: AppIcon-Debug" "debug icon"
 assert_contains "$DEBUG_PLAN" "/Build/Products/Debug/" "debug plan app path"
 assert_contains "$DEBUG_PLAN" "/gdock DBG.app" "debug plan app name"
 assert_not_contains "$DEBUG_PLAN" "/Build/Products/Release/" "debug plan app path"
@@ -89,6 +92,7 @@ assert_not_contains "$DEBUG_PLAN" "STUB_XCODEBUILD_INVOKED" "debug plan must not
 run_plan --debug --tag "$TAG"
 DEBUG_TAG_PLAN="$PLAN_OUT"
 assert_contains "$DEBUG_TAG_PLAN" "configuration: Debug" "debug+tag plan"
+assert_contains "$DEBUG_TAG_PLAN" "app icon: AppIcon-Debug" "debug+tag icon"
 assert_contains "$DEBUG_TAG_PLAN" "/gdock DBG ${TAG}.app" "debug+tag plan app name"
 assert_not_contains "$DEBUG_TAG_PLAN" "STUB_XCODEBUILD_INVOKED" "debug+tag plan must not build"
 

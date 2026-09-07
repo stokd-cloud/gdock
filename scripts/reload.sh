@@ -1920,8 +1920,14 @@ if [[ -n "$DERIVED_DATA" ]]; then
   fi
 fi
 
+APP_ICON="AppIcon-Debug"
+if [[ "$CONFIGURATION" == "Release" && -z "$TAG" ]]; then
+  APP_ICON="AppIcon"
+fi
+
 if [[ "$PRINT_PLAN" -eq 1 ]]; then
   echo "configuration: ${CONFIGURATION}"
+  echo "app icon: ${APP_ICON}"
   echo "tag: ${TAG_SLUG:-}"
   echo "bundle id: ${BUNDLE_ID}"
   echo "derived data: ${DERIVED_DATA}"
@@ -2050,16 +2056,15 @@ XCODEBUILD_ARGS=(
   -scheme cmux
   -configuration "$CONFIGURATION"
   -destination 'platform=macOS'
+  "ASSETCATALOG_COMPILER_APPICON_NAME=$APP_ICON"
 )
 if [[ "$CONFIGURATION" == "Release" ]]; then
-  # A tagged dev build must stay a dev build even when compiled Release: keep the
-  # dev app icon, skip the production entitlements (the Debug configuration signs
+  # Local Release builds skip the production entitlements (Debug signs
   # with none, and ad-hoc signing cannot satisfy keychain-access-groups), point the
   # baked Iroh relay policy keys at staging to match the staging broker this script
   # configures, and build only the host arch instead of Release's universal slice.
   XCODEBUILD_ARGS+=(ONLY_ACTIVE_ARCH=YES)
   XCODEBUILD_ARGS+=(CODE_SIGN_ENTITLEMENTS=)
-  XCODEBUILD_ARGS+=(ASSETCATALOG_COMPILER_APPICON_NAME=AppIcon-Debug)
   XCODEBUILD_ARGS+=(CMUX_AUTH_CALLBACK_SCHEME=cmux-dev)
   XCODEBUILD_ARGS+=(CMUX_IROH_RELAY_POLICY_KEY_ID=cmux-staging-relay-policy-2026-07)
   XCODEBUILD_ARGS+=(CMUX_IROH_RELAY_POLICY_NEXT_KEY_ID=cmux-staging-relay-policy-2026-08)
