@@ -423,6 +423,7 @@ class TabManager: ObservableObject {
     var gdockRepoGroupQuadCommandsByWorkspaceId: [UUID: [String]] = [:]
     /// Debounce token for gdock Grid Mode shape reconcile.
     var gdockGridModeReconcileTask: Task<Void, Never>?
+    var isReconcilingGdockGridMode = false
     /// Last observed `gdock.gridMode` enablement (gates edge work).
     var lastGdockGridModeEnabled: Bool?
     /// Last observed `gdock.gridModeShape` (gates edge work).
