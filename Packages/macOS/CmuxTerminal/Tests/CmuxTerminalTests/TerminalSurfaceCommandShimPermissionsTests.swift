@@ -153,6 +153,140 @@ struct TerminalSurfaceCommandShimPermissionsTests {
         #expect(String(data: data, encoding: .utf8) == "literal-path\n")
     }
 
+    @Test("Governed stokd shims beat the bundled cmux wrapper")
+    func governedStokdShimsBeatBundledCmuxWrapper() throws {
+        let fileManager = FileManager.default
+        let root = URL.temporaryDirectory.appending(
+            path: "TerminalSurfaceStokdShimTests-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        let temporaryDirectory = root.appending(path: "tmp", directoryHint: .isDirectory)
+        let wrapperDirectory = root.appending(path: "bin", directoryHint: .isDirectory)
+        let homeDirectory = root.appending(path: "home", directoryHint: .isDirectory)
+        let stokdShimDirectory = homeDirectory.appending(path: ".stokd/shims", directoryHint: .isDirectory)
+        let wrapper = wrapperDirectory.appending(path: "cmux-claude-wrapper", directoryHint: .notDirectory)
+        let stokdShim = stokdShimDirectory.appending(path: "claude", directoryHint: .notDirectory)
+        defer { try? fileManager.removeItem(at: root) }
+
+        for directory in [wrapperDirectory, stokdShimDirectory] {
+            try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+        }
+        try "#!/bin/sh\nprintf 'cmux-wrapper\\n'\n".write(to: wrapper, atomically: true, encoding: .utf8)
+        try "#!/bin/sh\nprintf 'stokd-governed\\n'\n".write(to: stokdShim, atomically: true, encoding: .utf8)
+        for executable in [wrapper, stokdShim] {
+            try fileManager.setAttributes([.posixPermissions: 0o700], ofItemAtPath: executable.path)
+        }
+
+        let shims = try #require(
+            TerminalSurface.installAgentCommandShimsIfPossible(
+                wrapperDirectoryURL: wrapperDirectory,
+                surfaceId: UUID(),
+                temporaryDirectory: temporaryDirectory,
+                fileManager: fileManager
+            )
+        )
+        let shim = try #require(shims.shim(named: "claude"))
+        #expect(
+            try capturedStdout(
+                from: shim,
+                environment: [
+                    "HOME": homeDirectory.path,
+                    "PATH": "\(shims.directoryPath):/usr/bin:/bin",
+                ]
+            ) == "stokd-governed\n"
+        )
+    }
+
+    @Test("STOKD_HOME shims beat HOME stokd shims")
+    func stokdHomeShimsBeatHomeStokdShims() throws {
+        let fileManager = FileManager.default
+        let root = URL.temporaryDirectory.appending(
+            path: "TerminalSurfaceStokdHomeShimTests-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        let temporaryDirectory = root.appending(path: "tmp", directoryHint: .isDirectory)
+        let wrapperDirectory = root.appending(path: "bin", directoryHint: .isDirectory)
+        let homeDirectory = root.appending(path: "home", directoryHint: .isDirectory)
+        let overrideHome = root.appending(path: "override", directoryHint: .isDirectory)
+        let wrapper = wrapperDirectory.appending(path: "cmux-claude-wrapper", directoryHint: .notDirectory)
+        let homeShim = homeDirectory.appending(path: ".stokd/shims/claude", directoryHint: .notDirectory)
+        let overrideShim = overrideHome.appending(path: "shims/claude", directoryHint: .notDirectory)
+        defer { try? fileManager.removeItem(at: root) }
+
+        for directory in [
+            wrapperDirectory,
+            homeShim.deletingLastPathComponent(),
+            overrideShim.deletingLastPathComponent(),
+        ] {
+            try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+        }
+        try "#!/bin/sh\nprintf 'cmux-wrapper\\n'\n".write(to: wrapper, atomically: true, encoding: .utf8)
+        try "#!/bin/sh\nprintf 'home-stokd\\n'\n".write(to: homeShim, atomically: true, encoding: .utf8)
+        try "#!/bin/sh\nprintf 'stokd-home\\n'\n".write(to: overrideShim, atomically: true, encoding: .utf8)
+        for executable in [wrapper, homeShim, overrideShim] {
+            try fileManager.setAttributes([.posixPermissions: 0o700], ofItemAtPath: executable.path)
+        }
+
+        let shims = try #require(
+            TerminalSurface.installAgentCommandShimsIfPossible(
+                wrapperDirectoryURL: wrapperDirectory,
+                surfaceId: UUID(),
+                temporaryDirectory: temporaryDirectory,
+                fileManager: fileManager
+            )
+        )
+        let shim = try #require(shims.shim(named: "claude"))
+        #expect(
+            try capturedStdout(
+                from: shim,
+                environment: [
+                    "HOME": homeDirectory.path,
+                    "STOKD_HOME": overrideHome.path,
+                    "PATH": "\(shims.directoryPath):/usr/bin:/bin",
+                ]
+            ) == "stokd-home\n"
+        )
+    }
+
+    @Test("Bundled wrapper still launches when no stokd shim exists")
+    func bundledWrapperLaunchesWhenNoStokdShimExists() throws {
+        let fileManager = FileManager.default
+        let root = URL.temporaryDirectory.appending(
+            path: "TerminalSurfaceWrapperOnlyTests-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        let temporaryDirectory = root.appending(path: "tmp", directoryHint: .isDirectory)
+        let wrapperDirectory = root.appending(path: "bin", directoryHint: .isDirectory)
+        let homeDirectory = root.appending(path: "home", directoryHint: .isDirectory)
+        let wrapper = wrapperDirectory.appending(path: "cmux-claude-wrapper", directoryHint: .notDirectory)
+        defer { try? fileManager.removeItem(at: root) }
+
+        for directory in [wrapperDirectory, homeDirectory] {
+            try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+        }
+        try "#!/bin/sh\nprintf 'cmux-wrapper\\n'\n".write(to: wrapper, atomically: true, encoding: .utf8)
+        try fileManager.setAttributes([.posixPermissions: 0o700], ofItemAtPath: wrapper.path)
+
+        let shims = try #require(
+            TerminalSurface.installAgentCommandShimsIfPossible(
+                wrapperDirectoryURL: wrapperDirectory,
+                surfaceId: UUID(),
+                temporaryDirectory: temporaryDirectory,
+                fileManager: fileManager
+            )
+        )
+        let shim = try #require(shims.shim(named: "claude"))
+        #expect(
+            try capturedStdout(
+                from: shim,
+                environment: [
+                    "HOME": homeDirectory.path,
+                    "PATH": "\(shims.directoryPath):/usr/bin:/bin",
+                ]
+            ) == "cmux-wrapper\n"
+        )
+    }
+
     @Test("Official Hermes profile aliases route through the Hermes wrapper")
     func officialHermesProfileAliasesRouteThroughWrapper() throws {
         let fileManager = FileManager.default
@@ -347,6 +481,23 @@ struct TerminalSurfaceCommandShimPermissionsTests {
             ) == ["-p", "audit", "--continue"]
         )
         #expect(scanCounter.value == 2)
+    }
+
+    private func capturedStdout(
+        from shim: TerminalSurfaceAgentCommandShim,
+        environment: [String: String]
+    ) throws -> String {
+        let output = Pipe()
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: shim.executablePath)
+        process.environment = environment
+        process.standardOutput = output
+        process.standardError = output
+        try process.run()
+        let data = output.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        #expect(process.terminationStatus == 0)
+        return String(data: data, encoding: .utf8) ?? ""
     }
 
     private func capturedArguments(

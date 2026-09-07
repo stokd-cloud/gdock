@@ -1,0 +1,19 @@
+{
+  "tier": "C1",
+  "contract_ids": [
+    "VAL-FIND-001",
+    "VAL-FIND-002",
+    "VAL-FIND-003",
+    "VAL-FIND-004",
+    "VAL-FIND-005",
+    "VAL-FIND-006",
+    "VAL-FIND-007",
+    "VAL-FIND-008",
+    "VAL-FIND-009",
+    "VAL-FIND-010"
+  ],
+  "investigator_lanes": false,
+  "contract_review_passes": 1,
+  "terminal_review": "not_required",
+  "status": "running"
+}

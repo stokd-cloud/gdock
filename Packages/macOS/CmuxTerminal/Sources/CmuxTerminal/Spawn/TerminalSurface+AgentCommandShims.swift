@@ -201,6 +201,27 @@ extension TerminalSurface {
         } else {
             wrapperInvocation = "exec \"$cmux_wrapper\" \"$@\""
         }
+        // Hermes profile aliases stay on the cmux wrapper. Vendor names
+        // (`claude`, `codex`, `hermes`) prefer a governed stokd shim when one
+        // exists, because cmux prepends this directory onto PATH and would
+        // otherwise always exec the ungoverned bundled launcher.
+        let stokdGovernedLaunch: String
+        if hermesProfileAliasURL == nil {
+            stokdGovernedLaunch = """
+            cmux_stokd_name=\(shellSingleQuoted(commandName))
+            cmux_stokd_shim=""
+            if [[ -n "${STOKD_HOME:-}" && -x "${STOKD_HOME%/}/shims/$cmux_stokd_name" ]]; then
+                cmux_stokd_shim="${STOKD_HOME%/}/shims/$cmux_stokd_name"
+            elif [[ -n "${HOME:-}" && -x "$HOME/.stokd/shims/$cmux_stokd_name" ]]; then
+                cmux_stokd_shim="$HOME/.stokd/shims/$cmux_stokd_name"
+            fi
+            if [[ -n "$cmux_stokd_shim" ]]; then
+                exec "$cmux_stokd_shim" "$@"
+            fi
+            """
+        } else {
+            stokdGovernedLaunch = ""
+        }
         let script = """
         #!/bin/bash
         cmux_wrapper=\(shellSingleQuoted(wrapperURL.path))
@@ -222,6 +243,7 @@ extension TerminalSurface {
         fi
         export \(definition.environmentVariablePrefix)_WRAPPER_SHIM=\(shellSingleQuoted(shimURL.path))
         export \(definition.environmentVariablePrefix)_WRAPPER_SHIM_ROOT="$cmux_shim_root"
+        \(stokdGovernedLaunch)
         if [[ -x "$cmux_wrapper" ]]; then
             \(wrapperInvocation)
         fi

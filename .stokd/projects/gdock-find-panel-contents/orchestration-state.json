@@ -1,0 +1,242 @@
+{
+  "slug": "gdock-find-panel-contents",
+  "title": "Gdock Find Panel — Contents...",
+  "status": "active",
+  "created_at": "2026-09-07T10:38:00.738357+00:00",
+  "storage_mode": "database",
+  "error_message": null,
+  "progress_log": [
+    "[2026-09-07T10:38:01.984205+00:00] Project created; PRD written to prd.md; phases extracted; review files written to phases/"
+  ],
+  "review_mode": "complete",
+  "workspace_root": "/opt/worktrees/stokd-cloud/gdock/project-5b83347-gdock-find-panel-contents",
+  "phases": [
+    {
+      "phase_number": 1,
+      "purpose": "One unattended pass that makes the contract true against the",
+      "title": "Ship Find contents / filenames / replace",
+      "work_items": [
+        {
+          "acceptance_criteria": "- AC-1.1.a: A `FileSearchQuery` value type exists with scope, match flags,\n  and filter fields and does not reference `FileExplorerStore` → import\n  inspection.\n- AC-1.1.b: Contents / File names / Both against the fixture tree return\n  the hit kinds in VAL-FIND-001 → `FileSearchScopeTests` fail before the\n  builder exists, pass after.\n- AC-1.1.c: `rg --fixed-strings` is absent from the argument list when\n  regex is on, and invalid regex emits `.failed` → `FileSearchMatchFlagTests`.\n- AC-1.1.d: Exclude glob `DerivedData/**` drops those hits; useIgnoreFiles\n  off includes a gitignored fixture file → `FileSearchFilterTests`.",
+          "acceptance_tests": "- Test-1.1.a: Unit — `FileSearchQuery` is Sendable/Equatable with no AppKit\n  import.\n- Test-1.1.b: Unit — `FileSearchScopeTests` (maps to AC-1.1.b).\n- Test-1.1.c: Unit — `FileSearchMatchFlagTests` (maps to AC-1.1.c).\n- Test-1.1.d: Unit — `FileSearchFilterTests` (maps to AC-1.1.d).",
+          "dependencies": [],
+          "implementation_details": "- Extend `FileSearchController` / `FileSearchSnapshot` with a value-type\n  query: scope (`contents` | `fileNames` | `both`), matchCase, wholeWord,\n  regex, includeGlobs, excludeGlobs, useIgnoreFiles, limit\n  (`all` | `open` | `changed`).\n- Keep rg as the process. Contents: current `--json` match path with flags\n  replacing the hardcoded `--smart-case --fixed-strings`. File names: rg\n  file listing filtered by the query (literal or regex) against relative\n  paths. Both: one contents search + one filename search, merged by path.\n- Map flags: matchCase → `--case-sensitive` (else `--smart-case`);\n  wholeWord → `--word-regexp`; regex off → `--fixed-strings`. Invalid regex\n  → `.failed` with a localized message.\n- Include/exclude → extra `--glob`. useIgnoreFiles off → `--no-ignore`.\n  Open/Changed restrict the path arguments, not a second engine.\n- Remote roots stay `.unsupported`. Empty query stays `.idle`.\n- Failure modes: missing rg (existing message), non-zero rg other than 1\n  (existing), invalid regex, malformed glob (skip that glob, do not hide\n  everything).",
+          "item_number": "1.1",
+          "targets": [
+            "VAL-FIND-001",
+            "VAL-FIND-002",
+            "VAL-FIND-003"
+          ],
+          "title": "Query model and ripgrep argument builder",
+          "verification_commands": "rg -n 'enum FileSearchScope|struct FileSearchQuery' Sources --glob '*.swift'\n./scripts/lint-pbxproj-test-wiring.sh"
+        },
+        {
+          "acceptance_criteria": "- AC-1.2.a: Both grouping matches VAL-FIND-004 on the fixture →\n  `FileSearchResultGroupingTests`.\n- AC-1.2.b: Content-row open payload includes line and column; NAME-row\n  open payload is path-only → `FileSearchOpenTargetTests`.\n- AC-1.2.c: Result cell views compile without importing `FileExplorerStore`.",
+          "acceptance_tests": "- Test-1.2.a: Unit — `FileSearchResultGroupingTests` (maps to AC-1.2.a).\n- Test-1.2.b: Unit — `FileSearchOpenTargetTests` (maps to AC-1.2.b).\n- Test-1.2.c: Unit — grouping types live outside `FileExplorerView.swift`\n  and do not import the store (maps to AC-1.2.c).",
+          "dependencies": [
+            "1.1"
+          ],
+          "implementation_details": "- Replace the flat `[FileSearchResult]` presentation in Find with a grouped\n  snapshot: file header (path, NAME badge, counts) + nested content rows\n  (line, column, preview, match ranges).\n- Contents: file headers + nested content only. File names: file headers\n  with NAME, no nested content. Both: merge as VAL-FIND-004.\n- Open: content row → existing file-open path with line/column. NAME row →\n  path only. Missing file → status, no crash.\n- Tree/list toggle, refresh, stop, collapse-all, dismiss bind to the\n  existing cancel/search APIs; they do not invent a second process.\n- Rows receive immutable snapshots; no store below the table boundary.",
+          "item_number": "1.2",
+          "targets": [
+            "VAL-FIND-004",
+            "VAL-FIND-007"
+          ],
+          "title": "Grouped results and line navigation",
+          "verification_commands": "rg -n 'NAME|filenameHit|FileSearchGrouped' Sources --glob '*FileSearch*'\n./scripts/lint-pbxproj-test-wiring.sh"
+        },
+        {
+          "acceptance_criteria": "- AC-1.3.a: File names → replace disabled; Both apply does not rename →\n  `FileSearchReplaceSafetyTests`.\n- AC-1.3.b: Each apply scope, preview, confirm-on-multi-file, preserve-case,\n  undo, and partial-write failure pass → `FileSearchReplaceApplyTests`.\n- AC-1.3.c: Replace types do not import AppKit; writes go through an\n  injected file writer in tests.",
+          "acceptance_tests": "- Test-1.3.a: Unit — `FileSearchReplaceSafetyTests` (maps to AC-1.3.a).\n- Test-1.3.b: Unit — `FileSearchReplaceApplyTests` (maps to AC-1.3.b).\n- Test-1.3.c: Unit — replace controller uses a `FileReplacing` test double\n  (maps to AC-1.3.c).",
+          "dependencies": [
+            "1.1"
+          ],
+          "implementation_details": "- Add a replace controller that consumes the grouped snapshot + replace\n  string + scope (match / file / folder / all) + preserveCase.\n- `isReplaceEnabled` is false when scope is File names.\n- Preview is a list of `{path, line, before, after}` computed in memory\n  before any write. Multi-file or folder/all requires confirm.\n- Apply writes through the local file provider only. Record a batch undo\n  snapshot. Partial failure stops, reports the file, keeps prior writes in\n  the undo batch.\n- Preserve-case uses identifier-style case preservation (Foo/foo/FOO), not\n  locale title-case.\n- Failure modes: file disappeared, file not writable, replace regex\n  invalid → per-file error, no crash.",
+          "item_number": "1.3",
+          "targets": [
+            "VAL-FIND-005",
+            "VAL-FIND-006"
+          ],
+          "title": "Replace pipeline",
+          "verification_commands": "rg -n 'isReplaceEnabled|FileSearchReplace' Sources --glob '*.swift'\n./scripts/lint-pbxproj-test-wiring.sh"
+        },
+        {
+          "acceptance_criteria": "- AC-1.4.a: Scope control width > 0 at 240pt panel width → layout test.\n- AC-1.4.b: Replace and Filters start collapsed → unit test on\n  `isReplaceExpanded` / `isFiltersExpanded` defaults.\n- AC-1.4.c: Tagged dogfood screenshot of expanded Find compared to\n  `mockup.png` for control presence (scope Both, NAME badge, replace row,\n  include/exclude, All/Open/Changed).",
+          "acceptance_tests": "- Test-1.4.a: Unit — compact-width layout (maps to AC-1.4.a).\n- Test-1.4.b: Unit — collapsed defaults (maps to AC-1.4.b).\n- Test-1.4.c: Artifact — dogfood stills stored with the tag (maps to\n  AC-1.4.c).",
+          "dependencies": [
+            "1.2",
+            "1.3"
+          ],
+          "implementation_details": "- Rebuild the Find header in `FileExplorerContainerView` to match\n  `mockup.png`: query field, match toggles, replace field (collapsed),\n  scope segmented control always visible, Filters disclosure, results\n  toolbar (refresh/stop, tree/list, collapse, dismiss).\n- Default: replace row and filter rows hidden. Expanded state used for\n  review/screenshots.\n- At ≤240pt width, stack vertically; scope control remains fully visible.\n- Accessibility ids for new controls (`FileExplorerSearchScope`,\n  `FileExplorerReplaceField`, match toggles) so UITests can drive them.\n- Presentation `.files` continues to hide this chrome (enforced in 1.5).",
+          "item_number": "1.4",
+          "targets": [
+            "VAL-FIND-010"
+          ],
+          "title": "Find chrome matching the mockup",
+          "verification_commands": "rg -n 'FileExplorerSearchScope|isReplaceExpanded|isFiltersExpanded' Sources --glob '*.swift'\ntest -s .stokd/projects/gdock-find-replace/mockup.png"
+        },
+        {
+          "acceptance_criteria": "- AC-1.5.a: Files presentation has no replace field / scope control →\n  `FileExplorerFindIsolationTests`.\n- AC-1.5.b: Existing find / findInDirectory routing tests still pass.\n- AC-1.5.c: `gdock.find` appears in the settings catalog; no new keys\n  under `app.*` / `sidebar.*`.\n- AC-1.5.d: `./scripts/lint-pbxproj-test-wiring.sh` exits 0.\n- AC-1.5.e: Localization audit lists every new Find string in en+ja.",
+          "acceptance_tests": "- Test-1.5.a: Unit — `FileExplorerFindIsolationTests` (maps to AC-1.5.a).\n- Test-1.5.b: Unit — existing shortcut routing tests (maps to AC-1.5.b).\n- Test-1.5.c: Unit/grep — catalog prefix (maps to AC-1.5.c).\n- Test-1.5.d: Script — pbxproj wiring (maps to AC-1.5.d).\n- Test-1.5.e: Audit — xcstrings + web messages (maps to AC-1.5.e).",
+          "dependencies": [
+            "1.4"
+          ],
+          "implementation_details": "- Guard Find-only chrome behind `presentation == .find`.\n- Do not route terminal/browser Cmd+F through the new Find header.\n  `findInDirectory` remains Cmd+Shift+F → Find rail.\n- Add replace / toggle-regex shortcuts (VS Code-like Cmd+Option+F and\n  Cmd+Alt+R are candidates) as new `KeyboardShortcutSettings.Action`\n  cases, Settings-editable, documented.\n- New `gdock.find*` keys in `GdockCatalogSection` for last-used scope,\n  match flags, and filter expansion if persisted; first-use default\n  Contents even when persisted flags exist.\n- Localize every new string in `Resources/Localizable.xcstrings` and web\n  schema copy in `web/messages/en.json` + `web/messages/ja.json`.\n- Wire every new `cmuxTests/*.swift` file into the pbxproj.",
+          "item_number": "1.5",
+          "targets": [
+            "VAL-FIND-008",
+            "VAL-FIND-009"
+          ],
+          "title": "Isolation, catalog, localization, and wiring",
+          "verification_commands": "rg -n 'gdock\\.find' Packages/macOS/CmuxSettings Sources web --glob '*.{swift,json}'\n./scripts/lint-pbxproj-test-wiring.sh\npython3 scripts/check-workspace-package-groups.py"
+        }
+      ]
+    }
+  ],
+  "project_id": "33ed0213-fe0e-4416-8d19-b84c6c47c737",
+  "hash_short": "5b83347",
+  "contract": [
+    {
+      "behavior": "Given a local Find root and a non-empty query, Contents returns only in-file text matches; File names returns only path-segment matches; Both returns the union, one row identity per file, with filename hits distinct from content hits. First-use default scope is Contents. An empty query does not search.",
+      "evidence": "Persist RED → GREEN `FileSearchScopeTests` covering the three scopes against a fixture tree that has a filename hit, a content hit in a differently named file, and a file that is both.",
+      "fail": "File names returning file contents, or Both collapsing the two hit kinds into one undifferentiated list.",
+      "id": "VAL-FIND-001",
+      "needs": "none",
+      "oracle": null,
+      "raw": "**VAL-FIND-001** — Find searches contents, file names, or both.\nSurface: library\nNeeds: none\nBehavior: Given a local Find root and a non-empty query, Contents returns\n  only in-file text matches; File names returns only path-segment matches;\n  Both returns the union, one row identity per file, with filename hits\n  distinct from content hits. First-use default scope is Contents. An empty\n  query does not search.\nEvidence: Persist RED → GREEN `FileSearchScopeTests` covering the three\n  scopes against a fixture tree that has a filename hit, a content hit in a\n  differently named file, and a file that is both.\nRigor: R2\nWhy: Scope is the product fork from today's contents-only rg invocation and\n  is fully fixture-testable.\nFail: File names returning file contents, or Both collapsing the two hit\n  kinds into one undifferentiated list.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "Find searches contents, file names, or both."
+    },
+    {
+      "behavior": "Off/off/off keeps today's smart-case fixed-string match. `Aa` on forces case-sensitive. `ab` on requires a word boundary. `.*` on treats the query as regex (invalid regex yields a failed snapshot, not a hang). Combinations compose. Preserve-case (`AB`) does not affect search, only replace (VAL-FIND-006).",
+      "evidence": "Persist RED → GREEN `FileSearchMatchFlagTests` asserting rg argument mapping and match/no-match fixtures per flag, including invalid regex → `.failed`.",
+      "fail": "Regex mode still passing `--fixed-strings`, or an invalid pattern leaving the panel in `.searching`.",
+      "id": "VAL-FIND-002",
+      "needs": "VAL-FIND-001",
+      "oracle": null,
+      "raw": "**VAL-FIND-002** — Match-case, whole-word, and regex toggles change matching.\nSurface: library\nNeeds: VAL-FIND-001\nBehavior: Off/off/off keeps today's smart-case fixed-string match. `Aa` on\n  forces case-sensitive. `ab` on requires a word boundary. `.*` on treats\n  the query as regex (invalid regex yields a failed snapshot, not a hang).\n  Combinations compose. Preserve-case (`AB`) does not affect search, only\n  replace (VAL-FIND-006).\nEvidence: Persist RED → GREEN `FileSearchMatchFlagTests` asserting rg\n  argument mapping and match/no-match fixtures per flag, including invalid\n  regex → `.failed`.\nRigor: R2\nWhy: Flag-to-rg mapping is a pure argument builder with deterministic\n  fixtures.\nFail: Regex mode still passing `--fixed-strings`, or an invalid pattern\n  leaving the panel in `.searching`.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "Match-case, whole-word, and regex toggles change matching."
+    },
+    {
+      "behavior": "Include globs restrict candidates; exclude globs drop them; \"use ignore files\" on honors `.gitignore` / rg ignore (today's default); off searches ignored files too. Limit All searches the Find root; Open restricts to open editors; Changed restricts to git-dirty paths in that root. Globs apply to both content and filename candidates.",
+      "evidence": "Persist RED → GREEN `FileSearchFilterTests` with include/exclude fixtures, ignore on/off, and Open/Changed candidate sets.",
+      "fail": "Exclude glob still returning hits, or Changed including clean files.",
+      "id": "VAL-FIND-003",
+      "needs": "VAL-FIND-001",
+      "oracle": null,
+      "raw": "**VAL-FIND-003** — Filters limit which files are candidates.\nSurface: library\nNeeds: VAL-FIND-001\nBehavior: Include globs restrict candidates; exclude globs drop them;\n  \"use ignore files\" on honors `.gitignore` / rg ignore (today's default);\n  off searches ignored files too. Limit All searches the Find root; Open\n  restricts to open editors; Changed restricts to git-dirty paths in that\n  root. Globs apply to both content and filename candidates.\nEvidence: Persist RED → GREEN `FileSearchFilterTests` with include/exclude\n  fixtures, ignore on/off, and Open/Changed candidate sets.\nRigor: R2\nWhy: Candidate filtering is independent of result chrome and must not\n  silently disagree with the tree's ignore rules.\nFail: Exclude glob still returning hits, or Changed including clean files.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "Filters limit which files are candidates."
+    },
+    {
+      "behavior": "In Both, a file with a filename hit shows a `NAME` badge and count; content matches nest under that file; a file that is only a content hit has no `NAME` badge. Duplicate file rows are not listed. Contents-only and File-names-only do not show the opposite hit kind.",
+      "evidence": "Persist RED → GREEN `FileSearchResultGroupingTests` for Both nesting, Contents-only (no NAME rows), and File-names-only (no nested content rows).",
+      "fail": "Both showing two rows for the same file, or Contents showing NAME badges.",
+      "id": "VAL-FIND-004",
+      "needs": "VAL-FIND-001",
+      "oracle": null,
+      "raw": "**VAL-FIND-004** — Both groups filename hits and nests content matches.\nSurface: library\nNeeds: VAL-FIND-001\nBehavior: In Both, a file with a filename hit shows a `NAME` badge and\n  count; content matches nest under that file; a file that is only a\n  content hit has no `NAME` badge. Duplicate file rows are not listed.\n  Contents-only and File-names-only do not show the opposite hit kind.\nEvidence: Persist RED → GREEN `FileSearchResultGroupingTests` for Both\n  nesting, Contents-only (no NAME rows), and File-names-only (no nested\n  content rows).\nRigor: R2\nWhy: Grouping is the observable difference from the current flat\n  `FileSearchResult` table.\nFail: Both showing two rows for the same file, or Contents showing NAME\n  badges.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "Both groups filename hits and nests content matches."
+    },
+    {
+      "behavior": "When scope is File names, the replace field and Replace all are disabled. When scope is Both, apply changes file contents only; paths are untouched. When scope is Contents, apply is content-only.",
+      "evidence": "Persist RED → GREEN `FileSearchReplaceSafetyTests` that File names has `isReplaceEnabled == false`, and Both apply on a filename+content fixture leaves the path unchanged while editing matching line text.",
+      "fail": "Replace all in File names renaming a file, or Both rewriting a path.",
+      "id": "VAL-FIND-005",
+      "needs": "VAL-FIND-001",
+      "oracle": null,
+      "raw": "**VAL-FIND-005** — Replace never renames files.\nSurface: library\nNeeds: VAL-FIND-001\nBehavior: When scope is File names, the replace field and Replace all are\n  disabled. When scope is Both, apply changes file contents only; paths are\n  untouched. When scope is Contents, apply is content-only.\nEvidence: Persist RED → GREEN `FileSearchReplaceSafetyTests` that File\n  names has `isReplaceEnabled == false`, and Both apply on a filename+content\n  fixture leaves the path unchanged while editing matching line text.\nRigor: R2\nWhy: Filename mutation is an explicit non-goal; a missed guard is data loss.\nFail: Replace all in File names renaming a file, or Both rewriting a path.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "Replace never renames files."
+    },
+    {
+      "behavior": "Replace-all with more than one file (or a folder/global scope) shows a preview of path + line diffs and requires confirm. Scopes are current match, current file, current folder, and all results. Preserve case (`AB`) preserves identifier case in replacements. Undo restores the last successful apply. A failed write rolls back that file and reports it; other files already written stay written and remain undoable as a batch.",
+      "evidence": "Persist RED → GREEN `FileSearchReplaceApplyTests` for each scope, preview payload, confirm gate on multi-file, preserve-case, undo, and partial-write failure.",
+      "fail": "Multi-file replace writing with no preview, or Undo leaving mixed new/old content with no error.",
+      "id": "VAL-FIND-006",
+      "needs": "VAL-FIND-005",
+      "oracle": null,
+      "raw": "**VAL-FIND-006** — Replace previews, scopes, confirms bulk, and undoes.\nSurface: library\nNeeds: VAL-FIND-005\nBehavior: Replace-all with more than one file (or a folder/global scope)\n  shows a preview of path + line diffs and requires confirm. Scopes are\n  current match, current file, current folder, and all results. Preserve\n  case (`AB`) preserves identifier case in replacements. Undo restores the\n  last successful apply. A failed write rolls back that file and reports it;\n  other files already written stay written and remain undoable as a batch.\nEvidence: Persist RED → GREEN `FileSearchReplaceApplyTests` for each scope,\n  preview payload, confirm gate on multi-file, preserve-case, undo, and\n  partial-write failure.\nRigor: R2\nWhy: Multi-file replace is destructive; preview + undo must be proven\n  without launching the app.\nFail: Multi-file replace writing with no preview, or Undo leaving mixed\n  new/old content with no error.",
+      "rigor": "R2",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "Replace previews, scopes, confirms bulk, and undoes."
+    },
+    {
+      "behavior": "Activating a nested content row opens that file at `lineNumber`/`columnNumber` from the rg match. Activating a filename-only row opens the file without requiring a line jump. Missing files produce a status error, not a crash.",
+      "evidence": "Persist RED → GREEN `FileSearchOpenTargetTests` that the open command carries path + line + column for content hits and path-only for NAME rows.",
+      "fail": "Opening a content hit at line 1 regardless of the match line.",
+      "id": "VAL-FIND-007",
+      "needs": "VAL-FIND-004",
+      "oracle": null,
+      "raw": "**VAL-FIND-007** — Opening a content hit lands on the recorded line.\nSurface: library\nNeeds: VAL-FIND-004\nBehavior: Activating a nested content row opens that file at\n  `lineNumber`/`columnNumber` from the rg match. Activating a filename-only\n  row opens the file without requiring a line jump. Missing files produce a\n  status error, not a crash.\nEvidence: Persist RED → GREEN `FileSearchOpenTargetTests` that the open\n  command carries path + line + column for content hits and path-only for\n  NAME rows.\nRigor: R1\nWhy: Line targeting is a single command payload; persistence of the unit\n  test is the evidence floor.\nFail: Opening a content hit at line 1 regardless of the match line.",
+      "rigor": "R1",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "Opening a content hit lands on the recorded line."
+    },
+    {
+      "behavior": "`FileExplorerPanelPresentation.files` does not gain the Find scope selector, replace field, or grouped-results table. Cmd+F in a terminal surface still opens terminal find; Cmd+F in a browser surface still opens browser find. Cmd+Shift+F still focuses the Find rail.",
+      "evidence": "Persist RED → GREEN `FileExplorerFindIsolationTests` plus existing `find` / `findInDirectory` shortcut routing tests remaining green.",
+      "fail": "Files presentation rendering Replace all, or Cmd+F stealing terminal find into the rail.",
+      "id": "VAL-FIND-008",
+      "needs": "none",
+      "oracle": null,
+      "raw": "**VAL-FIND-008** — Files, terminal Find, and browser Find stay as they are.\nSurface: library\nNeeds: none\nBehavior: `FileExplorerPanelPresentation.files` does not gain the Find\n  scope selector, replace field, or grouped-results table. Cmd+F in a\n  terminal surface still opens terminal find; Cmd+F in a browser surface\n  still opens browser find. Cmd+Shift+F still focuses the Find rail.\nEvidence: Persist RED → GREEN `FileExplorerFindIsolationTests` plus existing\n  `find` / `findInDirectory` shortcut routing tests remaining green.\nRigor: R1\nWhy: Isolation is a regression against already-passing shortcut tests.\nFail: Files presentation rendering Replace all, or Cmd+F stealing terminal\n  find into the rail.",
+      "rigor": "R1",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "library",
+      "title": "Files, terminal Find, and browser Find stay as they are."
+    },
+    {
+      "behavior": "Every new user-facing string has `String(localized:)` keys in `Resources/Localizable.xcstrings` (en+ja). New settings live under `gdock.find*` in `GdockCatalogSection` (not `app.*` / `sidebar.*`). New replace/toggle shortcuts are `KeyboardShortcutSettings` actions, editable in Settings and `cmux.json`. New tests have pbxproj source entries.",
+      "evidence": "Localization audit of added keys; schema grep for `gdock.find`; `./scripts/lint-pbxproj-test-wiring.sh` exit 0.",
+      "fail": "Hardcoded English in Find chrome, or a new test file that xcodebuild never compiles.",
+      "id": "VAL-FIND-009",
+      "needs": "VAL-FIND-001",
+      "oracle": null,
+      "raw": "**VAL-FIND-009** — New strings, settings, and shortcuts are catalogued.\nSurface: artifact\nNeeds: VAL-FIND-001\nBehavior: Every new user-facing string has `String(localized:)` keys in\n  `Resources/Localizable.xcstrings` (en+ja). New settings live under\n  `gdock.find*` in `GdockCatalogSection` (not `app.*` / `sidebar.*`). New\n  replace/toggle shortcuts are `KeyboardShortcutSettings` actions, editable\n  in Settings and `cmux.json`. New tests have pbxproj source entries.\nEvidence: Localization audit of added keys; schema grep for `gdock.find`;\n  `./scripts/lint-pbxproj-test-wiring.sh` exit 0.\nRigor: R1\nWhy: Catalog and localization are grep-checkable; wiring is an existing\n  scripted gate.\nFail: Hardcoded English in Find chrome, or a new test file that xcodebuild\n  never compiles.",
+      "rigor": "R1",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "artifact",
+      "title": "New strings, settings, and shortcuts are catalogued."
+    },
+    {
+      "behavior": "The Find panel shows Contents | File names | Both at all widths. Replace and Filters are collapsed by default and expand in place. Compact widths stack controls without hiding the scope selector. The expanded state matches `.stokd/projects/gdock-find-replace/mockup.png` for control presence and grouping (not pixel-identical chrome).",
+      "evidence": "Persist a tagged dogfood screenshot of compact and expanded Find against `mockup.png`, plus a layout unit test that the scope control remains non-zero width at a 240pt panel.",
+      "fail": "Scope selector scrolling off-screen in a narrow rail, or Replace expanded on first open.",
+      "id": "VAL-FIND-010",
+      "needs": "VAL-FIND-001, VAL-FIND-006",
+      "oracle": null,
+      "raw": "**VAL-FIND-010** — Find chrome matches the parked mockup.\nSurface: artifact\nNeeds: VAL-FIND-001, VAL-FIND-006\nBehavior: The Find panel shows Contents | File names | Both at all widths.\n  Replace and Filters are collapsed by default and expand in place. Compact\n  widths stack controls without hiding the scope selector. The expanded\n  state matches `.stokd/projects/gdock-find-replace/mockup.png` for control\n  presence and grouping (not pixel-identical chrome).\nEvidence: Persist a tagged dogfood screenshot of compact and expanded\n  Find against `mockup.png`, plus a layout unit test that the scope control\n  remains non-zero width at a 240pt panel.\nRigor: R1\nWhy: Visual contract is the parked mockup; layout collapse is a unit-tested\n  width constraint.\nFail: Scope selector scrolling off-screen in a narrow rail, or Replace\n  expanded on first open.\n\n---",
+      "rigor": "R1",
+      "rigor_rationale": "declared in PRD",
+      "scope": null,
+      "surface": "artifact",
+      "title": "Find chrome matches the parked mockup."
+    }
+  ],
+  "ceremony_tier": "C1",
+  "phase_id": "5b83347-gdock-find-panel-contents"
+}
