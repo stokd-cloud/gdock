@@ -48,28 +48,50 @@ extension TabManager {
     ) -> Workspace? {
         let outcome = GdockGridSplitAction.applyShape(shape, to: workspace)
         guard case .success(let overflowPanelIds) = outcome,
-              !overflowPanelIds.isEmpty,
+              let firstPanelId = overflowPanelIds.first,
               let appDelegate = AppDelegate.shared else {
             return nil
         }
 
-        let spill: Workspace?
-        if let groupId = workspace.groupId {
-            spill = createWorkspaceInGroup(groupId: groupId, select: false)
-        } else {
-            spill = addWorkspace(select: false)
-        }
-        guard let spill else { return nil }
+        guard let spill = moveGdockGridPanelToNewWorkspace(
+            firstPanelId, from: workspace, using: appDelegate
+        ) else { return nil }
 
-        for panelId in overflowPanelIds {
-            _ = appDelegate.moveSurface(
+        for panelId in overflowPanelIds.dropFirst() {
+            guard appDelegate.moveSurface(
                 panelId: panelId,
                 toWorkspace: spill.id,
                 focus: false,
                 focusWindow: false
-            )
+            ) else { break }
         }
         return spill
+    }
+
+    /// Seed overflow with a transferred real panel, never a new terminal.
+    /// The shared transfer path also rolls back before returning on failure.
+    private func moveGdockGridPanelToNewWorkspace(
+        _ panelId: UUID,
+        from workspace: Workspace,
+        using appDelegate: AppDelegate
+    ) -> Workspace? {
+        let groupId = workspace.groupId
+        guard let result = appDelegate.moveSurfaceToNewWorkspace(
+            panelId: panelId,
+            destinationManager: self,
+            focus: false,
+            focusWindow: false
+        ), let destination = tabs.first(where: { $0.id == result.destinationWorkspaceId }) else {
+            return nil
+        }
+        if let groupId {
+            addWorkspaceToGroup(
+                workspaceId: destination.id,
+                groupId: groupId,
+                placement: defaultNewWorkspacePlacementInGroup
+            )
+        }
+        return destination
     }
 
     /// Observe mode/shape changes; reconcile while the mode is on.
@@ -165,13 +187,33 @@ extension TabManager {
         )
         guard let replacement else { return false }
 
-        let destination = gdockGridRolloverDestination(from: workspace)
-        _ = appDelegate.moveSurface(
-            panelId: panelId,
-            toWorkspace: destination.id,
-            focus: false,
-            focusWindow: false
-        )
+        let destination: Workspace
+        if let existing = gdockGridRolloverDestination(from: workspace) {
+            let wasApplyingShape = existing.isApplyingGdockGridShape
+            existing.isApplyingGdockGridShape = true
+            defer { existing.isApplyingGdockGridShape = wasApplyingShape }
+            guard appDelegate.moveSurface(
+                panelId: panelId,
+                toWorkspace: existing.id,
+                focus: false,
+                focusWindow: false
+            ) else {
+                workspace.withClosedPanelHistorySuppressed {
+                    _ = workspace.closePanel(replacement.id, force: true)
+                }
+                return true
+            }
+            destination = existing
+        } else if let created = moveGdockGridPanelToNewWorkspace(
+            panelId, from: workspace, using: appDelegate
+        ) {
+            destination = created
+        } else {
+            workspace.withClosedPanelHistorySuppressed {
+                _ = workspace.closePanel(replacement.id, force: true)
+            }
+            return true
+        }
         let shape = GdockGridModeSettings.shape()
         _ = applyGdockGridShapeAndSpill(shape, to: destination)
         compactGdockGridWorkspaces(shape: shape)
@@ -187,32 +229,34 @@ extension TabManager {
         return true
     }
 
-    private func gdockGridRolloverDestination(from workspace: Workspace) -> Workspace {
+    private func gdockGridRolloverDestination(from workspace: Workspace) -> Workspace? {
         let sameScope = tabs.filter { other in
             other.id != workspace.id
                 && other.groupId == workspace.groupId
                 && GdockGridSplitAction.preflight(workspace: other) == nil
         }
-        if let existing = sameScope.first(where: { !$0.gdockGridPlaceholderPanelIds.isEmpty }) {
-            return existing
-        }
-        if let groupId = workspace.groupId,
-           let created = createWorkspaceInGroup(groupId: groupId, select: false) {
-            return created
-        }
-        return addWorkspace(select: false)
+        return sameScope.first(where: { !$0.gdockGridPlaceholderPanelIds.isEmpty })
     }
 
     private func compactGdockGridWorkspaces(shape: GdockGridShape) {
         let capacity = shape.cellCount
         let eligible = tabs.filter { GdockGridSplitAction.preflight(workspace: $0) == nil }
+        let previousShapeStates = eligible.map { ($0, $0.isApplyingGdockGridShape) }
+        for workspace in eligible {
+            workspace.isApplyingGdockGridShape = true
+        }
+        defer {
+            for (workspace, wasApplyingShape) in previousShapeStates {
+                workspace.isApplyingGdockGridShape = wasApplyingShape
+            }
+        }
         let anchorIds = Set(workspaceGroups.map(\.anchorWorkspaceId))
         let snapshots = eligible.map { workspace in
             GdockGridWorkspaceCompactionPlanner.WorkspaceSnapshot(
                 id: workspace.id,
                 groupId: workspace.groupId,
                 isGroupAnchor: anchorIds.contains(workspace.id),
-                panelIds: gdockGridOrderedPanelIds(in: workspace),
+                panelIds: QuadSplitAction.orderedPaneSnapshots(workspace: workspace).flatMap(\.panelIds),
                 placeholderPanelIds: Array(workspace.gdockGridPlaceholderPanelIds)
             )
         }
@@ -224,7 +268,7 @@ extension TabManager {
         guard let appDelegate = AppDelegate.shared else { return }
         let workspaceById = Dictionary(uniqueKeysWithValues: tabs.map { ($0.id, $0) })
 
-        for scope in plan.scopes {
+        scopes: for scope in plan.scopes {
             for assignment in scope.panelAssignments {
                 guard let destination = workspaceById[assignment.workspaceId] else { continue }
                 for panelId in assignment.panelIds {
@@ -232,17 +276,20 @@ extension TabManager {
                           source.id != destination.id else {
                         continue
                     }
-                    _ = appDelegate.moveSurface(
+                    guard appDelegate.moveSurface(
                         panelId: panelId,
                         toWorkspace: destination.id,
                         focus: false,
                         focusWindow: false
-                    )
+                    ) else { continue scopes }
                 }
                 _ = applyGdockGridShapeAndSpill(shape, to: destination)
             }
             for surplusId in scope.surplusWorkspaceIds {
-                guard let surplus = workspaceById[surplusId], tabs.count > 1 else { continue }
+                guard let surplus = workspaceById[surplusId], tabs.count > 1,
+                      surplus.panels.keys.allSatisfy({ surplus.isGdockGridPlaceholder(panelId: $0) }) else {
+                    continue
+                }
                 if workspaceGroups.contains(where: { $0.anchorWorkspaceId == surplusId }) {
                     continue
                 }

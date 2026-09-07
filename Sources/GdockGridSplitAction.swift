@@ -73,6 +73,32 @@ enum GdockGridSplitAction {
             return .alreadyShaped
         }
 
+        let wasApplyingShape = workspace.isApplyingGdockGridShape
+        workspace.isApplyingGdockGridShape = true
+        defer { workspace.isApplyingGdockGridShape = wasApplyingShape }
+
+        // Empty cells are layout scaffolding, not surfaces to spill. Keep one
+        // only when it is the workspace's last panel: closing that panel would
+        // invoke the ordinary empty-workspace replacement-terminal path.
+        workspace.gdockGridPlaceholderPanelIds.formIntersection(workspace.panels.keys)
+        var removedPlaceholders = true
+        workspace.withClosedPanelHistorySuppressed {
+            for panelId in workspace.gdockGridPlaceholderPanelIds {
+                guard workspace.panels.count > 1 else { break }
+                guard workspace.panels[panelId] is TerminalPanel,
+                      let tabId = workspace.surfaceIdFromPanelId(panelId),
+                      workspace.requestCloseTab(tabId, force: true),
+                      workspace.panels[panelId] == nil else {
+                    removedPlaceholders = false
+                    break
+                }
+                workspace.gdockGridPlaceholderPanelIds.remove(panelId)
+            }
+        }
+        guard removedPlaceholders else {
+            return .lateFailure(step: "placeholderCleanup")
+        }
+
         let panes = QuadSplitAction.orderedPaneSnapshots(workspace: workspace)
         let plan = GdockGridSplitPlanner.plan(
             panes: panes,
@@ -83,8 +109,6 @@ enum GdockGridSplitAction {
             return .vetoed(.emptyWorkspace)
         }
 
-        workspace.isApplyingGdockGridShape = true
-        defer { workspace.isApplyingGdockGridShape = false }
         workspace.clearSplitZoom()
 
         // Collapse every surface into the anchor pane so the deal-out below
