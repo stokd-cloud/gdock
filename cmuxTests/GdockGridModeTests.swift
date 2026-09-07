@@ -144,6 +144,135 @@ import CmuxTerminalCore
         }
     }
 
+    // MARK: - Session round-trip and dormant cell admission
+
+    @Test @MainActor
+    func gridSessionRestorePreservesEverySavedPanel() throws {
+        try withGridReconcileContext { _, manager in
+            let source = try #require(manager.selectedWorkspace)
+            let pane = try #require(source.bonsplitController.allPaneIds.first)
+            for _ in 0..<3 {
+                _ = try #require(source.newTerminalSurface(inPane: pane, focus: false))
+            }
+            #expect(GdockGridSplitAction.applyShape(.quad, to: source) == .success(overflowPanelIds: []))
+            let snapshot = try roundTrip(source.sessionSnapshot(includeScrollback: false))
+            let restored = Workspace()
+
+            let mapping = restored.restoreSessionSnapshot(snapshot)
+
+            #expect(Set(mapping.keys) == Set(snapshot.panels.map(\.id)))
+            #expect(Set(mapping.values) == Set(restored.panels.keys))
+            #expect(restored.panels.count == 4)
+            #expect(restored.bonsplitController.allPaneIds.count == 4)
+            #expect(restored.gdockGridPlaceholderPanelIds.isEmpty)
+            // The internal restore exemption must not leave user splits unlocked.
+            #expect(!restored.isApplyingGdockGridShape)
+            let restoredPane = try #require(restored.bonsplitController.allPaneIds.first)
+            #expect(!restored.splitTabBar(
+                restored.bonsplitController, shouldSplitPane: restoredPane, orientation: .horizontal
+            ))
+        }
+    }
+
+    @Test @MainActor
+    func placeholderSnapshotPayloadPersistsOnlyDormantCells() throws {
+        try withGridReconcileContext { _, manager in
+            let source = try #require(manager.selectedWorkspace)
+            #expect(GdockGridSplitAction.applyShape(.quad, to: source) == .success(overflowPanelIds: []))
+            let snapshot = try roundTrip(source.sessionSnapshot(includeScrollback: false))
+            var markedIds = Set<UUID>()
+            for panel in snapshot.panels {
+                let terminal = try #require(panel.terminal)
+                let payload = try #require(JSONSerialization.jsonObject(
+                    with: JSONEncoder().encode(terminal)
+                ) as? [String: Any])
+                if payload["isGdockGridPlaceholder"] as? Bool == true {
+                    markedIds.insert(panel.id)
+                }
+            }
+            #expect(markedIds.count == 3)
+            #expect(markedIds == source.gdockGridPlaceholderPanelIds)
+        }
+    }
+
+    @Test @MainActor
+    func gridSessionRoundTripKeepsUnusedCellsDormantUntilActivation() throws {
+        try withGridReconcileContext { _, manager in
+            let source = try #require(manager.selectedWorkspace)
+            #expect(GdockGridSplitAction.applyShape(.quad, to: source) == .success(overflowPanelIds: []))
+            let placeholderIds = source.gdockGridPlaceholderPanelIds
+            try #require(placeholderIds.count == 3)
+            let snapshot = try roundTrip(source.sessionSnapshot(includeScrollback: false))
+            let restored = Workspace()
+
+            let mapping = restored.restoreSessionSnapshot(snapshot)
+            restored.terminalStartupRestoreCoordinator.commitPendingRestores()
+
+            #expect(Set(mapping.keys) == Set(snapshot.panels.map(\.id)))
+            #expect(restored.panels.count == 4)
+            let restoredPlaceholderIds = Set(placeholderIds.compactMap { mapping[$0] })
+            #expect(restoredPlaceholderIds == restored.gdockGridPlaceholderPanelIds)
+            try #require(restored.gdockGridPlaceholderPanelIds.count == 3)
+            for panelId in restoredPlaceholderIds {
+                let panel = try #require(restored.terminalPanel(for: panelId))
+                #expect(!panel.surface.canCreateRuntimeSurface)
+            }
+
+            let activatedId = try #require(restoredPlaceholderIds.first)
+            restored.activateGdockGridPlaceholderIfNeeded(panelId: activatedId)
+            #expect(!restored.isGdockGridPlaceholder(panelId: activatedId))
+            #expect(try #require(restored.terminalPanel(for: activatedId)).surface.canCreateRuntimeSurface)
+            for panelId in restoredPlaceholderIds.subtracting([activatedId]) {
+                #expect(restored.isGdockGridPlaceholder(panelId: panelId))
+                #expect(!(try #require(restored.terminalPanel(for: panelId))).surface.canCreateRuntimeSurface)
+            }
+        }
+    }
+
+    @Test @MainActor
+    func restoredGridCellsRemainUsableWhenGridModeIsDisabled() throws {
+        try withGridReconcileContext { _, manager in
+            let source = try #require(manager.selectedWorkspace)
+            _ = GdockGridSplitAction.applyShape(.quad, to: source)
+            let snapshot = try roundTrip(source.sessionSnapshot(includeScrollback: false))
+            GdockGridModeSettings.setEnabled(false)
+            let restored = Workspace()
+
+            let mapping = restored.restoreSessionSnapshot(snapshot)
+
+            #expect(Set(mapping.keys) == Set(snapshot.panels.map(\.id)))
+            #expect(restored.panels.count == 4)
+            #expect(restored.gdockGridPlaceholderPanelIds.isEmpty)
+            for panelId in restored.panels.keys {
+                #expect(try #require(restored.terminalPanel(for: panelId)).surface.canCreateRuntimeSurface)
+            }
+        }
+    }
+
+    @Test @MainActor
+    func legacyUnmarkedTerminalRestoresAsOrdinaryTerminal() throws {
+        try withGridReconcileContext { _, manager in
+            let source = try #require(manager.selectedWorkspace)
+            var snapshot = source.sessionSnapshot(includeScrollback: false)
+            snapshot.panels[0].terminal = try JSONDecoder().decode(
+                SessionTerminalPanelSnapshot.self, from: Data("{\"isRemoteTerminal\":false}".utf8)
+            )
+            snapshot = try roundTrip(snapshot)
+            let restored = Workspace()
+
+            let mapping = restored.restoreSessionSnapshot(snapshot)
+
+            #expect(Set(mapping.keys) == Set(snapshot.panels.map(\.id)))
+            #expect(restored.gdockGridPlaceholderPanelIds.isEmpty)
+            let panelId = try #require(mapping[snapshot.panels[0].id])
+            #expect(try #require(restored.terminalPanel(for: panelId)).surface.canCreateRuntimeSurface)
+        }
+    }
+
+    private func roundTrip(_ snapshot: SessionWorkspaceSnapshot) throws -> SessionWorkspaceSnapshot {
+        try JSONDecoder().decode(SessionWorkspaceSnapshot.self, from: JSONEncoder().encode(snapshot))
+    }
+
     // MARK: - New surface routing and workspace compaction
 
     @Test @MainActor
