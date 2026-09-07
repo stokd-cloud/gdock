@@ -146,6 +146,151 @@ import CmuxTerminalCore
 
     // MARK: - New surface routing and workspace compaction
 
+    @Test @MainActor
+    func repeatedGroupedCompactionConservesRealTerminals() throws {
+        try withGridReconcileContext { app, manager in
+            let first = try #require(manager.selectedWorkspace)
+            let second = manager.addWorkspace(select: false)
+            let originalPanels = Set(manager.tabs.flatMap { $0.panels.keys })
+            let groupId = try #require(manager.createWorkspaceGroup(
+                name: "Grid regression",
+                childWorkspaceIds: [first.id, second.id],
+                selectAnchor: false,
+                collapseSidebarSelection: false,
+                insertDedicatedAnchor: false
+            ))
+            for workspace in manager.tabs {
+                #expect(GdockGridSplitAction.applyShape(.quad, to: workspace) == .success(overflowPanelIds: []))
+            }
+
+            for _ in 0..<3 {
+                manager.reconcileGdockGridModeNow()
+                let realPanels = Set(manager.tabs.flatMap { workspace in
+                    workspace.panels.keys.filter { !workspace.isGdockGridPlaceholder(panelId: $0) }
+                })
+                try #require(realPanels == originalPanels)
+                try #require(manager.tabs.count == 1)
+                let retained = try #require(manager.tabs.first)
+                #expect(retained.groupId == groupId)
+                #expect(GdockGridSplitAction.matchesShape(.quad, workspace: retained))
+                #expect(retained.gdockGridPlaceholderPanelIds.count == 2)
+            }
+        }
+    }
+
+    @Test @MainActor
+    func singleCellSpillMovesExistingPanelWithoutStartingAnotherTerminal() throws {
+        try withGridReconcileContext { app, manager in
+            let workspace = try #require(manager.selectedWorkspace)
+            let pane = try #require(workspace.bonsplitController.allPaneIds.first)
+            let extra = try #require(workspace.newTerminalSurface(inPane: pane, focus: false))
+            let originalPanels = Set(workspace.panels.keys)
+            let groupId = try #require(manager.createWorkspaceGroup(
+                name: "Grid spill regression",
+                childWorkspaceIds: [workspace.id],
+                selectAnchor: false,
+                collapseSidebarSelection: false,
+                insertDedicatedAnchor: false
+            ))
+
+            let spill = try #require(manager.applyGdockGridShapeAndSpill(
+                GdockGridShape(rows: 1, cols: 1), to: workspace
+            ))
+            #expect(spill.panels[extra.id] != nil)
+            #expect(spill.panels.count == 1)
+            #expect(spill.groupId == groupId)
+            #expect(Set(manager.tabs.flatMap { $0.panels.keys }) == originalPanels)
+        }
+    }
+
+    @Test @MainActor
+    func failedSpillTransferDoesNotCreateWorkspaceOrLosePanels() throws {
+        try withGridReconcileContext { app, manager in
+            let workspace = try #require(manager.selectedWorkspace)
+            let pane = try #require(workspace.bonsplitController.allPaneIds.first)
+            _ = try #require(workspace.newTerminalSurface(inPane: pane, focus: false))
+            let originalPanels = Set(workspace.panels.keys)
+            // A missing source registration makes the real transfer path fail.
+            app.unregisterMainWindowContextForTesting(windowId: try #require(manager.windowId))
+
+            let spill = manager.applyGdockGridShapeAndSpill(
+                GdockGridShape(rows: 1, cols: 1), to: workspace
+            )
+            #expect(spill == nil)
+            #expect(manager.tabs.count == 1)
+            #expect(Set(workspace.panels.keys) == originalPanels)
+        }
+    }
+
+    @MainActor
+    private func withGridReconcileContext(
+        _ body: (AppDelegate, TabManager) throws -> Void
+    ) rethrows {
+        let previousApp = AppDelegate.shared
+        let previousGrid = UserDefaults.standard.object(forKey: GdockGridModeSettings.userDefaultsKey)
+        let previousGroup = UserDefaults.standard.object(forKey: GdockAutoWorkspaceGroupModeSettings.userDefaultsKey)
+        let previousShape = UserDefaults.standard.object(forKey: GdockGridModeSettings.shapeUserDefaultsKey)
+        GdockGridModeSettings.setEnabled(true)
+        GdockAutoWorkspaceGroupModeSettings.setEnabled(true)
+        GdockGridModeSettings.setShape(.quad)
+        let app = AppDelegate()
+        AppDelegate.shared = app
+        let manager = TabManager()
+        let windowId = app.registerMainWindowContextForTesting(tabManager: manager)
+        defer {
+            manager.gdockGridModeReconcileTask?.cancel()
+            manager.gdockAutoWorkspaceGroupReconcileTask?.cancel()
+            app.unregisterMainWindowContextForTesting(windowId: windowId)
+            AppDelegate.shared = previousApp
+            UserDefaults.standard.set(previousGrid, forKey: GdockGridModeSettings.userDefaultsKey)
+            UserDefaults.standard.set(previousGroup, forKey: GdockAutoWorkspaceGroupModeSettings.userDefaultsKey)
+            UserDefaults.standard.set(previousShape, forKey: GdockGridModeSettings.shapeUserDefaultsKey)
+        }
+        try body(app, manager)
+    }
+
+    @Test @MainActor
+    func failedCompactionKeepsTheSourceRealPanels() throws {
+        try withGridReconcileContext { app, manager in
+            _ = manager.addWorkspace(select: false)
+            let originalPanels = Set(manager.tabs.flatMap { $0.panels.keys })
+            for workspace in manager.tabs {
+                _ = GdockGridSplitAction.applyShape(.quad, to: workspace)
+            }
+            app.unregisterMainWindowContextForTesting(windowId: try #require(manager.windowId))
+
+            manager.reconcileGdockGridModeNow()
+
+            #expect(manager.tabs.count == 2)
+            let realPanels = Set(manager.tabs.flatMap { workspace in
+                workspace.panels.keys.filter { !workspace.isGdockGridPlaceholder(panelId: $0) }
+            })
+            #expect(realPanels == originalPanels)
+        }
+    }
+
+    @Test @MainActor
+    func fullGridRolloverCreatesExactlyOneNewRealTerminal() throws {
+        try withGridReconcileContext { _, manager in
+            let workspace = try #require(manager.selectedWorkspace)
+            let pane = try #require(workspace.bonsplitController.allPaneIds.first)
+            for _ in 0..<3 {
+                _ = try #require(workspace.newTerminalSurface(inPane: pane, focus: false))
+            }
+            let originalPanels = Set(workspace.panels.keys)
+            _ = GdockGridSplitAction.applyShape(.quad, to: workspace)
+
+            #expect(manager.gdockGridModeRouteNewSurface())
+
+            let realPanels = Set(manager.tabs.flatMap { workspace in
+                workspace.panels.keys.filter { !workspace.isGdockGridPlaceholder(panelId: $0) }
+            })
+            #expect(originalPanels.isSubset(of: realPanels))
+            #expect(realPanels.count == originalPanels.count + 1)
+            #expect(manager.tabs.count == 2)
+        }
+    }
+
     @Test func newSurfaceActivatesPlaceholderBeforeRollingOverARealPanel() {
         let first = UUID(), placeholder = UUID(), third = UUID()
         let route = GdockGridNewSurfacePlanner.route(
