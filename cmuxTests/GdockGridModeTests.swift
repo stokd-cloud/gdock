@@ -146,6 +146,65 @@ import CmuxTerminalCore
 
     // MARK: - New surface routing and workspace compaction
 
+    @Test @MainActor
+    func focusingPlaceholderStartsItAfterGridModeIsDisabled() throws {
+        let previous = GdockGridModeSettings.isEnabled()
+        GdockGridModeSettings.setEnabled(false)
+        defer { GdockGridModeSettings.setEnabled(previous) }
+        let manager = TabManager(autoWelcomeIfNeeded: false)
+        let workspace = try #require(manager.selectedWorkspace)
+        _ = GdockGridSplitAction.applyShape(.quad, to: workspace)
+        let placeholders = workspace.gdockGridPlaceholderPanelIds
+        #expect(placeholders.count == 3)
+        for panelId in placeholders {
+            let pane = try #require(workspace.paneId(forPanelId: panelId))
+            workspace.bonsplitController.focusPane(pane)
+            #expect(!workspace.isGdockGridPlaceholder(panelId: panelId))
+        }
+    }
+
+    @Test @MainActor
+    func shrinkingGridDiscardsUnusedCellsWithoutOverflow() throws {
+        let manager = TabManager(autoWelcomeIfNeeded: false)
+        let workspace = try #require(manager.selectedWorkspace)
+        let realPanelId = try #require(workspace.focusedPanelId)
+        _ = GdockGridSplitAction.applyShape(.quad, to: workspace)
+        let result = GdockGridSplitAction.applyShape(.init(rows: 1, cols: 1), to: workspace)
+        #expect(result == .success(overflowPanelIds: []))
+        #expect(Set(workspace.panels.keys) == [realPanelId])
+        #expect(workspace.gdockGridPlaceholderPanelIds.isEmpty)
+    }
+
+    @Test @MainActor
+    func reshapingUsesVacantCellsBeforeSpillingRealPanels() throws {
+        let manager = TabManager(autoWelcomeIfNeeded: false)
+        let workspace = try #require(manager.selectedWorkspace)
+        let original = try #require(workspace.focusedPanelId)
+        _ = GdockGridSplitAction.applyShape(.quad, to: workspace)
+        let pane = try #require(workspace.paneId(forPanelId: original))
+        let added = try #require(workspace.newTerminalSurface(inPane: pane, focus: false))
+        let result = GdockGridSplitAction.applyShape(.quad, to: workspace)
+        #expect(result == .success(overflowPanelIds: []))
+        #expect(Set(workspace.panels.keys).subtracting(workspace.gdockGridPlaceholderPanelIds) == [original, added.id])
+        #expect(workspace.gdockGridPlaceholderPanelIds.count == 2)
+        #expect(GdockGridSplitAction.applyShape(.quad, to: workspace) == .alreadyShaped)
+    }
+
+    @Test @MainActor
+    func spillWorkspaceContainsOnlyTransferredRealPanels() throws {
+        let manager = TabManager(autoWelcomeIfNeeded: false)
+        let workspace = try #require(manager.selectedWorkspace)
+        let pane = try #require(workspace.bonsplitController.focusedPaneId)
+        let added = try #require(workspace.newTerminalSurface(inPane: pane, focus: false))
+        let realIds = Set(workspace.panels.keys)
+        let spill = try #require(manager.applyGdockGridShapeAndSpill(.init(rows: 1, cols: 1), to: workspace))
+        #expect(manager.tabs.count == 2)
+        #expect(Set(manager.tabs.flatMap { $0.panels.keys }) == realIds)
+        #expect(spill.panels.count == 1)
+        #expect(spill.panels[added.id] != nil)
+        #expect(manager.applyGdockGridShapeAndSpill(.init(rows: 1, cols: 1), to: spill) == nil)
+    }
+
     @Test func newSurfaceActivatesPlaceholderBeforeRollingOverARealPanel() {
         let first = UUID(), placeholder = UUID(), third = UUID()
         let route = GdockGridNewSurfacePlanner.route(
