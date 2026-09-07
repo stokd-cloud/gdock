@@ -10243,6 +10243,7 @@ final class Workspace: Identifiable, ObservableObject, FilePreviewTabMetadataHos
 #endif
         owningTabManager?.noteGdockGridPanelTouch(panelId)
         guard let tabId = surfaceIdFromPanelId(panelId) else { return }
+        activateGdockGridPlaceholderIfNeeded(panelId: panelId)
         // In canvas mode, focusing a panel also brings it forward as its
         // pane's selected tab so focus and visibility never diverge.
         if layoutMode == .canvas {
@@ -11663,6 +11664,9 @@ final class Workspace: Identifiable, ObservableObject, FilePreviewTabMetadataHos
         runtimeSpawnPolicy: TerminalSurfaceRuntimeSpawnPolicy = .immediate
     ) -> TerminalPanel? {
         var inheritedConfig = inheritedTerminalConfig(inPane: paneId)
+        if isApplyingGdockGridShape, let template = inheritedConfig {
+            inheritedConfig = GdockGridSplitAction.placeholderConfigTemplate(from: template)
+        }
         let requestedRemoteStartupCommand = remoteStartupCommand?.trimmingCharacters(in: .whitespacesAndNewlines)
         let startupCommand = requestedRemoteStartupCommand?.isEmpty == false ? requestedRemoteStartupCommand : nil
         let effectiveStartupEnvironment = terminalStartupEnvironment(
@@ -13022,9 +13026,7 @@ extension Workspace: BonsplitDelegate {
             terminalPanel.applyWindowBackgroundIfActive()
             // gdock Grid Mode: focusing an unactivated cell starts its held
             // terminal runtime.
-            if GdockGridModeSettings.isEnabled() {
-                activateGdockGridPlaceholderIfNeeded(panelId: panelId)
-            }
+            activateGdockGridPlaceholderIfNeeded(panelId: panelId)
         }
     }
 

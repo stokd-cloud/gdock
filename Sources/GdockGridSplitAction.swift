@@ -73,6 +73,17 @@ enum GdockGridSplitAction {
             return .alreadyShaped
         }
 
+        workspace.isApplyingGdockGridShape = true
+        defer { workspace.isApplyingGdockGridShape = false }
+        // Vacant cells are layout scaffolding, not surfaces to preserve as overflow.
+        // Keep one only when it is the workspace's last panel.
+        for panelId in workspace.gdockGridPlaceholderPanelIds where workspace.panels.count > 1 {
+            if workspace.closePanel(panelId, force: true) {
+                workspace.gdockGridPlaceholderPanelIds.remove(panelId)
+            }
+        }
+        workspace.gdockGridPlaceholderPanelIds.formIntersection(workspace.panels.keys)
+
         let panes = QuadSplitAction.orderedPaneSnapshots(workspace: workspace)
         let plan = GdockGridSplitPlanner.plan(
             panes: panes,
@@ -83,8 +94,6 @@ enum GdockGridSplitAction {
             return .vetoed(.emptyWorkspace)
         }
 
-        workspace.isApplyingGdockGridShape = true
-        defer { workspace.isApplyingGdockGridShape = false }
         workspace.clearSplitZoom()
 
         // Collapse every surface into the anchor pane so the deal-out below
@@ -220,6 +229,7 @@ extension Workspace {
     /// activate the cells it just created).
     func activateGdockGridPlaceholderIfNeeded(panelId: UUID) {
         guard !isApplyingGdockGridShape,
+              owningTabManager?.isReconcilingGdockGridMode != true,
               gdockGridPlaceholderPanelIds.contains(panelId),
               let terminalPanel = panels[panelId] as? TerminalPanel else {
             return

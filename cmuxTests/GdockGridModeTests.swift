@@ -157,9 +157,12 @@ import CmuxTerminalCore
         let placeholders = workspace.gdockGridPlaceholderPanelIds
         #expect(placeholders.count == 3)
         for panelId in placeholders {
+            let terminal = try #require(workspace.terminalPanel(for: panelId))
+            #expect(!terminal.surface.canCreateRuntimeSurface)
             let pane = try #require(workspace.paneId(forPanelId: panelId))
             workspace.bonsplitController.focusPane(pane)
             #expect(!workspace.isGdockGridPlaceholder(panelId: panelId))
+            #expect(terminal.surface.canCreateRuntimeSurface)
         }
     }
 
@@ -202,7 +205,13 @@ import CmuxTerminalCore
         #expect(Set(manager.tabs.flatMap { $0.panels.keys }) == realIds)
         #expect(spill.panels.count == 1)
         #expect(spill.panels[added.id] != nil)
-        #expect(manager.applyGdockGridShapeAndSpill(.init(rows: 1, cols: 1), to: spill) == nil)
+        for _ in 0..<10 {
+            for candidate in manager.tabs {
+                #expect(manager.applyGdockGridShapeAndSpill(.init(rows: 1, cols: 1), to: candidate) == nil)
+            }
+            #expect(manager.tabs.count == 2)
+            #expect(Set(manager.tabs.flatMap { $0.panels.keys }) == realIds)
+        }
     }
 
     @Test func newSurfaceActivatesPlaceholderBeforeRollingOverARealPanel() {
