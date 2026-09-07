@@ -152,26 +152,26 @@ def expect_icon_composer(
         fail(f"{label} dark fill {dark_fill!r} is not system-dark")
 
     layers = icon_layers(data)
-    light_layer = find_layer(layers, "gdock-light.png")
-    dark_layer = find_layer(layers, "gdock-dark.png")
+    light_layer = find_layer(layers, "gdock-dark.png")
+    dark_layer = find_layer(layers, "gdock-light.png")
     if light_layer is None:
-        fail(f"{label} has no Default layer gdock-light.png")
+        fail(f"{label} has no Default layer gdock-dark.png")
     else:
         if layer_hidden(light_layer, None):
-            fail("gdock-light.png must be visible in Default")
+            fail("black-base artwork must be visible in Default")
         if not layer_hidden(light_layer, "dark"):
-            fail("gdock-light.png must be hidden in Dark")
+            fail("black-base artwork must be hidden in Dark")
         if not layer_hidden(light_layer, "tinted"):
-            fail("gdock-light.png must be hidden in Tinted/Clear")
+            fail("black-base artwork must be hidden in Tinted/Clear")
     if dark_layer is None:
-        fail(f"{label} has no Dark layer gdock-dark.png")
+        fail(f"{label} has no Dark layer gdock-light.png")
     else:
         if not layer_hidden(dark_layer, None):
-            fail("gdock-dark.png must be hidden in Default")
+            fail("white-base artwork must be hidden in Default")
         if layer_hidden(dark_layer, "dark"):
-            fail("gdock-dark.png must be visible in Dark")
+            fail("white-base artwork must be visible in Dark")
         if not layer_hidden(dark_layer, "tinted"):
-            fail("gdock-dark.png must be hidden in Tinted/Clear")
+            fail("white-base artwork must be hidden in Tinted/Clear")
 
     glyph_layers = [
         layer
@@ -221,20 +221,20 @@ def expect_source(path: str, platform: tuple[int, int, int], label: str) -> Imag
 def main() -> int:
     light_src = expect_source(LIGHT_SRC, LIGHT_PLATFORM, "design/gdock-light.png")
     dark_src = expect_source(DARK_SRC, DARK_PLATFORM, "design/gdock-dark.png")
-    light_set = expect_source(LIGHT_IMAGESET, LIGHT_PLATFORM, "AppIconLight.png")
-    dark_set = expect_source(DARK_IMAGESET, DARK_PLATFORM, "AppIconDark.png")
+    light_set = expect_source(LIGHT_IMAGESET, DARK_PLATFORM, "AppIconLight.png")
+    dark_set = expect_source(DARK_IMAGESET, LIGHT_PLATFORM, "AppIconDark.png")
 
-    if light_src is not None and light_set is not None:
-        pixels_equal(light_src, light_set, "AppIconLight.png vs design/gdock-light.png")
-    if dark_src is not None and dark_set is not None:
-        pixels_equal(dark_src, dark_set, "AppIconDark.png vs design/gdock-dark.png")
+    if dark_src is not None and light_set is not None:
+        pixels_equal(dark_src, light_set, "AppIconLight.png vs black-base source")
+    if light_src is not None and dark_set is not None:
+        pixels_equal(light_src, dark_set, "AppIconDark.png vs white-base source")
 
     light_1024 = load(os.path.join(APPICONSET, "512@2x.png"))
     dark_1024 = load(os.path.join(APPICONSET, "512@2x_dark.png"))
-    if light_src is not None and light_1024 is not None:
-        pixels_equal(light_src, light_1024, "512@2x.png vs design/gdock-light.png")
-    if dark_src is not None and dark_1024 is not None:
-        pixels_equal(dark_src, dark_1024, "512@2x_dark.png vs design/gdock-dark.png")
+    if dark_src is not None and light_1024 is not None:
+        pixels_equal(dark_src, light_1024, "512@2x.png vs black-base source")
+    if light_src is not None and dark_1024 is not None:
+        pixels_equal(light_src, dark_1024, "512@2x_dark.png vs white-base source")
 
     for filename, pixels in SIZES:
         for name in (filename, f"{os.path.splitext(filename)[0]}_dark.png"):
