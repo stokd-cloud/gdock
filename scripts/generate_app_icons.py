@@ -4,7 +4,9 @@
 AX-GDOCK-ICONS-SOURCE: those two 1024x1024 files are the canonical light and
 dark sources. This script resizes them into AppIcon.appiconset, copies them
 into the AppIconLight/Dark imagesets and iOS AppIcon sets, and overlays DEV /
-NIGHTLY banners for the Debug and Nightly icon sets.
+NIGHTLY banners for the Debug and Nightly icon sets. macOS uses the black
+platform for Default/Light and the white platform for Dark; iOS keeps its
+existing light/dark assignments.
 
 Do not synthesize a glow or rebuild the mark from design/cmux-icon-chevron.png.
 
@@ -152,14 +154,14 @@ def main() -> int:
         )
 
     print("AppIcon.appiconset:")
-    write_set(light, APPICONSET)
-    write_set(dark, APPICONSET, suffix="_dark")
+    write_set(dark, APPICONSET)
+    write_set(light, APPICONSET, suffix="_dark")
 
     print("imagesets:")
-    copy_1024(LIGHT_SRC, LIGHT_IMAGESET)
-    copy_1024(DARK_SRC, DARK_IMAGESET)
-    copy_1024(LIGHT_SRC, os.path.join(REPO, "design", "512@2x.png"))
-    copy_1024(DARK_SRC, os.path.join(REPO, "design", "512@2x_dark.png"))
+    copy_1024(DARK_SRC, LIGHT_IMAGESET)
+    copy_1024(LIGHT_SRC, DARK_IMAGESET)
+    copy_1024(DARK_SRC, os.path.join(REPO, "design", "512@2x.png"))
+    copy_1024(LIGHT_SRC, os.path.join(REPO, "design", "512@2x_dark.png"))
 
     print("iOS:")
     for iconset in IOS_SETS:
@@ -168,11 +170,11 @@ def main() -> int:
         write_tinted(os.path.join(iconset, "AppIconTinted.png"))
 
     print("AppIcon-Debug:")
-    debug_1024 = overlay_banner(light, "DEV", ORANGE)
+    debug_1024 = overlay_banner(dark, "DEV", ORANGE)
     write_set(debug_1024, DEBUG_SET)
 
     print("AppIcon-Nightly:")
-    nightly_1024 = overlay_banner(light, "NIGHTLY", PURPLE)
+    nightly_1024 = overlay_banner(dark, "NIGHTLY", PURPLE)
     write_set(nightly_1024, NIGHTLY_SET)
 
     print("AppIcon.icon:")

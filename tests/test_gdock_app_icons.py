@@ -2,9 +2,10 @@
 """AX-GDOCK-ICONS-SOURCE: shipped raster icons match design/gdock-{light,dark}.png.
 
 The canonical sources are 1024x1024 mockups (3D isometric cube on a light/dark
-platform, transparent corners, no glow). AppIconLight/Dark, AppIcon.appiconset
-512@2x(+_dark), and the iOS AppIcon/AppIconDark files must be pixel-identical
-to those sources. Smaller sizes must exist at the documented pixel dimensions.
+platform, transparent corners, no glow). macOS Default/Light uses the black
+platform and Dark uses the white platform; iOS keeps the matching light/dark
+sources. Generated files must be pixel-identical to the assigned sources.
+Smaller sizes must exist at the documented pixel dimensions.
 Debug 512@2x must keep the cube (not the old cmux chevron) under a DEV banner.
 """
 

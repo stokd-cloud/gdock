@@ -26,8 +26,8 @@
               "value" : true
             }
           ],
-          "image-name" : "gdock-light.png",
-          "name" : "Light"
+          "image-name" : "gdock-dark.png",
+          "name" : "Default - Black Base"
         },
         {
           "glass" : false,
@@ -42,8 +42,8 @@
               "value" : true
             }
           ],
-          "image-name" : "gdock-dark.png",
-          "name" : "Dark"
+          "image-name" : "gdock-light.png",
+          "name" : "Dark - White Base"
         }
       ],
       "name" : "Mark",
