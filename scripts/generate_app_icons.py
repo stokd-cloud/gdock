@@ -2,16 +2,21 @@
 """Generate gdock raster app icons from design/gdock-{light,dark}.png.
 
 AX-GDOCK-ICONS-SOURCE: those two 1024x1024 files are the canonical light and
-dark sources. This script resizes them into AppIcon.appiconset, copies them
-into the AppIconLight/Dark imagesets and iOS AppIcon sets, and overlays DEV /
-NIGHTLY banners for the Debug and Nightly icon sets. macOS uses the black
-platform for Default/Light and the white platform for Dark; iOS keeps its
-existing light/dark assignments.
+dark sources. This script copies them into the AppIconLight/Dark imagesets and
+the iOS AppIcon sets, and overlays DEV / NIGHTLY banners for the Debug and
+Nightly icon sets. macOS uses the black platform for Default/Light and the
+white platform for Dark; iOS keeps its existing light/dark assignments.
 
 Do not synthesize a glow or rebuild the mark from design/cmux-icon-chevron.png.
 
 Also copies the light/dark mockups and a glass cube glyph into AppIcon.icon/Assets
 for Tahoe Default / Dark / Tinted+Clear appearances.
+
+The macOS app icon itself ships from the AppIcon.icon Icon Composer bundle
+(compiled as the app icon; ASSETCATALOG_COMPILER_APPICON_NAME=AppIcon). This
+script does NOT generate a flat mac AppIcon.appiconset anymore: actool drops
+appearance-keyed dark children of a flat mac app icon set, so that set can
+never render the dark icon style.
 """
 
 from __future__ import annotations
@@ -27,7 +32,6 @@ LIGHT_SRC = os.path.join(REPO, "design", "gdock-light.png")
 DARK_SRC = os.path.join(REPO, "design", "gdock-dark.png")
 CUBE_GLYPH = os.path.join(REPO, "design", "ghostty-dock-icon-v2.png")
 
-APPICONSET = os.path.join(REPO, "Assets.xcassets", "AppIcon.appiconset")
 DEBUG_SET = os.path.join(REPO, "Assets.xcassets", "AppIcon-Debug.appiconset")
 NIGHTLY_SET = os.path.join(REPO, "Assets.xcassets", "AppIcon-Nightly.appiconset")
 LIGHT_IMAGESET = os.path.join(
@@ -152,10 +156,6 @@ def main() -> int:
         raise SystemExit(
             f"canonical sources must be 1024x1024; got light={light.size} dark={dark.size}"
         )
-
-    print("AppIcon.appiconset:")
-    write_set(dark, APPICONSET)
-    write_set(light, APPICONSET, suffix="_dark")
 
     print("imagesets:")
     copy_1024(DARK_SRC, LIGHT_IMAGESET)

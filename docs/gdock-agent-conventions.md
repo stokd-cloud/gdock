@@ -519,16 +519,22 @@ existing read-only consumer described in AX-GDOCK-PANEL-CARD-SESSION-SUMMARY.
 
 Gdock raster app icons are generated from `design/gdock-light.png` and
 `design/gdock-dark.png`. Those two 1024x1024 files are the canonical light and
-dark sources. Every `AppIcon.appiconset` size, the `AppIconLight` /
-`AppIconDark` imagesets, the iOS `AppIcon` / `AppIconDark` files, and the
-Debug / Nightly banner variants are a resize or overlay of those sources. Do
-not synthesize a glow, recolor the cube from the old cmux chevron, or
-hand-edit a single size.
+dark sources. The `AppIconLight` / `AppIconDark` imagesets, the iOS `AppIcon` /
+`AppIconDark` files, and the Debug / Nightly banner variants are a resize or
+overlay of those sources. Do not synthesize a glow, recolor the cube from the
+old cmux chevron, or hand-edit a single size.
 
-Tahoe Icon & widget style is shipped from `AppIcon.icon`: Default is the light
-mockup, Dark is the dark mockup, and Clear/Tinted use a glass cube glyph.
-Automatic in-app icon mode must leave the system bundle icon in place so those
-styles can apply.
+Tahoe Icon & widget style is shipped from the Icon Composer `AppIcon.icon`
+bundle, which is COMPILED as the mac app icon — not merely copied into
+Resources. Default is the light mockup, Dark is the dark mockup, and
+Clear/Tinted use a glass cube glyph. Automatic in-app icon mode must leave the
+system bundle icon in place so those styles can apply.
+
+There must be no flat mac `AppIcon.appiconset`: actool silently drops
+appearance-keyed dark children of a flat mac app icon set (build warning
+"the app icon set AppIcon has N unassigned children"), so a flat set can never
+render the dark icon style and the Dock shows one baked raster for every
+appearance.
 
 ### Why
 
@@ -540,6 +546,10 @@ styles can apply.
 - Painting `AppIconLight`/`AppIconDark` onto the Dock or
   `applicationIconImage` in automatic mode freezes every Tahoe style on one
   image.
+- macOS cannot render appearance variants from a flat mac app iconset: the
+  dark children are dropped at catalog compile time. Only the Icon Composer
+  `.icon` (compiled into Assets.car as IconImageStacks for
+  Default/Dark/Tinted) delivers the dark icon style's white platform.
 - One pair of sources keeps Dock, Finder, Settings picker, iOS, and
   Debug / Nightly icons the same mark.
 
@@ -547,18 +557,21 @@ styles can apply.
 
 1. Put new mockups at `design/gdock-light.png` and `design/gdock-dark.png`
    (1024x1024 RGBA).
-2. Run `python3 scripts/generate_app_icons.py` to resize into
-   `AppIcon.appiconset` (light + dark), the `AppIconLight` / `AppIconDark`
-   imagesets, the iOS AppIcon sets, Debug / Nightly banner variants, and
-   `AppIcon.icon/Assets`.
+2. Run `python3 scripts/generate_app_icons.py` to write the `AppIconLight` /
+   `AppIconDark` imagesets, the iOS AppIcon sets, Debug / Nightly banner
+   variants, and `AppIcon.icon/Assets`.
 3. Do not edit individual size PNGs by hand. Do not call the old
    glow-from-chevron path in `generate_dark_icon.py`.
 4. Icon Composer `AppIcon.icon` and `AppIcon-Debug.icon`: Default layer =
    light mockup, Dark layer = dark mockup (hidden outside Dark), Tinted/Clear
    layer = cube glyph with `glass` true (hidden outside tinted). Fill is
-   `system-light` with dark fill-specialization `system-dark`. Both `.icon`
-   bundles must be in the cmux target Resources phase (tagged reloads use
-   `AppIcon-Debug`). Set
+   `system-light` with dark fill-specialization `system-dark`. `AppIcon.icon`
+   must be referenced in `cmux.xcodeproj/project.pbxproj` as a single file
+   reference (`lastKnownFileType = file`, IC000002) in the cmux target
+   Resources phase — a `folder` reference is only copied into the bundle and
+   is never compiled as the app icon. Keep
+   `ASSETCATALOG_COMPILER_APPICON_NAME` selecting `AppIcon` (untagged
+   Release) / `AppIcon-Debug` (tagged/Debug) and
    `ASSETCATALOG_OTHER_FLAGS=--enable-icon-stack-fallback-generation=disabled`.
 5. Automatic runtime mode restores the system bundle icon
    (`applicationIconImage = nil`, dock tile `showDefaultAppIcon`). Light/Dark
@@ -567,10 +580,20 @@ styles can apply.
 ### Acceptance Checks
 
 - Runnable: `python3 tests/test_gdock_app_icons.py` exits 0.
+- `Assets.xcassets/AppIcon.appiconset` does not exist; the test fails if it
+  reappears.
+- `AppIcon.icon` is a `lastKnownFileType = file` reference in
+  `cmux.xcodeproj/project.pbxproj`; the test fails if it regresses to
+  `folder`.
 - `AppIconLight.png` equals `design/gdock-light.png` and `AppIconDark.png`
   equals `design/gdock-dark.png`.
 - `AppIcon.icon` Default uses the light mockup, Dark uses the dark mockup,
   Tinted/Clear uses the glass cube glyph.
+- A compiled asset catalog (actool with `--app-icon AppIcon` over
+  `Assets.xcassets` + `AppIcon.icon`) produces an Assets.car containing
+  IconImageStack renditions for `NSAppearanceNameDarkAqua`,
+  `NSAppearanceNameAqua`, and `ISAppearanceTintable`, plus an `AppIcon.icns`
+  fallback.
 - Automatic mode does not set a baked raster as `applicationIconImage`.
 - Light center is ~ `(224,224,224)` and dark center is ~ `(31,31,31)`;
   neither center is cyan-glow.

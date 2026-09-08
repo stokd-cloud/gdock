@@ -7,12 +7,21 @@ platform and Dark uses the white platform; iOS keeps the matching light/dark
 sources. Generated files must be pixel-identical to the assigned sources.
 Smaller sizes must exist at the documented pixel dimensions.
 Debug 512@2x must keep the cube (not the old cmux chevron) under a DEV banner.
+
+The macOS app icon ships from the Tahoe Icon Composer bundles (AppIcon.icon /
+AppIcon-Debug.icon), NOT from a flat mac AppIcon.appiconset: actool silently
+drops appearance-keyed dark children of a flat mac app icon set ("the app icon
+set AppIcon has N unassigned children"), so a flat set can never render the
+dark icon style. AppIcon.icon must be referenced in cmux.xcodeproj as a single
+file reference (lastKnownFileType = file) so the asset compiler compiles the
+composer bundle as the app icon instead of copying it as loose resources.
 """
 
 from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 
 from PIL import Image
@@ -28,6 +37,7 @@ DARK_IMAGESET = os.path.join(
     ROOT, "Assets.xcassets", "AppIconDark.imageset", "AppIconDark.png"
 )
 APPICONSET = os.path.join(ROOT, "Assets.xcassets", "AppIcon.appiconset")
+PBXPROJ = os.path.join(ROOT, "cmux.xcodeproj", "project.pbxproj")
 DEBUG_1024 = os.path.join(
     ROOT, "Assets.xcassets", "AppIcon-Debug.appiconset", "512@2x.png"
 )
@@ -219,32 +229,51 @@ def expect_source(path: str, platform: tuple[int, int, int], label: str) -> Imag
     return img
 
 
+def expect_app_icon_wiring() -> None:
+    """The mac app icon must ship from the .icon composer, not a flat set."""
+    if os.path.isdir(APPICONSET):
+        fail(
+            "Assets.xcassets/AppIcon.appiconset must not exist: macOS actool "
+            "drops appearance-keyed dark children of a flat mac app icon set "
+            "('unassigned children' warning), so the flat set can never render "
+            "the dark icon style. The app icon ships from AppIcon.icon."
+        )
+    if not os.path.isfile(PBXPROJ):
+        fail(f"missing {os.path.relpath(PBXPROJ, ROOT)}")
+        return
+    with open(PBXPROJ, encoding="utf-8") as handle:
+        pbxproj = handle.read()
+    match = re.search(
+        r"IC000002 /\* AppIcon\.icon \*/ = \{isa = PBXFileReference; "
+        r"lastKnownFileType = ([a-z.]+);",
+        pbxproj,
+    )
+    if match is None:
+        fail(
+            "cmux.xcodeproj: IC000002 AppIcon.icon file reference not found; "
+            "AppIcon.icon must be a target member so it is compiled."
+        )
+    elif match.group(1) != "file":
+        fail(
+            f"cmux.xcodeproj: AppIcon.icon lastKnownFileType is "
+            f"{match.group(1)!r}, expected 'file' — folder references are only "
+            "copied into Resources, never compiled as the app icon, so the "
+            "Tahoe Dark icon style never renders."
+        )
+
+
 def main() -> int:
     light_src = expect_source(LIGHT_SRC, LIGHT_PLATFORM, "design/gdock-light.png")
     dark_src = expect_source(DARK_SRC, DARK_PLATFORM, "design/gdock-dark.png")
     light_set = expect_source(LIGHT_IMAGESET, DARK_PLATFORM, "AppIconLight.png")
     dark_set = expect_source(DARK_IMAGESET, LIGHT_PLATFORM, "AppIconDark.png")
 
+    expect_app_icon_wiring()
+
     if dark_src is not None and light_set is not None:
         pixels_equal(dark_src, light_set, "AppIconLight.png vs black-base source")
     if light_src is not None and dark_set is not None:
         pixels_equal(light_src, dark_set, "AppIconDark.png vs white-base source")
-
-    light_1024 = load(os.path.join(APPICONSET, "512@2x.png"))
-    dark_1024 = load(os.path.join(APPICONSET, "512@2x_dark.png"))
-    if dark_src is not None and light_1024 is not None:
-        pixels_equal(dark_src, light_1024, "512@2x.png vs black-base source")
-    if light_src is not None and dark_1024 is not None:
-        pixels_equal(light_src, dark_1024, "512@2x_dark.png vs white-base source")
-
-    for filename, pixels in SIZES:
-        for name in (filename, f"{os.path.splitext(filename)[0]}_dark.png"):
-            path = os.path.join(APPICONSET, name)
-            img = load(path)
-            if img is None:
-                continue
-            if img.size != (pixels, pixels):
-                fail(f"{os.path.relpath(path, ROOT)}: size {img.size} != ({pixels}, {pixels})")
 
     for iconset in IOS_ICONSETS:
         ios_light = load(os.path.join(iconset, "AppIcon.png"))
