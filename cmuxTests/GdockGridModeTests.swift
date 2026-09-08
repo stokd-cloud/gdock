@@ -11,7 +11,7 @@ import CmuxTerminalCore
 
 /// Pure coverage for gdock Grid Mode: shape codec, cell planning, grid
 /// signature matching, and the fork's settings/palette prefix conventions.
-@Suite struct GdockGridModeTests {
+@Suite(.serialized) struct GdockGridModeTests {
     // MARK: - GdockGridShape codec
 
     @Test func parsesAndEncodesShape() throws {

@@ -12971,6 +12971,10 @@ extension Workspace: BonsplitDelegate {
         }
         scheduleTerminalGeometryReconcile()
         if !isDetaching {
+            // Bonsplit publishes its geometry callback before this delegate has
+            // finished removing the closed panel. Re-check the settled tree so
+            // Grid Mode can restore a collapsed cell from the final state.
+            owningTabManager?.scheduleGdockGridModeReconcileIfNeeded(for: self)
             scheduleFocusReconcile()
         }
     }
@@ -13652,6 +13656,7 @@ extension Workspace: BonsplitDelegate {
         // sequence actually changed, so divider drags and selection-only events
         // (also routed here) do not fire `objectWillChange` app-wide.
         surfaceList.registerGeometryChange()
+        owningTabManager?.scheduleGdockGridModeReconcileIfNeeded(for: self)
         scheduleTerminalGeometryReconcile()
         if !isDetachingCloseTransaction {
             scheduleFocusReconcile()
