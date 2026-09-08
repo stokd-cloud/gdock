@@ -16,6 +16,22 @@ extension TabManager {
         }
     }
 
+    /// Restore Grid Mode after a workspace membership mutation collapses or
+    /// otherwise changes its pane tree. Geometry-only changes are ignored when
+    /// the workspace already matches the configured shape.
+    func scheduleGdockGridModeReconcileIfNeeded(for workspace: Workspace) {
+        guard GdockGridModeSettings.isEnabled(),
+              !workspace.isApplyingGdockGridShape,
+              GdockGridSplitAction.preflight(workspace: workspace) == nil,
+              !GdockGridSplitAction.matchesShape(
+                  GdockGridModeSettings.shape(),
+                  workspace: workspace
+              ) else {
+            return
+        }
+        scheduleGdockGridModeReconcile()
+    }
+
     /// Immediately enforce the configured grid shape on every workspace.
     ///
     /// Workspaces the shape apply vetoes (canvas, remote) are left alone.

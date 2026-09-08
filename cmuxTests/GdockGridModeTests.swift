@@ -11,7 +11,7 @@ import CmuxTerminalCore
 
 /// Pure coverage for gdock Grid Mode: shape codec, cell planning, grid
 /// signature matching, and the fork's settings/palette prefix conventions.
-@Suite struct GdockGridModeTests {
+@Suite(.serialized) struct GdockGridModeTests {
     // MARK: - GdockGridShape codec
 
     @Test func parsesAndEncodesShape() throws {
@@ -142,6 +142,73 @@ import CmuxTerminalCore
             #expect(workspace.bonsplitController.tabs(inPane: paneId).count == 1)
             #expect(workspace.bonsplitController.isFullWidthTabMode(inPane: paneId))
         }
+    }
+
+    @Test @MainActor
+    func closingGridCellRebuildsConfiguredShape() async throws {
+        let previousGrid = UserDefaults.standard.object(forKey: GdockGridModeSettings.userDefaultsKey)
+        let previousShape = UserDefaults.standard.object(forKey: GdockGridModeSettings.shapeUserDefaultsKey)
+        GdockGridModeSettings.setEnabled(true)
+        GdockGridModeSettings.setShape(.quad)
+        let manager = TabManager()
+        defer {
+            manager.gdockGridModeReconcileTask?.cancel()
+            UserDefaults.standard.set(previousGrid, forKey: GdockGridModeSettings.userDefaultsKey)
+            UserDefaults.standard.set(previousShape, forKey: GdockGridModeSettings.shapeUserDefaultsKey)
+        }
+
+        let workspace = try #require(manager.selectedWorkspace)
+        let initialPane = try #require(workspace.bonsplitController.allPaneIds.first)
+        for _ in 0..<3 {
+            _ = try #require(workspace.newTerminalSurface(inPane: initialPane, focus: false))
+        }
+        #expect(GdockGridSplitAction.applyShape(.quad, to: workspace) == .success(overflowPanelIds: []))
+        let originalPanelIds = Set(workspace.panels.keys)
+        let closedPanelId = try #require(originalPanelIds.first)
+
+        #expect(workspace.closePanel(closedPanelId, force: true))
+        let survivingPanelIds = originalPanelIds.subtracting([closedPanelId])
+        #expect(!GdockGridSplitAction.matchesShape(.quad, workspace: workspace))
+
+        try await Task.sleep(nanoseconds: 400_000_000)
+
+        #expect(GdockGridSplitAction.matchesShape(.quad, workspace: workspace))
+        #expect(workspace.bonsplitController.allPaneIds.count == 4)
+        #expect(workspace.bonsplitController.allPaneIds.allSatisfy {
+            workspace.bonsplitController.tabs(inPane: $0).count == 1
+        })
+        #expect(workspace.gdockGridPlaceholderPanelIds.count == 1)
+        let realPanelIds = Set(workspace.panels.keys).subtracting(workspace.gdockGridPlaceholderPanelIds)
+        #expect(realPanelIds == survivingPanelIds)
+    }
+
+    @Test @MainActor
+    func closingCellDoesNotRebuildGridWhenGridModeIsDisabled() async throws {
+        let previousGrid = UserDefaults.standard.object(forKey: GdockGridModeSettings.userDefaultsKey)
+        let previousShape = UserDefaults.standard.object(forKey: GdockGridModeSettings.shapeUserDefaultsKey)
+        GdockGridModeSettings.setEnabled(false)
+        GdockGridModeSettings.setShape(.quad)
+        let manager = TabManager()
+        defer {
+            manager.gdockGridModeReconcileTask?.cancel()
+            UserDefaults.standard.set(previousGrid, forKey: GdockGridModeSettings.userDefaultsKey)
+            UserDefaults.standard.set(previousShape, forKey: GdockGridModeSettings.shapeUserDefaultsKey)
+        }
+
+        let workspace = try #require(manager.selectedWorkspace)
+        let initialPane = try #require(workspace.bonsplitController.allPaneIds.first)
+        for _ in 0..<3 {
+            _ = try #require(workspace.newTerminalSurface(inPane: initialPane, focus: false))
+        }
+        #expect(GdockGridSplitAction.applyShape(.quad, to: workspace) == .success(overflowPanelIds: []))
+        let closedPanelId = try #require(workspace.panels.keys.first)
+
+        #expect(workspace.closePanel(closedPanelId, force: true))
+        try await Task.sleep(nanoseconds: 400_000_000)
+
+        #expect(workspace.bonsplitController.allPaneIds.count == 3)
+        #expect(!GdockGridSplitAction.matchesShape(.quad, workspace: workspace))
+        #expect(workspace.gdockGridPlaceholderPanelIds.isEmpty)
     }
 
     // MARK: - Session round-trip and dormant cell admission
