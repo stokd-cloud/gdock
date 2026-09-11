@@ -74,6 +74,7 @@ final class SidebarWorkspaceRowTableCellView: NSTableCellView {
     /// Test seam: observes every full model application (configure, pump,
     /// optimistic press/deselect, hover enforcement).
     var applyModelProbeForTesting: ((SidebarWorkspaceRowModel) -> Void)?
+    var titleFontForTesting: NSFont? { titleView.font }
 #endif
 
     /// Per-row churn pump: mirrors TabItemView's onReceive subscriptions so
