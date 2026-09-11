@@ -3,17 +3,23 @@
 # Installed by ./scripts/setup.sh via `git config core.hooksPath scripts/git-hooks`.
 # Normalizes cmux.xcodeproj/project.pbxproj when staged so Xcode's
 # nondeterministic section reordering never reaches a commit.
+# Also refuses to commit worktree sharing-symlinks in place of submodule gitlinks.
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 PBXPROJ="cmux.xcodeproj/project.pbxproj"
 
-# Only run when the pbxproj is part of this commit.
+cd "$REPO_ROOT"
+
+if [ -x "$REPO_ROOT/scripts/lint-submodule-gitlinks.sh" ]; then
+    TREE="$(git write-tree)"
+    "$REPO_ROOT/scripts/lint-submodule-gitlinks.sh" --repo-root "$REPO_ROOT" --tree "$TREE"
+fi
+
+# Only normalize when the pbxproj is part of this commit.
 if ! git diff --cached --name-only --diff-filter=ACMRT | grep -Fxq "$PBXPROJ"; then
     exit 0
 fi
-
-cd "$REPO_ROOT"
 
 # Refuse to normalize when the working-tree pbxproj has unstaged changes.
 # Otherwise the `git add` at the end would silently stage hunks the

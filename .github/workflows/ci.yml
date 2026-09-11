@@ -89,6 +89,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Validate submodule gitlinks
+        run: ./tests/test_ci_submodule_gitlinks.sh
+
       - name: Validate macOS runner guards
         run: ./tests/test_ci_self_hosted_guard.sh
 
