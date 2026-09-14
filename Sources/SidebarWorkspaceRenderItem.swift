@@ -73,8 +73,11 @@ enum SidebarWorkspaceRenderItem {
     ///
     /// A card row is emitted after the workspace's own row, or after the group
     /// header when the focused workspace is its group's anchor (the anchor has
-    /// no row of its own). A focused workspace hidden inside a collapsed group
-    /// contributes no cards, because there is no visible row to attach them to.
+    /// no row of its own). A workspace that is not in `tabs` at all still
+    /// contributes no cards. A *member* of a collapsed group that does have
+    /// cards is listed under the header: Grid Mode rollover parks running
+    /// agents on those members, and dropping the stack would hide a live
+    /// session while the PTY kept running.
     static func renderItems(
         tabs: [Workspace],
         groupsById: [UUID: WorkspaceGroup],
@@ -104,19 +107,36 @@ enum SidebarWorkspaceRenderItem {
         guard !carded.isEmpty else { return base }
 
         var result: [SidebarWorkspaceRenderItem] = []
-        result.reserveCapacity(base.count)
+        result.reserveCapacity(base.count + carded.count)
+        var emittedCarded: Set<UUID> = []
         for item in base {
             switch item {
             case .workspace(let workspaceId):
                 if let panelIds = carded[workspaceId] {
                     result.append(.panelCardStack(workspaceId: workspaceId, panelIds: panelIds))
+                    emittedCarded.insert(workspaceId)
                 } else {
                     result.append(item)
                 }
-            case .groupHeader(_, let anchorWorkspaceId):
+            case .groupHeader(let groupId, let anchorWorkspaceId):
                 result.append(item)
                 if let panelIds = carded[anchorWorkspaceId] {
                     result.append(.panelCardStack(workspaceId: anchorWorkspaceId, panelIds: panelIds))
+                    emittedCarded.insert(anchorWorkspaceId)
+                }
+                // Collapsed groups skip member *rows*, but a running agent on
+                // a member must stay listed under the header. Selection often
+                // stays on the anchor after Grid Mode rollover, and focusing
+                // the anchor does not auto-expand the group.
+                if groupsById[groupId]?.isCollapsed == true {
+                    for tab in tabs where tab.groupId == groupId && tab.id != anchorWorkspaceId {
+                        guard !emittedCarded.contains(tab.id),
+                              let panelIds = carded[tab.id] else {
+                            continue
+                        }
+                        result.append(.panelCardStack(workspaceId: tab.id, panelIds: panelIds))
+                        emittedCarded.insert(tab.id)
+                    }
                 }
             case .panelCardStack:
                 result.append(item)

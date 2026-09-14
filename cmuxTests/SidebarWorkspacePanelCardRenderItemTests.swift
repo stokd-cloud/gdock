@@ -305,4 +305,32 @@ struct SidebarWorkspacePanelCardRenderItemTests {
         #expect(!workspaceRowIds(items).contains(member))
         #expect(!workspaceRowIds(items).contains(group.anchorWorkspaceId))
     }
+
+    /// Shell members stay hidden when the group is collapsed. Only workspaces
+    /// that actually have agent cards are an exception to skip-children.
+    @Test func aCollapsedRepoGroupStillHidesMembersWithoutAgentCards() throws {
+        let manager = makeTabManager()
+        manager.addWorkspace(autoWelcomeIfNeeded: false)
+        manager.addWorkspace(autoWelcomeIfNeeded: false)
+        let originalIds = manager.tabs.map(\.id)
+        let groupId = try #require(manager.createWorkspaceGroup(
+            name: "stokd-cloud/gdock",
+            childWorkspaceIds: [originalIds[0], originalIds[1]],
+            selectAnchor: false,
+            collapseSidebarSelection: false,
+            insertDedicatedAnchor: false
+        ))
+        manager.setWorkspaceGroupCollapsed(groupId: groupId, isCollapsed: true)
+        let group = try #require(manager.workspaceGroups.first { $0.id == groupId })
+        let member = originalIds.first { $0 != group.anchorWorkspaceId } ?? originalIds[1]
+
+        let items = Item.renderItems(
+            tabs: manager.tabs,
+            groupsById: groupsById(manager),
+            panelCardPanelIdsByWorkspaceId: [:]
+        )
+
+        #expect(stacks(items).isEmpty)
+        #expect(!workspaceRowIds(items).contains(member))
+    }
 }

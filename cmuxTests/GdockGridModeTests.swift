@@ -487,6 +487,43 @@ import CmuxTerminalCore
         }
     }
 
+    /// Rollover from a repository group's visible grid must keep the moved
+    /// panel inside that group. The swallow was a listing bug (collapsed
+    /// members dropped their card stacks), not a membership drop — this
+    /// guards the membership half so it cannot regress into the same symptom.
+    @Test @MainActor
+    func repoGroupRolloverKeepsTheMovedPanelInTheGroup() throws {
+        try withGridReconcileContext { _, manager in
+            let workspace = try #require(manager.selectedWorkspace)
+            let pane = try #require(workspace.bonsplitController.allPaneIds.first)
+            for _ in 0..<3 {
+                _ = try #require(workspace.newTerminalSurface(inPane: pane, focus: false))
+            }
+            _ = GdockGridSplitAction.applyShape(.quad, to: workspace)
+            let originalPanelIds = Set(workspace.panels.keys).subtracting(workspace.gdockGridPlaceholderPanelIds)
+            let groupId = try #require(manager.createWorkspaceGroup(
+                name: "stokd-cloud/gdock",
+                childWorkspaceIds: [workspace.id],
+                selectAnchor: false,
+                collapseSidebarSelection: false,
+                insertDedicatedAnchor: false
+            ))
+
+            #expect(manager.gdockGridModeRouteNewSurface())
+
+            let movedPanelIds = originalPanelIds.filter { panelId in
+                workspace.panels[panelId] == nil
+            }
+            #expect(!movedPanelIds.isEmpty)
+            for panelId in movedPanelIds {
+                let host = try #require(manager.tabs.first { $0.panels[panelId] != nil })
+                #expect(host.groupId == groupId)
+            }
+            #expect(workspace.groupId == groupId)
+            #expect(manager.tabs.filter { $0.groupId == groupId }.count == 2)
+        }
+    }
+
     @Test func newSurfaceActivatesPlaceholderBeforeRollingOverARealPanel() {
         let first = UUID(), placeholder = UUID(), third = UUID()
         let route = GdockGridNewSurfacePlanner.route(
