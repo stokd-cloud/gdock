@@ -45,7 +45,9 @@ struct SidebarWorkspaceGroupHeaderMetrics: Equatable {
     /// Pinned group glyph point size at the default sidebar font size.
     static let basePinnedIconFontSize: CGFloat = 9
     /// Group name point size at the default sidebar font size.
-    static let baseNameFontSize: CGFloat = 11
+    /// Larger than the workspace-row title (`12.5`) so the group reads as the
+    /// section heading above its members.
+    static let baseNameFontSize: CGFloat = 14
     /// Unread badge point size at the default sidebar font size.
     static let baseUnreadFontSize: CGFloat = 10
     /// Unread badge horizontal padding at the default sidebar font size.

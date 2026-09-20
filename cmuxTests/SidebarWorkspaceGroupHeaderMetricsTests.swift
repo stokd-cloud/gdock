@@ -68,6 +68,13 @@ import Testing
         #expect(rowScale > 1)
     }
 
+    @Test func groupNameIsLargerThanWorkspaceTitle() {
+        let groupName = SidebarWorkspaceGroupHeaderMetrics(fontScale: 1).nameFontSize
+        let workspaceTitle: CGFloat = 12.5
+
+        #expect(groupName > workspaceTitle)
+    }
+
     @Test func groupPlusAndWorkspaceCloseShareTrailingXPositions() {
         let closeButtonWidth = SidebarTrailingAccessoryWidthPolicy().closeButtonWidth
         let metrics = SidebarWorkspaceGroupHeaderMetrics(fontScale: 1)
