@@ -2,6 +2,26 @@
 
 **Product:** ghostty-dock (short: **gdock**) — cmux fork.
 
+## Submodule gitlinks — never commit worktree sharing-symlinks
+
+`vendor/bonsplit`, `ghostty`, and `homebrew-cmux` must stay mode `160000`
+gitlinks. Do not `ln -s` another worktree's checkout into those paths and then
+`git add` them. That records a mode `120000` absolute `/opt/worktrees/...`
+symlink (PR #37), every later checkout recreates the symlink, `git submodule
+update` replaces it with a real directory, and `git status` shows
+`M vendor/bonsplit` forever.
+
+- Sharing a checkout across worktrees is a **local untracked** shortcut. Leave
+  it unstaged. Never `git add vendor/bonsplit` or `git add ghostty` after
+  making a symlink.
+- Do not `git checkout -- vendor/bonsplit` to "clean" status when HEAD is a
+  `120000` symlink — that restores the bug.
+- `scripts/lint-submodule-gitlinks.sh` and `tests/test_ci_submodule_gitlinks.sh`
+  fail if a `.gitmodules` path is not a gitlink or if any committed symlink
+  target is absolute. Relative skill / `AGENTS.md` links are allowed.
+- Pins: `vendor/bonsplit` `18f3f8bc2ac3019d0f30b41586f4785950af6de7`,
+  `ghostty` `f76c132e526f124fe4aaebd39f516751656844bc`.
+
 ## New settings and command-palette IDs
 
 **Every new setting and palette command added for this fork must be prefixed with `gdock`.**
